@@ -1531,12 +1531,13 @@ textarea.form-input{resize:none;min-height:64px;font-family:inherit;line-height:
    အတွက်ချည်း သီးသန့် config ဖြစ်ရပါမယ်)
    ========================================================= */
 const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_PROJECT.firebaseapp.com",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_PROJECT.appspot.com",
-  messagingSenderId: "YOUR_SENDER_ID",
-  appId: "YOUR_APP_ID"
+  apiKey: "AIzaSyB4kcQXS-C3zXxKg2Lj1TPllEAbJ30noY4",
+  authDomain: "pca-store-47a7f.firebaseapp.com",
+  projectId: "pca-store-47a7f",
+  storageBucket: "pca-store-47a7f.firebasestorage.app",
+  messagingSenderId: "720925768139",
+  appId: "1:720925768139:web:cc4f1ae89dfd8bd1f2de4e",
+  measurementId: "G-QHC6V0C7HD"
 };
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
@@ -4041,7 +4042,7 @@ async function startGoogleSignIn(){
     } else if(err.code === "auth/popup-closed-by-user"){
       // user closed the popup — no error message needed
     } else {
-      loginErrorEl.textContent = "Sign-in မအောင်မြင်ပါ — ထပ်စမ်းကြည့်ပါ";
+      loginErrorEl.textContent = `Sign-in မအောင်မြင်ပါ — ${err.code || err.message || "unknown error"}`;
     }
   } finally {
     setSignInBtnLoading(false);
@@ -4052,7 +4053,7 @@ googleSignInBtn.addEventListener("click", startGoogleSignIn);
 authPersistenceReady.then(async ()=>{
   // Completes the sign-in if we just came back from a signInWithRedirect() fallback.
   try{ await auth.getRedirectResult(); }
-  catch(err){ console.error("Redirect sign-in result error", err); loginErrorEl.textContent = "Sign-in မအောင်မြင်ပါ — ထပ်စမ်းကြည့်ပါ"; }
+  catch(err){ console.error("Redirect sign-in result error", err); loginErrorEl.textContent = `Sign-in မအောင်မြင်ပါ — ${err.code || err.message || "unknown error"}`; }
 
   auth.onAuthStateChanged(user=>{
     if(!user){
