@@ -1538,7 +1538,6 @@ textarea.form-input{resize:none;min-height:64px;font-family:inherit;line-height:
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-auth-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.12.2/firebase-storage-compat.js"></script>
 <script>
 /* =========================================================
    FIREBASE CONFIG
@@ -1560,7 +1559,6 @@ const firebaseConfig = {
 firebase.initializeApp(firebaseConfig);
 const auth = firebase.auth();
 const db = firebase.firestore();
-const storage = firebase.storage();
 
 /* Keep the visitor signed in across sessions on this device */
 const authPersistenceReady = auth.setPersistence(firebase.auth.Auth.Persistence.LOCAL).catch(err=>{
@@ -2359,7 +2357,7 @@ document.getElementById("purchaseConfirmBtn").addEventListener("click", async ()
       closePurchaseModal();
       setTimeout(()=>document.querySelector('.nav-btn[data-page="wallet"]').click(), 700);
     }else{
-      showToast(t("toast_topup_submitted",{amt:""}) || "Error", "alert");
+      showToast(`မအောင်မြင်ပါ — ${err.code || err.message || "unknown error"}`, "alert");
       console.error(err);
     }
   }finally{
@@ -2609,20 +2607,21 @@ function updateConfirmEnabled(){
 document.getElementById("receiptUploadBox").addEventListener("click", ()=>{
   document.getElementById("receiptFileInput").click();
 });
-document.getElementById("receiptFileInput").addEventListener("change", e=>{
+document.getElementById("receiptFileInput").addEventListener("change", async e=>{
   const file = e.target.files[0];
   if(!file) return;
-  const reader = new FileReader();
-  reader.onload = ev=>{
-    receiptDataUrl = ev.target.result;
+  try{
+    receiptDataUrl = await compressImageFile(file, 900, 0.65);
     const preview = document.getElementById("receiptPreview");
     preview.src = receiptDataUrl;
     preview.style.display = "";
     document.getElementById("receiptPlaceholder").style.display = "none";
     document.getElementById("receiptUploadBox").classList.add("has-image");
     updateConfirmEnabled();
-  };
-  reader.readAsDataURL(file);
+  }catch(err){
+    console.error("Receipt compress failed", err);
+    showToast("ပုံဖတ်လို့ မရပါ — ထပ်စမ်းပါ", "alert");
+  }
 });
 document.getElementById("transferConfirmCheck").addEventListener("change", updateConfirmEnabled);
 
@@ -2640,13 +2639,9 @@ document.getElementById("modalConfirm").addEventListener("click", async ()=>{
 
   btn.disabled = true;
   try{
-    let receiptUrl = null;
-    if(receiptDataUrl){
-      const path = `receipts/${currentUid}/${Date.now()}.jpg`;
-      const ref = storage.ref(path);
-      await ref.putString(receiptDataUrl, "data_url");
-      receiptUrl = await ref.getDownloadURL();
-    }
+    // receiptDataUrl is already a compressed base64 data-URL (see the
+    // receiptFileInput handler above) — stored directly in Firestore,
+    // no Firebase Storage / Blaze billing plan required.
     await db.collection("users").doc(currentUid).collection("transactions").add({
       category: "topup",
       uid: currentUid,
@@ -2657,14 +2652,14 @@ document.getElementById("modalConfirm").addEventListener("click", async ()=>{
       method: method,
       type: "in",
       status: "pending",
-      receiptUrl: receiptUrl,
+      receiptUrl: receiptDataUrl || null,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
     goToStep(3);
-    notifyTelegramAdmin(`💰 <b>New top-up</b>\nMethod: ${method}\nAmount: ${fmt(amt)} Ks\nFrom: ${profileData.name || "Player"}${receiptUrl ? "\nReceipt: "+receiptUrl : ""}`);
+    notifyTelegramAdmin(`💰 <b>New top-up</b>\nMethod: ${method}\nAmount: ${fmt(amt)} Ks\nFrom: ${profileData.name || "Player"}`);
   }catch(err){
     console.error(err);
-    showToast(t("toast_min_amount"), "alert");
+    showToast(`မအောင်မြင်ပါ — ${err.code || err.message || "unknown error"}`, "alert");
   }finally{
     btn.disabled = false;
   }
@@ -3520,11 +3515,10 @@ const SETTINGS_PANELS = {
           camBtn = document.getElementById("avaCamBtn"); // render() rebuilt the DOM
           camBtn.classList.add("loading");
           camBtn.disabled = true;
-          const ref = storage.ref(`avatars/${currentUid}.jpg`);
-          await ref.putString(compressed, "data_url");
-          const url = await ref.getDownloadURL();
-          profileData.avatarUrl = url;
-          await db.collection("users").doc(currentUid).set({avatarUrl:url}, {merge:true});
+          // Stored directly as a compressed base64 data-URL in Firestore
+          // (no Firebase Storage / Blaze billing plan required).
+          await db.collection("users").doc(currentUid).set({avatarUrl:compressed}, {merge:true});
+          profileData.avatarUrl = compressed;
           updateHeaderProfile();
           showToast(t("toast_avatar_updated"), "check-circle");
         }catch(err){
