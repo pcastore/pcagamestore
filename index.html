@@ -744,6 +744,15 @@ button{cursor:pointer;font-family:inherit;}
 .step-dots span{width:22px;height:4px;border-radius:2px;background:var(--border);transition:background .2s,width .2s;}
 .step-dots span.active{background:var(--blue);width:30px;}
 
+/* ===== Top-up success step ===== */
+.topup-success-icon{
+  width:64px;height:64px;border-radius:50%;margin:8px auto 16px;
+  background:rgba(47,232,139,.14);color:var(--green);
+  display:flex;align-items:center;justify-content:center;
+}
+.topup-success-title{font-size:16.5px;font-weight:800;margin-bottom:6px;}
+.topup-success-sub{font-size:12px;color:var(--text-faint);line-height:1.5;margin-bottom:22px;padding:0 6px;}
+
 /* ===== Purchase summary card ===== */
 .purchase-summary-card{
   display:flex;align-items:center;gap:12px;
@@ -1347,6 +1356,15 @@ textarea.form-input{resize:none;min-height:64px;font-family:inherit;line-height:
         <span data-i18n="topup_confirm_check_lbl">ငွေလွှဲပြီးပါပြီ</span>
       </label>
       <button class="modal-confirm" id="modalConfirm" disabled><span data-i18n="topup_confirm_btn">အတည်ပြုမည်</span></button>
+    </div>
+
+    <!-- STEP 3: success -->
+    <div id="topupStep3" style="display:none;text-align:center;padding:6px 4px 2px;">
+      <div class="topup-success-icon"><svg class="icon" style="width:34px;height:34px"><use href="#i-check-circle"></use></svg></div>
+      <div class="topup-success-title" data-i18n="topup_success_title">တင်သွင်းပြီးပါပြီ</div>
+      <div class="topup-success-sub" data-i18n="topup_success_sub">Admin မှ စစ်ဆေးပြီးပါက coin ကို wallet ထဲသို့ အလိုအလျောက် ထည့်ပေးပါမည်</div>
+      <button class="modal-confirm" id="topupHistoryBtn"><span data-i18n="topup_view_history_btn">မှတ်တမ်း ကြည့်ရန်</span></button>
+      <button class="btn-ghost" id="topupDoneBtn" style="width:100%;margin-top:10px;padding:12px;border-radius:10px;font-size:13.5px;font-weight:700;" data-i18n="topup_done_btn">ပြီးပါပြီ</button>
     </div>
   </div>
 
@@ -2455,8 +2473,11 @@ let receiptDataUrl = null;
 function goToStep(step){
   document.getElementById("topupStep1").style.display = step===1 ? "" : "none";
   document.getElementById("topupStep2").style.display = step===2 ? "" : "none";
+  document.getElementById("topupStep3").style.display = step===3 ? "" : "none";
   document.getElementById("modalBack").style.display = step===2 ? "" : "none";
-  document.getElementById("topupModalTitle").textContent = step===2 ? t("topup_modal_title2") : t("topup_modal_title");
+  document.getElementById("modalClose").style.display = step===3 ? "none" : "";
+  document.getElementById("stepDots").style.display = step===3 ? "none" : "";
+  document.getElementById("topupModalTitle").textContent = step===3 ? t("topup_modal_title3") : (step===2 ? t("topup_modal_title2") : t("topup_modal_title"));
   document.querySelectorAll("#stepDots span").forEach(d=>d.classList.toggle("active", parseInt(d.dataset.step,10)===step));
 }
 function resetTopupModal(){
@@ -2639,8 +2660,7 @@ document.getElementById("modalConfirm").addEventListener("click", async ()=>{
       receiptUrl: receiptUrl,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
-    closeModal();
-    showToast(t("toast_topup_submitted",{amt:fmt(amt)}), "wallet");
+    goToStep(3);
     notifyTelegramAdmin(`💰 <b>New top-up</b>\nMethod: ${method}\nAmount: ${fmt(amt)} Ks\nFrom: ${profileData.name || "Player"}${receiptUrl ? "\nReceipt: "+receiptUrl : ""}`);
   }catch(err){
     console.error(err);
@@ -2667,6 +2687,12 @@ document.getElementById("paymentList").addEventListener("click", e=>{
 document.getElementById("viewHistoryBtn").addEventListener("click", ()=>{
   document.querySelector('.nav-btn[data-page="history"]').click();
 });
+
+document.getElementById("topupHistoryBtn").addEventListener("click", ()=>{
+  closeModal();
+  document.querySelector('.nav-btn[data-page="history"]').click();
+});
+document.getElementById("topupDoneBtn").addEventListener("click", closeModal);
 
 /* ---------- NOTIFICATIONS ---------- */
 const navDot = document.querySelector(".nav-dot");
@@ -2801,12 +2827,13 @@ const I18N = {
     notif_promo_desc:"ဘောနပ် ငွေ ရရှိပါပြီ", notif_topup_pending_desc:"ငွေဖြည့်တောင်းဆိုမှု တင်ပြီးပါပြီ၊ အတည်ပြုရန် စောင့်ဆိုင်းနေပါသည်",
     topup_modal_title:"ငွေဖြည့်ရန်", topup_modal_amount_lbl:"ပမာဏ ရွေးချယ်ပါ", topup_modal_method_lbl:"ငွေပေးချေမှု နည်းလမ်း",
     topup_modal_confirm_prefix:"ငွေဖြည့်မည်", settings_default_title:"ဆက်တင်",
-    topup_modal_title2:"ငွေလွှဲရန်", topup_modal_next_btn:"ဆက်လုပ်မည်", topup_modal_other_amt:"+ ကိုယ်ပိုင်ပမာဏ ရိုက်ထည့်မည်",
+    topup_modal_title2:"ငွေလွှဲရန်", topup_modal_title3:"တင်သွင်းပြီးပါပြီ", topup_modal_next_btn:"ဆက်လုပ်မည်", topup_modal_other_amt:"+ ကိုယ်ပိုင်ပမာဏ ရိုက်ထည့်မည်",
     topup_modal_stepper_hint:"5 သောင်း အထက် ဖြစ်ပါက + / − ခလုတ်ဖြင့် 5 သောင်းမှ 10 သိန်းအထိ ချိန်ညှိနိုင်သည်",
     topup_step2_sub:"အောက်ပါ အကောင့်သို့ ငွေလွှဲပါ", topup_pay_method_lbl:"နည်းလမ်း", topup_pay_name_lbl:"အမည်",
     topup_pay_phone_lbl:"ဖုန်းနံပါတ်", topup_pay_amount_lbl:"လွှဲရမည့်ပမာဏ",
     topup_receipt_lbl:"ငွေလွှဲပြေစာ တင်ရန်", topup_receipt_placeholder:"ပြေစာ ပုံတင်ရန် နှိပ်ပါ",
     topup_confirm_check_lbl:"ငွေလွှဲပြီးပါပြီ", topup_confirm_btn:"အတည်ပြုမည်",
+    topup_success_title:"တင်သွင်းပြီးပါပြီ", topup_success_sub:"Admin မှ စစ်ဆေးပြီးပါက coin ကို wallet ထဲသို့ အလိုအလျောက် ထည့်ပေးပါမည်", topup_view_history_btn:"မှတ်တမ်း ကြည့်ရန်", topup_done_btn:"ပြီးပါပြီ",
     toast_min_amount:"အနည်းဆုံး ပမာဏ 500 Ks ဖြစ်ရပါမည်", toast_phone_copied:"ဖုန်းနံပါတ် ကူးယူပြီးပါပြီ",
     toast_topup_approved:"{amt} Ks ဖြည့်သွင်းမှု အောင်မြင်ပါပြီ 🎉",
     pkg_ribbon_best:"အရောင်းရဆုံး", pkg_buy_btn:"ဝယ်မည်", pkg_none_for_game:"ဒီ Game အတွက် Package မရှိသေးပါ", pay_select_btn:"ရွေးမည်",
@@ -2907,12 +2934,13 @@ const I18N = {
     notif_promo_desc:"Bonus credited to your wallet", notif_topup_pending_desc:"Your top-up request has been submitted, awaiting confirmation",
     topup_modal_title:"Top Up", topup_modal_amount_lbl:"Select amount", topup_modal_method_lbl:"Payment method",
     topup_modal_confirm_prefix:"Top Up", settings_default_title:"Settings",
-    topup_modal_title2:"Transfer", topup_modal_next_btn:"Continue", topup_modal_other_amt:"+ Enter a custom amount",
+    topup_modal_title2:"Transfer", topup_modal_title3:"Submitted", topup_modal_next_btn:"Continue", topup_modal_other_amt:"+ Enter a custom amount",
     topup_modal_stepper_hint:"For 50,000 and above, use + / − to adjust from 50,000 up to 1,000,000",
     topup_step2_sub:"Transfer to the account below", topup_pay_method_lbl:"Method", topup_pay_name_lbl:"Name",
     topup_pay_phone_lbl:"Phone number", topup_pay_amount_lbl:"Amount to transfer",
     topup_receipt_lbl:"Upload transfer receipt", topup_receipt_placeholder:"Tap to upload receipt",
     topup_confirm_check_lbl:"I have transferred the money", topup_confirm_btn:"Confirm",
+    topup_success_title:"Submitted successfully", topup_success_sub:"Once admin reviews your receipt, the coins will be added to your wallet automatically", topup_view_history_btn:"View History", topup_done_btn:"Done",
     toast_min_amount:"Minimum amount is 500 Ks", toast_phone_copied:"Phone number copied",
     toast_topup_approved:"Top-up of {amt} Ks was successful 🎉",
     pkg_ribbon_best:"Best Seller", pkg_buy_btn:"Buy", pkg_none_for_game:"No packages available for this game yet", pay_select_btn:"Select",
@@ -3013,12 +3041,13 @@ const I18N = {
     notif_promo_desc:"奖励金已存入钱包", notif_topup_pending_desc:"充值申请已提交，等待确认中",
     topup_modal_title:"充值", topup_modal_amount_lbl:"选择金额", topup_modal_method_lbl:"支付方式",
     topup_modal_confirm_prefix:"确认充值", settings_default_title:"设置",
-    topup_modal_title2:"转账", topup_modal_next_btn:"继续", topup_modal_other_amt:"+ 输入自定义金额",
+    topup_modal_title2:"转账", topup_modal_title3:"已提交", topup_modal_next_btn:"继续", topup_modal_other_amt:"+ 输入自定义金额",
     topup_modal_stepper_hint:"金额达到50,000以上时，可用 + / − 在50,000至1,000,000之间调整",
     topup_step2_sub:"请转账至以下账户", topup_pay_method_lbl:"方式", topup_pay_name_lbl:"姓名",
     topup_pay_phone_lbl:"电话号码", topup_pay_amount_lbl:"应转账金额",
     topup_receipt_lbl:"上传转账凭证", topup_receipt_placeholder:"点击上传凭证",
     topup_confirm_check_lbl:"我已完成转账", topup_confirm_btn:"确认",
+    topup_success_title:"提交成功", topup_success_sub:"管理员审核收据后，金币将自动存入您的钱包", topup_view_history_btn:"查看记录", topup_done_btn:"完成",
     toast_min_amount:"最低金额为500 Ks", toast_phone_copied:"电话号码已复制",
     toast_topup_approved:"{amt} Ks 充值成功 🎉",
     pkg_ribbon_best:"最畅销", pkg_buy_btn:"购买", pkg_none_for_game:"该游戏暂无套餐", pay_select_btn:"选择",
@@ -3098,12 +3127,13 @@ const I18N = {
     notif_promo_desc:"ボーナスがウォレットに反映されました", notif_topup_pending_desc:"チャージ申請を送信しました。確認をお待ちください",
     topup_modal_title:"チャージ", topup_modal_amount_lbl:"金額を選択", topup_modal_method_lbl:"支払い方法",
     topup_modal_confirm_prefix:"チャージする", settings_default_title:"設定",
-    topup_modal_title2:"送金", topup_modal_next_btn:"次へ", topup_modal_other_amt:"+ 金額を入力する",
+    topup_modal_title2:"送金", topup_modal_title3:"送信済み", topup_modal_next_btn:"次へ", topup_modal_other_amt:"+ 金額を入力する",
     topup_modal_stepper_hint:"50,000以上の場合、+ / − で50,000〜1,000,000の範囲で調整できます",
     topup_step2_sub:"以下の口座に送金してください", topup_pay_method_lbl:"方法", topup_pay_name_lbl:"名前",
     topup_pay_phone_lbl:"電話番号", topup_pay_amount_lbl:"送金金額",
     topup_receipt_lbl:"送金の証明書をアップロード", topup_receipt_placeholder:"タップしてアップロード",
     topup_confirm_check_lbl:"送金が完了しました", topup_confirm_btn:"確認する",
+    topup_success_title:"送信が完了しました", topup_success_sub:"管理者が確認後、コインは自動的にウォレットへ追加されます", topup_view_history_btn:"履歴を見る", topup_done_btn:"完了",
     toast_min_amount:"最低金額は500 Ksです", toast_phone_copied:"電話番号をコピーしました",
     toast_topup_approved:"{amt} Ksのチャージが完了しました 🎉",
     pkg_ribbon_best:"ベストセラー", pkg_buy_btn:"購入", pkg_none_for_game:"このゲームのパッケージはまだありません", pay_select_btn:"選択",
