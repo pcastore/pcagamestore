@@ -981,9 +981,72 @@ textarea.form-input{resize:none;min-height:64px;font-family:inherit;line-height:
 .toast.show{opacity:1;transform:translate(-50%,0) scale(1);}
 .toast .icon{color:var(--green);flex-shrink:0;}
 .toast.toast-alert .icon{color:var(--red);}
+
+/* ===== Login Gate (Google-only sign-in) ===== */
+.login-gate{
+  position:fixed;inset:0;z-index:300;background:var(--bg);
+  display:none;align-items:center;justify-content:center;padding:28px;
+}
+.login-gate.show{display:flex;}
+.login-gate::before{
+  content:"";position:absolute;inset:0;
+  background:radial-gradient(circle at 50% 20%, rgba(255,46,159,.18), transparent 55%),
+             radial-gradient(circle at 80% 80%, rgba(34,225,255,.14), transparent 50%);
+  pointer-events:none;
+}
+.login-card{position:relative;width:100%;max-width:340px;text-align:center;}
+.login-logo{
+  width:64px;height:64px;border-radius:18px;margin:0 auto 18px;
+  background:var(--surface-2);border:1px solid var(--border);
+  display:flex;align-items:center;justify-content:center;
+  overflow:hidden;position:relative;
+}
+.login-logo img{width:100%;height:100%;object-fit:cover;display:block;}
+.logo-skeleton{
+  display:grid;grid-template-columns:repeat(2,1fr);grid-template-rows:repeat(2,1fr);
+  gap:4px;width:100%;height:100%;padding:10px;
+}
+.logo-skeleton span{background:var(--surface-3);border-radius:4px;animation:logo-skeleton-pulse 1.4s ease-in-out infinite;}
+.logo-skeleton span:nth-child(2){animation-delay:.15s;}
+.logo-skeleton span:nth-child(3){animation-delay:.3s;}
+.logo-skeleton span:nth-child(4){animation-delay:.45s;}
+@keyframes logo-skeleton-pulse{0%,100%{opacity:.35;}50%{opacity:.85;}}
+.login-title{font-size:19px;font-weight:800;margin-bottom:6px;}
+.login-sub{font-size:12.5px;color:var(--text-faint);margin-bottom:30px;line-height:1.5;}
+.google-signin-btn{
+  width:100%;padding:13px 16px;border-radius:10px;border:1px solid var(--border);
+  background:#fff;color:#1f1f1f;font-size:14.5px;font-weight:700;
+  display:flex;align-items:center;justify-content:center;gap:10px;
+  cursor:pointer;transition:opacity .12s ease,transform .12s ease;
+}
+.google-signin-btn:active{opacity:.85;transform:scale(.98);}
+.google-signin-btn.loading{opacity:.6;pointer-events:none;}
+.google-signin-btn svg{width:19px;height:19px;flex-shrink:0;}
+.login-note{font-size:11px;color:var(--text-faint);margin-top:18px;line-height:1.5;}
+.login-error{font-size:11.5px;color:var(--red);margin-top:14px;min-height:14px;}
 </style>
 </head>
 <body>
+
+<!-- LOGIN GATE: blocks the app until the visitor signs in with Google -->
+<div class="login-gate show" id="loginGate">
+  <div class="login-card">
+    <div class="login-logo" id="appLogoBox"><span class="logo-skeleton"><span></span><span></span><span></span><span></span></span></div>
+    <div class="login-title">PCA Game Store</div>
+    <div class="login-sub">အကောင့်ဝင်ရောက်ရန် Google Account ဖြင့်သာ Login ဝင်ပါ</div>
+    <button class="google-signin-btn" id="googleSignInBtn">
+      <svg viewBox="0 0 48 48" aria-hidden="true">
+        <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.9 32.5 29.4 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6 29.6 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
+        <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.8 1.1 8 3l5.7-5.7C34.6 6 29.6 4 24 4c-7.5 0-14 4.2-17.7 10.7z"/>
+        <path fill="#4CAF50" d="M24 44c5.5 0 10.4-1.9 14.2-5.1l-6.6-5.6C29.6 35 26.9 36 24 36c-5.4 0-9.9-3.5-11.3-8.3l-6.6 5.1C9.9 39.6 16.4 44 24 44z"/>
+        <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-1 3-3.1 5.4-5.8 7l6.6 5.6C39.4 38 44 32 44 24c0-1.3-.1-2.7-.4-3.5z"/>
+      </svg>
+      <span id="googleSignInBtnLabel">Continue with Google</span>
+    </button>
+    <div class="login-error" id="loginError"></div>
+    <div class="login-note">Login ဝင်ခြင်းဖြင့် Terms of Service နှင့် Privacy Policy ကို သဘောတူပါသည်</div>
+  </div>
+</div>
 
 <svg style="position:absolute;width:0;height:0;overflow:hidden" aria-hidden="true">
 <defs>
@@ -2056,7 +2119,7 @@ function fmt(n){ return n.toLocaleString("en-US"); }
 const CURRENCIES = {
   MMK:{ symbol:"Ks", rate:1,        decimals:0, flag:"🇲🇲", label:"Myanmar Kyat" },
   USD:{ symbol:"$",  rate:1/4500,   decimals:2, flag:"🇺🇸", label:"US Dollar" },
-  THB:{ symbol:"฿",  rate:1/125,    decimals:2, flag:"🇹🇭", label:"Thai Baht" },
+  THB:{ symbol:"฿",  rate:1/130,    decimals:2, flag:"🇹🇭", label:"Thai Baht" },
   SGD:{ symbol:"S$", rate:1/3400,   decimals:2, flag:"🇸🇬", label:"Singapore Dollar" }
 };
 function detectDefaultCurrency(){
@@ -3558,7 +3621,7 @@ const SETTINGS_PANELS = {
         <div class="device-info-note" style="margin-bottom:10px">${t("currency_panel_note")}</div>
         <div>${opts.map(o=>`
           <div class="lang-option ${currentCurrency===o.code?'selected':''}" data-cur="${o.code}">
-            <div class="m-label">${o.flag} ${o.code} <span style="color:var(--text-faint);font-weight:600">— ${o.label}</span></div>
+            <div class="m-label">${o.flag} ${o.code} <span style="color:var(--text-faint);font-weight:600">— ${o.label}${o.code==="MMK" ? "" : `  ·  1 ${o.code} = ${fmt(Math.round(1/o.rate))} Ks`}</span></div>
             <svg class="icon icon-check"><use href="#i-check-sm"></use></svg>
           </div>`).join("")}</div>`;
       settingsBody.querySelectorAll(".lang-option").forEach(row=>{
@@ -3775,7 +3838,9 @@ document.getElementById("chatTelegramBtn").addEventListener("click", ()=>{
 
 document.getElementById("logoutBtn").addEventListener("click", ()=>{
   if(confirm(t("confirm_logout"))){
-    showToast(t("toast_logged_out"), "logout");
+    auth.signOut()
+      .then(()=>showToast(t("toast_logged_out"), "logout"))
+      .catch(err=>{ console.error("Sign-out failed", err); showToast(t("toast_logged_out"), "logout"); });
   }
 });
 
@@ -3810,7 +3875,7 @@ function bindUserDoc(uid){
         await ref.set({
           name: profileData.name, phone: profileData.phone, email: profileData.email,
           birthday: "", gender: "", address: "", telegramChatId: "", bio: "", initials: profileData.initials,
-          avatarUrl: null, googleLinked: false,
+          avatarUrl: profileData.avatarUrl || null, googleLinked: true,
           notifSettings: notifSettings,
           balance: 0,
           referralCode: uid.slice(0,8).toUpperCase(),
@@ -3841,6 +3906,43 @@ function bindUserDoc(uid){
     renderBalance();
     updateHeaderProfile();
   }, err=>console.error("users/{uid} listener error", err));
+}
+
+/* Exchange rates default to the hardcoded values in CURRENCIES above, but
+   get overridden live from Firestore config/currency once admin.html (or
+   any admin) writes to it — so rates can be updated without redeploying
+   this file. MMK always stays rate:1 (it's the base unit). */
+function bindCurrencyConfig(){
+  db.collection("config").doc("currency").onSnapshot(snap=>{
+    if(!snap.exists) return;
+    const d = snap.data();
+    Object.keys(CURRENCIES).forEach(code=>{
+      if(code==="MMK") return; // base unit, never overridden
+      if(typeof d[code] === "number" && d[code] > 0){
+        CURRENCIES[code].rate = 1 / d[code]; // stored as "1 CODE = X MMK"
+      }
+    });
+    renderBalance();
+    if(document.getElementById("settingsTitle")?.textContent === t("settings_title_currency")){
+      SETTINGS_PANELS["currency"].render();
+    }
+  }, err=>console.error("config/currency listener error", err));
+}
+
+/* Loaded once from Firestore config/appearance. Until an admin sets a
+   logoUrl there, the skeleton grid placeholder (already in the HTML)
+   just keeps pulsing instead of showing any letter/fallback icon. */
+function bindAppLogo(){
+  db.collection("config").doc("appearance").onSnapshot(snap=>{
+    const url = snap.exists ? snap.data().logoUrl : null;
+    const box = document.getElementById("appLogoBox");
+    if(!box) return;
+    if(url){
+      box.innerHTML = `<img src="${url}" alt="Logo">`;
+    } else {
+      box.innerHTML = `<span class="logo-skeleton"><span></span><span></span><span></span><span></span></span>`;
+    }
+  }, err=>console.error("config/appearance listener error", err));
 }
 
 function bindTransactions(uid){
@@ -3909,24 +4011,71 @@ function bindLeaderboard(){
     }, err=>console.error("leaderboard listener error", err));
 }
 
-authPersistenceReady.then(()=>{
+/* ---------- GOOGLE-ONLY SIGN-IN ---------- */
+const googleProvider = new firebase.auth.GoogleAuthProvider();
+const loginGate = document.getElementById("loginGate");
+const googleSignInBtn = document.getElementById("googleSignInBtn");
+const loginErrorEl = document.getElementById("loginError");
+
+function showLoginGate(){ loginGate.classList.add("show"); }
+function hideLoginGate(){ loginGate.classList.remove("show"); }
+
+function setSignInBtnLoading(isLoading){
+  googleSignInBtn.classList.toggle("loading", isLoading);
+  document.getElementById("googleSignInBtnLabel").textContent = isLoading ? "Signing in…" : "Continue with Google";
+}
+
+async function startGoogleSignIn(){
+  loginErrorEl.textContent = "";
+  setSignInBtnLoading(true);
+  try{
+    await authPersistenceReady;
+    await auth.signInWithPopup(googleProvider);
+    // onAuthStateChanged below picks up the signed-in user and hides the gate.
+  }catch(err){
+    console.error("Google sign-in failed", err);
+    if(err.code === "auth/popup-blocked" || err.code === "auth/cancelled-popup-request" || err.code === "auth/operation-not-supported-in-this-environment"){
+      // Popup didn't work (common in in-app WebViews/mobile) — fall back to redirect flow.
+      try{ await auth.signInWithRedirect(googleProvider); }
+      catch(err2){ console.error("Google redirect sign-in failed", err2); loginErrorEl.textContent = "Sign-in ကို ဆက်လက်လုပ်ဆောင်၍ မရပါ — ထပ်စမ်းကြည့်ပါ"; }
+    } else if(err.code === "auth/popup-closed-by-user"){
+      // user closed the popup — no error message needed
+    } else {
+      loginErrorEl.textContent = "Sign-in မအောင်မြင်ပါ — ထပ်စမ်းကြည့်ပါ";
+    }
+  } finally {
+    setSignInBtnLoading(false);
+  }
+}
+googleSignInBtn.addEventListener("click", startGoogleSignIn);
+
+authPersistenceReady.then(async ()=>{
+  // Completes the sign-in if we just came back from a signInWithRedirect() fallback.
+  try{ await auth.getRedirectResult(); }
+  catch(err){ console.error("Redirect sign-in result error", err); loginErrorEl.textContent = "Sign-in မအောင်မြင်ပါ — ထပ်စမ်းကြည့်ပါ"; }
+
   auth.onAuthStateChanged(user=>{
     if(!user){
-      auth.signInAnonymously().catch(err=>console.error("Anonymous sign-in failed", err));
+      currentUid = null;
+      showLoginGate();
       return;
     }
-    try{
-      const cachedUid = localStorage.getItem("pca_last_uid");
-      if(cachedUid && cachedUid !== user.uid){
-        console.warn("[PCA Game Store] A new anonymous session was created (previous uid: "+cachedUid+", new uid: "+user.uid+"). This means the browser/WebView did not keep the old session — usually caused by opening the file directly (file://) instead of a hosted https:// URL, or by browser storage/cache being cleared. Balance, avatar, and history are tied to the uid, so a new uid looks like a full reset.");
-      }
-      localStorage.setItem("pca_last_uid", user.uid);
-    }catch(e){ /* localStorage unavailable (private mode etc.) — ignore */ }
+    hideLoginGate();
+    try{ localStorage.setItem("pca_last_uid", user.uid); }
+    catch(e){ /* localStorage unavailable (private mode etc.) — ignore */ }
+
+    // Prefill profile fields from the Google account the first time we see this uid.
+    if(user.displayName) profileData.name = user.displayName;
+    if(user.email) profileData.email = user.email;
+    if(user.photoURL) profileData.avatarUrl = user.photoURL;
+    profileData.googleLinked = true;
+
     currentUid = user.uid;
     bindUserDoc(currentUid);
     bindTransactions(currentUid);
   });
 });
+
 
 /* ---------- INIT ---------- */
 renderGames();
@@ -3943,6 +4092,8 @@ seedFirestoreIfEmpty().catch(err=>console.error("Seed failed (check firebaseConf
 bindCatalog();
 bindLeaderboard();
 bindBullets();
+bindCurrencyConfig();
+bindAppLogo();
 </script>
 </body>
 </html>
