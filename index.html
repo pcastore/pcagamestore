@@ -2692,7 +2692,10 @@ document.getElementById("topupHistoryBtn").addEventListener("click", ()=>{
   closeModal();
   document.querySelector('.nav-btn[data-page="history"]').click();
 });
-document.getElementById("topupDoneBtn").addEventListener("click", closeModal);
+document.getElementById("topupDoneBtn").addEventListener("click", ()=>{
+  closeModal();
+  document.querySelector('.nav-btn[data-page="home"]').click();
+});
 
 /* ---------- NOTIFICATIONS ---------- */
 const navDot = document.querySelector(".nav-dot");
