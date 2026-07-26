@@ -1906,8 +1906,8 @@ async function attemptOrderAutoConfirm(txId){
       if(data.orderId){
         const orderRef = db.collection("orders").doc(data.orderId);
         const orderSnap = await t.get(orderRef);
-        if(orderSnap.exists && orderSnap.data().status==="pending"){
-          t.update(orderRef, { status:"fulfilled", autoConfirmed:true });
+        if(orderSnap.exists && (orderSnap.data().status||"pending")==="pending"){
+          t.update(orderRef, { status:"confirmed", autoConfirmed:true });
         }
       }
     });
@@ -2316,7 +2316,7 @@ document.getElementById("purchaseConfirmBtn").addEventListener("click", async ()
         price: price,
         playerId: idVal,
         serverId: (game && game.needsServerId) ? serverVal : null,
-        status: "pending",           // admin panel flips to fulfilled/cancelled
+        status: "pending",           // admin panel (index.html) flips this to confirmed/rejected
         txId: txRef.id,              // lets the admin panel refund the matching transaction
         createdAt: firebase.firestore.FieldValue.serverTimestamp()
       };
@@ -3881,15 +3881,25 @@ document.querySelector('.nav-btn[data-page="wallet"]').addEventListener("click",
 /* =========================================================
    FIRESTORE LIVE BINDINGS
    ---------------------------------------------------------
-   ADMIN CONTRACT (for the future manage.html / admin panel):
-   - orders/{id}: status "pending" -> admin sets "fulfilled" once the
-     top-up voucher/diamonds are actually delivered, or "cancelled" +
-     refund (increment users/{uid}.balance back) if it can't be filled.
+   ADMIN CONTRACT (implemented in index.html — manage.html/admin panel):
+   - orders/{id}: status "pending" -> admin (index.html "Orders" tab) sets
+     "confirmed" once the diamonds/item are actually delivered, or
+     "rejected" + refund (increment users/{uid}.balance back) if it can't
+     be filled. In the SAME write, index.html also syncs the linked
+     users/{uid}/transactions/{orders/{id}.txId} doc's status to "done" or
+     "cancelled" (see updateOrderStatus() in index.html) — that's the doc
+     this file's bindTransactions() listener below actually reacts to, so
+     the customer sees the admin's decision live, with no extra listener
+     needed on this side. The 2-minute client-side auto-confirm below
+     (attemptOrderAutoConfirm) is only a fallback for whenever admin hasn't
+     acted yet — once the tx doc is no longer "pending" it's a no-op.
    - users/{uid}/transactions/{id} with category:"topup", status:
-     "pending": admin reviews the receiptUrl, then in ONE Firestore
-     transaction: increments users/{uid}.balance by `amount` AND sets
-     this doc's status to "done". Doing both together (not two separate
-     writes) is what keeps balance and transaction history consistent.
+     "pending": admin (index.html "ပိုက်ဆံဖြည့်" / Wallet Top-up tab)
+     reviews the receiptUrl, then in ONE Firestore transaction: increments
+     users/{uid}.balance by `amount` AND sets this doc's status to "done"
+     (or "rejected" with no balance change if the receipt is invalid).
+     Doing both together (not two separate writes) is what keeps balance
+     and transaction history consistent.
    - leaderboard/{uid}: public, safe to read by anyone (name + spent only).
    ========================================================= */
 
