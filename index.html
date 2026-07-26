@@ -221,35 +221,34 @@ body{
 
 /* Game grid */
 .game-grid{
-  display:grid;grid-template-columns:repeat(3,1fr);gap:14px;
+  display:grid;grid-template-columns:repeat(3,1fr);gap:12px 10px;
   padding:4px 14px 8px;
 }
-.game-tile{position:relative;}
+.game-tile{position:relative;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:7px;}
 .game-icon{
-  width:100%;aspect-ratio:1;border-radius:10px;
+  width:100%;aspect-ratio:1;border-radius:16px;
+  background:var(--surface-2);border:1px solid var(--border);
   display:flex;align-items:center;justify-content:center;
   font-weight:800;font-size:18px;color:#fff;
   position:relative;overflow:hidden;
-  transition:transform .12s ease;
+  transition:transform .12s ease,box-shadow .18s ease,border-color .18s ease;
 }
+.game-tile:active .game-icon{transform:scale(.93);}
+.game-icon img{width:100%;height:100%;object-fit:cover;display:block;}
 .game-name{
-  position:absolute;left:0;right:0;bottom:0;z-index:1;
-  padding:20px 6px 8px;
-  font-size:12px;font-weight:700;color:#fff;text-align:center;
-  background:linear-gradient(to top, rgba(0,0,0,.8) 0%, rgba(0,0,0,.42) 55%, rgba(0,0,0,0) 100%);
-  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
-  pointer-events:none;
+  font-size:11.5px;font-weight:700;color:var(--text-dim);text-align:center;
+  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;width:100%;
 }
 .sel-badge{
-  position:absolute;bottom:-4px;right:-4px;
-  width:21px;height:21px;border-radius:50%;background:var(--green);
+  position:absolute;top:5px;right:5px;
+  width:19px;height:19px;border-radius:50%;background:var(--green);
   display:none;align-items:center;justify-content:center;
   border:2px solid var(--bg);color:#fff;
   z-index:2;
 }
-.sel-badge .icon{width:11px;height:11px;stroke-width:3;}
+.sel-badge .icon{width:10px;height:10px;stroke-width:3;}
 .game-tile.selected .sel-badge{display:flex;}
-.game-tile.selected .game-icon{box-shadow:0 0 0 3px var(--bg),0 0 0 5px var(--green),0 4px 16px rgba(47,232,139,.4);}
+.game-tile.selected .game-icon{border-color:var(--cyan);box-shadow:0 0 0 3px var(--cyan-soft),0 4px 16px rgba(34,225,255,.25);}
 .game-icon.skeleton{
   background:linear-gradient(100deg,var(--surface-2) 30%,var(--surface-3) 50%,var(--surface-2) 70%);
   background-size:220% 100%;
@@ -1573,6 +1572,47 @@ if(location.protocol === "file:"){
   console.warn("[PCA Game Store] Opened via file:// — browsers often refuse to persist login sessions and cached data under this origin, so data may appear to reset on reload. Host this file on a real web server (e.g. Firebase Hosting) and open it via https:// for data to persist reliably.");
 }
 
+/* Environment banner: warns the visitor (in Burmese, on the login card)
+   when they're in an environment that can't reliably keep them signed in —
+   file:// origin, or a Facebook/Instagram/Messenger/Line in-app browser
+   (these webviews frequently wipe storage/cookies when the app is closed,
+   which is the #1 real-world cause of "I keep getting logged out"). */
+(function(){
+  const ua = navigator.userAgent || "";
+  const isFileProtocol = location.protocol === "file:";
+  const isInAppBrowser = /FBAN|FBAV|Instagram|Line\/|MicroMessenger|; ?wv\)/i.test(ua);
+  if(!isFileProtocol && !isInAppBrowser) return;
+
+  function mount(){
+    const card = document.querySelector(".login-card");
+    if(!card) return;
+    const banner = document.createElement("div");
+    banner.id = "envWarningBanner";
+    banner.style.cssText = "background:#3a2a00;color:#ffd76a;font-size:12.5px;line-height:1.55;padding:10px 12px;border-radius:10px;margin:0 0 12px;text-align:left;";
+    if(isFileProtocol){
+      banner.innerHTML = "⚠️ ဒီ file ကို local ကနေ (file://) တိုက်ရိုက်ဖွင့်နေလို့ browser က Login session ကို မသိမ်းပေးနိုင်ပါ — ပြန်ဝင်တိုင်း Login ပြန်ဝင်ရပါလိမ့်မယ်။ Web server (ဥပမာ Firebase Hosting) ပေါ် တင်ပြီး https:// နဲ့ ဖွင့်မှသာ Login persist ဖြစ်ပါမယ်။";
+    }else{
+      banner.innerHTML = '⚠️ Facebook/Instagram/Messenger app ထဲက browser ကနေ ဖွင့်နေလို့ App ကို ပိတ်လိုက်တိုင်း Login session ပျောက်တတ်ပါတယ်။ Login persist ဖြစ်ဖို့ အောက်က ခလုတ်ကို နှိပ်ပြီး ပြင်ပ Browser (Chrome/Safari) နဲ့ ဖွင့်ပါ။<br><button id="openExternalBtn" type="button" style="margin-top:8px;padding:8px 14px;border-radius:8px;border:none;background:#ffd76a;color:#1a1200;font-weight:700;font-size:12.5px;cursor:pointer;">Chrome/Safari ထဲဖွင့်မယ်</button>';
+    }
+    card.insertBefore(banner, card.firstChild);
+
+    const btn = document.getElementById("openExternalBtn");
+    if(btn){
+      btn.addEventListener("click", ()=>{
+        const url = location.href;
+        if(/Android/i.test(ua)){
+          location.href = "intent://" + url.replace(/^https?:\/\//,"") + "#Intent;scheme=https;package=com.android.chrome;end";
+        }else{
+          navigator.clipboard?.writeText(url).catch(()=>{});
+          alert("Link ကို Copy ကူးပြီးပါပြီ။ အပေါ်ညာဘက် '•••' ကိုနှိပ်ပြီး 'Open in Safari' ကိုရွေးပေးပါ။");
+        }
+      });
+    }
+  }
+  if(document.readyState === "loading") document.addEventListener("DOMContentLoaded", mount);
+  else mount();
+})();
+
 let currentUid = null;
 let fbReady = false;           // true once we have a uid + user doc loaded at least once
 let unsubUserDoc = null;
@@ -1687,12 +1727,12 @@ function renderGames(){
   el.innerHTML = filtered.map(g=>{
     const i = games.indexOf(g);
     const inner = g.image
-      ? `<img src="${g.image}" alt="${g.name}" style="width:100%;height:100%;object-fit:cover;border-radius:10px">`
+      ? `<img src="${g.image}" alt="${g.name}">`
       : `<svg class="icon skel-glyph"><use href="#i-image"></use></svg>`;
     return `
     <div class="game-tile" data-idx="${i}">
-      <div class="game-icon${g.image ? '' : ' skeleton'}">${inner}<div class="game-name">${g.name}</div></div>
-      <span class="sel-badge">${icon("check")}</span>
+      <div class="game-icon${g.image ? '' : ' skeleton'}">${inner}<span class="sel-badge">${icon("check")}</span></div>
+      <div class="game-name">${g.name}</div>
     </div>`;
   }).join("");
 }
@@ -3099,6 +3139,27 @@ const I18N = {
     notif_leaderboard_lbl:"排行榜提醒", notif_leaderboard_sub:"排名变化时通知",
     settings_title_language:"语言", toast_lang_switched:"已切换为{lang}",
     settings_title_currency:"货币", currency_panel_note:"价格将以您选择的货币显示估算值。钱包余额和付款始终以缅甸元 (Ks) 结算。", toast_currency_switched:"已切换为{cur}",
+    profile_menu_achievements:"成就徽章", profile_menu_wallet_lock:"钱包安全 (PIN/生物识别)",
+    settings_title_achievements:"成就徽章",
+    tier_bronze:"青铜", tier_silver:"白银", tier_gold:"黄金", tier_platinum:"铂金", tier_diamond:"钻石",
+    achievements_spent_lbl:"累计消费 — {amt}", achievements_threshold_lbl:"{amt}以上",
+    achievements_next_lbl:"再消费{amt}即可解锁下一枚徽章", achievements_maxed_lbl:"已达到最高等级！🎉",
+    settings_title_wallet_lock:"钱包安全",
+    lock_title:"钱包已锁定", lock_sub:"请使用PIN码或生物识别继续", lock_wrong_pin:"PIN码错误",
+    lock_toggle_lbl:"启用钱包锁定", lock_toggle_sub:"每次打开钱包时都需要PIN码/生物识别验证",
+    lock_set_pin_title:"设置PIN码", lock_new_pin_lbl:"新PIN码（4位）", lock_confirm_pin_lbl:"确认PIN码",
+    lock_save_pin_btn:"保存PIN码", lock_update_pin_btn:"更改PIN码",
+    lock_biometric_title:"面容ID / 指纹", lock_biometric_enable_btn:"启用生物识别", lock_biometric_enabled:"✓ 生物识别已启用（点击移除）",
+    lock_note:"此锁定仅适用于本设备，不能替代账户级别的安全保护。",
+    toast_lock_need_pin:"请先设置PIN码", toast_lock_pin_invalid:"PIN码必须为4位数字", toast_lock_pin_mismatch:"两次输入的PIN码不一致",
+    toast_lock_pin_saved:"PIN码已保存", toast_lock_biometric_enabled:"生物识别已启用", toast_lock_biometric_removed:"生物识别已移除", toast_lock_biometric_failed:"无法验证生物识别",
+    chat_title:"PCA客服", chat_input_placeholder:"输入消息...", chat_open_telegram:"在Telegram中打开",
+    chat_greeting:"您好！这里是PCA Store客服。点击下方问题快速获取答案，或直接输入您的消息。",
+    chat_q1:"订单需要多久", chat_a1:"订单通常会在2分钟内自动确认。需要人工审核的订单可能需要稍长时间。",
+    chat_q2:"如何提交充值收据", chat_a2:"进入 钱包 > 充值，选择金额，转账后上传收据图片。管理员审核后即会存入余额。",
+    chat_q3:"我要申请退款", chat_a3:"请在此提供订单编号及情况说明，我们会立即转交管理员处理。",
+    chat_sent_ack:"谢谢！已发送给管理员 — 我们会尽快回复您。",
+    toast_chat_sent:"已发送给管理员",
     settings_title_help_support:"帮助与客服",
     faq1_q:"订单发货需要多久？", faq1_a:"大多数订单会在2-5分钟内自动发货。如遇网络问题可能会稍有延迟。",
     faq2_q:"充值后还没收到Coin怎么办？", faq2_a:"可以在记录页面查看状态，若超过10分钟仍未到账，请联系客服。",
@@ -3185,6 +3246,27 @@ const I18N = {
     notif_leaderboard_lbl:"ランキング通知", notif_leaderboard_sub:"順位が変わったとき",
     settings_title_language:"言語", toast_lang_switched:"{lang}に切り替えました",
     settings_title_currency:"通貨", currency_panel_note:"価格は選択した通貨での概算表示です。ウォレット残高とお支払いは常にミャンマーチャット（Ks）で計算されます。", toast_currency_switched:"{cur}に切り替えました",
+    profile_menu_achievements:"実績バッジ", profile_menu_wallet_lock:"ウォレットセキュリティ（PIN/生体認証）",
+    settings_title_achievements:"実績バッジ",
+    tier_bronze:"ブロンズ", tier_silver:"シルバー", tier_gold:"ゴールド", tier_platinum:"プラチナ", tier_diamond:"ダイヤモンド",
+    achievements_spent_lbl:"合計利用額 — {amt}", achievements_threshold_lbl:"{amt}以上",
+    achievements_next_lbl:"あと{amt}利用すると次のバッジが解除されます", achievements_maxed_lbl:"最高ランクに到達しました！🎉",
+    settings_title_wallet_lock:"ウォレットセキュリティ",
+    lock_title:"ウォレットはロックされています", lock_sub:"続けるにはPINまたは生体認証を使用してください", lock_wrong_pin:"PINが間違っています",
+    lock_toggle_lbl:"ウォレットロックを有効化", lock_toggle_sub:"ウォレットを開くたびにPIN/生体認証を要求します",
+    lock_set_pin_title:"PINを設定", lock_new_pin_lbl:"新しいPIN（4桁）", lock_confirm_pin_lbl:"PINを再入力",
+    lock_save_pin_btn:"PINを保存", lock_update_pin_btn:"PINを変更",
+    lock_biometric_title:"Face ID / 指紋認証", lock_biometric_enable_btn:"生体認証を有効化", lock_biometric_enabled:"✓ 生体認証は有効です（タップで解除）",
+    lock_note:"このロックはこの端末のみに適用され、アカウントレベルのセキュリティの代わりにはなりません。",
+    toast_lock_need_pin:"先にPINを設定してください", toast_lock_pin_invalid:"PINは4桁の数字で入力してください", toast_lock_pin_mismatch:"PINが一致しません",
+    toast_lock_pin_saved:"PINを保存しました", toast_lock_biometric_enabled:"生体認証を有効にしました", toast_lock_biometric_removed:"生体認証を解除しました", toast_lock_biometric_failed:"生体認証を確認できませんでした",
+    chat_title:"PCAサポート", chat_input_placeholder:"メッセージを入力...", chat_open_telegram:"Telegramで開く",
+    chat_greeting:"こんにちは！PCA Storeサポートです。下の質問をタップするとすぐに回答が得られます。または自由にメッセージを入力してください。",
+    chat_q1:"注文にどれくらい時間がかかりますか", chat_a1:"注文は通常2分以内に自動確認されます。管理者による手動確認が必要な注文は、もう少し時間がかかる場合があります。",
+    chat_q2:"チャージ領収書の提出方法", chat_a2:"ウォレット＞チャージ を開き金額を選択、送金後に領収書画像をアップロードしてください。管理者の確認後、残高に反映されます。",
+    chat_q3:"返金を希望します", chat_a3:"注文番号と状況をこちらにご記入ください。すぐに管理者へ転送いたします。",
+    chat_sent_ack:"ありがとうございます！管理者に送信しました — まもなくご連絡いたします。",
+    toast_chat_sent:"管理者に送信しました",
     settings_title_help_support:"ヘルプ・サポート",
     faq1_q:"注文の配達にはどれくらいかかりますか？", faq1_a:"ほとんどの注文は2〜5分以内に自動的に配達されます。ネットワークの問題がある場合は少し時間がかかることがあります。",
     faq2_q:"チャージしたのにコインが届きません", faq2_a:"履歴ページでステータスを確認できます。10分以上経っても届かない場合はサポートまでご連絡ください。",
@@ -3206,11 +3288,13 @@ function applyLanguage(lang){
   document.documentElement.lang = lang;
   document.querySelectorAll("[data-i18n]").forEach(el=>{
     const key = el.getAttribute("data-i18n");
-    if(I18N[lang][key]) el.textContent = I18N[lang][key];
+    const val = I18N[lang][key] || I18N.en[key];
+    if(val) el.textContent = val;
   });
   document.querySelectorAll("[data-i18n-placeholder]").forEach(el=>{
     const key = el.getAttribute("data-i18n-placeholder");
-    if(I18N[lang][key]) el.setAttribute("placeholder", I18N[lang][key]);
+    const val = I18N[lang][key] || I18N.en[key];
+    if(val) el.setAttribute("placeholder", val);
   });
   document.getElementById("bellBtn").setAttribute("aria-label", t("notif_panel_title"));
   renderGames(); renderPackages(); renderGameDetailPackages(); renderTx(); renderNotifications(); renderLeaderboard(); renderBullets();
