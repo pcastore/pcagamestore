@@ -24,9 +24,9 @@
         
         /* Marquee Chat (real top-up activity, only shows when real orders exist) */
         .bullet-chat-wrapper {
-            margin: 10px 15px 0;
-            padding: 2.5px;
-            border-radius: 14px;
+            margin: 8px 15px 0;
+            padding: 2px;
+            border-radius: 11px;
             background: linear-gradient(90deg, #ff5f6d, #ffc371, #f9f871, #47cf73, #36a3ff, #a66bff, #ff5f6d);
             background-size: 400% 400%;
             animation: rainbowBorder 6s linear infinite;
@@ -34,9 +34,10 @@
         }
         .bullet-chat-wrapper.show { display: block; }
         @keyframes rainbowBorder { 0% { background-position: 0% 50%; } 100% { background-position: 400% 50%; } }
-        .bullet-chat-container { background: #ffffff; color: #1C1E21; padding: 8px 0; overflow: hidden; white-space: nowrap; border-radius: 11.5px; }
+        .bullet-chat-container { background: #ffffff; color: #1C1E21; padding: 5px 0; overflow: hidden; white-space: nowrap; border-radius: 9.5px; }
         .bullet-chat { display: inline-block; animation: moveBullet 20s linear infinite; }
-        .bullet-chat span { display: inline-flex; align-items: center; gap: 6px; margin-right: 20px; font-size: 13px; background: #F0F2F5; color: #1C1E21; padding: 6px 14px; border-radius: 20px; font-weight: 500; }
+        .bullet-chat span { display: inline-flex; align-items: center; gap: 5px; margin-right: 14px; font-size: 11.5px; background: #F0F2F5; color: #1C1E21; padding: 4px 11px; border-radius: 16px; font-weight: 500; }
+        .bullet-chat span svg { width: 13px; height: 13px; }
         .bullet-chat span b { color: #1877F2; }
         @keyframes moveBullet { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
 
@@ -58,6 +59,10 @@
         .card-body h4 { font-size: 16px; font-weight: 600; margin-bottom: 10px; color: #050505; }
         
         .list-card { background: #ffffff; padding: 15px; border-radius: 10px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #E4E6EB; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .history-card { cursor: pointer; transition: 0.12s; }
+        .history-card:active { transform: scale(0.98); background: #F8FBFF; border-color: #BFDBFE; }
+        .hc-right { display: flex; align-items: center; gap: 10px; }
+        .hc-chevron { color: #BCC0C4; flex-shrink: 0; width: 18px; height: 18px; }
         .list-info h5 { font-size: 15px; color: #050505; margin-bottom: 4px; font-weight: 600; }
         .list-info p { font-size: 13px; color: #65676B; }
         .list-amount { text-align: right; }
@@ -68,6 +73,10 @@
         .badge-warning { background: #FFF3CD; color: #856404; }
         .badge-danger { background: #FDE8E8; color: #C0392B; }
         .badge-processing { background: #E4E6EB; color: #405DE6; }
+        .od-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #F0F2F5; font-size: 13px; }
+        .od-row span { color: #65676B; }
+        .od-row b { color: #050505; font-weight: 600; text-align: right; }
+        .od-row:last-of-type { border-bottom: none; }
         .stat-box { background: #ffffff; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #E4E6EB; border-left: 5px solid #1877F2; box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-bottom: 15px;}
         .stat-box p { font-size: 28px; font-weight: 700; color: #1C1E21; margin: 8px 0 15px 0; }
 
@@ -137,6 +146,21 @@
         .success-box { background: #ffffff; border-radius: 16px; padding: 32px 24px; max-width: 320px; width: 85%; text-align: center; transform: scale(0.85); transition: transform 0.25s ease; }
         .success-overlay.show .success-box { transform: scale(1); }
         .success-check { width: 72px; height: 72px; border-radius: 50%; background: #E7F8EE; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
+
+        /* Profile: circular photo upload control */
+        .avatar-upload-input { display: none; }
+        .avatar-upload-box { position: relative; width: 100px; height: 100px; border-radius: 50%; background: #E7F3FF; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; border: 2px solid #E4E6EB; margin: 4px auto 0; flex-shrink: 0; }
+        .avatar-upload-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .avatar-upload-placeholder { color: #1877F2; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+        .avatar-upload-badge { position: absolute; bottom: 2px; right: 2px; width: 30px; height: 30px; border-radius: 50%; background: #1877F2; color: #fff; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; }
+        .avatar-upload-badge svg { width: 14px; height: 14px; }
+
+        /* Order Detail modal: clean 2-column info grid instead of stacked rows */
+        .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
+        .detail-grid-item { background: #F8F9FA; border: 1px solid #E4E6EB; border-radius: 10px; padding: 10px 12px; }
+        .detail-grid-item.full { grid-column: 1 / -1; }
+        .detail-grid-item span { display: block; font-size: 11px; color: #9C9EA1; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px; }
+        .detail-grid-item b { display: block; font-size: 14px; color: #050505; font-weight: 700; word-break: break-word; }
     </style>
 </head>
 <body>
@@ -222,13 +246,27 @@
             </div>
         </div>
 
-        <!-- PROFILE PAGE (Dummy Data) -->
+        <!-- PROFILE PAGE (saved locally on this device, photo hosted on ImgBB) -->
         <div id="profile" class="page-section">
             <h2 class="title-header">My Profile</h2>
-            <div class="list-card" style="flex-direction: column; align-items: flex-start; gap: 10px;">
-                <p><b>Name:</b> Guest User</p>
-                <p><b>Phone:</b> +95 9 123 456 789</p>
-                <button class="btn" style="background: #E4E6EB; color: #1C1E21; margin-top: 10px;" onclick="showToast('Edit Profile Mode')">Edit Profile</button>
+            <div class="detail-form-card" style="align-items:center;">
+                <label class="avatar-upload-box" id="avatar-upload-box" for="profile-photo-file">
+                    <img id="profile-photo-preview" src="" alt="Profile photo" style="display:none;">
+                    <div class="avatar-upload-placeholder" id="avatar-upload-placeholder">
+                        <svg class="ui-icon" style="width:32px;height:32px;"><use href="#icon-user"></use></svg>
+                    </div>
+                    <span class="avatar-upload-badge"><svg class="ui-icon" style="width:14px;height:14px;"><use href="#icon-camera"></use></svg></span>
+                </label>
+                <input type="file" id="profile-photo-file" class="avatar-upload-input" accept="image/*" onchange="previewProfilePhoto(event)">
+                <p id="profile-photo-status" style="font-size:12px;color:#65676B;display:none;text-align:center;margin-top:8px;"></p>
+                <p style="font-size:11px;color:#9C9EA1;margin-top:6px;text-align:center;">Tap the photo to choose your own picture</p>
+
+                <label style="align-self:flex-start;margin-top:18px;">Name</label>
+                <input type="text" id="profile-name" placeholder="Enter your name" style="width:100%;">
+                <label style="align-self:flex-start;">Phone Number</label>
+                <input type="text" id="profile-phone" placeholder="e.g. +95 9 123 456 789" style="width:100%;">
+
+                <button class="btn btn-primary" id="save-profile-btn" style="margin-top:16px;" onclick="saveProfile()">Save Profile</button>
             </div>
         </div>
 
@@ -317,6 +355,19 @@
         </div>
     </div>
 
+    <!-- Order Detail Modal (tap a History card to view the full order you submitted) -->
+    <div class="modal-overlay" id="order-detail-overlay" onclick="if(event.target===this) closeOrderDetail()">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>Order Details</h3>
+                <div class="modal-close" onclick="closeOrderDetail()">
+                    <svg class="ui-icon" style="width:18px;height:18px;"><use href="#icon-close"></use></svg>
+                </div>
+            </div>
+            <div class="modal-body" id="order-detail-body"></div>
+        </div>
+    </div>
+
     <!-- Bottom Navigation -->
     <nav class="bottom-nav">
         <div class="nav-item active" id="btn-home" onclick="showPage('home')">
@@ -346,6 +397,7 @@
             if (navBtn) navBtn.classList.add('active');
             window.scrollTo(0,0);
             if (pageId === 'history' && window.loadHistory) window.loadHistory();
+            if (pageId === 'profile' && window.renderProfileFields) window.renderProfileFields();
         }
 
         function showToast(message) {
@@ -382,7 +434,7 @@
             window.currentGamePackages = game.packages;
 
             document.getElementById('detail-game-name').innerText = game.name;
-            document.getElementById('detail-game-banner').src = game.image;
+            document.getElementById('detail-game-banner').src = game.banner || game.image;
             document.getElementById('detail-game-banner').alt = game.name;
             loadSavedContactIntoForm();
 
@@ -529,6 +581,85 @@
         window.goHomeFromSuccess = goHomeFromSuccess;
         window.openSuccessOverlay = openSuccessOverlay;
         window.confirmPackagePurchase = confirmPackagePurchase;
+
+        // ---------- Profile (saved on this device via localStorage; photo hosted on ImgBB) ----------
+        let editingProfilePhotoFile = null;
+
+        function getSavedProfile() {
+            try {
+                const raw = localStorage.getItem('gz_profile');
+                return raw ? JSON.parse(raw) : { name: '', phone: '', photo: '' };
+            } catch (e) {
+                return { name: '', phone: '', photo: '' }; // private browsing / storage blocked
+            }
+        }
+
+        function renderProfileFields() {
+            const p = getSavedProfile();
+            document.getElementById('profile-name').value = p.name || '';
+            document.getElementById('profile-phone').value = p.phone || '';
+            const preview = document.getElementById('profile-photo-preview');
+            const placeholder = document.getElementById('avatar-upload-placeholder');
+            if (p.photo) {
+                preview.src = p.photo;
+                preview.style.display = 'block';
+                placeholder.style.display = 'none';
+            } else {
+                preview.src = '';
+                preview.style.display = 'none';
+                placeholder.style.display = 'flex';
+            }
+        }
+
+        function previewProfilePhoto(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            editingProfilePhotoFile = file;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const preview = document.getElementById('profile-photo-preview');
+                preview.src = ev.target.result;
+                preview.style.display = 'block';
+                document.getElementById('avatar-upload-placeholder').style.display = 'none';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        async function saveProfile() {
+            const name = document.getElementById('profile-name').value.trim();
+            const phone = document.getElementById('profile-phone').value.trim();
+            const existing = getSavedProfile();
+            let photoUrl = existing.photo || '';
+
+            const saveBtn = document.getElementById('save-profile-btn');
+            const originalText = saveBtn.innerText;
+            saveBtn.disabled = true;
+            saveBtn.innerText = 'Saving...';
+
+            try {
+                if (editingProfilePhotoFile && window.uploadProfilePhotoToImgBB) {
+                    photoUrl = await window.uploadProfilePhotoToImgBB(editingProfilePhotoFile);
+                }
+                const profile = { name, phone, photo: photoUrl };
+                localStorage.setItem('gz_profile', JSON.stringify(profile));
+                editingProfilePhotoFile = null;
+                window.showToast('Profile saved!');
+            } catch (error) {
+                console.error('Save profile error:', error);
+                window.showToast(error.message || 'Failed to save profile photo.');
+            } finally {
+                saveBtn.disabled = false;
+                saveBtn.innerText = originalText;
+            }
+        }
+
+        window.getSavedProfile = getSavedProfile;
+        window.renderProfileFields = renderProfileFields;
+        window.previewProfilePhoto = previewProfilePhoto;
+        window.saveProfile = saveProfile;
+
+        // Populate the Profile tab immediately in case the page starts there or gets refreshed.
+        renderProfileFields();
     </script>
 
     <!-- FIREBASE CODE -->
@@ -571,6 +702,27 @@
             statusEl.innerText = 'Receipt uploaded ✓';
             return data.data.url;
         }
+
+        // Same free image host, used for the user's own profile picture.
+        async function uploadProfilePhotoToImgBB(file) {
+            const statusEl = document.getElementById('profile-photo-status');
+            statusEl.style.display = 'block';
+            statusEl.innerText = 'Uploading photo...';
+
+            const form = new FormData();
+            form.append('image', file);
+
+            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                method: 'POST',
+                body: form
+            });
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error?.message || 'Photo upload failed');
+
+            statusEl.innerText = 'Photo uploaded ✓';
+            return data.data.url;
+        }
+        window.uploadProfilePhotoToImgBB = uploadProfilePhotoToImgBB;
 
         // Remember the customer's last Player ID locally so History can look up
         // their orders, and so repeat Top Ups don't need retyping every time.
@@ -685,8 +837,11 @@
             return 'badge-warning'; // Pending
         }
 
+        let HISTORY_ORDERS = [];
+
         function renderHistoryOrders(orders) {
             const container = document.getElementById('history-container');
+            HISTORY_ORDERS = orders;
             if (orders.length === 0) {
                 container.innerHTML = '<p class="empty-msg">No orders yet.</p>';
                 return;
@@ -694,23 +849,60 @@
             // Sort newest first (done client-side so no Firestore index is required)
             orders.sort((a, b) => (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0));
 
-            container.innerHTML = orders.map(data => {
+            container.innerHTML = orders.map((data, i) => {
                 const dateStr = data.timestamp ? data.timestamp.toDate().toLocaleString() : 'Just now';
                 const badgeClass = historyBadgeClassFor(data.status);
                 return `
-                    <div class="list-card">
+                    <div class="list-card history-card" onclick="openOrderDetail(${i})">
                         <div class="list-info">
                             <h5>${data.game}</h5>
                             <p>${dateStr}</p>
                         </div>
-                        <div class="list-amount">
-                            <h5>${Number(data.price).toLocaleString()} MMK</h5>
-                            <span class="badge ${badgeClass}">${data.status}</span>
+                        <div class="hc-right">
+                            <div class="list-amount">
+                                <h5>${Number(data.price).toLocaleString()} MMK</h5>
+                                <span class="badge ${badgeClass}">${data.status}</span>
+                            </div>
+                            <svg class="hc-chevron"><use href="#icon-chevron-right"></use></svg>
                         </div>
                     </div>
                 `;
             }).join('');
         }
+
+        function openOrderDetail(index) {
+            const data = HISTORY_ORDERS[index];
+            if (!data) return;
+            const dateStr = data.timestamp ? data.timestamp.toDate().toLocaleString() : 'Just now';
+            const badgeClass = historyBadgeClassFor(data.status);
+            document.getElementById('order-detail-body').innerHTML = `
+                <div style="display:flex;align-items:center;justify-content:space-between;">
+                    <h4 style="font-size:17px;font-weight:700;color:#050505;">${data.game}</h4>
+                    <span class="badge ${badgeClass}">${data.status}</span>
+                </div>
+                <p style="font-size:12px;color:#9C9EA1;margin-top:2px;">${dateStr}</p>
+
+                <div class="detail-grid">
+                    <div class="detail-grid-item"><span>Package</span><b>${data.itemAmount || '-'}</b></div>
+                    <div class="detail-grid-item"><span>Amount Paid</span><b>${Number(data.price).toLocaleString()} MMK</b></div>
+                    <div class="detail-grid-item"><span>In-Game ID</span><b>${data.playerId || '-'}</b></div>
+                    <div class="detail-grid-item"><span>Server ID</span><b>${data.serverId || '-'}</b></div>
+                    <div class="detail-grid-item full"><span>Payment Method</span><b>${data.paymentMethod || '-'}</b></div>
+                </div>
+
+                ${data.receiptUrl ? `
+                    <p class="detail-section-title" style="margin:16px 0 8px;">Payment Receipt</p>
+                    <img src="${data.receiptUrl}" style="width:100%;max-height:260px;object-fit:contain;border-radius:10px;background:#F0F2F5;border:1px solid #E4E6EB;">
+                ` : ''}
+            `;
+            document.getElementById('order-detail-overlay').classList.add('show');
+        }
+
+        function closeOrderDetail() {
+            document.getElementById('order-detail-overlay').classList.remove('show');
+        }
+        window.openOrderDetail = openOrderDetail;
+        window.closeOrderDetail = closeOrderDetail;
 
         // Keeps History live: once attached, order status changes (Pending -> Processing
         // -> Success/Fail) made from the admin panel appear here automatically, with no
