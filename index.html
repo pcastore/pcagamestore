@@ -14,7 +14,13 @@
         /* Header */
         .header { background-color: #ffffff; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .logo { color: #1877F2; font-size: 24px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
-        .header-icon { color: #1C1E21; background: #E4E6EB; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+        .header-icon { position: relative; color: #1C1E21; background: #E4E6EB; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; }
+        .notif-dot { position: absolute; top: 6px; right: 6px; width: 10px; height: 10px; border-radius: 50%; background: #FA3E3E; border: 2px solid #ffffff; display: none; }
+        .notif-dot.show { display: block; }
+        .notif-item { background: #ffffff; padding: 14px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #E4E6EB; }
+        .notif-item h5 { font-size: 15px; color: #050505; margin-bottom: 4px; font-weight: 600; }
+        .notif-item p { font-size: 13px; color: #65676B; margin-bottom: 6px; }
+        .notif-item span { font-size: 11px; color: #9C9EA1; }
         
         /* Marquee Chat */
         .bullet-chat-container { background: #1877F2; color: white; padding: 8px 0; overflow: hidden; white-space: nowrap; }
@@ -30,9 +36,11 @@
         .title-header { font-size: 18px; font-weight: 700; color: #050505; margin-bottom: 15px; border-bottom: 1px solid #E4E6EB; padding-bottom: 10px; }
         
         /* Cards & Lists */
-        .cards-grid { display: grid; grid-template-columns: 1fr; gap: 15px; }
-        .game-card { background: #ffffff; border-radius: 10px; overflow: hidden; box-shadow: 0 1px 3px rgba(0,0,0,0.1); border: 1px solid #E4E6EB; }
-        .game-card img { width: 100%; height: 160px; object-fit: cover; }
+        .cards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .game-card { position: relative; aspect-ratio: 1 / 1; border-radius: 14px; overflow: hidden; box-shadow: 0 1px 4px rgba(0,0,0,0.15); cursor: pointer; transition: transform 0.1s; background: #E4E6EB; }
+        .game-card:active { transform: scale(0.97); }
+        .game-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .game-card-name { position: absolute; left: 0; right: 0; bottom: 0; padding: 18px 10px 10px; background: linear-gradient(to top, rgba(0,0,0,0.8), rgba(0,0,0,0)); color: #fff; font-size: 13px; font-weight: 700; text-shadow: 0 1px 3px rgba(0,0,0,0.5); }
         .card-body { padding: 15px; }
         .card-body h4 { font-size: 16px; font-weight: 600; margin-bottom: 10px; color: #050505; }
         
@@ -63,10 +71,7 @@
         #toast.show { transform: translate(-50%, 0); }
         .empty-msg { text-align: center; color: #65676B; font-size: 14px; padding: 20px 0; }
 
-        /* Package Selection Modal */
-        .game-card { cursor: pointer; transition: transform 0.1s; }
-        .game-card:active { transform: scale(0.98); }
-        .card-cta { display: flex; align-items: center; justify-content: space-between; color: #1877F2; font-size: 13px; font-weight: 600; }
+        /* Package Selection */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: flex-end; justify-content: center; z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
         .modal-overlay.show { opacity: 1; pointer-events: auto; }
         .modal-box { background: #ffffff; width: 100%; max-width: 480px; border-radius: 16px 16px 0 0; padding: 20px; max-height: 80vh; display: flex; flex-direction: column; transform: translateY(100%); transition: transform 0.25s ease; }
@@ -81,6 +86,23 @@
         .po-price { font-size: 14px; font-weight: 700; color: #1877F2; }
         .modal-footer { padding-top: 16px; }
         .modal-footer .btn:disabled { background: #BCC0C4; cursor: not-allowed; }
+
+        /* Checkout: account info, payment methods, success screen */
+        .detail-section-title { font-size: 14px; font-weight: 700; color: #65676B; margin: 18px 0 10px; }
+        .detail-form-card { background: #ffffff; border: 1px solid #E4E6EB; border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 4px; }
+        .detail-form-card label { font-size: 12px; font-weight: 600; color: #65676B; margin-top: 8px; }
+        .detail-form-card label:first-child { margin-top: 0; }
+        .detail-form-card input[type="text"] { padding: 10px; border: 1px solid #E4E6EB; border-radius: 8px; font-size: 14px; }
+        .detail-form-card input[type="file"] { font-size: 13px; }
+        .payment-option { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 2px solid #E4E6EB; border-radius: 10px; cursor: pointer; transition: 0.15s; background: #fff; }
+        .payment-option.selected { border-color: #1877F2; background: #E7F3FF; }
+        .payment-option-icon { width: 38px; height: 38px; border-radius: 8px; background: #1877F2; color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .payment-option-name { font-size: 14px; font-weight: 600; color: #050505; }
+        .success-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; z-index: 300; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
+        .success-overlay.show { opacity: 1; pointer-events: auto; }
+        .success-box { background: #ffffff; border-radius: 16px; padding: 32px 24px; max-width: 320px; width: 85%; text-align: center; transform: scale(0.85); transition: transform 0.25s ease; }
+        .success-overlay.show .success-box { transform: scale(1); }
+        .success-check { width: 72px; height: 72px; border-radius: 50%; background: #E7F8EE; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
     </style>
 </head>
 <body>
@@ -98,6 +120,7 @@
         <symbol id="icon-rocket" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2l.5-.5M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path></symbol>
         <symbol id="icon-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></symbol>
         <symbol id="icon-chevron-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></symbol>
+        <symbol id="icon-chevron-left" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></symbol>
     </svg>
 
     <!-- Toast Notification -->
@@ -106,7 +129,7 @@
     <!-- Header -->
     <header class="header">
         <div class="logo"><svg class="ui-icon"><use href="#icon-gamepad"></use></svg> GameZone</div>
-        <div class="header-icon" onclick="showToast('No new notifications')"><svg class="ui-icon" style="width: 20px;"><use href="#icon-bell"></use></svg></div>
+        <div class="header-icon" onclick="openNotificationsModal()"><svg class="ui-icon" style="width: 20px;"><use href="#icon-bell"></use></svg><span class="notif-dot" id="notif-dot"></span></div>
     </header>
 
     <div class="bullet-chat-container">
@@ -175,21 +198,72 @@
             </div>
         </div>
 
+        <!-- GAME CURRENCY PRICE LIST PAGE -->
+        <div id="game-detail" class="page-section">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+                <div class="header-icon" style="width:36px;height:36px;" onclick="closeGameDetail()">
+                    <svg class="ui-icon" style="width:18px;"><use href="#icon-chevron-left"></use></svg>
+                </div>
+                <h2 style="font-size:18px; font-weight:700; color:#050505;" id="detail-game-name">Game</h2>
+            </div>
+            <img id="detail-game-banner" src="" alt="" style="width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:12px; margin-bottom:8px;">
+
+            <h3 class="detail-section-title">Account Info</h3>
+            <div class="detail-form-card">
+                <label>In-Game ID</label>
+                <input type="text" id="detail-ingame-id" placeholder="Enter your In-Game ID">
+                <label>Server ID <span style="font-weight:400;color:#9C9EA1;">(if your game requires one)</span></label>
+                <input type="text" id="detail-server-id" placeholder="Enter your Server ID (optional)">
+                <label>Contact Phone</label>
+                <input type="text" id="detail-contact-phone" placeholder="09xxxxxxxxx">
+            </div>
+
+            <h3 class="detail-section-title">Select Currency Package</h3>
+            <div id="detail-package-list" style="display:flex; flex-direction:column; gap:10px;"></div>
+
+            <div id="detail-payment-section" style="display:none;">
+                <h3 class="detail-section-title">Payment Method</h3>
+                <div id="detail-payment-methods" style="display:flex; flex-direction:column; gap:10px;"></div>
+
+                <div id="detail-payment-info" class="detail-form-card" style="display:none; margin-top:10px;">
+                    <p style="font-size:12px;color:#65676B;">Transfer the exact amount to:</p>
+                    <p style="font-size:17px;font-weight:700;color:#1877F2;margin-top:2px;" id="pm-number"></p>
+                    <p style="font-size:14px;color:#050505;margin-bottom:4px;" id="pm-name"></p>
+
+                    <label>Upload Payment Receipt</label>
+                    <img id="receipt-preview" src="" style="width:100%;max-height:200px;object-fit:contain;border-radius:8px;display:none;background:#F0F2F5;margin:4px 0;">
+                    <input type="file" id="receipt-file" accept="image/*" onchange="previewReceiptImage(event)">
+                    <p id="receipt-upload-status" style="font-size:12px;color:#65676B;display:none;"></p>
+                </div>
+            </div>
+
+            <button class="btn btn-primary" id="detail-confirm-btn" disabled style="margin-top:20px;" onclick="confirmPackagePurchase(this)">Select a Package</button>
+        </div>
+
     </main>
 
-    <!-- Package Selection Modal -->
-    <div class="modal-overlay" id="package-modal-overlay" onclick="if(event.target===this) closePackageModal()">
+    <!-- Order Success Screen -->
+    <div class="success-overlay" id="success-overlay">
+        <div class="success-box">
+            <div class="success-check">
+                <svg class="ui-icon" style="width:36px;height:36px;color:#28a745;"><use href="#icon-check"></use></svg>
+            </div>
+            <h3 style="font-size:18px;font-weight:700;color:#050505;margin-bottom:8px;">Order Placed!</h3>
+            <p style="font-size:14px;color:#65676B;margin-bottom:20px;">We've received your order and receipt. Our team will confirm it shortly.</p>
+            <button class="btn btn-primary" onclick="goHomeFromSuccess()">Back to Home</button>
+        </div>
+    </div>
+
+    <!-- Notifications Modal -->
+    <div class="modal-overlay" id="notif-modal-overlay" onclick="if(event.target===this) closeNotificationsModal()">
         <div class="modal-box">
             <div class="modal-header">
-                <h3 id="modal-game-name">Game</h3>
-                <div class="modal-close" onclick="closePackageModal()">
+                <h3>Notifications</h3>
+                <div class="modal-close" onclick="closeNotificationsModal()">
                     <svg class="ui-icon" style="width:18px;height:18px;"><use href="#icon-close"></use></svg>
                 </div>
             </div>
-            <div class="modal-body" id="modal-package-list"></div>
-            <div class="modal-footer">
-                <button class="btn btn-primary" id="modal-confirm-btn" disabled onclick="confirmPackagePurchase(this)">Select a Package</button>
-            </div>
+            <div class="modal-body" id="notif-modal-list"></div>
         </div>
     </div>
 
@@ -218,7 +292,8 @@
             document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(m => m.classList.remove('active'));
             document.getElementById(pageId).classList.add('active');
-            document.getElementById(`btn-${pageId}`).classList.add('active');
+            const navBtn = document.getElementById(`btn-${pageId}`);
+            if (navBtn) navBtn.classList.add('active');
             window.scrollTo(0,0);
             if (pageId === 'history' && window.loadHistory) window.loadHistory();
         }
@@ -234,19 +309,35 @@
 
         // Game catalogue (name, image, packages) now lives in Firestore's "games"
         // collection — window.GAMES is kept in sync by the Firebase script below.
+        // Payment methods live in Firestore's "paymentMethods" collection, synced
+        // the same way into window.PAYMENT_METHODS.
         let selectedPackage = null;
         let selectedGameName = null;
+        let selectedPaymentMethod = null;
+        let editingReceiptFile = null;
 
-        function openPackageModal(gameId) {
+        function loadSavedContactIntoForm() {
+            const saved = window.getSavedContact ? window.getSavedContact() : { playerId: '', phone: '' };
+            document.getElementById('detail-ingame-id').value = saved.playerId || '';
+            document.getElementById('detail-contact-phone').value = saved.phone || '';
+            document.getElementById('detail-server-id').value = '';
+        }
+
+        function openGameDetail(gameId) {
             const game = window.GAMES ? window.GAMES[gameId] : null;
             if (!game) return;
             selectedGameName = game.name;
             selectedPackage = null;
+            selectedPaymentMethod = null;
+            editingReceiptFile = null;
             window.currentGamePackages = game.packages;
 
-            document.getElementById('modal-game-name').innerText = game.name;
+            document.getElementById('detail-game-name').innerText = game.name;
+            document.getElementById('detail-game-banner').src = game.image;
+            document.getElementById('detail-game-banner').alt = game.name;
+            loadSavedContactIntoForm();
 
-            const list = document.getElementById('modal-package-list');
+            const list = document.getElementById('detail-package-list');
             list.innerHTML = game.packages.map((pkg, i) => `
                 <div class="package-option" data-index="${i}" onclick="selectPackageOption(${i})">
                     <span class="po-amount">${pkg.amount}</span>
@@ -254,47 +345,132 @@
                 </div>
             `).join('');
 
-            const confirmBtn = document.getElementById('modal-confirm-btn');
+            document.getElementById('detail-payment-section').style.display = 'none';
+            document.getElementById('detail-payment-info').style.display = 'none';
+            document.getElementById('receipt-preview').style.display = 'none';
+            document.getElementById('receipt-file').value = '';
+            document.getElementById('receipt-upload-status').style.display = 'none';
+
+            const confirmBtn = document.getElementById('detail-confirm-btn');
             confirmBtn.disabled = true;
             confirmBtn.innerText = 'Select a Package';
             confirmBtn.style.backgroundColor = '';
 
-            document.getElementById('package-modal-overlay').classList.add('show');
+            showPage('game-detail');
         }
 
         function selectPackageOption(index) {
             selectedPackage = window.currentGamePackages[index];
-            document.querySelectorAll('.package-option').forEach(el => el.classList.remove('selected'));
-            document.querySelector(`.package-option[data-index="${index}"]`).classList.add('selected');
+            document.querySelectorAll('#detail-package-list .package-option').forEach(el => el.classList.remove('selected'));
+            document.querySelector(`#detail-package-list .package-option[data-index="${index}"]`).classList.add('selected');
 
-            const confirmBtn = document.getElementById('modal-confirm-btn');
+            const confirmBtn = document.getElementById('detail-confirm-btn');
             confirmBtn.disabled = false;
             confirmBtn.innerText = `Buy ${selectedPackage.amount} - ${selectedPackage.price.toLocaleString()} MMK`;
+
+            renderPaymentMethods();
+            document.getElementById('detail-payment-section').style.display = 'block';
         }
 
-        function closePackageModal() {
-            document.getElementById('package-modal-overlay').classList.remove('show');
+        function renderPaymentMethods() {
+            const container = document.getElementById('detail-payment-methods');
+            const methods = window.PAYMENT_METHODS || {};
+            const ids = Object.keys(methods);
+            if (ids.length === 0) {
+                container.innerHTML = '<p class="empty-msg">No payment methods available yet. Please contact the store.</p>';
+                return;
+            }
+            container.innerHTML = ids.map(id => {
+                const p = methods[id];
+                return `
+                    <div class="payment-option" data-payment-id="${id}" onclick="selectPaymentMethod('${id}')">
+                        <div class="payment-option-icon"><svg class="ui-icon" style="width:20px;"><use href="#icon-wallet"></use></svg></div>
+                        <span class="payment-option-name">${p.name}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function selectPaymentMethod(id) {
+            const p = (window.PAYMENT_METHODS || {})[id];
+            if (!p) return;
+            selectedPaymentMethod = { id, name: p.name, number: p.number, accountName: p.accountName };
+
+            document.querySelectorAll('#detail-payment-methods .payment-option').forEach(el => el.classList.remove('selected'));
+            document.querySelector(`#detail-payment-methods .payment-option[data-payment-id="${id}"]`).classList.add('selected');
+
+            document.getElementById('pm-number').innerText = p.number;
+            document.getElementById('pm-name').innerText = p.accountName;
+            document.getElementById('detail-payment-info').style.display = 'flex';
+        }
+
+        function previewReceiptImage(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            editingReceiptFile = file;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const img = document.getElementById('receipt-preview');
+                img.src = ev.target.result;
+                img.style.display = 'block';
+            };
+            reader.readAsDataURL(file);
+        }
+
+        function closeGameDetail() {
             selectedPackage = null;
+            selectedPaymentMethod = null;
+            editingReceiptFile = null;
+            showPage('home');
+        }
+
+        function openSuccessOverlay() {
+            document.getElementById('success-overlay').classList.add('show');
+        }
+
+        function goHomeFromSuccess() {
+            document.getElementById('success-overlay').classList.remove('show');
+            closeGameDetail();
         }
 
         async function confirmPackagePurchase(btnElement) {
             if (!selectedPackage) return;
-            await window.placeOrder(selectedGameName, selectedPackage.amount, selectedPackage.price, btnElement);
-            if (btnElement.innerText === 'Order Sent') {
-                setTimeout(closePackageModal, 1200);
-            }
+
+            const inGameId = document.getElementById('detail-ingame-id').value.trim();
+            const serverId = document.getElementById('detail-server-id').value.trim();
+            const contactPhone = document.getElementById('detail-contact-phone').value.trim();
+
+            if (!inGameId) { window.showToast('Please enter your In-Game ID'); return; }
+            if (!contactPhone) { window.showToast('Please enter your contact phone'); return; }
+            if (!selectedPaymentMethod) { window.showToast('Please select a payment method'); return; }
+            if (!editingReceiptFile) { window.showToast('Please upload your payment receipt'); return; }
+
+            await window.submitOrder({
+                gameName: selectedGameName,
+                amount: selectedPackage.amount,
+                price: selectedPackage.price,
+                inGameId,
+                serverId,
+                contactPhone,
+                paymentMethodName: selectedPaymentMethod.name,
+                receiptFile: editingReceiptFile
+            }, btnElement);
         }
 
-        window.openPackageModal = openPackageModal;
+        window.openGameDetail = openGameDetail;
         window.selectPackageOption = selectPackageOption;
-        window.closePackageModal = closePackageModal;
+        window.selectPaymentMethod = selectPaymentMethod;
+        window.previewReceiptImage = previewReceiptImage;
+        window.closeGameDetail = closeGameDetail;
+        window.goHomeFromSuccess = goHomeFromSuccess;
+        window.openSuccessOverlay = openSuccessOverlay;
         window.confirmPackagePurchase = confirmPackagePurchase;
     </script>
 
     <!-- FIREBASE CODE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp, query, where, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, query, where, orderBy, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB4kcQXS-C3zXxKg2Lj1TPllEAbJ30noY4",
@@ -308,6 +484,29 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+
+        // Free image hosting for payment receipts (no Firebase Storage / Blaze plan needed).
+        // Uses the same free ImgBB key as the admin panel's game photo uploads.
+        const IMGBB_API_KEY = "3c061bbc2b77dfb4bcb5d9b8e6509a33";
+
+        async function uploadReceiptToImgBB(file) {
+            const statusEl = document.getElementById('receipt-upload-status');
+            statusEl.style.display = 'block';
+            statusEl.innerText = 'Uploading receipt...';
+
+            const form = new FormData();
+            form.append('image', file);
+
+            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+                method: 'POST',
+                body: form
+            });
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error?.message || 'Receipt upload failed');
+
+            statusEl.innerText = 'Receipt uploaded ✓';
+            return data.data.url;
+        }
 
         // Remember the customer's last Player ID / Phone locally so History can look up
         // their orders, and so repeat Top Ups don't need retyping every time.
@@ -328,40 +527,55 @@
             } catch (e) { /* private browsing - ignore, order itself still succeeds */ }
         }
 
-        async function placeOrder(gameName, amount, price, btnElement) {
-            const saved = getSavedContact();
-            let playerId = prompt(`Please enter your Player ID for ${gameName}:`, saved.playerId);
-            if (!playerId) return; 
-
-            let phoneNo = prompt("Please enter your Contact Phone or Viber Number:", saved.phone);
-            if (!phoneNo) return; 
+        async function submitOrder(orderData, btnElement) {
+            const { gameName, amount, price, inGameId, serverId, contactPhone, paymentMethodName, receiptFile } = orderData;
 
             const originalText = btnElement.innerText;
             btnElement.innerText = "Processing...";
             btnElement.disabled = true;
 
             try {
+                const receiptUrl = await uploadReceiptToImgBB(receiptFile);
+
                 await addDoc(collection(db, "orders"), {
-                    playerId: playerId,
-                    contactPhone: phoneNo,
+                    playerId: inGameId,
+                    serverId: serverId || '',
+                    contactPhone: contactPhone,
                     game: gameName,
                     itemAmount: amount,
                     price: price,
+                    paymentMethod: paymentMethodName,
+                    receiptUrl: receiptUrl,
                     status: "Pending",
                     timestamp: serverTimestamp()
                 });
-                
-                saveContact(playerId, phoneNo);
-                window.showToast("Order Placed Successfully!");
+
+                saveContact(inGameId, contactPhone);
                 btnElement.innerText = "Order Sent";
-                btnElement.style.backgroundColor = "#28a745"; 
+                btnElement.style.backgroundColor = "#28a745";
+                window.openSuccessOverlay();
             } catch (error) {
                 console.error("Firebase Error: ", error);
-                window.showToast("Failed to place order! Check Connection.");
+                window.showToast(error.message || "Failed to place order! Check Connection.");
                 btnElement.innerText = originalText;
                 btnElement.disabled = false;
             }
         }
+
+        // ---------- Payment Methods (live from Firestore "paymentMethods" collection) ----------
+        let paymentMethodsListenerAttached = false;
+        function listenPaymentMethods() {
+            if (paymentMethodsListenerAttached) return;
+            paymentMethodsListenerAttached = true;
+            onSnapshot(collection(db, "paymentMethods"), (snap) => {
+                const methods = {};
+                snap.forEach(docSnap => { methods[docSnap.id] = docSnap.data(); });
+                window.PAYMENT_METHODS = methods;
+            }, (error) => {
+                console.error("Payment methods listener error:", error);
+            });
+        }
+        listenPaymentMethods();
 
         // Loads the current customer's real orders (matched by saved phone number)
         async function loadHistory() {
@@ -426,15 +640,9 @@
             grid.innerHTML = ids.map(id => {
                 const g = GAMES[id];
                 return `
-                    <div class="game-card" onclick="openPackageModal('${id}')">
+                    <div class="game-card" onclick="openGameDetail('${id}')">
                         <img src="${g.image}" alt="${g.name}">
-                        <div class="card-body">
-                            <h4>${g.name}</h4>
-                            <div class="card-cta">
-                                <span>Select Top-up Package</span>
-                                <svg class="svg-icon" style="stroke:#1877F2;"><use href="#icon-chevron-right"></use></svg>
-                            </div>
-                        </div>
+                        <div class="game-card-name">${g.name}</div>
                     </div>
                 `;
             }).join('');
@@ -482,7 +690,73 @@
 
         listenGames();
 
-        window.placeOrder = placeOrder;
+        // ---------- Notifications (broadcast messages from admin) ----------
+        let NOTIFICATIONS = [];
+        let notifListenerAttached = false;
+
+        function getLastSeenNotifTime() {
+            try { return Number(localStorage.getItem('gz_last_seen_notif')) || 0; }
+            catch (e) { return 0; }
+        }
+        function setLastSeenNotifTime(ms) {
+            try { localStorage.setItem('gz_last_seen_notif', String(ms)); }
+            catch (e) { /* private browsing - ignore */ }
+        }
+
+        function updateNotifDot() {
+            const lastSeen = getLastSeenNotifTime();
+            const hasUnread = NOTIFICATIONS.some(n => (n.timestamp?.toMillis() || 0) > lastSeen);
+            document.getElementById('notif-dot').classList.toggle('show', hasUnread);
+        }
+
+        function listenNotifications() {
+            if (notifListenerAttached) return;
+            notifListenerAttached = true;
+            const q = query(collection(db, "notifications"), orderBy("timestamp", "desc"));
+            onSnapshot(q, (snap) => {
+                NOTIFICATIONS = snap.docs.map(d => d.data());
+                updateNotifDot();
+            }, (error) => {
+                console.error("Notifications listener error:", error);
+            });
+        }
+
+        function renderNotificationsModal() {
+            const list = document.getElementById('notif-modal-list');
+            if (NOTIFICATIONS.length === 0) {
+                list.innerHTML = '<p class="empty-msg">No notifications yet.</p>';
+                return;
+            }
+            list.innerHTML = NOTIFICATIONS.map(n => {
+                const dateStr = n.timestamp ? n.timestamp.toDate().toLocaleString() : 'Just now';
+                return `
+                    <div class="notif-item">
+                        <h5>${n.title}</h5>
+                        <p>${n.message}</p>
+                        <span>${dateStr}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function openNotificationsModal() {
+            renderNotificationsModal();
+            document.getElementById('notif-modal-overlay').classList.add('show');
+            const latest = NOTIFICATIONS.reduce((max, n) => Math.max(max, n.timestamp?.toMillis() || 0), 0);
+            if (latest > 0) setLastSeenNotifTime(latest);
+            document.getElementById('notif-dot').classList.remove('show');
+        }
+
+        function closeNotificationsModal() {
+            document.getElementById('notif-modal-overlay').classList.remove('show');
+        }
+
+        listenNotifications();
+
+        window.openNotificationsModal = openNotificationsModal;
+        window.closeNotificationsModal = closeNotificationsModal;
+        window.getSavedContact = getSavedContact;
+        window.submitOrder = submitOrder;
         window.loadHistory = loadHistory;
     </script>
 </body>
