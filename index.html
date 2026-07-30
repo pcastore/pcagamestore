@@ -48,12 +48,12 @@
         .title-header { font-size: 18px; font-weight: 700; color: #050505; margin-bottom: 15px; border-bottom: 1px solid #E4E6EB; padding-bottom: 10px; }
         
         /* Cards & Lists */
-        .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
+        .cards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
         .game-card { cursor: pointer; transition: transform 0.1s; }
         .game-card:active { transform: scale(0.97); }
-        .game-card-img-wrap { aspect-ratio: 1 / 1; border-radius: 12px; overflow: hidden; background: #E4E6EB; border: 1px solid #E4E6EB; }
+        .game-card-img-wrap { aspect-ratio: 1 / 1; border-radius: 14px; overflow: hidden; background: #E4E6EB; border: 1px solid #E4E6EB; }
         .game-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .game-card-name { padding: 6px 2px 0; color: #050505; font-size: 12px; font-weight: 700; text-align: center; line-height: 1.25; }
+        .game-card-name { margin: 8px 0 0; padding: 7px 6px; background: #ffffff; border: 1px solid #E4E6EB; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); color: #050505; font-size: 13px; font-weight: 700; text-align: center; line-height: 1.25; }
         .card-body { padding: 15px; }
         .card-body h4 { font-size: 16px; font-weight: 600; margin-bottom: 10px; color: #050505; }
         
@@ -103,10 +103,11 @@
 
         /* Checkout: account info, payment methods, success screen */
         .detail-section-title { font-size: 14px; font-weight: 700; color: #65676B; margin: 18px 0 10px; }
-        .detail-form-card { background: #ffffff; border: 1px solid #E4E6EB; border-radius: 10px; padding: 14px; display: flex; flex-direction: column; gap: 4px; }
-        .detail-form-card label { font-size: 12px; font-weight: 600; color: #65676B; margin-top: 8px; }
+        .detail-form-card { background: #ffffff; border: 1px solid #E4E6EB; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+        .detail-form-card label { font-size: 13px; font-weight: 700; color: #050505; margin-top: 12px; }
         .detail-form-card label:first-child { margin-top: 0; }
-        .detail-form-card input[type="text"] { padding: 10px; border: 1px solid #E4E6EB; border-radius: 8px; font-size: 14px; }
+        .detail-form-card input[type="text"] { padding: 13px 14px; border: 1.5px solid #E4E6EB; border-radius: 10px; font-size: 15px; margin-top: 6px; transition: 0.15s; }
+        .detail-form-card input[type="text"]:focus { outline: none; border-color: #1877F2; background: #F8FBFF; }
         .detail-form-card input[type="file"] { font-size: 13px; }
         .payment-option { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 2px solid #E4E6EB; border-radius: 10px; cursor: pointer; transition: 0.15s; background: #fff; }
         .payment-option.selected { border-color: #1877F2; background: #E7F3FF; }
