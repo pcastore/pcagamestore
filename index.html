@@ -22,10 +22,22 @@
         .notif-item p { font-size: 13px; color: #65676B; margin-bottom: 6px; }
         .notif-item span { font-size: 11px; color: #9C9EA1; }
         
-        /* Marquee Chat */
-        .bullet-chat-container { background: #1877F2; color: white; padding: 8px 0; overflow: hidden; white-space: nowrap; }
+        /* Marquee Chat (real top-up activity, only shows when real orders exist) */
+        .bullet-chat-wrapper {
+            margin: 10px 15px 0;
+            padding: 2.5px;
+            border-radius: 14px;
+            background: linear-gradient(90deg, #ff5f6d, #ffc371, #f9f871, #47cf73, #36a3ff, #a66bff, #ff5f6d);
+            background-size: 400% 400%;
+            animation: rainbowBorder 6s linear infinite;
+            display: none;
+        }
+        .bullet-chat-wrapper.show { display: block; }
+        @keyframes rainbowBorder { 0% { background-position: 0% 50%; } 100% { background-position: 400% 50%; } }
+        .bullet-chat-container { background: #ffffff; color: #1C1E21; padding: 8px 0; overflow: hidden; white-space: nowrap; border-radius: 11.5px; }
         .bullet-chat { display: inline-block; animation: moveBullet 20s linear infinite; }
-        .bullet-chat span { display: inline-flex; align-items: center; gap: 6px; margin-right: 20px; font-size: 13px; background: rgba(0,0,0,0.2); padding: 6px 14px; border-radius: 20px; font-weight: 500;}
+        .bullet-chat span { display: inline-flex; align-items: center; gap: 6px; margin-right: 20px; font-size: 13px; background: #F0F2F5; color: #1C1E21; padding: 6px 14px; border-radius: 20px; font-weight: 500; }
+        .bullet-chat span b { color: #1877F2; }
         @keyframes moveBullet { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
 
         /* Content & Pages */
@@ -36,12 +48,12 @@
         .title-header { font-size: 18px; font-weight: 700; color: #050505; margin-bottom: 15px; border-bottom: 1px solid #E4E6EB; padding-bottom: 10px; }
         
         /* Cards & Lists */
-        .cards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+        .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         .game-card { cursor: pointer; transition: transform 0.1s; }
         .game-card:active { transform: scale(0.97); }
-        .game-card-img-wrap { aspect-ratio: 1 / 1; border-radius: 14px; overflow: hidden; background: #E4E6EB; border: 1px solid #E4E6EB; }
+        .game-card-img-wrap { aspect-ratio: 1 / 1; border-radius: 12px; overflow: hidden; background: #E4E6EB; border: 1px solid #E4E6EB; }
         .game-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .game-card-name { padding: 8px 2px 0; color: #050505; font-size: 13px; font-weight: 700; text-align: center; }
+        .game-card-name { padding: 6px 2px 0; color: #050505; font-size: 12px; font-weight: 700; text-align: center; line-height: 1.25; }
         .card-body { padding: 15px; }
         .card-body h4 { font-size: 16px; font-weight: 600; margin-bottom: 10px; color: #050505; }
         
@@ -98,8 +110,27 @@
         .detail-form-card input[type="file"] { font-size: 13px; }
         .payment-option { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 2px solid #E4E6EB; border-radius: 10px; cursor: pointer; transition: 0.15s; background: #fff; }
         .payment-option.selected { border-color: #1877F2; background: #E7F3FF; }
-        .payment-option-icon { width: 38px; height: 38px; border-radius: 8px; background: #1877F2; color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        .payment-option-icon { width: 38px; height: 38px; border-radius: 8px; background: #1877F2; color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
+        .payment-option-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .payment-option-name { font-size: 14px; font-weight: 600; color: #050505; }
+        .pm-copy-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+        .pm-copy-btn { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 8px; background: #E7F3FF; color: #1877F2; cursor: pointer; flex-shrink: 0; transition: 0.15s; border: none; }
+        .pm-copy-btn:active { background: #1877F2; color: #fff; transform: scale(0.92); }
+        .pm-copy-btn svg { width: 15px; height: 15px; }
+
+        .upload-shot-input { display: none; }
+        .upload-shot-box { position: relative; border: 2px dashed #BCC0C4; border-radius: 12px; background: #F8F9FA; padding: 18px 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: 0.15s; text-align: center; }
+        .upload-shot-box:active { background: #E7F3FF; border-color: #1877F2; }
+        .upload-shot-box.has-image { padding: 0; border-style: solid; border-color: #1877F2; overflow: hidden; }
+        .upload-shot-box.has-image .upload-shot-icon,
+        .upload-shot-box.has-image .upload-shot-label,
+        .upload-shot-box.has-image .upload-shot-hint { display: none; }
+        .upload-shot-icon { width: 40px; height: 40px; border-radius: 50%; background: #E7F3FF; color: #1877F2; display: flex; align-items: center; justify-content: center; }
+        .upload-shot-label { font-size: 13px; font-weight: 600; color: #050505; }
+        .upload-shot-hint { font-size: 11px; color: #9C9EA1; }
+        .upload-shot-box img { width: 100%; max-height: 220px; object-fit: contain; background: #F0F2F5; display: block; }
+        .upload-shot-change { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.65); color: #fff; font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 20px; display: flex; align-items: center; gap: 5px; }
+        .upload-shot-change svg { width: 13px; height: 13px; }
         .success-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; z-index: 300; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
         .success-overlay.show { opacity: 1; pointer-events: auto; }
         .success-box { background: #ffffff; border-radius: 16px; padding: 32px 24px; max-width: 320px; width: 85%; text-align: center; transform: scale(0.85); transition: transform 0.25s ease; }
@@ -123,6 +154,8 @@
         <symbol id="icon-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></symbol>
         <symbol id="icon-chevron-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></symbol>
         <symbol id="icon-chevron-left" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></symbol>
+        <symbol id="icon-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></symbol>
+        <symbol id="icon-camera" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></symbol>
     </svg>
 
     <!-- Toast Notification -->
@@ -134,11 +167,9 @@
         <div class="header-icon" onclick="openNotificationsModal()"><svg class="ui-icon" style="width: 20px;"><use href="#icon-bell"></use></svg><span class="notif-dot" id="notif-dot"></span></div>
     </header>
 
-    <div class="bullet-chat-container">
-        <div class="bullet-chat">
-            <span><svg class="svg-icon" style="stroke: #FFD700"><use href="#icon-rocket"></use></svg> <b>John Doe</b> top-up 500 Diamonds!</span>
-            <span><svg class="svg-icon" style="stroke: #FFD700"><use href="#icon-rocket"></use></svg> <b>Alice</b> deposited 50,000 MMK!</span>
-            <span><svg class="svg-icon" style="stroke: #FFD700"><use href="#icon-rocket"></use></svg> <b>Mike</b> reached Top 1!</span>
+    <div class="bullet-chat-wrapper" id="bullet-chat-wrapper">
+        <div class="bullet-chat-container">
+            <div class="bullet-chat" id="bullet-chat-track"></div>
         </div>
     </div>
 
@@ -185,7 +216,7 @@
             <h2 class="title-header">My Wallet</h2>
             <div class="stat-box">
                 <h5 style="color: #65676B; font-weight: 500;">Available Balance</h5>
-                <p>150,000 MMK</p>
+                <p>0 MMK</p>
                 <button class="btn btn-primary" onclick="showToast('Deposit Function Coming Soon!')">Deposit Money</button>
             </div>
         </div>
@@ -227,12 +258,30 @@
 
                 <div id="detail-payment-info" class="detail-form-card" style="display:none; margin-top:10px;">
                     <p style="font-size:12px;color:#65676B;">Transfer the exact amount to:</p>
-                    <p style="font-size:17px;font-weight:700;color:#1877F2;margin-top:2px;" id="pm-number"></p>
-                    <p style="font-size:14px;color:#050505;margin-bottom:4px;" id="pm-name"></p>
+                    <div class="pm-copy-row" style="margin-top:2px;">
+                        <p style="font-size:17px;font-weight:700;color:#1877F2;" id="pm-number"></p>
+                        <button type="button" class="pm-copy-btn" onclick="copyPaymentField('pm-number', this)" title="Copy phone number">
+                            <svg class="ui-icon"><use href="#icon-copy"></use></svg>
+                        </button>
+                    </div>
+                    <div class="pm-copy-row" style="margin-bottom:4px;">
+                        <p style="font-size:14px;color:#050505;" id="pm-name"></p>
+                        <button type="button" class="pm-copy-btn" onclick="copyPaymentField('pm-name', this)" title="Copy name">
+                            <svg class="ui-icon"><use href="#icon-copy"></use></svg>
+                        </button>
+                    </div>
 
                     <label>Upload Payment Receipt</label>
-                    <img id="receipt-preview" src="" style="width:100%;max-height:200px;object-fit:contain;border-radius:8px;display:none;background:#F0F2F5;margin:4px 0;">
-                    <input type="file" id="receipt-file" accept="image/*" onchange="previewReceiptImage(event)">
+                    <label class="upload-shot-box" id="upload-shot-box" for="receipt-file">
+                        <div class="upload-shot-icon"><svg class="ui-icon"><use href="#icon-camera"></use></svg></div>
+                        <span class="upload-shot-label">Upload Screenshot</span>
+                        <span class="upload-shot-hint">Tap to choose your payment screenshot</span>
+                        <img id="receipt-preview" src="" style="display:none;">
+                        <span class="upload-shot-change" id="upload-shot-change" style="display:none;">
+                            <svg style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><use href="#icon-camera"></use></svg> Change
+                        </span>
+                    </label>
+                    <input type="file" id="receipt-file" class="upload-shot-input" accept="image/*" onchange="previewReceiptImage(event)">
                     <p id="receipt-upload-status" style="font-size:12px;color:#65676B;display:none;"></p>
                 </div>
             </div>
@@ -349,6 +398,8 @@
             document.getElementById('receipt-preview').style.display = 'none';
             document.getElementById('receipt-file').value = '';
             document.getElementById('receipt-upload-status').style.display = 'none';
+            document.getElementById('upload-shot-box').classList.remove('has-image');
+            document.getElementById('upload-shot-change').style.display = 'none';
 
             const confirmBtn = document.getElementById('detail-confirm-btn');
             confirmBtn.disabled = true;
@@ -383,7 +434,7 @@
                 const p = methods[id];
                 return `
                     <div class="payment-option" data-payment-id="${id}" onclick="selectPaymentMethod('${id}')">
-                        <div class="payment-option-icon"><svg class="ui-icon" style="width:20px;"><use href="#icon-wallet"></use></svg></div>
+                        <div class="payment-option-icon">${p.image ? `<img src="${p.image}" alt="${p.name}">` : '<svg class="ui-icon" style="width:20px;"><use href="#icon-wallet"></use></svg>'}</div>
                         <span class="payment-option-name">${p.name}</span>
                     </div>
                 `;
@@ -412,8 +463,23 @@
                 const img = document.getElementById('receipt-preview');
                 img.src = ev.target.result;
                 img.style.display = 'block';
+                document.getElementById('upload-shot-box').classList.add('has-image');
+                document.getElementById('upload-shot-change').style.display = 'flex';
             };
             reader.readAsDataURL(file);
+        }
+
+        function copyPaymentField(elId, btnEl) {
+            const text = document.getElementById(elId).innerText.trim();
+            if (!text) return;
+            navigator.clipboard.writeText(text).then(() => {
+                window.showToast('Copied!');
+                const original = btnEl.innerHTML;
+                btnEl.innerHTML = '<svg class="ui-icon"><use href="#icon-check"></use></svg>';
+                setTimeout(() => { btnEl.innerHTML = original; }, 1200);
+            }).catch(() => {
+                window.showToast('Could not copy. Please copy manually.');
+            });
         }
 
         function closeGameDetail() {
@@ -457,6 +523,7 @@
         window.selectPackageOption = selectPackageOption;
         window.selectPaymentMethod = selectPaymentMethod;
         window.previewReceiptImage = previewReceiptImage;
+        window.copyPaymentField = copyPaymentField;
         window.closeGameDetail = closeGameDetail;
         window.goHomeFromSuccess = goHomeFromSuccess;
         window.openSuccessOverlay = openSuccessOverlay;
@@ -466,7 +533,7 @@
     <!-- FIREBASE CODE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, serverTimestamp, query, where, orderBy, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, query, where, orderBy, limit, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB4kcQXS-C3zXxKg2Lj1TPllEAbJ30noY4",
@@ -567,6 +634,47 @@
             });
         }
         listenPaymentMethods();
+
+        // ---------- Bullet Chat (live ticker, driven by real orders only) ----------
+        // Shows the most recent real Top Ups placed by customers. Stays hidden
+        // until at least one real order exists in Firestore - nothing fake here.
+        function maskPlayerId(id) {
+            const s = String(id || '').trim();
+            if (!s) return 'Player';
+            if (s.length <= 3) return s[0] + '***';
+            return s.slice(0, 2) + '***' + s.slice(-2);
+        }
+
+        function renderBulletChat(orders) {
+            const wrapper = document.getElementById('bullet-chat-wrapper');
+            const track = document.getElementById('bullet-chat-track');
+            if (!orders || orders.length === 0) {
+                wrapper.classList.remove('show');
+                track.innerHTML = '';
+                return;
+            }
+            const itemsHtml = orders.map(o => `
+                <span><svg class="svg-icon" style="stroke: #FF9F1C"><use href="#icon-rocket"></use></svg> <b>${maskPlayerId(o.playerId)}</b> topped up ${o.itemAmount || ''}${o.game ? ' in ' + o.game : ''}!</span>
+            `).join('');
+            // Duplicate so the marquee loop never shows a visible gap.
+            track.innerHTML = itemsHtml + itemsHtml;
+            wrapper.classList.add('show');
+        }
+
+        let bulletChatListenerAttached = false;
+        function listenBulletChat() {
+            if (bulletChatListenerAttached) return;
+            bulletChatListenerAttached = true;
+            const q = query(collection(db, "orders"), orderBy("timestamp", "desc"), limit(10));
+            onSnapshot(q, (snap) => {
+                const orders = [];
+                snap.forEach(docSnap => orders.push(docSnap.data()));
+                renderBulletChat(orders);
+            }, (error) => {
+                console.error("Bullet chat listener error:", error);
+            });
+        }
+        listenBulletChat();
 
         // Four possible order states: Pending, Processing, Success, Fail
         function historyBadgeClassFor(status) {
