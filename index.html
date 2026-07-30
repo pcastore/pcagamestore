@@ -103,10 +103,10 @@
         .modal-header h3 { font-size: 17px; font-weight: 700; color: #050505; }
         .modal-close { width: 32px; height: 32px; border-radius: 50%; background: #E4E6EB; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
         .modal-body { overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .package-option { display: flex; justify-content: space-between; align-items: center; padding: 12px 14px; border: 2px solid #E4E6EB; border-radius: 10px; cursor: pointer; transition: 0.15s; }
+        .package-option { display: flex; justify-content: space-between; align-items: center; padding: 18px 18px; border: 2px solid #E4E6EB; border-radius: 12px; cursor: pointer; transition: 0.15s; }
         .package-option.selected { border-color: #1877F2; background: #E7F3FF; }
-        .po-amount { font-size: 14px; font-weight: 600; color: #050505; }
-        .po-price { font-size: 14px; font-weight: 700; color: #1877F2; }
+        .po-amount { font-size: 16px; font-weight: 600; color: #050505; }
+        .po-price { font-size: 16px; font-weight: 700; color: #1877F2; }
         .modal-footer { padding-top: 16px; }
         .modal-footer .btn:disabled { background: #BCC0C4; cursor: not-allowed; }
 
@@ -722,6 +722,7 @@
                 localStorage.setItem('gz_profile', JSON.stringify(profile));
                 editingProfilePhotoFile = null;
                 renderMiniProfile();
+                if (window.syncUserToFirestore) window.syncUserToFirestore();
                 window.showToast('Profile saved!');
             } catch (error) {
                 console.error('Save profile error:', error);
@@ -733,6 +734,7 @@
         }
 
         window.getSavedProfile = getSavedProfile;
+        window.getGuestId = getGuestId;
         window.renderProfileFields = renderProfileFields;
         window.renderMiniProfile = renderMiniProfile;
         window.previewProfilePhoto = previewProfilePhoto;
@@ -746,7 +748,7 @@
     <!-- FIREBASE CODE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, serverTimestamp, query, where, orderBy, limit, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, setDoc, serverTimestamp, query, where, orderBy, limit, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB4kcQXS-C3zXxKg2Lj1TPllEAbJ30noY4",
@@ -805,6 +807,27 @@
         }
         window.uploadProfilePhotoToImgBB = uploadProfilePhotoToImgBB;
 
+        // ---------- Sync this customer's profile to Firestore so the Admin panel's
+        // Users tab can list real users (photo, name/guest ID, phone) and pull up
+        // their order history. Keyed by the local guest ID so no login is required.
+        async function syncUserToFirestore() {
+            try {
+                const gid = window.getGuestId ? window.getGuestId() : null;
+                if (!gid) return;
+                const profile = window.getSavedProfile ? window.getSavedProfile() : {};
+                await setDoc(doc(db, "users", gid), {
+                    guestId: gid,
+                    name: profile.name || '',
+                    phone: profile.phone || '',
+                    photo: profile.photo || '',
+                    lastSeen: serverTimestamp()
+                }, { merge: true });
+            } catch (error) {
+                console.error("User sync error:", error);
+            }
+        }
+        window.syncUserToFirestore = syncUserToFirestore;
+
         // ---------- Social Links (Facebook / Telegram / TikTok, managed from the admin panel) ----------
         function renderSocialLinks(data) {
             const links = [
@@ -857,6 +880,9 @@
             try {
                 const receiptUrl = await uploadReceiptToImgBB(receiptFile);
 
+                const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
+                const guestId = window.getGuestId ? window.getGuestId() : '';
+
                 await addDoc(collection(db, "orders"), {
                     playerId: inGameId,
                     serverId: serverId || '',
@@ -866,7 +892,9 @@
                     paymentMethod: paymentMethodName,
                     receiptUrl: receiptUrl,
                     status: "Pending",
-                    timestamp: serverTimestamp()
+                    timestamp: serverTimestamp(),
+                    userId: guestId,
+                    userName: (savedProfile.name && savedProfile.name.trim()) ? savedProfile.name.trim() : guestId
                 });
 
                 saveContact(inGameId);
@@ -1148,6 +1176,7 @@
         }
 
         listenNotifications();
+        syncUserToFirestore();
 
         window.openNotificationsModal = openNotificationsModal;
         window.closeNotificationsModal = closeNotificationsModal;
