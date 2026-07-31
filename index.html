@@ -37,7 +37,7 @@
         .bullet-chat-wrapper.show { display: block; }
         @keyframes rainbowBorder { 0% { background-position: 0% 50%; } 100% { background-position: 400% 50%; } }
         .bullet-chat-container { background: #ffffff; color: #1C1E21; padding: 5px 0; overflow: hidden; white-space: nowrap; border-radius: 9.5px; }
-        .bullet-chat { display: inline-block; animation: moveBullet 40s linear infinite; }
+        .bullet-chat { display: inline-block; animation: moveBullet 90s linear 1 forwards; }
         .bullet-chat span { display: inline-flex; align-items: center; gap: 5px; margin-right: 14px; font-size: 11.5px; background: #F0F2F5; color: #1C1E21; padding: 4px 11px; border-radius: 16px; font-weight: 500; }
         .bullet-chat span svg { width: 13px; height: 13px; }
         .bullet-chat span b { color: #1877F2; }
@@ -101,6 +101,39 @@
         .od-row:last-of-type { border-bottom: none; }
         .stat-box { background: #ffffff; padding: 20px; border-radius: 10px; text-align: center; border: 1px solid #E4E6EB; border-left: 5px solid #1877F2; box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-bottom: 15px;}
         .stat-box p { font-size: 28px; font-weight: 700; color: #1C1E21; margin: 8px 0 15px 0; }
+
+        /* VIP tier badges — colors are set per-tier via inline style from JS,
+           this class just supplies the shared chip shape. */
+        .tier-badge { display: inline-flex; align-items: center; gap: 4px; padding: 3px 9px 3px 7px; border-radius: 12px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+        .tier-badge svg { width: 12px; height: 12px; }
+        .mini-profile-info .tier-badge { margin-top: 3px; }
+
+        /* Profile page: VIP status card (avatar ring, tier, spend stats, progress) */
+        .avatar-upload-box.has-tier-ring { box-shadow: 0 0 0 3px var(--tier-color, #E4E6EB); }
+        .vip-card { background: #ffffff; border: 1px solid #E4E6EB; border-radius: 14px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-top: 14px; }
+        .vip-card-head { display: flex; align-items: center; justify-content: space-between; }
+        .vip-card-head h4 { font-size: 15px; font-weight: 700; color: #050505; }
+        .vip-stats-row { display: flex; gap: 10px; margin-top: 14px; }
+        .vip-stat { flex: 1; text-align: center; background: #F8F9FA; border-radius: 10px; padding: 10px 4px; }
+        .vip-stat b { display: block; font-size: 15px; font-weight: 700; color: #050505; }
+        .vip-stat span { font-size: 11px; color: #9C9EA1; }
+        .vip-progress-label { display: flex; justify-content: space-between; font-size: 12px; color: #65676B; margin-top: 14px; margin-bottom: 6px; }
+        .vip-progress-track { height: 8px; background: #F0F2F5; border-radius: 6px; overflow: hidden; }
+        .vip-progress-fill { height: 100%; border-radius: 6px; background: var(--tier-color, #1877F2); transition: width 0.4s ease; }
+
+        /* Leaderboard rows */
+        .lb-row { display: flex; align-items: center; gap: 12px; padding: 12px 4px; border-bottom: 1px solid #F0F2F5; }
+        .lb-row:last-child { border-bottom: none; }
+        .lb-rank { width: 26px; flex-shrink: 0; text-align: center; font-size: 14px; font-weight: 800; color: #9C9EA1; }
+        .lb-rank.lb-rank-1 { color: #D4A017; }
+        .lb-rank.lb-rank-2 { color: #8E9AAF; }
+        .lb-rank.lb-rank-3 { color: #A9673A; }
+        .lb-avatar { width: 40px; height: 40px; border-radius: 50%; background: #E7F3FF; color: #1877F2; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-weight: 700; font-size: 15px; overflow: hidden; }
+        .lb-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .lb-info { flex: 1; min-width: 0; }
+        .lb-info .lb-name { font-size: 14px; font-weight: 600; color: #050505; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .lb-amount { text-align: right; font-size: 13px; font-weight: 700; color: #050505; flex-shrink: 0; }
+        .lb-you-row { background: #F8FBFF; border-radius: 10px; margin-top: 6px; border: 1px dashed #1877F2; padding: 12px; }
 
         /* Buttons & Nav */
         .btn { width: 100%; padding: 10px; border-radius: 6px; font-weight: 600; font-size: 15px; cursor: pointer; border: none; text-align: center; transition: 0.2s;}
@@ -282,7 +315,8 @@
         </div>
         <div class="mini-profile-info">
             <span id="mini-profile-name">Guest</span>
-            <small>Tap to view profile</small>
+            <div id="mini-profile-tier" style="display:none;"></div>
+            <small id="mini-profile-hint">Tap to view profile</small>
         </div>
         <svg class="ui-icon" style="width:18px;height:18px;color:#BCC0C4;"><use href="#icon-chevron-right"></use></svg>
     </div>
@@ -316,10 +350,12 @@
             </div>
         </div>
 
-        <!-- LEADERBOARD PAGE (no live ranking wired up yet - real empty state, no fake sample data) -->
+        <!-- LEADERBOARD PAGE — ranks real customers by lifetime successful top-up
+             spend, aggregated client-side from the "orders" collection. -->
         <div id="leaderboard" class="page-section">
             <h2 class="title-header">Top Spenders</h2>
-            <p class="empty-msg">No spenders yet.</p>
+            <div id="leaderboard-list"><p class="empty-msg">Loading leaderboard...</p></div>
+            <div id="leaderboard-you"></div>
         </div>
 
         <!-- WALLET PAGE (Dummy Data) -->
@@ -353,6 +389,22 @@
                 <input type="text" id="profile-phone" placeholder="e.g. +95 9 123 456 789" style="width:100%;">
 
                 <button class="btn btn-primary" id="save-profile-btn" style="margin-top:16px;" onclick="saveProfile()">Save Profile</button>
+            </div>
+
+            <div class="vip-card" id="vip-card" style="display:none;">
+                <div class="vip-card-head">
+                    <h4>VIP Status</h4>
+                    <div id="vip-tier-badge"></div>
+                </div>
+                <div class="vip-stats-row">
+                    <div class="vip-stat"><b id="vip-stat-spent">0 MMK</b><span>Total Spent</span></div>
+                    <div class="vip-stat"><b id="vip-stat-orders">0</b><span>Orders</span></div>
+                    <div class="vip-stat"><b id="vip-stat-since">-</b><span>Member Since</span></div>
+                </div>
+                <div id="vip-progress-wrap">
+                    <div class="vip-progress-label"><span id="vip-progress-text">-</span></div>
+                    <div class="vip-progress-track"><div class="vip-progress-fill" id="vip-progress-fill" style="width:0%;"></div></div>
+                </div>
             </div>
 
             <div class="detail-form-card" id="social-links-card" style="margin-top:14px;">
@@ -518,6 +570,8 @@
             window.scrollTo(0,0);
             if (pageId === 'history' && window.loadHistory) window.loadHistory();
             if (pageId === 'profile' && window.renderProfileFields) window.renderProfileFields();
+            if (pageId === 'profile' && window.loadProfileStats) window.loadProfileStats();
+            if (pageId === 'leaderboard' && window.loadLeaderboard) window.loadLeaderboard();
         }
 
         function showToast(message) {
@@ -936,6 +990,7 @@
                 if (!gid) {
                     gid = 'Guest-' + Math.floor(1000 + Math.random() * 9000);
                     localStorage.setItem('gz_guest_id', gid);
+                    localStorage.setItem('gz_member_since', String(Date.now()));
                 }
                 return gid;
             } catch (e) {
@@ -1084,6 +1139,183 @@
             }
         }
         window.syncUserToFirestore = syncUserToFirestore;
+
+        // ---------- VIP Tiers (based on lifetime successful top-up spend) ----------
+        // Ordered highest-to-lowest so tierForSpend() can just find the first
+        // threshold a spend qualifies for. Tune the "min" MMK values here.
+        const VIP_TIERS = [
+            { name: 'Diamond',  min: 2000000, color: '#00B8D9', bg: '#E5FAFD' },
+            { name: 'Platinum', min: 500000,  color: '#5B7DB1', bg: '#EAF0FB' },
+            { name: 'Gold',     min: 100000,  color: '#B8860B', bg: '#FFF6DF' },
+            { name: 'Silver',   min: 20000,   color: '#7C8798', bg: '#F1F3F5' },
+            { name: 'Bronze',   min: 0,       color: '#A9673A', bg: '#FBEEE6' },
+        ];
+        function tierForSpend(spend) {
+            return VIP_TIERS.find(t => spend >= t.min) || VIP_TIERS[VIP_TIERS.length - 1];
+        }
+        // Returns the next tier above the current spend, or null if already at the top.
+        function nextTierForSpend(spend) {
+            const idx = VIP_TIERS.findIndex(t => spend >= t.min);
+            return idx > 0 ? VIP_TIERS[idx - 1] : null;
+        }
+        function formatMMK(n) {
+            return Math.round(n || 0).toLocaleString('en-US') + ' MMK';
+        }
+        function tierBadgeHTML(tier) {
+            return `<span class="tier-badge" style="background:${tier.bg};color:${tier.color};">
+                <svg class="ui-icon" style="stroke:${tier.color};"><use href="#icon-trophy"></use></svg>${tier.name}
+            </span>`;
+        }
+
+        // Sums lifetime successful-order spend for one customer, straight from
+        // Firestore (not cached), so tier/rank are always accurate.
+        async function computeUserStats(guestId) {
+            if (!guestId) return { total: 0, count: 0 };
+            try {
+                const q = query(collection(db, "orders"), where("userId", "==", guestId), where("status", "==", "Success"));
+                const snap = await getDocs(q);
+                let total = 0, count = 0;
+                snap.forEach(d => { total += Number(d.data().price) || 0; count++; });
+                return { total, count };
+            } catch (error) {
+                console.error("computeUserStats error:", error);
+                return { total: 0, count: 0 };
+            }
+        }
+
+        // Populates the mini profile strip's tier chip and the Profile page's
+        // VIP card: current tier, lifetime spend, order count, member-since,
+        // and a progress bar toward the next tier.
+        async function loadProfileStats() {
+            const guestId = window.getGuestId ? window.getGuestId() : '';
+            if (!guestId) return;
+            const { total, count } = await computeUserStats(guestId);
+            const tier = tierForSpend(total);
+            const next = nextTierForSpend(total);
+
+            const miniTierEl = document.getElementById('mini-profile-tier');
+            const miniHintEl = document.getElementById('mini-profile-hint');
+            if (miniTierEl) {
+                miniTierEl.innerHTML = tierBadgeHTML(tier);
+                miniTierEl.style.display = 'block';
+            }
+            if (miniHintEl) miniHintEl.style.display = 'none';
+
+            const vipCard = document.getElementById('vip-card');
+            if (vipCard) {
+                vipCard.style.display = 'block';
+                document.getElementById('vip-tier-badge').innerHTML = tierBadgeHTML(tier);
+                document.getElementById('vip-stat-spent').innerText = formatMMK(total);
+                document.getElementById('vip-stat-orders').innerText = String(count);
+
+                let memberSince = '-';
+                try {
+                    const ts = Number(localStorage.getItem('gz_member_since'));
+                    if (ts) memberSince = new Date(ts).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
+                } catch (e) {}
+                document.getElementById('vip-stat-since').innerText = memberSince;
+
+                const progressText = document.getElementById('vip-progress-text');
+                const progressFill = document.getElementById('vip-progress-fill');
+                progressFill.style.setProperty('--tier-color', tier.color);
+                if (next) {
+                    const remaining = next.min - total;
+                    const span = next.min - tier.min;
+                    const pct = span > 0 ? Math.min(100, Math.max(0, ((total - tier.min) / span) * 100)) : 100;
+                    progressText.innerText = `${formatMMK(remaining)} more to reach ${next.name}`;
+                    progressFill.style.width = pct + '%';
+                } else {
+                    progressText.innerText = 'Highest tier reached 🎉';
+                    progressFill.style.width = '100%';
+                }
+
+                const avatarBox = document.getElementById('avatar-upload-box');
+                if (avatarBox) {
+                    avatarBox.classList.add('has-tier-ring');
+                    avatarBox.style.setProperty('--tier-color', tier.color);
+                }
+            }
+        }
+        window.loadProfileStats = loadProfileStats;
+
+        // Aggregates every successful order by customer, ranks by lifetime
+        // spend, and renders the top 20 — plus the current user's own rank if
+        // they're outside that top 20. All computed client-side from real
+        // order data; nothing here is sample/fake content.
+        async function loadLeaderboard() {
+            const listEl = document.getElementById('leaderboard-list');
+            const youEl = document.getElementById('leaderboard-you');
+            listEl.innerHTML = '<p class="empty-msg">Loading leaderboard...</p>';
+            youEl.innerHTML = '';
+            try {
+                const q = query(collection(db, "orders"), where("status", "==", "Success"));
+                const snap = await getDocs(q);
+                const totals = {}; // userId -> { name, total, count }
+                snap.forEach(docSnap => {
+                    const d = docSnap.data();
+                    const uid = d.userId;
+                    if (!uid) return;
+                    if (!totals[uid]) totals[uid] = { name: d.userName || uid, total: 0, count: 0 };
+                    totals[uid].total += Number(d.price) || 0;
+                    totals[uid].count += 1;
+                    if (d.userName) totals[uid].name = d.userName; // keep latest known name
+                });
+
+                const ranked = Object.entries(totals)
+                    .map(([uid, v]) => ({ uid, ...v }))
+                    .sort((a, b) => b.total - a.total);
+
+                if (ranked.length === 0) {
+                    listEl.innerHTML = '<p class="empty-msg">No spenders yet.</p>';
+                    return;
+                }
+
+                const guestId = window.getGuestId ? window.getGuestId() : '';
+                const top = ranked.slice(0, 20);
+
+                listEl.innerHTML = top.map((r, i) => {
+                    const rank = i + 1;
+                    const tier = tierForSpend(r.total);
+                    const initial = (r.name || '?').trim().charAt(0).toUpperCase() || '?';
+                    const rankClass = rank <= 3 ? ` lb-rank-${rank}` : '';
+                    const isYou = r.uid === guestId;
+                    return `
+                        <div class="lb-row" style="${isYou ? 'background:#F8FBFF;border-radius:10px;' : ''}">
+                            <div class="lb-rank${rankClass}">${rank}</div>
+                            <div class="lb-avatar">${initial}</div>
+                            <div class="lb-info">
+                                <div class="lb-name">${r.name}${isYou ? ' (You)' : ''}</div>
+                                ${tierBadgeHTML(tier)}
+                            </div>
+                            <div class="lb-amount">${formatMMK(r.total)}</div>
+                        </div>
+                    `;
+                }).join('');
+
+                const myRankIndex = ranked.findIndex(r => r.uid === guestId);
+                if (guestId && myRankIndex >= 20) {
+                    const me = ranked[myRankIndex];
+                    const tier = tierForSpend(me.total);
+                    youEl.innerHTML = `
+                        <div class="lb-you-row">
+                            <div class="lb-row" style="border:none;padding:0;">
+                                <div class="lb-rank">#${myRankIndex + 1}</div>
+                                <div class="lb-avatar">${(me.name || '?').trim().charAt(0).toUpperCase()}</div>
+                                <div class="lb-info">
+                                    <div class="lb-name">${me.name} (You)</div>
+                                    ${tierBadgeHTML(tier)}
+                                </div>
+                                <div class="lb-amount">${formatMMK(me.total)}</div>
+                            </div>
+                        </div>
+                    `;
+                }
+            } catch (error) {
+                console.error("Leaderboard load error:", error);
+                listEl.innerHTML = '<p class="empty-msg" style="color:red;">Could not load leaderboard.</p>';
+            }
+        }
+        window.loadLeaderboard = loadLeaderboard;
 
         // ---------- Social Links (Facebook / Telegram / TikTok, managed from the admin panel) ----------
         function renderSocialLinks(data) {
@@ -1289,55 +1521,35 @@
         }
         listenPaymentMethods();
 
-        // ---------- Bullet Chat (live ticker, driven by real orders only) ----------
-        // Shows the most recent real Top Ups placed by customers. Stays hidden
-        // until at least one real order exists in Firestore - nothing fake here.
-        function maskPlayerId(id) {
-            const s = String(id || '').trim();
-            if (!s) return 'Player';
-            if (s.length <= 3) return s[0] + '***';
-            return s.slice(0, 2) + '***' + s.slice(-2);
-        }
-
+        // ---------- Bullet Chat (store ticker, Admin Panel text only) ----------
+        // Shows only the messages written from the Admin Panel's Store Ticker
+        // page. Plays through once per update, then hides itself instead of
+        // looping forever.
         function renderBulletChat() {
             const wrapper = document.getElementById('bullet-chat-wrapper');
             const track = document.getElementById('bullet-chat-track');
-            const hasContent = (latestBulletOrders.length > 0) || (latestAnnouncements.length > 0);
-            if (!hasContent) {
+            if (latestAnnouncements.length === 0) {
                 wrapper.classList.remove('show');
                 track.innerHTML = '';
                 return;
             }
-            // Admin-written messages (shop hours, promos, etc.) come first and
-            // repeat every lap of the ticker; real order activity follows.
-            const announceHtml = latestAnnouncements.map(a => {
+            track.innerHTML = latestAnnouncements.map(a => {
                 const text = String(a.text || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 return `<span style="background:#FFF3CD;color:#856404;"><svg class="svg-icon" style="stroke:#856404"><use href="#icon-megaphone"></use></svg> ${text}</span>`;
             }).join('');
-            const orderHtml = latestBulletOrders.map(o => `
-                <span><svg class="svg-icon" style="stroke: #FF9F1C"><use href="#icon-rocket"></use></svg> <b>${maskPlayerId(o.playerId)}</b> topped up ${o.itemAmount || ''}${o.game ? ' in ' + o.game : ''}!</span>
-            `).join('');
-            const itemsHtml = announceHtml + orderHtml;
-            // Duplicate so the marquee loop never shows a visible gap.
-            track.innerHTML = itemsHtml + itemsHtml;
+
+            // Restart the marquee from the beginning for this update, then hide
+            // the bar once it has scrolled through fully — no continuous loop.
+            track.classList.remove('bullet-chat');
+            void track.offsetWidth; // force reflow so the animation restarts
+            track.classList.add('bullet-chat');
             wrapper.classList.add('show');
+            track.addEventListener('animationend', () => {
+                wrapper.classList.remove('show');
+            }, { once: true });
         }
 
-        let latestBulletOrders = [];
         let latestAnnouncements = [];
-        let bulletChatListenerAttached = false;
-        function listenBulletChat() {
-            if (bulletChatListenerAttached) return;
-            bulletChatListenerAttached = true;
-            const q = query(collection(db, "orders"), orderBy("timestamp", "desc"), limit(10));
-            onSnapshot(q, (snap) => {
-                latestBulletOrders = snap.docs.map(docSnap => docSnap.data());
-                renderBulletChat();
-            }, (error) => {
-                console.error("Bullet chat listener error:", error);
-            });
-        }
-        listenBulletChat();
 
         // Admin-managed announcement messages (e.g. "Open 9AM - 9PM daily") —
         // written from the admin panel's Store Ticker page, shown in the same
@@ -1640,6 +1852,7 @@
 
         listenNotifications();
         syncUserToFirestore();
+        loadProfileStats();
 
         window.openNotificationsModal = openNotificationsModal;
         window.closeNotificationsModal = closeNotificationsModal;
