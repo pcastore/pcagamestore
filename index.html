@@ -124,6 +124,32 @@
         .detail-form-card input[type="text"] { padding: 13px 14px; border: 1.5px solid #E4E6EB; border-radius: 10px; font-size: 15px; margin-top: 6px; transition: 0.15s; }
         .detail-form-card input[type="text"]:focus { outline: none; border-color: #1877F2; background: #F8FBFF; }
         .detail-form-card input[type="file"] { font-size: 13px; }
+
+        /* Confirm ID button - sits full-width below the ID fields with an
+           animated "checking" and "confirmed" state for clear feedback. */
+        .confirm-id-btn { width: 100%; margin-top: 12px; padding: 12px; border: none; border-radius: 10px; background: #1877F2; color: #fff; font-weight: 700; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background-color 0.25s ease, transform 0.15s ease; }
+        .confirm-id-btn:active { transform: scale(0.98); }
+        .confirm-id-btn:disabled { cursor: default; }
+        .confirm-id-btn.checking { background: linear-gradient(90deg, #1877F2 0%, #5AA0FF 50%, #1877F2 100%); background-size: 200% 100%; animation: confirmIdShimmer 1.4s linear infinite; }
+        .confirm-id-btn.confirmed { background: #28a745; animation: confirmIdPop 0.4s ease; }
+        .confirm-id-spinner { display: none; width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.45); border-top-color: #fff; border-radius: 50%; animation: confirmIdSpin 0.6s linear infinite; }
+        .confirm-id-btn.checking .confirm-id-spinner { display: inline-block; }
+        @keyframes confirmIdShimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
+        @keyframes confirmIdSpin { to { transform: rotate(360deg); } }
+        @keyframes confirmIdPop { 0% { transform: scale(0.94); } 55% { transform: scale(1.04); } 100% { transform: scale(1); } }
+
+        /* Resolved player-name display shown after a successful ID check */
+        .id-result-card { display: flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #F0FFF4, #E9FBEF); border: 1px solid #BBF7D0; border-radius: 12px; padding: 10px 12px; animation: idResultIn 0.35s ease; }
+        .id-result-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #28a745, #20c997); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; flex-shrink: 0; }
+        .id-result-info { flex: 1; min-width: 0; }
+        .id-result-name { font-size: 14px; font-weight: 700; color: #050505; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .id-result-label { font-size: 11px; color: #28a745; font-weight: 600; margin-top: 1px; }
+        .id-result-check { width: 20px; height: 20px; border-radius: 50%; background: #28a745; color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 12px; animation: idCheckPop 0.4s ease 0.1s both; }
+        @keyframes idResultIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes idCheckPop { 0% { transform: scale(0); } 70% { transform: scale(1.15); } 100% { transform: scale(1); } }
+
+        .id-fail-card { display: flex; align-items: center; gap: 8px; background: #FDF2F2; border: 1px solid #F5C2C2; border-radius: 10px; padding: 9px 12px; font-size: 12.5px; color: #C0392B; font-weight: 600; animation: idResultIn 0.3s ease; }
+        .id-checking-text { font-size: 12px; color: #9C9EA1; margin: 0; }
         .payment-option { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 2px solid #E4E6EB; border-radius: 10px; cursor: pointer; transition: 0.15s; background: #fff; }
         .payment-option.selected { border-color: #1877F2; background: #E7F3FF; }
         .payment-option-icon { width: 38px; height: 38px; border-radius: 8px; background: #1877F2; color: #fff; display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
@@ -332,14 +358,21 @@
 
             <h3 class="detail-section-title">Account Info</h3>
             <div class="detail-form-card">
-                <label>In-Game ID</label>
-                <div style="display:flex; gap:8px; align-items:flex-start; margin-top:6px;">
-                    <input type="text" id="detail-ingame-id" placeholder="Enter your In-Game ID" oninput="onPlayerIdFieldChange()" style="flex:1; margin-top:0;">
-                    <button type="button" id="confirm-id-btn" onclick="confirmPlayerIdManual()" style="display:none; flex-shrink:0; padding:0 16px; border-radius:10px; border:none; background:#1877F2; color:#fff; font-weight:700; font-size:13px; cursor:pointer; white-space:nowrap;">Confirm ID</button>
+                <div style="display:flex; gap:10px;">
+                    <div style="flex:1;">
+                        <label>In-Game ID</label>
+                        <input type="text" id="detail-ingame-id" placeholder="Enter your ID" oninput="onPlayerIdFieldChange()">
+                    </div>
+                    <div style="flex:1;">
+                        <label>Server ID <span style="font-weight:400;color:#9C9EA1;">(optional)</span></label>
+                        <input type="text" id="detail-server-id" placeholder="Server ID" oninput="onPlayerIdFieldChange()">
+                    </div>
                 </div>
-                <label>Server ID <span style="font-weight:400;color:#9C9EA1;">(if your game requires one)</span></label>
-                <input type="text" id="detail-server-id" placeholder="Enter your Server ID (optional)" oninput="onPlayerIdFieldChange()">
-                <p id="detail-id-status" style="font-size:12px;margin-top:6px;display:none;"></p>
+                <button type="button" id="confirm-id-btn" class="confirm-id-btn" onclick="confirmPlayerIdManual()" style="display:none;">
+                    <span class="confirm-id-spinner" id="confirm-id-spinner"></span>
+                    <span id="confirm-id-btn-text">Confirm ID</span>
+                </button>
+                <div id="detail-id-status" style="margin-top:8px;display:none;"></div>
             </div>
 
             <h3 class="detail-section-title">Select Currency Package</h3>
@@ -501,10 +534,10 @@
             // changed ID. The customer can tap it (or wait for the debounce)
             // to re-check.
             statusEl.style.display = 'none';
-            confirmBtn.style.display = 'block';
+            confirmBtn.style.display = 'flex';
             confirmBtn.disabled = false;
-            confirmBtn.innerText = 'Confirm ID';
-            confirmBtn.style.background = '#1877F2';
+            confirmBtn.classList.remove('checking', 'confirmed');
+            document.getElementById('confirm-id-btn-text').innerText = 'Confirm ID';
 
             playerIdCheckTimer = setTimeout(() => runPlayerIdCheck(), 700);
         }
@@ -519,21 +552,85 @@
         }
         window.confirmPlayerIdManual = confirmPlayerIdManual;
 
+        // Builds the small "Checking ID..." text row.
+        function renderIdCheckingText() {
+            const statusEl = document.getElementById('detail-id-status');
+            statusEl.innerHTML = '';
+            const p = document.createElement('p');
+            p.className = 'id-checking-text';
+            p.textContent = 'Checking ID...';
+            statusEl.appendChild(p);
+            statusEl.style.display = 'block';
+        }
+
+        // Builds the resolved-player card (avatar initial + name + check badge).
+        // G2Bulk's checkPlayerId response only ever returns { valid, name, openid }
+        // - it has no region/server-name field. Region distinctions (Myanmar,
+        // Global, Indonesia, etc.) are handled at the game-code level in G2Bulk
+        // (e.g. "Freefire Indonesia" vs "Freefire Europe" are different codes),
+        // so we show the store's own game name here instead - that's what
+        // actually carries the region info the admin picked.
+        // Built with DOM nodes (not innerHTML string interpolation) since the
+        // player name comes from an external API and shouldn't be trusted as HTML.
+        function renderIdConfirmedCard(name, gameName) {
+            const statusEl = document.getElementById('detail-id-status');
+            statusEl.innerHTML = '';
+            const card = document.createElement('div');
+            card.className = 'id-result-card';
+
+            const avatar = document.createElement('div');
+            avatar.className = 'id-result-avatar';
+            avatar.textContent = (name || '?').trim().charAt(0).toUpperCase();
+
+            const info = document.createElement('div');
+            info.className = 'id-result-info';
+            const nameEl = document.createElement('div');
+            nameEl.className = 'id-result-name';
+            nameEl.textContent = name;
+            const labelEl = document.createElement('div');
+            labelEl.className = 'id-result-label';
+            labelEl.textContent = gameName ? `Verified · ${gameName}` : 'Player verified';
+            info.appendChild(nameEl);
+            info.appendChild(labelEl);
+
+            const check = document.createElement('div');
+            check.className = 'id-result-check';
+            check.textContent = '✓';
+
+            card.appendChild(avatar);
+            card.appendChild(info);
+            card.appendChild(check);
+            statusEl.appendChild(card);
+            statusEl.style.display = 'block';
+        }
+
+        // Builds the "ID not found" message row.
+        function renderIdFailCard() {
+            const statusEl = document.getElementById('detail-id-status');
+            statusEl.innerHTML = '';
+            const card = document.createElement('div');
+            card.className = 'id-fail-card';
+            card.textContent = 'ID not found — please double-check it.';
+            statusEl.appendChild(card);
+            statusEl.style.display = 'block';
+        }
+
         // Shared check logic used by both the debounced auto-check and the
         // manual "Confirm ID" button.
         async function runPlayerIdCheck() {
             const statusEl = document.getElementById('detail-id-status');
             const confirmBtn = document.getElementById('confirm-id-btn');
+            const btnText = document.getElementById('confirm-id-btn-text');
             const playerId = document.getElementById('detail-ingame-id').value.trim();
             const serverId = document.getElementById('detail-server-id').value.trim();
 
             if (!selectedGameG2BulkCode || !playerId) return;
 
-            statusEl.style.display = 'block';
-            statusEl.style.color = '#9C9EA1';
-            statusEl.innerText = 'Checking ID...';
+            renderIdCheckingText();
             confirmBtn.disabled = true;
-            confirmBtn.innerText = 'Checking...';
+            confirmBtn.classList.remove('confirmed');
+            confirmBtn.classList.add('checking');
+            btnText.innerText = 'Checking...';
 
             try {
                 const res = await fetch('https://api.g2bulk.com/v1/games/checkPlayerId', {
@@ -544,25 +641,24 @@
                 const data = await res.json();
                 if (res.ok && data.valid === 'valid') {
                     playerIdVerified = true;
-                    statusEl.style.color = '#28a745';
-                    statusEl.innerText = `Player found: ${data.name} ✓`;
-                    confirmBtn.innerText = 'Confirmed ✓';
-                    confirmBtn.style.background = '#28a745';
+                    renderIdConfirmedCard(data.name, selectedGameName);
+                    confirmBtn.classList.remove('checking');
+                    confirmBtn.classList.add('confirmed');
+                    btnText.innerText = 'Confirmed ✓';
                     confirmBtn.disabled = true;
                 } else {
                     playerIdVerified = false;
-                    statusEl.style.color = '#C0392B';
-                    statusEl.innerText = 'ID not found — please double-check it.';
-                    confirmBtn.innerText = 'Confirm ID';
-                    confirmBtn.style.background = '#1877F2';
+                    renderIdFailCard();
+                    confirmBtn.classList.remove('checking', 'confirmed');
+                    btnText.innerText = 'Confirm ID';
                     confirmBtn.disabled = false;
                 }
             } catch (error) {
                 console.error("checkPlayerId error:", error);
                 playerIdVerified = null; // network hiccup - don't block the order over this
                 statusEl.style.display = 'none';
-                confirmBtn.innerText = 'Confirm ID';
-                confirmBtn.style.background = '#1877F2';
+                confirmBtn.classList.remove('checking', 'confirmed');
+                btnText.innerText = 'Confirm ID';
                 confirmBtn.disabled = false;
             }
         }
@@ -579,8 +675,8 @@
             const idConfirmBtn = document.getElementById('confirm-id-btn');
             idConfirmBtn.style.display = 'none';
             idConfirmBtn.disabled = false;
-            idConfirmBtn.innerText = 'Confirm ID';
-            idConfirmBtn.style.background = '#1877F2';
+            idConfirmBtn.classList.remove('checking', 'confirmed');
+            document.getElementById('confirm-id-btn-text').innerText = 'Confirm ID';
             selectedPaymentMethod = null;
             editingReceiptFile = null;
             window.currentGamePackages = game.packages;
