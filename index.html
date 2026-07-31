@@ -248,6 +248,7 @@
         <symbol id="icon-bell" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></symbol>
         <symbol id="icon-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></symbol>
         <symbol id="icon-rocket" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2l.5-.5M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path></symbol>
+        <symbol id="icon-megaphone" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></symbol>
         <symbol id="icon-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></symbol>
         <symbol id="icon-chevron-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></symbol>
         <symbol id="icon-chevron-left" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></symbol>
@@ -534,6 +535,7 @@
         // the same way into window.PAYMENT_METHODS.
         let selectedPackage = null;
         let selectedGameName = null;
+        let selectedGameId = null;
         let selectedGameG2BulkCode = null;
         let selectedPaymentMethod = null;
         let editingReceiptFile = null;
@@ -541,10 +543,12 @@
         let playerIdCheckTimer = null;
 
         function loadSavedContactIntoForm() {
-            const saved = window.getSavedContact ? window.getSavedContact() : { playerId: '' };
+            // Scoped to the currently open game only, so an ID typed for one game
+            // never auto-fills or shows up as a "recent" suggestion on another game.
+            const saved = window.getSavedContactForGame ? window.getSavedContactForGame(selectedGameId) : { playerId: '' };
             document.getElementById('detail-ingame-id').value = saved.playerId || '';
             document.getElementById('detail-server-id').value = '';
-            if (window.renderRecentIds) window.renderRecentIds();
+            if (window.renderRecentIds) window.renderRecentIds(selectedGameId);
             onPlayerIdFieldChange();
         }
 
@@ -700,6 +704,7 @@
         function openGameDetail(gameId) {
             const game = window.GAMES ? window.GAMES[gameId] : null;
             if (!game) return;
+            selectedGameId = gameId;
             selectedGameName = game.name;
             selectedGameG2BulkCode = game.g2bulkCode || null;
             selectedPackage = null;
@@ -1000,7 +1005,7 @@
     <!-- FIREBASE CODE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, setDoc, serverTimestamp, query, where, orderBy, limit, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, getDoc, setDoc, serverTimestamp, query, where, orderBy, limit, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB4kcQXS-C3zXxKg2Lj1TPllEAbJ30noY4",
@@ -1128,7 +1133,8 @@
         });
 
         // Remember the customer's last Player ID locally so History can look up
-        // their orders, and so repeat Top Ups don't need retyping every time.
+        // their orders across every game they've topped up. This one stays global
+        // on purpose - History isn't scoped to a single game.
         function getSavedContact() {
             try {
                 return { playerId: localStorage.getItem('gz_playerId') || '' };
@@ -1136,40 +1142,58 @@
                 return { playerId: '' }; // private browsing / storage blocked
             }
         }
-        function saveContact(playerId) {
+
+        // Per-game version of the same thing: what ID did the customer last use
+        // FOR THIS SPECIFIC GAME. Prevents a Free Fire ID from auto-filling into
+        // Mobile Legends just because it was the most recently used ID overall.
+        function getSavedContactForGame(gameId) {
+            if (!gameId) return { playerId: '' };
             try {
-                localStorage.setItem('gz_playerId', playerId);
+                return { playerId: localStorage.getItem('gz_playerId:' + gameId) || '' };
+            } catch (e) {
+                return { playerId: '' };
+            }
+        }
+
+        function saveContact(playerId, gameId) {
+            try {
+                localStorage.setItem('gz_playerId', playerId); // global, for History lookup
+                if (gameId) localStorage.setItem('gz_playerId:' + gameId, playerId); // per-game, for prefill
             } catch (e) { /* private browsing - ignore, order itself still succeeds */ }
-            addRecentId(playerId);
+            addRecentId(playerId, gameId);
         }
 
         // Keeps a short history (most-recent-first, deduped) of every ID the
-        // customer has used on this device, so switching back to an ID they
-        // used before doesn't mean retyping it - they just tap a chip.
+        // customer has used on this device FOR EACH GAME SEPARATELY, so the
+        // "Recent IDs" chips on a game's page only ever show IDs that were
+        // actually used for that same game - never mixed in from other games.
         const RECENT_IDS_KEY = 'gz_recent_ids';
         const RECENT_IDS_MAX = 6;
-        function getRecentIds() {
+        function recentIdsStorageKey(gameId) {
+            return gameId ? (RECENT_IDS_KEY + ':' + gameId) : RECENT_IDS_KEY;
+        }
+        function getRecentIds(gameId) {
             try {
-                const list = JSON.parse(localStorage.getItem(RECENT_IDS_KEY) || '[]');
+                const list = JSON.parse(localStorage.getItem(recentIdsStorageKey(gameId)) || '[]');
                 return Array.isArray(list) ? list.filter(id => typeof id === 'string' && id.trim()) : [];
             } catch (e) { return []; }
         }
-        function addRecentId(playerId) {
+        function addRecentId(playerId, gameId) {
             if (!playerId || !playerId.trim()) return;
             try {
                 const cleaned = playerId.trim();
-                let list = getRecentIds().filter(id => id !== cleaned);
+                let list = getRecentIds(gameId).filter(id => id !== cleaned);
                 list.unshift(cleaned);
                 list = list.slice(0, RECENT_IDS_MAX);
-                localStorage.setItem(RECENT_IDS_KEY, JSON.stringify(list));
+                localStorage.setItem(recentIdsStorageKey(gameId), JSON.stringify(list));
             } catch (e) { /* private browsing - ignore */ }
-            renderRecentIds();
+            renderRecentIds(gameId);
         }
-        function renderRecentIds() {
+        function renderRecentIds(gameId) {
             const block = document.getElementById('recent-ids-block');
             const row = document.getElementById('recent-ids-row');
             if (!block || !row) return;
-            const ids = getRecentIds();
+            const ids = getRecentIds(gameId);
             if (ids.length === 0) {
                 block.style.display = 'none';
                 row.innerHTML = '';
@@ -1188,6 +1212,7 @@
         }
         window.fillRecentId = fillRecentId;
         window.renderRecentIds = renderRecentIds;
+        window.getSavedContactForGame = getSavedContactForGame;
 
         async function submitOrder(orderData, btnElement) {
             const { gameName, amount, price, inGameId, serverId, paymentMethodName, receiptFile, g2bulkGameCode, g2bulkCatalogueName } = orderData;
@@ -1197,10 +1222,28 @@
             btnElement.disabled = true;
 
             try {
+                const guestId = window.getGuestId ? window.getGuestId() : '';
+
+                // Banned customers can't place new orders. Checked fresh at
+                // submit time (not cached) so a ban applied mid-session still works.
+                if (guestId) {
+                    try {
+                        const userSnap = await getDoc(doc(db, "users", guestId));
+                        if (userSnap.exists() && userSnap.data().banned) {
+                            window.showToast('Your account has been restricted. Contact support.', 'fail');
+                            btnElement.innerText = originalText;
+                            btnElement.disabled = false;
+                            return;
+                        }
+                    } catch (banCheckError) {
+                        console.error("Ban check error:", banCheckError);
+                        // Don't block the order over a network hiccup on this check alone.
+                    }
+                }
+
                 const receiptUrl = await uploadReceiptToImgBB(receiptFile);
 
                 const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
-                const guestId = window.getGuestId ? window.getGuestId() : '';
 
                 await addDoc(collection(db, "orders"), {
                     playerId: inGameId,
@@ -1219,7 +1262,7 @@
                     ...(g2bulkGameCode && g2bulkCatalogueName ? { g2bulkGameCode, g2bulkCatalogueName } : {})
                 });
 
-                saveContact(inGameId);
+                saveContact(inGameId, selectedGameId);
                 btnElement.innerText = "Order Sent";
                 btnElement.style.backgroundColor = "#28a745";
                 window.openSuccessOverlay();
@@ -1256,36 +1299,62 @@
             return s.slice(0, 2) + '***' + s.slice(-2);
         }
 
-        function renderBulletChat(orders) {
+        function renderBulletChat() {
             const wrapper = document.getElementById('bullet-chat-wrapper');
             const track = document.getElementById('bullet-chat-track');
-            if (!orders || orders.length === 0) {
+            const hasContent = (latestBulletOrders.length > 0) || (latestAnnouncements.length > 0);
+            if (!hasContent) {
                 wrapper.classList.remove('show');
                 track.innerHTML = '';
                 return;
             }
-            const itemsHtml = orders.map(o => `
+            // Admin-written messages (shop hours, promos, etc.) come first and
+            // repeat every lap of the ticker; real order activity follows.
+            const announceHtml = latestAnnouncements.map(a => {
+                const text = String(a.text || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                return `<span style="background:#FFF3CD;color:#856404;"><svg class="svg-icon" style="stroke:#856404"><use href="#icon-megaphone"></use></svg> ${text}</span>`;
+            }).join('');
+            const orderHtml = latestBulletOrders.map(o => `
                 <span><svg class="svg-icon" style="stroke: #FF9F1C"><use href="#icon-rocket"></use></svg> <b>${maskPlayerId(o.playerId)}</b> topped up ${o.itemAmount || ''}${o.game ? ' in ' + o.game : ''}!</span>
             `).join('');
+            const itemsHtml = announceHtml + orderHtml;
             // Duplicate so the marquee loop never shows a visible gap.
             track.innerHTML = itemsHtml + itemsHtml;
             wrapper.classList.add('show');
         }
 
+        let latestBulletOrders = [];
+        let latestAnnouncements = [];
         let bulletChatListenerAttached = false;
         function listenBulletChat() {
             if (bulletChatListenerAttached) return;
             bulletChatListenerAttached = true;
             const q = query(collection(db, "orders"), orderBy("timestamp", "desc"), limit(10));
             onSnapshot(q, (snap) => {
-                const orders = [];
-                snap.forEach(docSnap => orders.push(docSnap.data()));
-                renderBulletChat(orders);
+                latestBulletOrders = snap.docs.map(docSnap => docSnap.data());
+                renderBulletChat();
             }, (error) => {
                 console.error("Bullet chat listener error:", error);
             });
         }
         listenBulletChat();
+
+        // Admin-managed announcement messages (e.g. "Open 9AM - 9PM daily") —
+        // written from the admin panel's Store Ticker page, shown in the same
+        // ticker as real order activity even if no orders exist yet.
+        let announcementsListenerAttached = false;
+        function listenAnnouncements() {
+            if (announcementsListenerAttached) return;
+            announcementsListenerAttached = true;
+            const q = query(collection(db, "announcements"), orderBy("createdAt", "asc"));
+            onSnapshot(q, (snap) => {
+                latestAnnouncements = snap.docs.map(docSnap => docSnap.data());
+                renderBulletChat();
+            }, (error) => {
+                console.error("Announcements listener error:", error);
+            });
+        }
+        listenAnnouncements();
 
         // Four possible order states: Pending, Processing, Success, Fail
         function historyBadgeClassFor(status) {
