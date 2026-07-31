@@ -137,9 +137,17 @@
         .detail-form-card { background: #ffffff; border: 1px solid #E4E6EB; border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
         .detail-form-card label { font-size: 13px; font-weight: 700; color: #050505; margin-top: 12px; }
         .detail-form-card label:first-child { margin-top: 0; }
-        .detail-form-card input[type="text"] { padding: 13px 14px; border: 1.5px solid #E4E6EB; border-radius: 10px; font-size: 15px; margin-top: 6px; transition: 0.15s; }
+        .detail-form-card input[type="text"] { padding: 13px 14px; border: 1.5px solid #E4E6EB; border-radius: 10px; font-size: 15px; margin-top: 6px; transition: 0.15s; width: 100%; }
         .detail-form-card input[type="text"]:focus { outline: none; border-color: #1877F2; background: #F8FBFF; }
         .detail-form-card input[type="file"] { font-size: 13px; }
+
+        /* Recent IDs: horizontal chip row so switching between previously-used
+           In-Game IDs doesn't require retyping */
+        .recent-ids-label { font-size: 11px; color: #9C9EA1; font-weight: 600; margin-top: 12px; }
+        .recent-ids-row { display: flex; gap: 8px; overflow-x: auto; padding: 8px 2px 2px; -webkit-overflow-scrolling: touch; }
+        .recent-ids-row::-webkit-scrollbar { display: none; }
+        .recent-id-chip { flex: 0 0 auto; background: #F0F2F5; border: 1px solid #E4E6EB; border-radius: 16px; padding: 7px 14px; font-size: 13px; font-weight: 600; color: #1877F2; cursor: pointer; white-space: nowrap; max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
+        .recent-id-chip:active { background: #E7F3FF; }
 
         /* Confirm ID button - sits full-width below the ID fields with an
            animated "checking" and "confirmed" state for clear feedback. */
@@ -379,14 +387,18 @@
             <h3 class="detail-section-title">Account Info</h3>
             <div class="detail-form-card">
                 <div style="display:flex; gap:10px;">
-                    <div style="flex:1;">
+                    <div style="flex:1; min-width:0;">
                         <label>In-Game ID</label>
                         <input type="text" id="detail-ingame-id" placeholder="Enter your ID" oninput="onPlayerIdFieldChange()">
                     </div>
-                    <div style="flex:1;" id="detail-server-id-wrap">
+                    <div style="flex:1; min-width:0;" id="detail-server-id-wrap">
                         <label>Server ID <span style="font-weight:400;color:#9C9EA1;">(optional)</span></label>
                         <input type="text" id="detail-server-id" placeholder="Server ID" oninput="onPlayerIdFieldChange()">
                     </div>
+                </div>
+                <div id="recent-ids-block" style="display:none;">
+                    <p class="recent-ids-label">Recent IDs — tap to fill</p>
+                    <div class="recent-ids-row" id="recent-ids-row"></div>
                 </div>
                 <button type="button" id="confirm-id-btn" class="confirm-id-btn" onclick="confirmPlayerIdManual()" style="display:none;">
                     <span class="confirm-id-spinner" id="confirm-id-spinner"></span>
@@ -532,6 +544,7 @@
             const saved = window.getSavedContact ? window.getSavedContact() : { playerId: '' };
             document.getElementById('detail-ingame-id').value = saved.playerId || '';
             document.getElementById('detail-server-id').value = '';
+            if (window.renderRecentIds) window.renderRecentIds();
             onPlayerIdFieldChange();
         }
 
@@ -1127,7 +1140,54 @@
             try {
                 localStorage.setItem('gz_playerId', playerId);
             } catch (e) { /* private browsing - ignore, order itself still succeeds */ }
+            addRecentId(playerId);
         }
+
+        // Keeps a short history (most-recent-first, deduped) of every ID the
+        // customer has used on this device, so switching back to an ID they
+        // used before doesn't mean retyping it - they just tap a chip.
+        const RECENT_IDS_KEY = 'gz_recent_ids';
+        const RECENT_IDS_MAX = 6;
+        function getRecentIds() {
+            try {
+                const list = JSON.parse(localStorage.getItem(RECENT_IDS_KEY) || '[]');
+                return Array.isArray(list) ? list.filter(id => typeof id === 'string' && id.trim()) : [];
+            } catch (e) { return []; }
+        }
+        function addRecentId(playerId) {
+            if (!playerId || !playerId.trim()) return;
+            try {
+                const cleaned = playerId.trim();
+                let list = getRecentIds().filter(id => id !== cleaned);
+                list.unshift(cleaned);
+                list = list.slice(0, RECENT_IDS_MAX);
+                localStorage.setItem(RECENT_IDS_KEY, JSON.stringify(list));
+            } catch (e) { /* private browsing - ignore */ }
+            renderRecentIds();
+        }
+        function renderRecentIds() {
+            const block = document.getElementById('recent-ids-block');
+            const row = document.getElementById('recent-ids-row');
+            if (!block || !row) return;
+            const ids = getRecentIds();
+            if (ids.length === 0) {
+                block.style.display = 'none';
+                row.innerHTML = '';
+                return;
+            }
+            block.style.display = 'block';
+            row.innerHTML = ids.map(id => {
+                const safe = id.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                const jsSafe = id.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                return `<div class="recent-id-chip" onclick="fillRecentId('${jsSafe}')">${safe}</div>`;
+            }).join('');
+        }
+        function fillRecentId(id) {
+            document.getElementById('detail-ingame-id').value = id;
+            if (window.onPlayerIdFieldChange) window.onPlayerIdFieldChange();
+        }
+        window.fillRecentId = fillRecentId;
+        window.renderRecentIds = renderRecentIds;
 
         async function submitOrder(orderData, btnElement) {
             const { gameName, amount, price, inGameId, serverId, paymentMethodName, receiptFile, g2bulkGameCode, g2bulkCatalogueName } = orderData;
