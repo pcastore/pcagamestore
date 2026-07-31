@@ -82,6 +82,15 @@
         .list-amount { text-align: right; }
         .list-amount h5 { font-size: 15px; color: #050505; margin-bottom: 4px; font-weight: 600; }
         
+        /* Order History: date filter chips + day-group headers (Yangon time) */
+        .history-date-filter-wrap { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 12px; -webkit-overflow-scrolling: touch; }
+        .history-date-filter-wrap::-webkit-scrollbar { display: none; }
+        .history-date-chip { flex: 0 0 auto; padding: 7px 14px; border-radius: 16px; background: #ffffff; border: 1px solid #E4E6EB; color: #65676B; font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.12s; }
+        .history-date-chip:active { transform: scale(0.96); }
+        .history-date-chip.active { background: #1877F2; border-color: #1877F2; color: #ffffff; }
+        .history-date-header { font-size: 13px; font-weight: 700; color: #65676B; margin: 16px 2px 8px; }
+        .history-date-header:first-of-type { margin-top: 2px; }
+
         .badge { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; }
         .badge-success { background: #E7F3FF; color: #1877F2; }
         .badge-warning { background: #FFF3CD; color: #856404; }
@@ -592,6 +601,7 @@
         let selectedGameName = null;
         let selectedGameId = null;
         let selectedGameG2BulkCode = null;
+        let selectedGameJCPlaysProduct = null;
         let selectedPaymentMethod = null;
         let editingReceiptFile = null;
         let playerIdVerified = null; // null = not checked, true = valid, false = failed
@@ -762,6 +772,7 @@
             selectedGameId = gameId;
             selectedGameName = game.name;
             selectedGameG2BulkCode = game.g2bulkCode || null;
+            selectedGameJCPlaysProduct = game.jcplaysProduct || null;
             selectedPackage = null;
 
             // Games that don't need a Server ID (missing field defaults to "required",
@@ -960,7 +971,9 @@
                 paymentMethodName: selectedPaymentMethod.name,
                 receiptFile: editingReceiptFile,
                 g2bulkGameCode: selectedGameG2BulkCode,
-                g2bulkCatalogueName: selectedPackage.g2bulk || null
+                g2bulkCatalogueName: selectedPackage.g2bulk || null,
+                jcplaysProduct: selectedGameJCPlaysProduct,
+                jcplaysProductId: selectedPackage.jcplays || null
             }, btnElement);
         }
 
@@ -1512,7 +1525,7 @@
         window.getSavedContactForGame = getSavedContactForGame;
 
         async function submitOrder(orderData, btnElement) {
-            const { gameName, amount, price, inGameId, serverId, paymentMethodName, receiptFile, g2bulkGameCode, g2bulkCatalogueName } = orderData;
+            const { gameName, amount, price, inGameId, serverId, paymentMethodName, receiptFile, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId } = orderData;
 
             const originalText = btnElement.innerText;
             btnElement.innerText = "Processing...";
@@ -1556,7 +1569,12 @@
                     userName: (savedProfile.name && savedProfile.name.trim()) ? savedProfile.name.trim() : guestId,
                     // Only set when the package was imported from / linked to G2Bulk -
                     // this is what lets the admin panel auto-fulfill the order.
-                    ...(g2bulkGameCode && g2bulkCatalogueName ? { g2bulkGameCode, g2bulkCatalogueName } : {})
+                    ...(g2bulkGameCode && g2bulkCatalogueName ? { g2bulkGameCode, g2bulkCatalogueName } : {}),
+                    // Same idea for JCPlays - set when the game has a JCPlays Product
+                    // Code and the package was linked to a JCPlays Product ID in the
+                    // game editor (see openGameEditor / saveGame). Both are needed to
+                    // call JCPlays' createorder endpoint later.
+                    ...(jcplaysProduct && jcplaysProductId ? { jcplaysProduct, jcplaysProductId } : {})
                 });
 
                 saveContact(inGameId, selectedGameId);
@@ -1587,12 +1605,21 @@
         listenPaymentMethods();
 
         // ---------- Bullet Chat (store ticker, Admin Panel text only) ----------
-        // Shows only the messages written from the Admin Panel's Store Ticker
-        // page. Plays through once per update, then hides itself instead of
-        // looping forever.
+        // Shows the messages written from the Admin Panel's Store Ticker page.
+        // Loops continuously (with a short pause between passes) for as long as
+        // there are announcements to show, instead of playing once and staying
+        // hidden until the next Firestore update.
+        let bulletChatLoopTimer = null;
+        const BULLET_CHAT_PAUSE_MS = 4000; // pause between each pass of the ticker
+
         function renderBulletChat() {
             const wrapper = document.getElementById('bullet-chat-wrapper');
             const track = document.getElementById('bullet-chat-track');
+
+            // Cancel any pending "play again" from a previous run so we don't
+            // end up with two loops racing each other after a data update.
+            if (bulletChatLoopTimer) { clearTimeout(bulletChatLoopTimer); bulletChatLoopTimer = null; }
+
             if (latestAnnouncements.length === 0) {
                 wrapper.classList.remove('show');
                 track.innerHTML = '';
@@ -1603,25 +1630,40 @@
                 return `<span style="background:#FFF3CD;color:#856404;"><svg class="svg-icon" style="stroke:#856404"><use href="#icon-megaphone"></use></svg> ${text}</span>`;
             }).join('');
 
-            // Restart the marquee from the beginning for this update, then hide
-            // the bar once it has scrolled through fully — no continuous loop.
-            // Duration is derived from the actual distance traveled (viewport
-            // width + track width) at a fixed, moderate speed, so the crawl
-            // always feels like a normal, even pace — not a fixed 90s that
-            // crawls when there's only one short message and rushes when
-            // there are many.
+            playBulletChatPass();
+        }
+
+        // Plays one left-to-right pass of the ticker, then (after a short pause)
+        // plays itself again as long as latestAnnouncements still has content —
+        // this is what makes the bar loop instead of showing only once.
+        function playBulletChatPass() {
+            const wrapper = document.getElementById('bullet-chat-wrapper');
+            const track = document.getElementById('bullet-chat-track');
+            if (latestAnnouncements.length === 0) {
+                wrapper.classList.remove('show');
+                return;
+            }
+
+            // Restart the marquee from the beginning for this pass. Duration is
+            // derived from the actual distance traveled (viewport width + track
+            // width) at a fixed, moderate speed, so the crawl always feels like
+            // a normal, even pace — not a fixed duration that crawls when
+            // there's only one short message and rushes when there are many.
             track.classList.remove('bullet-chat');
             track.style.animation = 'none';
             void track.offsetWidth; // force reflow so the animation restarts
             const distance = window.innerWidth + track.offsetWidth;
-            const PIXELS_PER_SECOND = 110; // normal, comfortable reading pace
-            const duration = Math.min(35, Math.max(10, distance / PIXELS_PER_SECOND));
+            const PIXELS_PER_SECOND = 70; // slowed down from 110 for easier reading
+            const duration = Math.min(45, Math.max(14, distance / PIXELS_PER_SECOND));
             track.style.animation = '';
             track.style.animationDuration = duration + 's';
             track.classList.add('bullet-chat');
             wrapper.classList.add('show');
             track.addEventListener('animationend', () => {
                 wrapper.classList.remove('show');
+                bulletChatLoopTimer = setTimeout(() => {
+                    if (latestAnnouncements.length > 0) playBulletChatPass();
+                }, BULLET_CHAT_PAUSE_MS);
             }, { once: true });
         }
 
@@ -1664,6 +1706,89 @@
 
         let HISTORY_ORDERS = [];
 
+        // Order History is grouped/filtered by calendar day in Myanmar (Yangon,
+        // UTC+6:30, no DST) time — so an order made at 11:58 PM and one made a
+        // few minutes later at 12:01 AM correctly land in two different day
+        // groups instead of being mixed together, and each day's group "rolls
+        // over" to a fresh one right at Yangon midnight.
+        const YANGON_TZ = 'Asia/Yangon';
+        const historyDateKeyFmt = new Intl.DateTimeFormat('en-CA', { timeZone: YANGON_TZ, year: 'numeric', month: '2-digit', day: '2-digit' });
+        const historyHeaderFmt = new Intl.DateTimeFormat('en-GB', { timeZone: YANGON_TZ, weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+        const historyChipFmt = new Intl.DateTimeFormat('en-GB', { timeZone: YANGON_TZ, day: 'numeric', month: 'short' });
+        const historyTimeFmt = new Intl.DateTimeFormat('en-GB', { timeZone: YANGON_TZ, hour: '2-digit', minute: '2-digit' });
+        const historyDateTimeFmt = new Intl.DateTimeFormat('en-GB', { timeZone: YANGON_TZ, day: '2-digit', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+
+        function yangonDateKey(ms) { return historyDateKeyFmt.format(new Date(ms)); }
+
+        function yangonDateLabel(key) {
+            const todayKey = yangonDateKey(Date.now());
+            const yestKey = yangonDateKey(Date.now() - 86400000);
+            if (key === todayKey) return 'Today';
+            if (key === yestKey) return 'Yesterday';
+            // Reconstruct a instant at Yangon midnight for this key so the
+            // weekday/month/year format correctly regardless of the viewer's
+            // own local timezone.
+            return historyHeaderFmt.format(new Date(key + 'T00:00:00.000+06:30'));
+        }
+
+        function yangonChipLabel(key) {
+            const todayKey = yangonDateKey(Date.now());
+            const yestKey = yangonDateKey(Date.now() - 86400000);
+            if (key === todayKey) return 'Today';
+            if (key === yestKey) return 'Yesterday';
+            return historyChipFmt.format(new Date(key + 'T00:00:00.000+06:30'));
+        }
+
+        // null = show every day, grouped with headers. A specific "YYYY-MM-DD"
+        // key (Yangon calendar day) shows only that day's orders.
+        let HISTORY_FILTER_DATE = null;
+
+        function setHistoryDateFilter(key) {
+            HISTORY_FILTER_DATE = key;
+            renderHistoryOrders(HISTORY_ORDERS);
+        }
+        window.setHistoryDateFilter = setHistoryDateFilter;
+
+        function historyDateChipsHTML(orders) {
+            // Unique Yangon day-keys present in the orders, newest first.
+            const seen = new Set();
+            const keys = [];
+            orders.forEach(o => {
+                const key = yangonDateKey(o.timestamp?.toMillis() || Date.now());
+                if (!seen.has(key)) { seen.add(key); keys.push(key); }
+            });
+            let chips = `<div class="history-date-chip ${HISTORY_FILTER_DATE === null ? 'active' : ''}" onclick="setHistoryDateFilter(null)">All Days</div>`;
+            chips += keys.map(key => {
+                const active = HISTORY_FILTER_DATE === key ? 'active' : '';
+                return `<div class="history-date-chip ${active}" onclick="setHistoryDateFilter('${key}')">${yangonChipLabel(key)}</div>`;
+            }).join('');
+            return `<div class="history-date-filter-wrap">${chips}</div>`;
+        }
+
+        function historyOrderCardHTML(data, index) {
+            const dateStr = data.timestamp ? historyDateTimeFmt.format(data.timestamp.toDate()) : 'Just now';
+            const badgeClass = historyBadgeClassFor(data.status);
+            const gameImg = findGameImage(data.game);
+            return `
+                <div class="list-card history-card" onclick="openOrderDetail(${index})">
+                    <div class="hc-left">
+                        <div class="hc-thumb">${gameImg ? `<img src="${gameImg}" alt="" onerror="this.style.display='none'">` : ''}</div>
+                        <div class="list-info">
+                            <h5>${data.game}</h5>
+                            <p>${dateStr}</p>
+                        </div>
+                    </div>
+                    <div class="hc-right">
+                        <div class="list-amount">
+                            <h5>${Number(data.price).toLocaleString()} MMK</h5>
+                            <span class="badge ${badgeClass}">${historyStatusIconHTML(data.status)}${data.status}</span>
+                        </div>
+                        <svg class="hc-chevron"><use href="#icon-chevron-right"></use></svg>
+                    </div>
+                </div>
+            `;
+        }
+
         function renderHistoryOrders(orders) {
             const container = document.getElementById('history-container');
             HISTORY_ORDERS = orders;
@@ -1674,35 +1799,38 @@
             // Sort newest first (done client-side so no Firestore index is required)
             orders.sort((a, b) => (b.timestamp?.toMillis() || 0) - (a.timestamp?.toMillis() || 0));
 
-            container.innerHTML = orders.map((data, i) => {
-                const dateStr = data.timestamp ? data.timestamp.toDate().toLocaleString() : 'Just now';
-                const badgeClass = historyBadgeClassFor(data.status);
-                const gameImg = findGameImage(data.game);
-                return `
-                    <div class="list-card history-card" onclick="openOrderDetail(${i})">
-                        <div class="hc-left">
-                            <div class="hc-thumb">${gameImg ? `<img src="${gameImg}" alt="" onerror="this.style.display='none'">` : ''}</div>
-                            <div class="list-info">
-                                <h5>${data.game}</h5>
-                                <p>${dateStr}</p>
-                            </div>
-                        </div>
-                        <div class="hc-right">
-                            <div class="list-amount">
-                                <h5>${Number(data.price).toLocaleString()} MMK</h5>
-                                <span class="badge ${badgeClass}">${historyStatusIconHTML(data.status)}${data.status}</span>
-                            </div>
-                            <svg class="hc-chevron"><use href="#icon-chevron-right"></use></svg>
-                        </div>
-                    </div>
-                `;
-            }).join('');
+            // Keep each order's real index into HISTORY_ORDERS (sorted, unfiltered)
+            // so openOrderDetail(index) still resolves correctly after filtering.
+            let entries = orders.map((data, i) => ({ index: i, data }));
+            if (HISTORY_FILTER_DATE) {
+                entries = entries.filter(e => yangonDateKey(e.data.timestamp?.toMillis() || Date.now()) === HISTORY_FILTER_DATE);
+            }
+
+            const chipsHTML = historyDateChipsHTML(orders);
+
+            if (entries.length === 0) {
+                container.innerHTML = chipsHTML + '<p class="empty-msg">No orders on this day.</p>';
+                return;
+            }
+
+            let listHTML = '';
+            let lastKey = null;
+            entries.forEach(({ index, data }) => {
+                const key = yangonDateKey(data.timestamp?.toMillis() || Date.now());
+                if (key !== lastKey) {
+                    listHTML += `<div class="history-date-header">${yangonDateLabel(key)}</div>`;
+                    lastKey = key;
+                }
+                listHTML += historyOrderCardHTML(data, index);
+            });
+
+            container.innerHTML = chipsHTML + listHTML;
         }
 
         function openOrderDetail(index) {
             const data = HISTORY_ORDERS[index];
             if (!data) return;
-            const dateStr = data.timestamp ? data.timestamp.toDate().toLocaleString() : 'Just now';
+            const dateStr = data.timestamp ? historyDateTimeFmt.format(data.timestamp.toDate()) : 'Just now';
             const badgeClass = historyBadgeClassFor(data.status);
             const gameImg = findGameImage(data.game);
             const durationItem = (data.status === 'Success' && data.confirmedAt && data.timestamp)
@@ -1765,6 +1893,7 @@
 
             if (historyUnsubscribe) { historyUnsubscribe(); historyUnsubscribe = null; }
             historyListenerPlayerId = saved.playerId;
+            HISTORY_FILTER_DATE = null;
             container.innerHTML = '<p class="empty-msg">Loading...</p>';
 
             const q = query(collection(db, "orders"), where("playerId", "==", saved.playerId));
