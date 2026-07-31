@@ -57,6 +57,14 @@
         .game-card-img-wrap { aspect-ratio: 1 / 1; border-radius: 14px; overflow: hidden; background: #E4E6EB; border: 1px solid #E4E6EB; }
         .game-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .game-card-name { margin: 8px 0 0; padding: 7px 6px; background: #ffffff; border: 1px solid #E4E6EB; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); color: #050505; font-size: 13px; font-weight: 700; text-align: center; line-height: 1.25; }
+
+        /* Popular Games: horizontal scroll row (separate from the All Games grid) */
+        .section-title-spaced { margin-top: 20px; }
+        .popular-scroll-wrap { display: flex; gap: 12px; overflow-x: auto; padding: 2px 2px 10px; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+        .popular-scroll-wrap::-webkit-scrollbar { display: none; }
+        .popular-card { flex: 0 0 108px; scroll-snap-align: start; }
+        .popular-card .game-card-img-wrap { width: 108px; height: 108px; }
+        .popular-card .game-card-name { font-size: 12px; padding: 6px 5px; }
         .card-body { padding: 15px; }
         .card-body h4 { font-size: 16px; font-weight: 600; margin-bottom: 10px; color: #050505; }
         
@@ -74,11 +82,19 @@
         .list-amount { text-align: right; }
         .list-amount h5 { font-size: 15px; color: #050505; margin-bottom: 4px; font-weight: 600; }
         
-        .badge { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; display: inline-block; }
+        .badge { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; }
         .badge-success { background: #E7F3FF; color: #1877F2; }
         .badge-warning { background: #FFF3CD; color: #856404; }
         .badge-danger { background: #FDE8E8; color: #C0392B; }
         .badge-processing { background: #E4E6EB; color: #405DE6; }
+
+        /* Small live-status animations shown at the top of each History card */
+        .status-anim-pulse { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #856404; margin-right: 5px; animation: statusPulse 1.1s ease-in-out infinite; }
+        @keyframes statusPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.35; transform: scale(0.55); } }
+        .status-anim-spin { display: inline-block; width: 9px; height: 9px; margin-right: 5px; border: 2px solid #C7CCE0; border-top-color: #405DE6; border-radius: 50%; animation: statusSpin 0.7s linear infinite; }
+        @keyframes statusSpin { to { transform: rotate(360deg); } }
+        .status-anim-check { display: inline-block; margin-right: 3px; font-weight: 900; animation: statusPop 0.35s ease; }
+        @keyframes statusPop { 0% { transform: scale(0); } 60% { transform: scale(1.3); } 100% { transform: scale(1); } }
         .od-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid #F0F2F5; font-size: 13px; }
         .od-row span { color: #65676B; }
         .od-row b { color: #050505; font-weight: 600; text-align: right; }
@@ -273,8 +289,12 @@
         
         <!-- HOME PAGE (Firebase Orders) -->
         <div id="home" class="page-section active">
-            <h2 class="title-header">Popular Games</h2>
-            <div class="cards-grid">
+            <div id="popular-games-section" style="display:none;">
+                <h2 class="title-header">Popular Games</h2>
+                <div class="popular-scroll-wrap" id="popular-games-scroll"></div>
+            </div>
+            <h2 class="title-header section-title-spaced">All Games</h2>
+            <div class="cards-grid" id="all-games-grid">
                 <p class="empty-msg">Loading games...</p>
             </div>
         </div>
@@ -363,7 +383,7 @@
                         <label>In-Game ID</label>
                         <input type="text" id="detail-ingame-id" placeholder="Enter your ID" oninput="onPlayerIdFieldChange()">
                     </div>
-                    <div style="flex:1;">
+                    <div style="flex:1;" id="detail-server-id-wrap">
                         <label>Server ID <span style="font-weight:400;color:#9C9EA1;">(optional)</span></label>
                         <input type="text" id="detail-server-id" placeholder="Server ID" oninput="onPlayerIdFieldChange()">
                     </div>
@@ -670,6 +690,13 @@
             selectedGameName = game.name;
             selectedGameG2BulkCode = game.g2bulkCode || null;
             selectedPackage = null;
+
+            // Games that don't need a Server ID (missing field defaults to "required",
+            // so existing games keep behaving exactly as before) hide that input entirely.
+            const needsServerId = game.serverIdRequired !== false;
+            const serverIdWrap = document.getElementById('detail-server-id-wrap');
+            serverIdWrap.style.display = needsServerId ? 'block' : 'none';
+            if (!needsServerId) document.getElementById('detail-server-id').value = '';
             playerIdVerified = null;
             document.getElementById('detail-id-status').style.display = 'none';
             const idConfirmBtn = document.getElementById('confirm-id-btn');
@@ -1208,6 +1235,15 @@
             return 'badge-warning'; // Pending
         }
 
+        // Small animated icon shown at the front of each status badge - a pulsing
+        // dot while Pending, a spinner while Processing, a pop-in check on Success.
+        function historyStatusIconHTML(status) {
+            if (status === 'Processing') return '<span class="status-anim-spin"></span>';
+            if (status === 'Success') return '<span class="status-anim-check">✓</span>';
+            if (status === 'Fail') return '';
+            return '<span class="status-anim-pulse"></span>'; // Pending
+        }
+
         let HISTORY_ORDERS = [];
 
         function renderHistoryOrders(orders) {
@@ -1236,7 +1272,7 @@
                         <div class="hc-right">
                             <div class="list-amount">
                                 <h5>${Number(data.price).toLocaleString()} MMK</h5>
-                                <span class="badge ${badgeClass}">${data.status}</span>
+                                <span class="badge ${badgeClass}">${historyStatusIconHTML(data.status)}${data.status}</span>
                             </div>
                             <svg class="hc-chevron"><use href="#icon-chevron-right"></use></svg>
                         </div>
@@ -1254,6 +1290,9 @@
             const durationItem = (data.status === 'Success' && data.confirmedAt && data.timestamp)
                 ? `<div class="detail-grid-item"><span>Confirmed In</span><b>${formatDuration(data.confirmedAt.toMillis() - data.timestamp.toMillis())}</b></div>`
                 : '';
+            const serverIdItem = data.serverId
+                ? `<div class="detail-grid-item"><span>Server ID</span><b>${data.serverId}</b></div>`
+                : '';
             document.getElementById('order-detail-body').innerHTML = `
                 <div style="display:flex;align-items:center;gap:12px;">
                     <div class="hc-thumb" style="width:52px;height:52px;">${gameImg ? `<img src="${gameImg}" alt="" onerror="this.style.display='none'">` : ''}</div>
@@ -1261,14 +1300,14 @@
                         <h4 style="font-size:17px;font-weight:700;color:#050505;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${data.game}</h4>
                         <p style="font-size:12px;color:#9C9EA1;margin-top:2px;">${dateStr}</p>
                     </div>
-                    <span class="badge ${badgeClass}">${data.status}</span>
+                    <span class="badge ${badgeClass}">${historyStatusIconHTML(data.status)}${data.status}</span>
                 </div>
 
                 <div class="detail-grid">
                     <div class="detail-grid-item"><span>Package</span><b>${data.itemAmount || '-'}</b></div>
                     <div class="detail-grid-item"><span>Amount Paid</span><b>${Number(data.price).toLocaleString()} MMK</b></div>
                     <div class="detail-grid-item"><span>In-Game ID</span><b>${data.playerId || '-'}</b></div>
-                    <div class="detail-grid-item"><span>Server ID</span><b>${data.serverId || '-'}</b></div>
+                    ${serverIdItem}
                     ${durationItem}
                     <div class="detail-grid-item full"><span>Payment Method</span><b>${data.paymentMethod || '-'}</b></div>
                 </div>
@@ -1345,12 +1384,39 @@
         }
 
         function renderHomeGames() {
-            const grid = document.querySelector('#home .cards-grid');
+            const popularSection = document.getElementById('popular-games-section');
+            const popularScroll = document.getElementById('popular-games-scroll');
+            const grid = document.getElementById('all-games-grid');
             const ids = Object.keys(GAMES);
             if (ids.length === 0) {
                 grid.innerHTML = '<p class="empty-msg">No games available yet.</p>';
+                popularSection.style.display = 'none';
+                popularScroll.innerHTML = '';
                 return;
             }
+
+            // Popular Games: only games flagged "popular" from the admin panel,
+            // shown as a horizontal scroll row. Hidden entirely if none are flagged.
+            const popularIds = ids.filter(id => GAMES[id].popular);
+            if (popularIds.length > 0) {
+                popularSection.style.display = 'block';
+                popularScroll.innerHTML = popularIds.map(id => {
+                    const g = GAMES[id];
+                    return `
+                        <div class="game-card popular-card" onclick="openGameDetail('${id}')">
+                            <div class="game-card-img-wrap">
+                                <img src="${g.image}" alt="${g.name}">
+                            </div>
+                            <div class="game-card-name">${g.name}</div>
+                        </div>
+                    `;
+                }).join('');
+            } else {
+                popularSection.style.display = 'none';
+                popularScroll.innerHTML = '';
+            }
+
+            // All Games: every game, in a grid, regardless of the popular flag.
             grid.innerHTML = ids.map(id => {
                 const g = GAMES[id];
                 return `
@@ -1376,7 +1442,7 @@
                 if (historyUnsubscribe) renderHistoryOrders(HISTORY_ORDERS);
             }, (error) => {
                 console.error("Games listener error:", error);
-                document.querySelector('#home .cards-grid').innerHTML = '<p class="empty-msg" style="color:red;">Could not load games. Check connection.</p>';
+                document.getElementById('all-games-grid').innerHTML = '<p class="empty-msg" style="color:red;">Could not load games. Check connection.</p>';
             });
         }
 
