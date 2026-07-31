@@ -333,7 +333,10 @@
             <h3 class="detail-section-title">Account Info</h3>
             <div class="detail-form-card">
                 <label>In-Game ID</label>
-                <input type="text" id="detail-ingame-id" placeholder="Enter your In-Game ID" oninput="onPlayerIdFieldChange()">
+                <div style="display:flex; gap:8px; align-items:flex-start; margin-top:6px;">
+                    <input type="text" id="detail-ingame-id" placeholder="Enter your In-Game ID" oninput="onPlayerIdFieldChange()" style="flex:1; margin-top:0;">
+                    <button type="button" id="confirm-id-btn" onclick="confirmPlayerIdManual()" style="display:none; flex-shrink:0; padding:0 16px; border-radius:10px; border:none; background:#1877F2; color:#fff; font-weight:700; font-size:13px; cursor:pointer; white-space:nowrap;">Confirm ID</button>
+                </div>
                 <label>Server ID <span style="font-weight:400;color:#9C9EA1;">(if your game requires one)</span></label>
                 <input type="text" id="detail-server-id" placeholder="Enter your Server ID (optional)" oninput="onPlayerIdFieldChange()">
                 <p id="detail-id-status" style="font-size:12px;margin-top:6px;display:none;"></p>
@@ -484,44 +487,86 @@
         // customer can catch a typo'd ID before paying.
         function onPlayerIdFieldChange() {
             const statusEl = document.getElementById('detail-id-status');
+            const confirmBtn = document.getElementById('confirm-id-btn');
             playerIdVerified = null;
             clearTimeout(playerIdCheckTimer);
 
-            if (!selectedGameG2BulkCode) { statusEl.style.display = 'none'; return; }
+            if (!selectedGameG2BulkCode) { statusEl.style.display = 'none'; confirmBtn.style.display = 'none'; return; }
 
             const playerId = document.getElementById('detail-ingame-id').value.trim();
-            if (!playerId) { statusEl.style.display = 'none'; return; }
+            if (!playerId) { statusEl.style.display = 'none'; confirmBtn.style.display = 'none'; return; }
+
+            // Reset the button to its default state whenever the ID/server field
+            // is edited, so a previous "Confirmed" state doesn't linger on a
+            // changed ID. The customer can tap it (or wait for the debounce)
+            // to re-check.
+            statusEl.style.display = 'none';
+            confirmBtn.style.display = 'block';
+            confirmBtn.disabled = false;
+            confirmBtn.innerText = 'Confirm ID';
+            confirmBtn.style.background = '#1877F2';
+
+            playerIdCheckTimer = setTimeout(() => runPlayerIdCheck(), 700);
+        }
+        window.onPlayerIdFieldChange = onPlayerIdFieldChange;
+
+        // Explicit "Confirm ID" button - runs the check immediately instead of
+        // waiting for the debounce timer, so the customer gets a clear result
+        // the moment they tap it.
+        function confirmPlayerIdManual() {
+            clearTimeout(playerIdCheckTimer);
+            runPlayerIdCheck();
+        }
+        window.confirmPlayerIdManual = confirmPlayerIdManual;
+
+        // Shared check logic used by both the debounced auto-check and the
+        // manual "Confirm ID" button.
+        async function runPlayerIdCheck() {
+            const statusEl = document.getElementById('detail-id-status');
+            const confirmBtn = document.getElementById('confirm-id-btn');
+            const playerId = document.getElementById('detail-ingame-id').value.trim();
+            const serverId = document.getElementById('detail-server-id').value.trim();
+
+            if (!selectedGameG2BulkCode || !playerId) return;
 
             statusEl.style.display = 'block';
             statusEl.style.color = '#9C9EA1';
             statusEl.innerText = 'Checking ID...';
+            confirmBtn.disabled = true;
+            confirmBtn.innerText = 'Checking...';
 
-            playerIdCheckTimer = setTimeout(async () => {
-                const serverId = document.getElementById('detail-server-id').value.trim();
-                try {
-                    const res = await fetch('https://api.g2bulk.com/v1/games/checkPlayerId', {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ game: selectedGameG2BulkCode, user_id: playerId, server_id: serverId || undefined })
-                    });
-                    const data = await res.json();
-                    if (res.ok && data.valid === 'valid') {
-                        playerIdVerified = true;
-                        statusEl.style.color = '#28a745';
-                        statusEl.innerText = `Player found: ${data.name} ✓`;
-                    } else {
-                        playerIdVerified = false;
-                        statusEl.style.color = '#C0392B';
-                        statusEl.innerText = 'ID not found — please double-check it.';
-                    }
-                } catch (error) {
-                    console.error("checkPlayerId error:", error);
-                    playerIdVerified = null; // network hiccup - don't block the order over this
-                    statusEl.style.display = 'none';
+            try {
+                const res = await fetch('https://api.g2bulk.com/v1/games/checkPlayerId', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ game: selectedGameG2BulkCode, user_id: playerId, server_id: serverId || undefined })
+                });
+                const data = await res.json();
+                if (res.ok && data.valid === 'valid') {
+                    playerIdVerified = true;
+                    statusEl.style.color = '#28a745';
+                    statusEl.innerText = `Player found: ${data.name} ✓`;
+                    confirmBtn.innerText = 'Confirmed ✓';
+                    confirmBtn.style.background = '#28a745';
+                    confirmBtn.disabled = true;
+                } else {
+                    playerIdVerified = false;
+                    statusEl.style.color = '#C0392B';
+                    statusEl.innerText = 'ID not found — please double-check it.';
+                    confirmBtn.innerText = 'Confirm ID';
+                    confirmBtn.style.background = '#1877F2';
+                    confirmBtn.disabled = false;
                 }
-            }, 600);
+            } catch (error) {
+                console.error("checkPlayerId error:", error);
+                playerIdVerified = null; // network hiccup - don't block the order over this
+                statusEl.style.display = 'none';
+                confirmBtn.innerText = 'Confirm ID';
+                confirmBtn.style.background = '#1877F2';
+                confirmBtn.disabled = false;
+            }
         }
-        window.onPlayerIdFieldChange = onPlayerIdFieldChange;
+        window.runPlayerIdCheck = runPlayerIdCheck;
 
         function openGameDetail(gameId) {
             const game = window.GAMES ? window.GAMES[gameId] : null;
@@ -531,6 +576,11 @@
             selectedPackage = null;
             playerIdVerified = null;
             document.getElementById('detail-id-status').style.display = 'none';
+            const idConfirmBtn = document.getElementById('confirm-id-btn');
+            idConfirmBtn.style.display = 'none';
+            idConfirmBtn.disabled = false;
+            idConfirmBtn.innerText = 'Confirm ID';
+            idConfirmBtn.style.background = '#1877F2';
             selectedPaymentMethod = null;
             editingReceiptFile = null;
             window.currentGamePackages = game.packages;
