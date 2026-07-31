@@ -333,9 +333,10 @@
             <h3 class="detail-section-title">Account Info</h3>
             <div class="detail-form-card">
                 <label>In-Game ID</label>
-                <input type="text" id="detail-ingame-id" placeholder="Enter your In-Game ID">
+                <input type="text" id="detail-ingame-id" placeholder="Enter your In-Game ID" oninput="onPlayerIdFieldChange()">
                 <label>Server ID <span style="font-weight:400;color:#9C9EA1;">(if your game requires one)</span></label>
-                <input type="text" id="detail-server-id" placeholder="Enter your Server ID (optional)">
+                <input type="text" id="detail-server-id" placeholder="Enter your Server ID (optional)" oninput="onPlayerIdFieldChange()">
+                <p id="detail-id-status" style="font-size:12px;margin-top:6px;display:none;"></p>
             </div>
 
             <h3 class="detail-section-title">Select Currency Package</h3>
@@ -465,20 +466,71 @@
         // the same way into window.PAYMENT_METHODS.
         let selectedPackage = null;
         let selectedGameName = null;
+        let selectedGameG2BulkCode = null;
         let selectedPaymentMethod = null;
         let editingReceiptFile = null;
+        let playerIdVerified = null; // null = not checked, true = valid, false = failed
+        let playerIdCheckTimer = null;
 
         function loadSavedContactIntoForm() {
             const saved = window.getSavedContact ? window.getSavedContact() : { playerId: '' };
             document.getElementById('detail-ingame-id').value = saved.playerId || '';
             document.getElementById('detail-server-id').value = '';
+            onPlayerIdFieldChange();
         }
+
+        // Debounced live check against G2Bulk's checkPlayerId - only runs for
+        // games linked to a G2Bulk code. Shows the resolved in-game name so the
+        // customer can catch a typo'd ID before paying.
+        function onPlayerIdFieldChange() {
+            const statusEl = document.getElementById('detail-id-status');
+            playerIdVerified = null;
+            clearTimeout(playerIdCheckTimer);
+
+            if (!selectedGameG2BulkCode) { statusEl.style.display = 'none'; return; }
+
+            const playerId = document.getElementById('detail-ingame-id').value.trim();
+            if (!playerId) { statusEl.style.display = 'none'; return; }
+
+            statusEl.style.display = 'block';
+            statusEl.style.color = '#9C9EA1';
+            statusEl.innerText = 'Checking ID...';
+
+            playerIdCheckTimer = setTimeout(async () => {
+                const serverId = document.getElementById('detail-server-id').value.trim();
+                try {
+                    const res = await fetch('https://api.g2bulk.com/v1/games/checkPlayerId', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ game: selectedGameG2BulkCode, user_id: playerId, server_id: serverId || undefined })
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.valid === 'valid') {
+                        playerIdVerified = true;
+                        statusEl.style.color = '#28a745';
+                        statusEl.innerText = `Player found: ${data.name} ✓`;
+                    } else {
+                        playerIdVerified = false;
+                        statusEl.style.color = '#C0392B';
+                        statusEl.innerText = 'ID not found — please double-check it.';
+                    }
+                } catch (error) {
+                    console.error("checkPlayerId error:", error);
+                    playerIdVerified = null; // network hiccup - don't block the order over this
+                    statusEl.style.display = 'none';
+                }
+            }, 600);
+        }
+        window.onPlayerIdFieldChange = onPlayerIdFieldChange;
 
         function openGameDetail(gameId) {
             const game = window.GAMES ? window.GAMES[gameId] : null;
             if (!game) return;
             selectedGameName = game.name;
+            selectedGameG2BulkCode = game.g2bulkCode || null;
             selectedPackage = null;
+            playerIdVerified = null;
+            document.getElementById('detail-id-status').style.display = 'none';
             selectedPaymentMethod = null;
             editingReceiptFile = null;
             window.currentGamePackages = game.packages;
@@ -611,6 +663,14 @@
             if (!selectedPaymentMethod) { window.showToast('Please select a payment method'); return; }
             if (!editingReceiptFile) { window.showToast('Please upload your payment receipt'); return; }
 
+            if (selectedGameG2BulkCode && playerIdVerified === false) {
+                if (!confirm('We could not find this In-Game ID on the server. Continue with this order anyway?')) return;
+            }
+
+            await doSubmitOrder(inGameId, serverId, btnElement);
+        }
+
+        async function doSubmitOrder(inGameId, serverId, btnElement) {
             await window.submitOrder({
                 gameName: selectedGameName,
                 amount: selectedPackage.amount,
@@ -618,7 +678,9 @@
                 inGameId,
                 serverId,
                 paymentMethodName: selectedPaymentMethod.name,
-                receiptFile: editingReceiptFile
+                receiptFile: editingReceiptFile,
+                g2bulkGameCode: selectedGameG2BulkCode,
+                g2bulkCatalogueName: selectedPackage.g2bulk || null
             }, btnElement);
         }
 
@@ -895,7 +957,7 @@
         }
 
         async function submitOrder(orderData, btnElement) {
-            const { gameName, amount, price, inGameId, serverId, paymentMethodName, receiptFile } = orderData;
+            const { gameName, amount, price, inGameId, serverId, paymentMethodName, receiptFile, g2bulkGameCode, g2bulkCatalogueName } = orderData;
 
             const originalText = btnElement.innerText;
             btnElement.innerText = "Processing...";
@@ -918,7 +980,10 @@
                     status: "Pending",
                     timestamp: serverTimestamp(),
                     userId: guestId,
-                    userName: (savedProfile.name && savedProfile.name.trim()) ? savedProfile.name.trim() : guestId
+                    userName: (savedProfile.name && savedProfile.name.trim()) ? savedProfile.name.trim() : guestId,
+                    // Only set when the package was imported from / linked to G2Bulk -
+                    // this is what lets the admin panel auto-fulfill the order.
+                    ...(g2bulkGameCode && g2bulkCatalogueName ? { g2bulkGameCode, g2bulkCatalogueName } : {})
                 });
 
                 saveContact(inGameId);
