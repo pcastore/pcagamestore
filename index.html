@@ -14,6 +14,8 @@
         /* Header */
         .header { background-color: #ffffff; padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
         .logo { color: #1877F2; font-size: 24px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .logo-icon-wrap { width: 28px; height: 28px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+        .logo-icon-wrap img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; display: block; }
         .header-icon { position: relative; color: #1C1E21; background: #E4E6EB; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; }
         .notif-dot { position: absolute; top: 6px; right: 6px; width: 10px; height: 10px; border-radius: 50%; background: #FA3E3E; border: 2px solid #ffffff; display: none; }
         .notif-dot.show { display: block; }
@@ -61,9 +63,13 @@
         .list-card { background: #ffffff; padding: 15px; border-radius: 10px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid #E4E6EB; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .history-card { cursor: pointer; transition: 0.12s; }
         .history-card:active { transform: scale(0.98); background: #F8FBFF; border-color: #BFDBFE; }
+        .hc-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
+        .hc-thumb { width: 44px; height: 44px; border-radius: 10px; overflow: hidden; background: #F0F2F5; border: 1px solid #E4E6EB; flex-shrink: 0; }
+        .hc-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .hc-right { display: flex; align-items: center; gap: 10px; }
         .hc-chevron { color: #BCC0C4; flex-shrink: 0; width: 18px; height: 18px; }
-        .list-info h5 { font-size: 15px; color: #050505; margin-bottom: 4px; font-weight: 600; }
+        .list-info { min-width: 0; }
+        .list-info h5 { font-size: 15px; color: #050505; margin-bottom: 4px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .list-info p { font-size: 13px; color: #65676B; }
         .list-amount { text-align: right; }
         .list-amount h5 { font-size: 15px; color: #050505; margin-bottom: 4px; font-weight: 600; }
@@ -171,10 +177,12 @@
         .mini-profile-info span { display: block; font-size: 15px; font-weight: 700; color: #050505; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .mini-profile-info small { font-size: 11px; color: #9C9EA1; }
 
-        /* Social links (Facebook / Telegram / TikTok) on the Profile page */
-        .social-links-row { display: flex; gap: 12px; margin-top: 8px; }
-        .social-link-btn { width: 44px; height: 44px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0; text-decoration: none; transition: transform 0.1s; }
-        .social-link-btn:active { transform: scale(0.92); }
+        /* Social links (Facebook / Telegram / TikTok) on the Profile page - 3 separate grid cards */
+        .social-links-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 8px; }
+        .social-link-btn { flex-direction: column; padding: 14px 8px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; background: #F8F9FA; border: 1px solid #E4E6EB; text-decoration: none; transition: 0.15s; }
+        .social-link-btn:active { transform: scale(0.96); background: #F0F2F5; }
+        .social-link-icon { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; flex-shrink: 0; }
+        .social-link-name { font-size: 12px; font-weight: 600; color: #050505; }
     </style>
 </head>
 <body>
@@ -205,7 +213,13 @@
 
     <!-- Header -->
     <header class="header">
-        <div class="logo"><svg class="ui-icon"><use href="#icon-gamepad"></use></svg> PCA Store</div>
+        <div class="logo">
+            <span class="logo-icon-wrap">
+                <svg class="ui-icon" id="header-logo-default-icon"><use href="#icon-gamepad"></use></svg>
+                <img id="header-logo-img" src="" alt="PCA Store" style="display:none;">
+            </span>
+            PCA Store
+        </div>
         <div class="header-icon" onclick="openNotificationsModal()"><svg class="ui-icon" style="width: 20px;"><use href="#icon-bell"></use></svg><span class="notif-dot" id="notif-dot"></span></div>
     </header>
 
@@ -247,23 +261,10 @@
             </div>
         </div>
 
-        <!-- LEADERBOARD PAGE (Dummy Data) -->
+        <!-- LEADERBOARD PAGE (no live ranking wired up yet - real empty state, no fake sample data) -->
         <div id="leaderboard" class="page-section">
             <h2 class="title-header">Top Spenders</h2>
-            <div class="list-card">
-                <div class="list-info" style="display: flex; gap: 12px; align-items: center;">
-                    <span class="badge" style="background:#FFF3CD; color:#856404;">#1</span>
-                    <div><h5>John Doe</h5><p>ID: 124567</p></div>
-                </div>
-                <div class="list-amount"><h5 style="color: #1877F2;">$ 1,200</h5></div>
-            </div>
-            <div class="list-card">
-                <div class="list-info" style="display: flex; gap: 12px; align-items: center;">
-                    <span class="badge" style="background:#E4E6EB; color:#1C1E21;">#2</span>
-                    <div><h5>Alice Smith</h5><p>ID: 987654</p></div>
-                </div>
-                <div class="list-amount"><h5 style="color: #1877F2;">$ 950</h5></div>
-            </div>
+            <p class="empty-msg">No spenders yet.</p>
         </div>
 
         <!-- WALLET PAGE (Dummy Data) -->
@@ -302,14 +303,17 @@
             <div class="detail-form-card" id="social-links-card" style="margin-top:14px;">
                 <label style="align-self:flex-start;">Follow Us</label>
                 <div class="social-links-row" id="social-links-row">
-                    <a class="social-link-btn" id="social-link-facebook" href="#" target="_blank" rel="noopener" style="display:none;background:#1877F2;">
-                        <svg class="ui-icon" style="width:20px;height:20px;"><use href="#icon-facebook"></use></svg>
+                    <a class="social-link-btn" id="social-link-facebook" href="#" target="_blank" rel="noopener" style="display:none;">
+                        <span class="social-link-icon" style="background:#1877F2;"><svg class="ui-icon" style="width:20px;height:20px;"><use href="#icon-facebook"></use></svg></span>
+                        <span class="social-link-name">Facebook</span>
                     </a>
-                    <a class="social-link-btn" id="social-link-telegram" href="#" target="_blank" rel="noopener" style="display:none;background:#29A9EA;">
-                        <svg class="ui-icon" style="width:20px;height:20px;"><use href="#icon-telegram"></use></svg>
+                    <a class="social-link-btn" id="social-link-telegram" href="#" target="_blank" rel="noopener" style="display:none;">
+                        <span class="social-link-icon" style="background:#29A9EA;"><svg class="ui-icon" style="width:20px;height:20px;"><use href="#icon-telegram"></use></svg></span>
+                        <span class="social-link-name">Telegram</span>
                     </a>
-                    <a class="social-link-btn" id="social-link-tiktok" href="#" target="_blank" rel="noopener" style="display:none;background:#000000;">
-                        <svg class="ui-icon" style="width:20px;height:20px;"><use href="#icon-tiktok"></use></svg>
+                    <a class="social-link-btn" id="social-link-tiktok" href="#" target="_blank" rel="noopener" style="display:none;">
+                        <span class="social-link-icon" style="background:#000000;"><svg class="ui-icon" style="width:20px;height:20px;"><use href="#icon-tiktok"></use></svg></span>
+                        <span class="social-link-name">TikTok</span>
                     </a>
                 </div>
                 <p class="empty-msg" id="social-links-empty" style="display:none;padding:6px 0 0;">No social links added yet.</p>
@@ -855,6 +859,26 @@
             console.error("Social links fetch error:", error);
         });
 
+        // ---------- Header Logo (optional custom image, set from the admin panel) ----------
+        function renderHeaderLogo(data) {
+            const img = document.getElementById('header-logo-img');
+            const defaultIcon = document.getElementById('header-logo-default-icon');
+            if (data && data.logoUrl) {
+                img.src = data.logoUrl;
+                img.style.display = 'block';
+                defaultIcon.style.display = 'none';
+            } else {
+                img.style.display = 'none';
+                defaultIcon.style.display = '';
+            }
+        }
+
+        onSnapshot(doc(db, "settings", "branding"), (docSnap) => {
+            renderHeaderLogo(docSnap.exists() ? docSnap.data() : {});
+        }, (error) => {
+            console.error("Branding fetch error:", error);
+        });
+
         // Remember the customer's last Player ID locally so History can look up
         // their orders, and so repeat Top Ups don't need retyping every time.
         function getSavedContact() {
@@ -988,11 +1012,15 @@
             container.innerHTML = orders.map((data, i) => {
                 const dateStr = data.timestamp ? data.timestamp.toDate().toLocaleString() : 'Just now';
                 const badgeClass = historyBadgeClassFor(data.status);
+                const gameImg = findGameImage(data.game);
                 return `
                     <div class="list-card history-card" onclick="openOrderDetail(${i})">
-                        <div class="list-info">
-                            <h5>${data.game}</h5>
-                            <p>${dateStr}</p>
+                        <div class="hc-left">
+                            <div class="hc-thumb">${gameImg ? `<img src="${gameImg}" alt="" onerror="this.style.display='none'">` : ''}</div>
+                            <div class="list-info">
+                                <h5>${data.game}</h5>
+                                <p>${dateStr}</p>
+                            </div>
                         </div>
                         <div class="hc-right">
                             <div class="list-amount">
@@ -1011,18 +1039,26 @@
             if (!data) return;
             const dateStr = data.timestamp ? data.timestamp.toDate().toLocaleString() : 'Just now';
             const badgeClass = historyBadgeClassFor(data.status);
+            const gameImg = findGameImage(data.game);
+            const durationItem = (data.status === 'Success' && data.confirmedAt && data.timestamp)
+                ? `<div class="detail-grid-item"><span>Confirmed In</span><b>${formatDuration(data.confirmedAt.toMillis() - data.timestamp.toMillis())}</b></div>`
+                : '';
             document.getElementById('order-detail-body').innerHTML = `
-                <div style="display:flex;align-items:center;justify-content:space-between;">
-                    <h4 style="font-size:17px;font-weight:700;color:#050505;">${data.game}</h4>
+                <div style="display:flex;align-items:center;gap:12px;">
+                    <div class="hc-thumb" style="width:52px;height:52px;">${gameImg ? `<img src="${gameImg}" alt="" onerror="this.style.display='none'">` : ''}</div>
+                    <div style="flex:1;min-width:0;">
+                        <h4 style="font-size:17px;font-weight:700;color:#050505;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${data.game}</h4>
+                        <p style="font-size:12px;color:#9C9EA1;margin-top:2px;">${dateStr}</p>
+                    </div>
                     <span class="badge ${badgeClass}">${data.status}</span>
                 </div>
-                <p style="font-size:12px;color:#9C9EA1;margin-top:2px;">${dateStr}</p>
 
                 <div class="detail-grid">
                     <div class="detail-grid-item"><span>Package</span><b>${data.itemAmount || '-'}</b></div>
                     <div class="detail-grid-item"><span>Amount Paid</span><b>${Number(data.price).toLocaleString()} MMK</b></div>
                     <div class="detail-grid-item"><span>In-Game ID</span><b>${data.playerId || '-'}</b></div>
                     <div class="detail-grid-item"><span>Server ID</span><b>${data.serverId || '-'}</b></div>
+                    ${durationItem}
                     <div class="detail-grid-item full"><span>Payment Method</span><b>${data.paymentMethod || '-'}</b></div>
                 </div>
 
@@ -1077,6 +1113,26 @@
         // ---------- Game Catalogue (live from Firestore "games" collection) ----------
         let GAMES = {};          // { docId: { name, image, packages: [{amount, price}] } }
 
+        // Order documents only store the game's name (not its id), so order cards
+        // look the image up by matching name against the loaded games catalogue.
+        function findGameImage(gameName) {
+            const match = Object.values(GAMES).find(g => g.name === gameName);
+            return match ? match.image : '';
+        }
+
+        // Formats a millisecond duration as e.g. "45s", "12m 30s", "3h 5m", "2d 4h".
+        function formatDuration(ms) {
+            const totalSec = Math.max(0, Math.floor(ms / 1000));
+            const days = Math.floor(totalSec / 86400);
+            const hours = Math.floor((totalSec % 86400) / 3600);
+            const mins = Math.floor((totalSec % 3600) / 60);
+            const secs = totalSec % 60;
+            if (days > 0) return `${days}d ${hours}h`;
+            if (hours > 0) return `${hours}h ${mins}m`;
+            if (mins > 0) return `${mins}m ${secs}s`;
+            return `${secs}s`;
+        }
+
         function renderHomeGames() {
             const grid = document.querySelector('#home .cards-grid');
             const ids = Object.keys(GAMES);
@@ -1106,6 +1162,7 @@
                 GAMES = newGames;
                 window.GAMES = GAMES;
                 renderHomeGames();
+                if (historyUnsubscribe) renderHistoryOrders(HISTORY_ORDERS);
             }, (error) => {
                 console.error("Games listener error:", error);
                 document.querySelector('#home .cards-grid').innerHTML = '<p class="empty-msg" style="color:red;">Could not load games. Check connection.</p>';
