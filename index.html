@@ -37,7 +37,7 @@
         .bullet-chat-wrapper.show { display: block; }
         @keyframes rainbowBorder { 0% { background-position: 0% 50%; } 100% { background-position: 400% 50%; } }
         .bullet-chat-container { background: #ffffff; color: #1C1E21; padding: 5px 0; overflow: hidden; white-space: nowrap; border-radius: 9.5px; }
-        .bullet-chat { display: inline-block; animation: moveBullet 90s linear 1 forwards; }
+        .bullet-chat { display: inline-block; animation-name: moveBullet; animation-timing-function: linear; animation-iteration-count: 1; animation-fill-mode: forwards; }
         .bullet-chat span { display: inline-flex; align-items: center; gap: 5px; margin-right: 14px; font-size: 11.5px; background: #F0F2F5; color: #1C1E21; padding: 4px 11px; border-radius: 16px; font-weight: 500; }
         .bullet-chat span svg { width: 13px; height: 13px; }
         .bullet-chat span b { color: #1877F2; }
@@ -568,6 +568,7 @@
             const navBtn = document.getElementById(`btn-${pageId}`);
             if (navBtn) navBtn.classList.add('active');
             window.scrollTo(0,0);
+            window.currentStorePage = pageId;
             if (pageId === 'history' && window.loadHistory) window.loadHistory();
             if (pageId === 'profile' && window.renderProfileFields) window.renderProfileFields();
             if (pageId === 'profile' && window.loadProfileStats) window.loadProfileStats();
@@ -869,17 +870,51 @@
             reader.readAsDataURL(file);
         }
 
+        // Fallback copy for browsers/webviews (common on older Android / in-app
+        // browsers) where navigator.clipboard is missing or blocked outside a
+        // secure (https) context. Uses a temporary offscreen textarea + the
+        // legacy execCommand('copy'), which those environments still support.
+        function legacyCopyText(text) {
+            const ta = document.createElement('textarea');
+            ta.value = text;
+            ta.setAttribute('readonly', '');
+            ta.style.position = 'fixed';
+            ta.style.top = '-1000px';
+            ta.style.left = '-1000px';
+            document.body.appendChild(ta);
+            ta.focus();
+            ta.select();
+            ta.setSelectionRange(0, text.length);
+            let ok = false;
+            try { ok = document.execCommand('copy'); } catch (e) { ok = false; }
+            document.body.removeChild(ta);
+            return ok;
+        }
+
         function copyPaymentField(elId, btnEl) {
             const text = document.getElementById(elId).innerText.trim();
             if (!text) return;
-            navigator.clipboard.writeText(text).then(() => {
+
+            const onCopied = () => {
                 window.showToast('Copied!');
                 const original = btnEl.innerHTML;
                 btnEl.innerHTML = '<svg class="ui-icon"><use href="#icon-check"></use></svg>';
                 setTimeout(() => { btnEl.innerHTML = original; }, 1200);
-            }).catch(() => {
-                window.showToast('Could not copy. Please copy manually.');
-            });
+            };
+            const onFailed = () => {
+                if (legacyCopyText(text)) onCopied();
+                else window.showToast('Could not copy. Please copy manually.');
+            };
+
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) {
+                    navigator.clipboard.writeText(text).then(onCopied).catch(onFailed);
+                } else {
+                    onFailed();
+                }
+            } catch (e) {
+                onFailed();
+            }
         }
 
         function closeGameDetail() {
@@ -1141,15 +1176,27 @@
         window.syncUserToFirestore = syncUserToFirestore;
 
         // ---------- VIP Tiers (based on lifetime successful top-up spend) ----------
-        // Ordered highest-to-lowest so tierForSpend() can just find the first
-        // threshold a spend qualifies for. Tune the "min" MMK values here.
-        const VIP_TIERS = [
-            { name: 'Diamond',  min: 2000000, color: '#00B8D9', bg: '#E5FAFD' },
-            { name: 'Platinum', min: 500000,  color: '#5B7DB1', bg: '#EAF0FB' },
-            { name: 'Gold',     min: 100000,  color: '#B8860B', bg: '#FFF6DF' },
-            { name: 'Silver',   min: 20000,   color: '#7C8798', bg: '#F1F3F5' },
-            { name: 'Bronze',   min: 0,       color: '#A9673A', bg: '#FBEEE6' },
+        // Rank names/colors are fixed here (mirrored in the admin panel); only
+        // the MMK thresholds are admin-editable, read live from settings/tiers
+        // so rank-ups apply instantly without a page reload. Ordered
+        // highest-to-lowest so tierForSpend() can just find the first
+        // threshold a spend qualifies for.
+        const TIER_META = [
+            { name: 'Immortal',  color: '#8A6D00', bg: '#FFF6D9' },
+            { name: 'Mythical',  color: '#FF5A36', bg: '#FFE9E2' },
+            { name: 'Conqueror', color: '#D6338E', bg: '#FDE8F3' },
+            { name: 'Legend',    color: '#7B4FE0', bg: '#F0EAFC' },
+            { name: 'Diamond',   color: '#00B8D9', bg: '#E5FAFD' },
+            { name: 'Platinum',  color: '#5B7DB1', bg: '#EAF0FB' },
+            { name: 'Gold',      color: '#B8860B', bg: '#FFF6DF' },
+            { name: 'Bronze',    color: '#A9673A', bg: '#FBEEE6' },
         ];
+        const DEFAULT_TIER_MINS = {
+            Bronze: 0, Gold: 100000, Platinum: 300000, Diamond: 700000,
+            Legend: 1500000, Conqueror: 3000000, Mythical: 6000000, Immortal: 12000000
+        };
+        let VIP_TIERS = TIER_META.map(t => ({ ...t, min: DEFAULT_TIER_MINS[t.name] }));
+
         function tierForSpend(spend) {
             return VIP_TIERS.find(t => spend >= t.min) || VIP_TIERS[VIP_TIERS.length - 1];
         }
@@ -1157,6 +1204,24 @@
         function nextTierForSpend(spend) {
             const idx = VIP_TIERS.findIndex(t => spend >= t.min);
             return idx > 0 ? VIP_TIERS[idx - 1] : null;
+        }
+
+        // Live-updates VIP_TIERS whenever the admin changes a tier's minimum
+        // spend, then refreshes whichever tier-aware view is currently open
+        // (Profile's VIP card, or the Leaderboard) so changes are reflected
+        // immediately, with no reload required.
+        let tierSettingsListenerAttached = false;
+        function listenTierSettings() {
+            if (tierSettingsListenerAttached) return;
+            tierSettingsListenerAttached = true;
+            onSnapshot(doc(db, "settings", "tiers"), (docSnap) => {
+                const mins = { ...DEFAULT_TIER_MINS, ...(docSnap.exists() ? (docSnap.data().mins || {}) : {}) };
+                VIP_TIERS = TIER_META.map(t => ({ ...t, min: Number(mins[t.name]) || 0 }));
+                if (window.currentStorePage === 'profile' && window.loadProfileStats) window.loadProfileStats();
+                if (window.currentStorePage === 'leaderboard' && window.loadLeaderboard) window.loadLeaderboard();
+            }, (error) => {
+                console.error("Tier settings listener error:", error);
+            });
         }
         function formatMMK(n) {
             return Math.round(n || 0).toLocaleString('en-US') + ' MMK';
@@ -1540,8 +1605,19 @@
 
             // Restart the marquee from the beginning for this update, then hide
             // the bar once it has scrolled through fully — no continuous loop.
+            // Duration is derived from the actual distance traveled (viewport
+            // width + track width) at a fixed, moderate speed, so the crawl
+            // always feels like a normal, even pace — not a fixed 90s that
+            // crawls when there's only one short message and rushes when
+            // there are many.
             track.classList.remove('bullet-chat');
+            track.style.animation = 'none';
             void track.offsetWidth; // force reflow so the animation restarts
+            const distance = window.innerWidth + track.offsetWidth;
+            const PIXELS_PER_SECOND = 110; // normal, comfortable reading pace
+            const duration = Math.min(35, Math.max(10, distance / PIXELS_PER_SECOND));
+            track.style.animation = '';
+            track.style.animationDuration = duration + 's';
             track.classList.add('bullet-chat');
             wrapper.classList.add('show');
             track.addEventListener('animationend', () => {
@@ -1567,6 +1643,7 @@
             });
         }
         listenAnnouncements();
+        listenTierSettings();
 
         // Four possible order states: Pending, Processing, Success, Fail
         function historyBadgeClassFor(status) {
