@@ -16,9 +16,24 @@
         .logo { color: #1877F2; font-size: 24px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
         .logo-icon-wrap { width: 28px; height: 28px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
         .logo-icon-wrap img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; display: block; }
-        .header-icon { position: relative; color: #1C1E21; background: #E4E6EB; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; }
-        .notif-dot { position: absolute; top: 6px; right: 6px; width: 10px; height: 10px; border-radius: 50%; background: #FA3E3E; border: 2px solid #ffffff; display: none; }
-        .notif-dot.show { display: block; }
+        .header-icon {
+            position: relative; width: 40px; height: 40px; border-radius: 50%;
+            display: flex; justify-content: center; align-items: center; cursor: pointer;
+            color: #16A34A; background: rgba(255,255,255,0.55);
+            backdrop-filter: blur(14px) saturate(180%); -webkit-backdrop-filter: blur(14px) saturate(180%);
+            border: 1px solid rgba(255,255,255,0.7);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.08), inset 0 1px 1px rgba(255,255,255,0.9), inset 0 -6px 10px rgba(0,0,0,0.03);
+            transition: transform 0.15s ease;
+        }
+        .header-icon:active { transform: scale(0.92); }
+        .notif-dot {
+            position: absolute; top: 5px; right: 5px; width: 11px; height: 11px; border-radius: 50%;
+            background: radial-gradient(circle at 30% 30%, #FF6B6B, #E53935);
+            border: 2px solid #ffffff; box-shadow: 0 0 0 2px rgba(229,57,53,0.25);
+            display: none;
+        }
+        .notif-dot.show { display: block; animation: notifPulse 1.8s ease-in-out infinite; }
+        @keyframes notifPulse { 0%, 100% { box-shadow: 0 0 0 2px rgba(229,57,53,0.25); } 50% { box-shadow: 0 0 0 6px rgba(229,57,53,0); } }
         .admin-status-bar { display: flex; align-items: center; gap: 6px; padding: 6px 20px; font-size: 12px; font-weight: 600; color: #65676B; background: #F0F2F5; }
         .admin-status-dot { width: 8px; height: 8px; border-radius: 50%; background: #9C9EA1; flex-shrink: 0; }
         .admin-status-dot.online { background: #31A24C; box-shadow: 0 0 0 3px rgba(49,162,76,0.15); }
@@ -102,6 +117,9 @@
         .list-info { min-width: 0; }
         .list-info h5 { font-size: 15px; color: #050505; margin-bottom: 4px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .list-info p { font-size: 13px; color: #65676B; }
+        .hc-success-time { display: flex; align-items: center; gap: 3px; font-size: 11.5px !important; color: #1E8E4F !important; font-weight: 600; margin-top: 2px; }
+        .hc-success-time svg { width: 11px; height: 11px; stroke: #1E8E4F; }
+        .hc-order-id { font-size: 11px !important; color: #9C9EA1 !important; font-family: monospace; margin-top: 1px; }
         .list-amount { text-align: right; }
         .list-amount h5 { font-size: 15px; color: #050505; margin-bottom: 4px; font-weight: 600; }
         
@@ -1837,6 +1855,18 @@
             const dateStr = data.timestamp ? historyDateTimeFmt.format(data.timestamp.toDate()) : 'Just now';
             const badgeClass = historyBadgeClassFor(data.status);
             const gameImg = findGameImage(data.game);
+            // For completed orders, also show the exact time it was confirmed —
+            // not just how long it took — so the customer can see both moments.
+            const successTimeLine = (data.status === 'Success' && data.confirmedAt)
+                ? `<p class="hc-success-time"><svg class="ui-icon"><use href="#icon-check"></use></svg>${historyTimeFmt.format(data.confirmedAt.toDate())}</p>`
+                : '';
+            // The real Order ID (from G2Bulk/JCPlays) only exists — and is only
+            // shown — once the order has actually succeeded. Nothing is shown
+            // while Pending/Processing, since there's no confirmed ID to give yet.
+            const providerOrderId = data.g2bulkOrderId || data.jcplaysOrderId;
+            const orderIdLine = (data.status === 'Success' && providerOrderId)
+                ? `<p class="hc-order-id">Order ID: ${providerOrderId}</p>`
+                : '';
             return `
                 <div class="list-card history-card" onclick="openOrderDetail(${index})">
                     <div class="hc-left">
@@ -1844,6 +1874,8 @@
                         <div class="list-info">
                             <h5>${data.game}</h5>
                             <p>${dateStr}</p>
+                            ${successTimeLine}
+                            ${orderIdLine}
                         </div>
                     </div>
                     <div class="hc-right">
@@ -1904,6 +1936,18 @@
             const durationItem = (data.status === 'Success' && data.confirmedAt && data.timestamp)
                 ? `<div class="detail-grid-item"><span>Confirmed In</span><b>${formatDuration(data.confirmedAt.toMillis() - data.timestamp.toMillis())}</b></div>`
                 : '';
+            const orderedAtItem = data.timestamp
+                ? `<div class="detail-grid-item"><span>Ordered At</span><b>${historyDateTimeFmt.format(data.timestamp.toDate())}</b></div>`
+                : '';
+            const completedAtItem = (data.status === 'Success' && data.confirmedAt)
+                ? `<div class="detail-grid-item"><span>Success At</span><b style="color:#1E8E4F;">${historyDateTimeFmt.format(data.confirmedAt.toDate())}</b></div>`
+                : '';
+            // Same rule as the history card: the real provider Order ID only
+            // shows up once the order is actually Success — never before.
+            const providerOrderId = data.g2bulkOrderId || data.jcplaysOrderId;
+            const orderIdItem = (data.status === 'Success' && providerOrderId)
+                ? `<div class="detail-grid-item"><span>Order ID</span><b style="font-family:monospace;">${providerOrderId}</b></div>`
+                : '';
             const serverIdItem = data.serverId
                 ? `<div class="detail-grid-item"><span>Server ID</span><b>${data.serverId}</b></div>`
                 : '';
@@ -1922,6 +1966,9 @@
                     <div class="detail-grid-item"><span>Amount Paid</span><b>${Number(data.price).toLocaleString()} MMK</b></div>
                     <div class="detail-grid-item"><span>In-Game ID</span><b>${data.playerId || '-'}</b></div>
                     ${serverIdItem}
+                    ${orderedAtItem}
+                    ${completedAtItem}
+                    ${orderIdItem}
                     ${durationItem}
                     <div class="detail-grid-item full"><span>Payment Method</span><b>${data.paymentMethod || '-'}</b></div>
                 </div>
