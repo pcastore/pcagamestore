@@ -59,9 +59,27 @@
         .cards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
         .game-card { cursor: pointer; transition: transform 0.1s; }
         .game-card:active { transform: scale(0.97); }
-        .game-card-img-wrap { aspect-ratio: 1 / 1; border-radius: 14px; overflow: hidden; background: #E4E6EB; border: 1px solid #E4E6EB; }
+        .game-card-img-wrap { position: relative; aspect-ratio: 1 / 1; border-radius: 14px; overflow: hidden; background: #E4E6EB; border: 1px solid #E4E6EB; }
         .game-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .game-card-name { margin: 8px 0 0; padding: 7px 6px; background: #ffffff; border: 1px solid #E4E6EB; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); color: #050505; font-size: 13px; font-weight: 700; text-align: center; line-height: 1.25; }
+
+        /* Small colored category pill overlaid on the game's cover image */
+        .game-cat-badge { position: absolute; top: 6px; left: 6px; display: flex; align-items: center; gap: 3px; padding: 3px 8px 3px 6px; border-radius: 9px; font-size: 9.5px; font-weight: 700; color: #fff; backdrop-filter: blur(4px); box-shadow: 0 2px 6px rgba(0,0,0,0.25); }
+        .game-cat-badge svg { width: 10px; height: 10px; }
+
+        /* Category filter chips row, above the All Games grid */
+        .cat-filter-scroll { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 12px; -webkit-overflow-scrolling: touch; }
+        .cat-filter-scroll::-webkit-scrollbar { display: none; }
+        .cat-filter-chip {
+            display: flex; align-items: center; gap: 6px; flex: 0 0 auto; padding: 9px 15px 9px 11px; border-radius: 20px;
+            background: rgba(255,255,255,0.75); backdrop-filter: blur(6px); border: 1.5px solid #E4E6EB;
+            color: #65676B; font-size: 13px; font-weight: 700; cursor: pointer; user-select: none;
+            transition: transform 0.12s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
+        }
+        .cat-filter-chip svg { width: 15px; height: 15px; opacity: 0.8; }
+        .cat-filter-chip:active { transform: scale(0.95); }
+        .cat-filter-chip.active { color: #fff; border-color: transparent; background: var(--cat-color, #1877F2); box-shadow: 0 4px 14px -3px var(--cat-color, #1877F2); }
+        .cat-filter-chip.active svg { opacity: 1; }
 
         /* Popular Games: horizontal scroll row (separate from the All Games grid) */
         .section-title-spaced { margin-top: 20px; }
@@ -304,6 +322,12 @@
         <symbol id="icon-facebook" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></symbol>
         <symbol id="icon-telegram" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></symbol>
         <symbol id="icon-tiktok" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></symbol>
+        <symbol id="icon-grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7"></rect><rect x="14" y="3" width="7" height="7"></rect><rect x="14" y="14" width="7" height="7"></rect><rect x="3" y="14" width="7" height="7"></rect></symbol>
+        <symbol id="icon-shield" viewBox="0 0 24 24"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"></path></symbol>
+        <symbol id="icon-target" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><circle cx="12" cy="12" r="6"></circle><circle cx="12" cy="12" r="2"></circle></symbol>
+        <symbol id="icon-compass" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><polygon points="16.24 7.76 14.12 14.12 7.76 16.24 9.88 9.88 16.24 7.76"></polygon></symbol>
+        <symbol id="icon-smile" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M8 14s1.5 2 4 2 4-2 4-2"></path><line x1="9" y1="9" x2="9.01" y2="9"></line><line x1="15" y1="9" x2="15.01" y2="9"></line></symbol>
+        <symbol id="icon-feather" viewBox="0 0 24 24"><path d="M20.24 12.24a6 6 0 0 0-8.49-8.49L5 10.5V19h8.5z"></path><line x1="16" y1="8" x2="2" y2="22"></line><line x1="17.5" y1="15" x2="9" y2="15"></line></symbol>
     </svg>
 
     <!-- Toast Notification -->
@@ -359,6 +383,7 @@
                 <div class="popular-scroll-wrap" id="popular-games-scroll"></div>
             </div>
             <h2 class="title-header section-title-spaced">All Games</h2>
+            <div class="cat-filter-scroll" id="cat-filter-scroll"></div>
             <div class="cards-grid" id="all-games-grid">
                 <p class="empty-msg">Loading games...</p>
             </div>
@@ -1905,6 +1930,11 @@
                     <p class="detail-section-title" style="margin:16px 0 8px;">Payment Receipt</p>
                     <img src="${data.receiptUrl}" style="width:100%;max-height:260px;object-fit:contain;border-radius:10px;background:#F0F2F5;border:1px solid #E4E6EB;">
                 ` : ''}
+
+                ${data.statusNote ? `
+                    <p class="detail-section-title" style="margin:16px 0 8px;">${data.status === 'Fail' ? 'Reason' : 'Note'}</p>
+                    <p style="font-size:13px;line-height:1.5;color:#1C1E21;background:#F0F2F5;border-radius:10px;padding:10px 12px;white-space:pre-wrap;">${data.statusNote}</p>
+                ` : ''}
             `;
             document.getElementById('order-detail-overlay').classList.add('show');
         }
@@ -1973,11 +2003,55 @@
             return `${secs}s`;
         }
 
+        // ---------- Game Category filter (Moba / Battle Royale / Survival / Fun / Creative) ----------
+        // Mirrors the same list/colors/icons used in the admin panel's category
+        // chip-select, so a game tagged there shows up under the right filter here.
+        const GAME_CATEGORIES = [
+            { id: 'moba', label: 'MOBA', icon: 'icon-target', color: '#7C3AED' },
+            { id: 'battle_royale', label: 'Battle Royale', icon: 'icon-rocket', color: '#E53935' },
+            { id: 'survival', label: 'Survival', icon: 'icon-compass', color: '#16A34A' },
+            { id: 'fun', label: 'Fun', icon: 'icon-smile', color: '#EC4899' },
+            { id: 'creative', label: 'Creative', icon: 'icon-feather', color: '#0891B2' }
+        ];
+        function findCategory(id) { return GAME_CATEGORIES.find(c => c.id === id); }
+        let selectedGameCategory = 'all';
+
+        function categoryBadgeHtml(categoryId) {
+            const c = findCategory(categoryId);
+            if (!c) return '';
+            return `<span class="game-cat-badge" style="background:${c.color};"><svg class="ui-icon"><use href="#${c.icon}"></use></svg>${c.label}</span>`;
+        }
+
+        function renderCategoryFilterChips() {
+            const wrap = document.getElementById('cat-filter-scroll');
+            const allChip = `<div class="cat-filter-chip${selectedGameCategory === 'all' ? ' active' : ''}" data-cat="all" style="--cat-color:#1877F2;">
+                <svg class="ui-icon"><use href="#icon-grid"></use></svg>All
+            </div>`;
+            wrap.innerHTML = allChip + GAME_CATEGORIES.map(c => `
+                <div class="cat-filter-chip${selectedGameCategory === c.id ? ' active' : ''}" data-cat="${c.id}" style="--cat-color:${c.color};">
+                    <svg class="ui-icon"><use href="#${c.icon}"></use></svg>${c.label}
+                </div>`).join('');
+        }
+
+        function filterByCategory(catId) {
+            selectedGameCategory = catId;
+            renderCategoryFilterChips();
+            renderHomeGames();
+        }
+        window.filterByCategory = filterByCategory;
+
+        document.getElementById('cat-filter-scroll').addEventListener('click', (e) => {
+            const chip = e.target.closest('.cat-filter-chip');
+            if (!chip) return;
+            filterByCategory(chip.dataset.cat);
+        });
+
         function renderHomeGames() {
             const popularSection = document.getElementById('popular-games-section');
             const popularScroll = document.getElementById('popular-games-scroll');
             const grid = document.getElementById('all-games-grid');
             const ids = Object.keys(GAMES);
+            renderCategoryFilterChips();
             if (ids.length === 0) {
                 grid.innerHTML = '<p class="empty-msg">No games available yet.</p>';
                 popularSection.style.display = 'none';
@@ -1987,6 +2061,7 @@
 
             // Popular Games: only games flagged "popular" from the admin panel,
             // shown as a horizontal scroll row. Hidden entirely if none are flagged.
+            // Not affected by the category filter — it's a separate curation.
             const popularIds = ids.filter(id => GAMES[id].popular);
             if (popularIds.length > 0) {
                 popularSection.style.display = 'block';
@@ -1996,6 +2071,7 @@
                         <div class="game-card popular-card" onclick="openGameDetail('${id}')">
                             <div class="game-card-img-wrap">
                                 <img src="${g.image}" alt="${g.name}">
+                                ${categoryBadgeHtml(g.category)}
                             </div>
                             <div class="game-card-name">${g.name}</div>
                         </div>
@@ -2006,19 +2082,26 @@
                 popularScroll.innerHTML = '';
             }
 
-            // All Games: every game, in a grid, regardless of the popular flag.
-            grid.innerHTML = ids.map(id => {
+            // All Games: filtered by the selected category chip (or everything, for "All").
+            const visibleIds = selectedGameCategory === 'all' ? ids : ids.filter(id => GAMES[id].category === selectedGameCategory);
+            if (visibleIds.length === 0) {
+                grid.innerHTML = `<p class="empty-msg">No games in this category yet.</p>`;
+                return;
+            }
+            grid.innerHTML = visibleIds.map(id => {
                 const g = GAMES[id];
                 return `
                     <div class="game-card" onclick="openGameDetail('${id}')">
                         <div class="game-card-img-wrap">
                             <img src="${g.image}" alt="${g.name}">
+                            ${categoryBadgeHtml(g.category)}
                         </div>
                         <div class="game-card-name">${g.name}</div>
                     </div>
                 `;
             }).join('');
         }
+
 
         // Games are managed entirely from the admin panel now — nothing here ever
         // auto-recreates a game, so deleting one in admin removes it for good.
