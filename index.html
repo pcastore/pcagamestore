@@ -19,6 +19,11 @@
         .header-icon { position: relative; color: #1C1E21; background: #E4E6EB; width: 40px; height: 40px; border-radius: 50%; display: flex; justify-content: center; align-items: center; cursor: pointer; }
         .notif-dot { position: absolute; top: 6px; right: 6px; width: 10px; height: 10px; border-radius: 50%; background: #FA3E3E; border: 2px solid #ffffff; display: none; }
         .notif-dot.show { display: block; }
+        .admin-status-bar { display: flex; align-items: center; gap: 6px; padding: 6px 20px; font-size: 12px; font-weight: 600; color: #65676B; background: #F0F2F5; }
+        .admin-status-dot { width: 8px; height: 8px; border-radius: 50%; background: #9C9EA1; flex-shrink: 0; }
+        .admin-status-dot.online { background: #31A24C; box-shadow: 0 0 0 3px rgba(49,162,76,0.15); }
+        .admin-status-dot.offline { background: #9C9EA1; }
+        .admin-status-bar.online-text #admin-status-text { color: #31A24C; }
         .notif-item { background: #ffffff; padding: 14px; border-radius: 10px; margin-bottom: 10px; border: 1px solid #E4E6EB; }
         .notif-item h5 { font-size: 15px; color: #050505; margin-bottom: 4px; font-weight: 600; }
         .notif-item p { font-size: 13px; color: #65676B; margin-bottom: 6px; }
@@ -315,6 +320,14 @@
         </div>
         <div class="header-icon" onclick="openNotificationsModal()"><svg class="ui-icon" style="width: 20px;"><use href="#icon-bell"></use></svg><span class="notif-dot" id="notif-dot"></span></div>
     </header>
+
+    <!-- Admin online/offline status: reflects settings/presence, written every 60s
+         by admin.html while an admin is signed in there. Hidden until the first
+         reading arrives so it never flashes a wrong state on load. -->
+    <div class="admin-status-bar" id="admin-status-bar" style="display:none;">
+        <span class="admin-status-dot" id="admin-status-dot"></span>
+        <span id="admin-status-text">Checking admin status...</span>
+    </div>
 
     <!-- Mini Profile Strip: shows saved name/photo, or a Guest ID if none set yet -->
     <div class="mini-profile-bar" id="mini-profile-bar" onclick="showPage('profile')">
@@ -1441,6 +1454,36 @@
         }, (error) => {
             console.error("Branding fetch error:", error);
         });
+
+        // ---------- Admin online/offline status ----------
+        // admin.html writes settings/presence.lastActive every 60s while an admin
+        // is signed in there. We treat the admin as Online if that timestamp is
+        // recent (within ADMIN_ONLINE_THRESHOLD_MS) and Offline otherwise. Because
+        // there's no explicit "going offline" write, we also re-check on a plain
+        // timer (not just on new Firestore data) so the badge flips to Offline on
+        // its own a few minutes after the last heartbeat stops arriving, without
+        // needing a new snapshot to trigger it.
+        const ADMIN_ONLINE_THRESHOLD_MS = 3 * 60 * 1000; // 3 minutes
+        let lastAdminActiveMs = null;
+        function renderAdminStatus() {
+            const bar = document.getElementById('admin-status-bar');
+            const dot = document.getElementById('admin-status-dot');
+            const text = document.getElementById('admin-status-text');
+            if (lastAdminActiveMs === null) { bar.style.display = 'none'; return; }
+            bar.style.display = 'flex';
+            const isOnline = (Date.now() - lastAdminActiveMs) < ADMIN_ONLINE_THRESHOLD_MS;
+            dot.className = 'admin-status-dot ' + (isOnline ? 'online' : 'offline');
+            bar.classList.toggle('online-text', isOnline);
+            text.innerText = isOnline ? 'Admin Online' : 'Admin Offline — orders still process automatically';
+        }
+        onSnapshot(doc(db, "settings", "presence"), (docSnap) => {
+            const data = docSnap.exists() ? docSnap.data() : null;
+            lastAdminActiveMs = (data && data.lastActive) ? data.lastActive.toMillis() : null;
+            renderAdminStatus();
+        }, (error) => {
+            console.error("Admin presence fetch error:", error);
+        });
+        setInterval(renderAdminStatus, 20000); // re-check the threshold even with no new snapshot
 
         // Remember the customer's last Player ID locally so History can look up
         // their orders across every game they've topped up. This one stays global
