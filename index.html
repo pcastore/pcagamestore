@@ -195,8 +195,10 @@
         .nav-item.active .ui-icon { stroke: #1877F2; }
         
         /* Toast */
-        #toast { position: fixed; top: 20px; left: 50%; transform: translate(-50%, -150%); background: #333; color: #fff; padding: 10px 20px; border-radius: 8px; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 8px; transition: all 0.3s ease; z-index: 1000; width: max-content; }
-        #toast.show { transform: translate(-50%, 0); }
+        #toast { position: fixed; top: 14px; left: 14px; right: 14px; max-width: 480px; margin: 0 auto; background: #0F2419; border: 1px solid rgba(74,222,128,0.35); color: #4ADE80; padding: 14px 16px; border-radius: 14px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 12px; transition: all 0.3s ease; z-index: 1000; transform: translateY(-150%); box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
+        #toast.show { transform: translateY(0); }
+        #toast .toast-icon-circle { width: 26px; height: 26px; border-radius: 50%; background: #22C55E; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        #toast .toast-icon-circle svg { width: 15px; height: 15px; }
         .empty-msg { text-align: center; color: #65676B; font-size: 14px; padding: 20px 0; }
 
         /* Package Selection */
@@ -208,18 +210,35 @@
         .modal-header h3 { font-size: 17px; font-weight: 700; color: #050505; }
         .modal-close { width: 32px; height: 32px; border-radius: 50%; background: #E4E6EB; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
         .modal-body { overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .package-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
-        .package-card { border: 2px solid #E4E6EB; border-radius: 12px; cursor: pointer; transition: 0.15s; background: #fff; overflow: hidden; }
-        .package-card.selected { border-color: #1877F2; background: #E7F3FF; }
-        .package-card.type-currency { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 14px 10px; }
-        .package-card.type-currency .pc-img { width: 52px; height: 52px; object-fit: contain; margin-bottom: 8px; }
-        .package-card.type-package { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; padding: 12px 14px; text-align: left; }
-        .package-card.type-package .pc-img { width: 44px; height: 44px; object-fit: contain; flex-shrink: 0; border-radius: 8px; }
-        .package-card .pc-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
-        .pc-label { font-size: 14px; font-weight: 600; color: #050505; line-height: 1.3; }
+        /* Package/Currency tab switcher */
+        .pkg-type-tabs { display: flex; background: #F0F2F5; border-radius: 10px; padding: 4px; gap: 4px; margin-bottom: 14px; }
+        .pkg-type-tab { flex: 1; text-align: center; padding: 9px 0; border: none; background: transparent; border-radius: 8px; font-size: 14px; font-weight: 600; color: #65676B; cursor: pointer; transition: 0.15s; }
+        .pkg-type-tab.active { background: #ffffff; color: #1877F2; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+
+        .package-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+        .package-grid.layout-package { grid-template-columns: 1fr; }
+        .package-card { border: 2px solid #E4E6EB; border-radius: 14px; cursor: pointer; transition: 0.15s; background: #fff; overflow: hidden; display: flex; flex-direction: column; }
+        .package-card.selected { border-color: #1877F2; }
+
+        /* Currency type: tall card, big square image on top, price in its own bottom bar */
+        .package-card.type-currency .pc-img-wrap { width: 100%; aspect-ratio: 1 / 1; background: #F0F2F5; overflow: hidden; }
+        .package-card.type-currency .pc-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .package-card.type-currency .pc-info { padding: 10px 10px 0; text-align: center; }
         .package-card.type-currency .pc-label { font-size: 13px; }
+
+        /* Package type: wide card, square image on the left, price in its own bottom bar under the label */
+        .package-card.type-package { flex-direction: row; align-items: stretch; }
+        .package-card.type-package .pc-img-wrap { width: 84px; aspect-ratio: 1 / 1; flex-shrink: 0; background: #F0F2F5; overflow: hidden; }
+        .package-card.type-package .pc-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .package-card.type-package .pc-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .package-card.type-package .pc-info { padding: 10px 12px 0; text-align: left; }
+        .package-card.type-package .pc-price-bar { margin-top: auto; text-align: left; }
+
+        .pc-info { min-width: 0; }
+        .pc-label { font-size: 14px; font-weight: 600; color: #050505; line-height: 1.3; display: block; }
+        .pc-price-bar { margin-top: 8px; padding: 8px 10px; border-top: 1px solid #E4E6EB; background: #F7F8FA; text-align: center; }
+        .package-card.selected .pc-price-bar { background: #E7F3FF; border-top-color: #1877F2; }
         .pc-price { font-size: 14px; font-weight: 700; color: #1877F2; }
-        .package-card.type-package .pc-price { font-size: 15px; }
         .modal-footer { padding-top: 16px; }
         .modal-footer .btn:disabled { background: #BCC0C4; cursor: not-allowed; }
 
@@ -357,7 +376,7 @@
     </svg>
 
     <!-- Toast Notification -->
-    <div id="toast"><svg class="ui-icon" style="color: #4ADE80; width:18px;"><use href="#icon-check"></use></svg> <span id="toast-msg">Success!</span></div>
+    <div id="toast"><span class="toast-icon-circle" id="toast-icon-circle"><svg class="ui-icon" id="toast-icon" style="color:#fff;"><use id="toast-icon-use" href="#icon-check"></use></svg></span> <span id="toast-msg">Success!</span></div>
 
     <!-- Header -->
     <header class="header">
@@ -549,6 +568,10 @@
             </div>
 
             <h3 class="detail-section-title">Select Currency Package</h3>
+            <div class="pkg-type-tabs" id="pkg-type-tabs" style="display:none;">
+                <button type="button" class="pkg-type-tab" data-type="currency" onclick="switchPackageTypeTab('currency')">Currency</button>
+                <button type="button" class="pkg-type-tab" data-type="package" onclick="switchPackageTypeTab('package')">Package</button>
+            </div>
             <div id="detail-package-list" class="package-grid"></div>
 
             <div id="detail-payment-section" style="display:none;">
@@ -663,8 +686,17 @@
             if (pageId === 'leaderboard' && window.loadLeaderboard) window.loadLeaderboard();
         }
 
-        function showToast(message) {
+        function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
+            const styles = {
+                success: { icon: '#icon-check', circleBg: '#22C55E', textColor: '#4ADE80', border: 'rgba(74,222,128,0.35)' },
+                fail: { icon: '#icon-close', circleBg: '#EF4444', textColor: '#FCA5A5', border: 'rgba(239,68,68,0.35)' }
+            };
+            const s = styles[type] || styles.success;
+            document.getElementById('toast-icon-use').setAttribute('href', s.icon);
+            document.getElementById('toast-icon-circle').style.background = s.circleBg;
+            toast.style.borderColor = s.border;
+            toast.style.color = s.textColor;
             document.getElementById('toast-msg').innerText = message;
             toast.classList.add('show');
             setTimeout(() => { toast.classList.remove('show'); }, 3000);
@@ -677,6 +709,7 @@
         // Payment methods live in Firestore's "paymentMethods" collection, synced
         // the same way into window.PAYMENT_METHODS.
         let selectedPackage = null;
+        let activePackageTab = 'currency';
         let selectedGameName = null;
         let selectedGameServerName = '';
 
@@ -906,19 +939,18 @@
             document.getElementById('detail-game-banner').alt = game.name;
             loadSavedContactIntoForm();
 
-            const list = document.getElementById('detail-package-list');
-            list.innerHTML = game.packages.map((pkg, i) => {
-                const isPackageType = pkg.type === 'package';
-                const img = pkg.image || DEFAULT_PACKAGE_ICON;
-                return `
-                <div class="package-card ${isPackageType ? 'type-package' : 'type-currency'}" data-index="${i}" onclick="selectPackageOption(${i})">
-                    <img class="pc-img" src="${img}" alt="" loading="lazy" onerror="this.src='${DEFAULT_PACKAGE_ICON}'">
-                    <div class="pc-info">
-                        <span class="pc-label">${pkg.amount}</span>
-                        <span class="pc-price">${pkg.price.toLocaleString()} MMK</span>
-                    </div>
-                </div>`;
-            }).join('');
+            const hasCurrency = game.packages.some(pkg => pkg.type !== 'package');
+            const hasPackage = game.packages.some(pkg => pkg.type === 'package');
+            const tabsEl = document.getElementById('pkg-type-tabs');
+            if (hasCurrency && hasPackage) {
+                tabsEl.style.display = 'flex';
+                activePackageTab = 'currency';
+            } else {
+                tabsEl.style.display = 'none';
+                activePackageTab = hasPackage ? 'package' : 'currency';
+            }
+            document.querySelectorAll('.pkg-type-tab').forEach(el => el.classList.toggle('active', el.dataset.type === activePackageTab));
+            renderDetailPackageList();
 
             document.getElementById('detail-payment-section').style.display = 'none';
             document.getElementById('detail-payment-info').style.display = 'none';
@@ -934,6 +966,49 @@
             confirmBtn.style.backgroundColor = '';
 
             showPage('game-detail');
+        }
+
+        function switchPackageTypeTab(type) {
+            activePackageTab = type;
+            document.querySelectorAll('.pkg-type-tab').forEach(el => el.classList.toggle('active', el.dataset.type === type));
+            renderDetailPackageList();
+        }
+
+        function renderDetailPackageList() {
+            const list = document.getElementById('detail-package-list');
+            const packages = window.currentGamePackages || [];
+            const isPackageType = activePackageTab === 'package';
+            list.classList.toggle('layout-package', isPackageType);
+
+            const entries = packages
+                .map((pkg, i) => ({ pkg, i }))
+                .filter(({ pkg }) => (pkg.type === 'package') === isPackageType);
+
+            if (!entries.length) {
+                list.innerHTML = '<p class="empty-msg">No packages available</p>';
+                return;
+            }
+
+            list.innerHTML = entries.map(({ pkg, i }) => {
+                const img = pkg.image || DEFAULT_PACKAGE_ICON;
+                const imgTag = `<img class="pc-img" src="${img}" alt="" loading="lazy" onerror="this.src='${DEFAULT_PACKAGE_ICON}'">`;
+                if (isPackageType) {
+                    return `
+                    <div class="package-card type-package" data-index="${i}" onclick="selectPackageOption(${i})">
+                        <div class="pc-img-wrap">${imgTag}</div>
+                        <div class="pc-body">
+                            <div class="pc-info"><span class="pc-label">${pkg.amount}</span></div>
+                            <div class="pc-price-bar"><span class="pc-price">${pkg.price.toLocaleString()} MMK</span></div>
+                        </div>
+                    </div>`;
+                }
+                return `
+                <div class="package-card type-currency" data-index="${i}" onclick="selectPackageOption(${i})">
+                    <div class="pc-img-wrap">${imgTag}</div>
+                    <div class="pc-info"><span class="pc-label">${pkg.amount}</span></div>
+                    <div class="pc-price-bar"><span class="pc-price">${pkg.price.toLocaleString()} MMK</span></div>
+                </div>`;
+            }).join('');
         }
 
         function selectPackageOption(index) {
@@ -1861,6 +1936,42 @@
         }
         listenAnnouncements();
         listenTierSettings();
+
+        // Watches this device's own orders for status changes and pops the
+        // "Your Order Is Successfully" notification (or a Fail notice) the instant
+        // an admin - or the Telegram bot's Confirm/Reject buttons - updates one.
+        // Runs globally from app start, independent of which page is open, and
+        // needs no refresh/reload. Initial load ("added") is recorded silently so
+        // only real transitions after that (Pending/Processing -> Success/Fail) fire.
+        let orderStatusKnown = {};
+        let orderStatusNotified = new Set();
+        function listenOwnOrderStatus() {
+            const guestId = getGuestId();
+            if (!guestId) return;
+            const q = query(collection(db, "orders"), where("userId", "==", guestId));
+            onSnapshot(q, (snap) => {
+                snap.docChanges().forEach((change) => {
+                    const data = change.doc.data();
+                    const orderId = change.doc.id;
+                    const prevStatus = orderStatusKnown[orderId];
+                    orderStatusKnown[orderId] = data.status;
+                    if (change.type === 'added') return; // don't replay history on load
+                    if (prevStatus && prevStatus !== data.status) {
+                        const label = `${data.game || ''}${data.itemAmount ? ' - ' + data.itemAmount : ''}`.trim();
+                        if (data.status === 'Success' && !orderStatusNotified.has(orderId + ':success')) {
+                            orderStatusNotified.add(orderId + ':success');
+                            window.showToast(`Your Order Is Successfully ${label ? '(' + label + ')' : ''}`.trim(), 'success');
+                        } else if (data.status === 'Fail' && !orderStatusNotified.has(orderId + ':fail')) {
+                            orderStatusNotified.add(orderId + ':fail');
+                            window.showToast(`Order Failed ${label ? '(' + label + ')' : ''}`.trim(), 'fail');
+                        }
+                    }
+                });
+            }, (error) => {
+                console.error("Order status listener error:", error);
+            });
+        }
+        listenOwnOrderStatus();
 
         // Four possible order states: Pending, Processing, Success, Fail
         function historyBadgeClassFor(status) {
