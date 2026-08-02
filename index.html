@@ -217,14 +217,18 @@
 
         .package-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .package-grid.layout-package { grid-template-columns: 1fr; }
+        .package-grid.layout-currency { grid-template-columns: repeat(3, 1fr); gap: 9px; }
         .package-card { border: 2px solid #E4E6EB; border-radius: 14px; cursor: pointer; transition: 0.15s; background: #fff; overflow: hidden; display: flex; flex-direction: column; }
         .package-card.selected { border-color: #1877F2; }
 
         /* Currency type: tall card, big square image on top, price in its own bottom bar */
+        .package-card.type-currency { border-radius: 11px; }
         .package-card.type-currency .pc-img-wrap { width: 100%; aspect-ratio: 1 / 1; background: #F0F2F5; overflow: hidden; }
         .package-card.type-currency .pc-img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .package-card.type-currency .pc-info { padding: 10px 10px 0; text-align: center; }
-        .package-card.type-currency .pc-label { font-size: 13px; }
+        .package-card.type-currency .pc-info { padding: 6px 6px 0; text-align: center; }
+        .package-card.type-currency .pc-label { font-size: 11px; line-height: 1.2; }
+        .package-card.type-currency .pc-price-bar { margin-top: 5px; padding: 5px 6px; }
+        .package-card.type-currency .pc-price { font-size: 12px; }
 
         /* Package type: wide card, square image on the left, price in its own bottom bar under the label */
         .package-card.type-package { flex-direction: row; align-items: stretch; }
@@ -979,6 +983,7 @@
             const packages = window.currentGamePackages || [];
             const isPackageType = activePackageTab === 'package';
             list.classList.toggle('layout-package', isPackageType);
+            list.classList.toggle('layout-currency', !isPackageType);
 
             const entries = packages
                 .map((pkg, i) => ({ pkg, i }))
@@ -1366,13 +1371,22 @@
                 const gid = window.getGuestId ? window.getGuestId() : null;
                 if (!gid) return;
                 const profile = window.getSavedProfile ? window.getSavedProfile() : {};
-                await setDoc(doc(db, "users", gid), {
+                const userRef = doc(db, "users", gid);
+                const payload = {
                     guestId: gid,
                     name: profile.name || '',
                     phone: profile.phone || '',
                     photo: profile.photo || '',
                     lastSeen: serverTimestamp()
-                }, { merge: true });
+                };
+                // Only stamp createdAt the first time this guest is seen, so it works
+                // as a real "join date" in the admin panel instead of shifting on
+                // every visit like lastSeen does.
+                const existing = await getDoc(userRef);
+                if (!existing.exists() || !existing.data().createdAt) {
+                    payload.createdAt = serverTimestamp();
+                }
+                await setDoc(userRef, payload, { merge: true });
             } catch (error) {
                 console.error("User sync error:", error);
             }
