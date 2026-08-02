@@ -198,6 +198,27 @@
         .btn { width: 100%; padding: 10px; border-radius: 6px; font-weight: 600; font-size: 15px; cursor: pointer; border: none; text-align: center; transition: 0.2s;}
         .btn-primary { background-color: #1877F2; color: white; }
         .btn-primary:active { background-color: #166FE5; }
+        .btn:disabled { opacity: 0.55; cursor: not-allowed; }
+
+        /* Slide-to-confirm control wrapping #detail-confirm-btn: the button
+           itself becomes the pill-shaped track (its text/color/disabled state
+           is still driven from JS exactly as a normal button would be), and a
+           separate circular thumb sits on top and must be dragged from left to
+           right to actually fire the purchase - a plain tap on the track no
+           longer submits anything, which is the whole point (prevents an
+           accidental tap from placing a real order). */
+        .slide-confirm-wrap { position: relative; touch-action: pan-y; }
+        .slide-confirm-wrap .btn { padding-left: 52px; pointer-events: none; /* track is visual only, drag is handled by the thumb */ }
+        .slide-confirm-thumb {
+            position: absolute; top: 3px; left: 3px; width: 38px; height: 38px;
+            border-radius: 50%; background: #ffffff; box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+            display: flex; align-items: center; justify-content: center;
+            cursor: grab; touch-action: none; transition: left 0.25s ease;
+        }
+        .slide-confirm-thumb svg { color: #1877F2; }
+        .slide-confirm-thumb.dragging { transition: none; cursor: grabbing; }
+        .slide-confirm-wrap:has(#detail-confirm-btn:disabled) .slide-confirm-thumb { cursor: not-allowed; opacity: 0.6; }
+        .slide-confirm-thumb.completed svg { color: #28a745; }
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: #ffffff; display: flex; justify-content: space-around; padding: 8px 0; border-top: 1px solid #E4E6EB; z-index: 100; box-shadow: 0 -2px 5px rgba(0,0,0,0.05); }
         .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; color: #65676B; cursor: pointer; width: 20%; }
         .nav-item.active { color: #1877F2; }
@@ -618,7 +639,12 @@
                 </div>
             </div>
 
-            <button class="btn btn-primary" id="detail-confirm-btn" disabled style="margin-top:20px;" onclick="confirmPackagePurchase(this)">Select a Package</button>
+            <div class="slide-confirm-wrap" id="detail-confirm-wrap" style="margin-top:20px;">
+                <button type="button" class="btn btn-primary" id="detail-confirm-btn" disabled>Select a Package</button>
+                <div class="slide-confirm-thumb" id="detail-confirm-thumb" aria-hidden="true">
+                    <svg class="ui-icon" style="width:20px;height:20px;color:#fff;"><use href="#icon-chevron-right"></use></svg>
+                </div>
+            </div>
         </div>
 
     </main>
@@ -974,6 +1000,7 @@
             confirmBtn.disabled = true;
             confirmBtn.innerText = 'Select a Package';
             confirmBtn.style.backgroundColor = '';
+            if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb();
 
             showPage('game-detail');
         }
@@ -1143,16 +1170,101 @@
             const inGameId = document.getElementById('detail-ingame-id').value.trim();
             const serverId = document.getElementById('detail-server-id').value.trim();
 
-            if (!inGameId) { window.showToast('Please enter your In-Game ID'); return; }
-            if (!selectedPaymentMethod) { window.showToast('Please select a payment method'); return; }
-            if (!editingReceiptFile) { window.showToast('Please upload your payment receipt'); return; }
+            if (!inGameId) { window.showToast('Please enter your In-Game ID'); if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb(); return; }
+            if (!selectedPaymentMethod) { window.showToast('Please select a payment method'); if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb(); return; }
+            if (!editingReceiptFile) { window.showToast('Please upload your payment receipt'); if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb(); return; }
 
             if (selectedGameG2BulkCode && playerIdVerified === false) {
-                if (!confirm('We could not find this In-Game ID on the server. Continue with this order anyway?')) return;
+                if (!confirm('We could not find this In-Game ID on the server. Continue with this order anyway?')) {
+                    if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb();
+                    return;
+                }
             }
 
             await doSubmitOrder(inGameId, serverId, btnElement);
         }
+
+        // ---------- Slide-to-confirm gesture for the final purchase button ----------
+        // #detail-confirm-btn is now a pill-shaped "track" (pointer-events: none,
+        // driven purely by JS text/disabled/style just like a normal button) with
+        // a separate circular thumb (#detail-confirm-thumb) layered on top. The
+        // thumb has to be dragged all the way from left to right to actually call
+        // confirmPackagePurchase() - a plain tap does nothing, on purpose.
+        function initSlideConfirm() {
+            const wrap = document.getElementById('detail-confirm-wrap');
+            const thumb = document.getElementById('detail-confirm-thumb');
+            const track = document.getElementById('detail-confirm-btn');
+            if (!wrap || !thumb || !track) return;
+
+            let dragging = false;
+            let startX = 0;
+            let maxTravel = 0;
+            let currentX = 0;
+
+            function travelRange() {
+                return Math.max(0, wrap.clientWidth - thumb.offsetWidth - 6); // 3px inset each side
+            }
+
+            function setThumbX(x) {
+                currentX = x;
+                thumb.style.left = (3 + x) + 'px';
+            }
+
+            thumb.addEventListener('pointerdown', (e) => {
+                if (track.disabled) return;
+                dragging = true;
+                maxTravel = travelRange();
+                startX = e.clientX - currentX;
+                thumb.classList.add('dragging');
+                thumb.setPointerCapture(e.pointerId);
+            });
+
+            thumb.addEventListener('pointermove', (e) => {
+                if (!dragging) return;
+                let x = e.clientX - startX;
+                x = Math.max(0, Math.min(maxTravel, x));
+                setThumbX(x);
+            });
+
+            function endDrag(e) {
+                if (!dragging) return;
+                dragging = false;
+                thumb.classList.remove('dragging');
+                const threshold = maxTravel * 0.82; // has to reach ~82% of the way across
+                if (maxTravel > 0 && currentX >= threshold) {
+                    setThumbX(maxTravel);
+                    thumb.classList.add('completed');
+                    confirmPackagePurchase(track);
+                } else {
+                    setThumbX(0); // snap back - CSS transition animates this since .dragging was removed
+                }
+            }
+            thumb.addEventListener('pointerup', endDrag);
+            thumb.addEventListener('pointercancel', endDrag);
+
+            // Keyboard/accessibility fallback: Enter/Space on the focused thumb
+            // also confirms, for anyone who can't perform a drag gesture.
+            thumb.setAttribute('tabindex', '0');
+            thumb.setAttribute('role', 'button');
+            thumb.setAttribute('aria-label', 'Slide to confirm purchase');
+            thumb.addEventListener('keydown', (e) => {
+                if (track.disabled) return;
+                if (e.key === 'Enter' || e.key === ' ') {
+                    e.preventDefault();
+                    maxTravel = travelRange();
+                    setThumbX(maxTravel);
+                    thumb.classList.add('completed');
+                    confirmPackagePurchase(track);
+                }
+            });
+
+            window.resetSlideConfirmThumb = function () {
+                thumb.classList.remove('completed', 'dragging');
+                dragging = false;
+                setThumbX(0);
+            };
+        }
+        window.initSlideConfirm = initSlideConfirm;
 
         async function doSubmitOrder(inGameId, serverId, btnElement) {
             await window.submitOrder({
@@ -1180,6 +1292,7 @@
         window.goHomeFromSuccess = goHomeFromSuccess;
         window.openSuccessOverlay = openSuccessOverlay;
         window.confirmPackagePurchase = confirmPackagePurchase;
+        initSlideConfirm();
 
         // ---------- Profile (saved on this device via localStorage; photo hosted on ImgBB) ----------
         let editingProfilePhotoFile = null;
@@ -1797,6 +1910,7 @@
                             window.showToast('Your account has been restricted. Contact support.', 'fail');
                             btnElement.innerText = originalText;
                             btnElement.disabled = false;
+                            if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb();
                             return;
                         }
                     } catch (banCheckError) {
@@ -1846,6 +1960,7 @@
                 window.showToast(error.message || "Failed to place order! Check Connection.");
                 btnElement.innerText = originalText;
                 btnElement.disabled = false;
+                if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb();
             }
         }
 
