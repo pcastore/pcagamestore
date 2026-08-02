@@ -208,10 +208,18 @@
         .modal-header h3 { font-size: 17px; font-weight: 700; color: #050505; }
         .modal-close { width: 32px; height: 32px; border-radius: 50%; background: #E4E6EB; display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
         .modal-body { overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
-        .package-option { display: flex; justify-content: space-between; align-items: center; padding: 18px 18px; border: 2px solid #E4E6EB; border-radius: 12px; cursor: pointer; transition: 0.15s; }
-        .package-option.selected { border-color: #1877F2; background: #E7F3FF; }
-        .po-amount { font-size: 16px; font-weight: 600; color: #050505; }
-        .po-price { font-size: 16px; font-weight: 700; color: #1877F2; }
+        .package-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .package-card { border: 2px solid #E4E6EB; border-radius: 12px; cursor: pointer; transition: 0.15s; background: #fff; overflow: hidden; }
+        .package-card.selected { border-color: #1877F2; background: #E7F3FF; }
+        .package-card.type-currency { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 14px 10px; }
+        .package-card.type-currency .pc-img { width: 52px; height: 52px; object-fit: contain; margin-bottom: 8px; }
+        .package-card.type-package { grid-column: 1 / -1; display: flex; align-items: center; gap: 12px; padding: 12px 14px; text-align: left; }
+        .package-card.type-package .pc-img { width: 44px; height: 44px; object-fit: contain; flex-shrink: 0; border-radius: 8px; }
+        .package-card .pc-info { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .pc-label { font-size: 14px; font-weight: 600; color: #050505; line-height: 1.3; }
+        .package-card.type-currency .pc-label { font-size: 13px; }
+        .pc-price { font-size: 14px; font-weight: 700; color: #1877F2; }
+        .package-card.type-package .pc-price { font-size: 15px; }
         .modal-footer { padding-top: 16px; }
         .modal-footer .btn:disabled { background: #BCC0C4; cursor: not-allowed; }
 
@@ -492,6 +500,21 @@
             </div>
         </div>
 
+        <!-- SERVER SELECT PAGE: shown instead of the price list when a game name
+             has more than one uploaded variant (e.g. Normal / Malaysia / Singapore
+             Server). Picking a card here opens that variant's normal price list
+             below, unchanged. Reuses the same header + card styles as the rest
+             of the app, so nothing here is a new design. -->
+        <div id="server-select" class="page-section">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+                <div class="header-icon" style="width:36px;height:36px;" onclick="closeServerSelect()">
+                    <svg class="ui-icon" style="width:18px;"><use href="#icon-chevron-left"></use></svg>
+                </div>
+                <h2 style="font-size:18px; font-weight:700; color:#050505;" id="server-select-title">Game</h2>
+            </div>
+            <div class="cards-grid" id="server-select-grid"></div>
+        </div>
+
         <!-- GAME CURRENCY PRICE LIST PAGE -->
         <div id="game-detail" class="page-section">
             <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
@@ -526,7 +549,7 @@
             </div>
 
             <h3 class="detail-section-title">Select Currency Package</h3>
-            <div id="detail-package-list" style="display:flex; flex-direction:column; gap:10px;"></div>
+            <div id="detail-package-list" class="package-grid"></div>
 
             <div id="detail-payment-section" style="display:none;">
                 <h3 class="detail-section-title">Payment Method</h3>
@@ -655,6 +678,17 @@
         // the same way into window.PAYMENT_METHODS.
         let selectedPackage = null;
         let selectedGameName = null;
+        let selectedGameServerName = '';
+
+        // Shown for any package that doesn't have an admin-uploaded image, so the
+        // grid never has a broken-image icon or an empty gap.
+        const DEFAULT_PACKAGE_ICON = 'data:image/svg+xml;utf8,' + encodeURIComponent(
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">' +
+            '<path d="M3 8L12 2L21 8L12 22L3 8Z" fill="#1877F2" opacity="0.12"/>' +
+            '<path d="M3 8L12 2L21 8L12 22L3 8Z" fill="none" stroke="#1877F2" stroke-width="1.4" stroke-linejoin="round"/>' +
+            '<path d="M3 8H21M8 8L12 2L16 8M8 8L12 22M16 8L12 22" fill="none" stroke="#1877F2" stroke-width="1.1" stroke-linejoin="round"/>' +
+            '</svg>'
+        );
         let selectedGameId = null;
         let selectedGameG2BulkCode = null;
         let selectedGameJCPlaysProduct = null;
@@ -673,10 +707,26 @@
             onPlayerIdFieldChange();
         }
 
+        // Some games' player IDs are commonly copy-pasted in a "123456789 (7891)"
+        // format, where the bracketed number is actually the zone/server ID
+        // (Mobile Legends being the classic example). Catches that pattern as
+        // the customer types or pastes, drops the bracketed number straight
+        // into the Server ID field, and trims it back out of the ID field so
+        // the value sent to checkPlayerId / the order is just the clean ID.
+        function autoFillServerIdFromBrackets() {
+            const idField = document.getElementById('detail-ingame-id');
+            const match = idField.value.match(/\(([^)]+)\)/);
+            if (!match) return;
+            const serverIdField = document.getElementById('detail-server-id');
+            serverIdField.value = match[1].trim();
+            idField.value = idField.value.replace(/\s*\([^)]*\)\s*/, '').trim();
+        }
+
         // Debounced live check against G2Bulk's checkPlayerId - only runs for
         // games linked to a G2Bulk code. Shows the resolved in-game name so the
         // customer can catch a typo'd ID before paying.
         function onPlayerIdFieldChange() {
+            autoFillServerIdFromBrackets();
             const statusEl = document.getElementById('detail-id-status');
             const confirmBtn = document.getElementById('confirm-id-btn');
             playerIdVerified = null;
@@ -724,10 +774,11 @@
         // Builds the resolved-player card (avatar initial + name + check badge).
         // G2Bulk's checkPlayerId response only ever returns { valid, name, openid }
         // - it has no region/server-name field. Region distinctions (Myanmar,
-        // Global, Indonesia, etc.) are handled at the game-code level in G2Bulk
-        // (e.g. "Freefire Indonesia" vs "Freefire Europe" are different codes),
-        // so we show the store's own game name here instead - that's what
-        // actually carries the region info the admin picked.
+        // Global, Indonesia, etc.) are handled at the store's own game-entry
+        // level instead (see the "Server / Region" field in the admin panel's
+        // game editor), so the label passed in here is the store's own game
+        // name plus that server name — that's what actually carries the region
+        // info the admin picked for this specific upload.
         // Built with DOM nodes (not innerHTML string interpolation) since the
         // player name comes from an external API and shouldn't be trusted as HTML.
         function renderIdConfirmedCard(name, gameName) {
@@ -799,7 +850,8 @@
                 const data = await res.json();
                 if (res.ok && data.valid === 'valid') {
                     playerIdVerified = true;
-                    renderIdConfirmedCard(data.name, selectedGameName);
+                    const verifiedLabel = selectedGameServerName ? `${selectedGameName} - ${selectedGameServerName}` : selectedGameName;
+                    renderIdConfirmedCard(data.name, verifiedLabel);
                     confirmBtn.classList.remove('checking');
                     confirmBtn.classList.add('confirmed');
                     btnText.innerText = 'Confirmed ✓';
@@ -827,6 +879,7 @@
             if (!game) return;
             selectedGameId = gameId;
             selectedGameName = game.name;
+            selectedGameServerName = game.serverName || '';
             selectedGameG2BulkCode = game.g2bulkCode || null;
             selectedGameJCPlaysProduct = game.jcplaysProduct || null;
             selectedPackage = null;
@@ -854,12 +907,18 @@
             loadSavedContactIntoForm();
 
             const list = document.getElementById('detail-package-list');
-            list.innerHTML = game.packages.map((pkg, i) => `
-                <div class="package-option" data-index="${i}" onclick="selectPackageOption(${i})">
-                    <span class="po-amount">${pkg.amount}</span>
-                    <span class="po-price">${pkg.price.toLocaleString()} MMK</span>
-                </div>
-            `).join('');
+            list.innerHTML = game.packages.map((pkg, i) => {
+                const isPackageType = pkg.type === 'package';
+                const img = pkg.image || DEFAULT_PACKAGE_ICON;
+                return `
+                <div class="package-card ${isPackageType ? 'type-package' : 'type-currency'}" data-index="${i}" onclick="selectPackageOption(${i})">
+                    <img class="pc-img" src="${img}" alt="" loading="lazy" onerror="this.src='${DEFAULT_PACKAGE_ICON}'">
+                    <div class="pc-info">
+                        <span class="pc-label">${pkg.amount}</span>
+                        <span class="pc-price">${pkg.price.toLocaleString()} MMK</span>
+                    </div>
+                </div>`;
+            }).join('');
 
             document.getElementById('detail-payment-section').style.display = 'none';
             document.getElementById('detail-payment-info').style.display = 'none';
@@ -879,8 +938,8 @@
 
         function selectPackageOption(index) {
             selectedPackage = window.currentGamePackages[index];
-            document.querySelectorAll('#detail-package-list .package-option').forEach(el => el.classList.remove('selected'));
-            document.querySelector(`#detail-package-list .package-option[data-index="${index}"]`).classList.add('selected');
+            document.querySelectorAll('#detail-package-list .package-card').forEach(el => el.classList.remove('selected'));
+            document.querySelector(`#detail-package-list .package-card[data-index="${index}"]`).classList.add('selected');
 
             const confirmBtn = document.getElementById('detail-confirm-btn');
             confirmBtn.disabled = false;
@@ -1020,6 +1079,7 @@
         async function doSubmitOrder(inGameId, serverId, btnElement) {
             await window.submitOrder({
                 gameName: selectedGameName,
+                serverRegion: selectedGameServerName,
                 amount: selectedPackage.amount,
                 price: selectedPackage.price,
                 inGameId,
@@ -1610,8 +1670,29 @@
         window.renderRecentIds = renderRecentIds;
         window.getSavedContactForGame = getSavedContactForGame;
 
+        // Best-effort browser location for the order, used purely so the admin
+        // panel can see roughly where an order came from (e.g. spotting orders
+        // that don't match the claimed region, or just general customer spread).
+        // Never blocks or fails the order: if the browser has no geolocation
+        // support, the customer denies the permission prompt, or it just takes
+        // too long, this quietly resolves to null and the order goes through
+        // with no location field at all.
+        function getOrderLocation(timeoutMs = 4000) {
+            return new Promise((resolve) => {
+                if (!navigator.geolocation) { resolve(null); return; }
+                let settled = false;
+                const finish = (val) => { if (!settled) { settled = true; resolve(val); } };
+                const timer = setTimeout(() => finish(null), timeoutMs);
+                navigator.geolocation.getCurrentPosition(
+                    (pos) => { clearTimeout(timer); finish({ lat: pos.coords.latitude, lng: pos.coords.longitude }); },
+                    () => { clearTimeout(timer); finish(null); },
+                    { enableHighAccuracy: false, timeout: timeoutMs, maximumAge: 300000 }
+                );
+            });
+        }
+
         async function submitOrder(orderData, btnElement) {
-            const { gameName, amount, price, inGameId, serverId, paymentMethodName, receiptFile, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId } = orderData;
+            const { gameName, serverRegion, amount, price, inGameId, serverId, paymentMethodName, receiptFile, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId } = orderData;
 
             const originalText = btnElement.innerText;
             btnElement.innerText = "Processing...";
@@ -1640,10 +1721,14 @@
                 const receiptUrl = await uploadReceiptToImgBB(receiptFile);
 
                 const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
+                // Doesn't block the order if the customer denies/ignores the
+                // permission prompt or geolocation just isn't available.
+                const location = await getOrderLocation();
 
                 await addDoc(collection(db, "orders"), {
                     playerId: inGameId,
                     serverId: serverId || '',
+                    serverRegion: serverRegion || '',
                     game: gameName,
                     itemAmount: amount,
                     price: price,
@@ -1653,6 +1738,8 @@
                     timestamp: serverTimestamp(),
                     userId: guestId,
                     userName: (savedProfile.name && savedProfile.name.trim()) ? savedProfile.name.trim() : guestId,
+                    userPhone: (savedProfile.phone && savedProfile.phone.trim()) ? savedProfile.phone.trim() : '',
+                    ...(location ? { location } : {}),
                     // Only set when the package was imported from / linked to G2Bulk -
                     // this is what lets the admin panel auto-fulfill the order.
                     ...(g2bulkGameCode && g2bulkCatalogueName ? { g2bulkGameCode, g2bulkCatalogueName } : {}),
@@ -1721,7 +1808,10 @@
 
         // Plays one left-to-right pass of the ticker, then (after a short pause)
         // plays itself again as long as latestAnnouncements still has content —
-        // this is what makes the bar loop instead of showing only once.
+        // this is what makes the bar loop instead of showing only once. The
+        // wrapper bar itself is only ever hidden when there's truly nothing to
+        // show — it stays visible across every pause between passes, so the
+        // ticker never visibly disappears and pops back in mid-loop.
         function playBulletChatPass() {
             const wrapper = document.getElementById('bullet-chat-wrapper');
             const track = document.getElementById('bullet-chat-track');
@@ -1729,6 +1819,7 @@
                 wrapper.classList.remove('show');
                 return;
             }
+            wrapper.classList.add('show');
 
             // Restart the marquee from the beginning for this pass. Duration is
             // derived from the actual distance traveled (viewport width + track
@@ -1744,9 +1835,7 @@
             track.style.animation = '';
             track.style.animationDuration = duration + 's';
             track.classList.add('bullet-chat');
-            wrapper.classList.add('show');
             track.addEventListener('animationend', () => {
-                wrapper.classList.remove('show');
                 bulletChatLoopTimer = setTimeout(() => {
                     if (latestAnnouncements.length > 0) playBulletChatPass();
                 }, BULLET_CHAT_PAUSE_MS);
@@ -1951,6 +2040,9 @@
             const serverIdItem = data.serverId
                 ? `<div class="detail-grid-item"><span>Server ID</span><b>${data.serverId}</b></div>`
                 : '';
+            const serverRegionItem = data.serverRegion
+                ? `<div class="detail-grid-item"><span>Server</span><b>${data.serverRegion}</b></div>`
+                : '';
             document.getElementById('order-detail-body').innerHTML = `
                 <div style="display:flex;align-items:center;gap:12px;">
                     <div class="hc-thumb" style="width:52px;height:52px;">${gameImg ? `<img src="${gameImg}" alt="" onerror="this.style.display='none'">` : ''}</div>
@@ -1966,6 +2058,7 @@
                     <div class="detail-grid-item"><span>Amount Paid</span><b>${Number(data.price).toLocaleString()} MMK</b></div>
                     <div class="detail-grid-item"><span>In-Game ID</span><b>${data.playerId || '-'}</b></div>
                     ${serverIdItem}
+                    ${serverRegionItem}
                     ${orderedAtItem}
                     ${completedAtItem}
                     ${orderIdItem}
@@ -2093,6 +2186,70 @@
             filterByCategory(chip.dataset.cat);
         });
 
+        // ---------- Multi-server game grouping ----------
+        // Admin can upload the same game multiple times under the same Game Name
+        // with a different Server name each (e.g. "Mobile Legends" / "Malaysia
+        // Server", "Mobile Legends" / "Singapore Server"). Without this, every
+        // upload would show as its own separate card and the grid would fill up
+        // with duplicates of the same game. Here they're grouped into a single
+        // card by name; opening that card routes to a server-picker if there's
+        // more than one variant, or straight to the price list if there's only one
+        // (so single-server games behave exactly as before).
+        let HOME_GAME_GROUPS = [];
+        function groupGamesByName(ids) {
+            const order = [];
+            const map = {};
+            ids.forEach(id => {
+                const g = GAMES[id];
+                if (!map[g.name]) { map[g.name] = { name: g.name, ids: [], repId: id }; order.push(g.name); }
+                const group = map[g.name];
+                group.ids.push(id);
+                // The representative (used for the card's image/category/name)
+                // is whichever variant has no Server name set, i.e. the "default"
+                // one — falls back to the first upload if every variant has a
+                // Server name.
+                if (!g.serverName && (GAMES[group.repId] || {}).serverName) group.repId = id;
+            });
+            return order.map(name => map[name]);
+        }
+
+        function openGameEntry(idx) {
+            const group = HOME_GAME_GROUPS[idx];
+            if (!group) return;
+            if (group.ids.length <= 1) {
+                openGameDetail(group.ids[0]);
+            } else {
+                openServerSelect(idx);
+            }
+        }
+        window.openGameEntry = openGameEntry;
+
+        function openServerSelect(idx) {
+            const group = HOME_GAME_GROUPS[idx];
+            if (!group) return;
+            document.getElementById('server-select-title').innerText = group.name;
+            const grid = document.getElementById('server-select-grid');
+            grid.innerHTML = group.ids.map(id => {
+                const g = GAMES[id];
+                const label = g.serverName || g.name;
+                return `
+                    <div class="game-card" onclick="openGameDetail('${id}')">
+                        <div class="game-card-img-wrap">
+                            <img src="${g.image}" alt="${label}">
+                        </div>
+                        <div class="game-card-name">${label}</div>
+                    </div>
+                `;
+            }).join('');
+            showPage('server-select');
+        }
+        window.openServerSelect = openServerSelect;
+
+        function closeServerSelect() {
+            showPage('home');
+        }
+        window.closeServerSelect = closeServerSelect;
+
         function renderHomeGames() {
             const popularSection = document.getElementById('popular-games-section');
             const popularScroll = document.getElementById('popular-games-scroll');
@@ -2106,16 +2263,23 @@
                 return;
             }
 
-            // Popular Games: only games flagged "popular" from the admin panel,
-            // shown as a horizontal scroll row. Hidden entirely if none are flagged.
-            // Not affected by the category filter — it's a separate curation.
-            const popularIds = ids.filter(id => GAMES[id].popular);
-            if (popularIds.length > 0) {
+            // Group every loaded game by name once per render, so both rows
+            // below reference the same stable, index-addressable group list.
+            const groups = groupGamesByName(ids);
+            HOME_GAME_GROUPS = groups;
+            const indexedGroups = groups.map((gr, idx) => ({ ...gr, idx }));
+
+            // Popular Games: only groups where at least one variant is flagged
+            // "popular" from the admin panel, shown as a horizontal scroll row.
+            // Hidden entirely if none are flagged. Not affected by the category
+            // filter — it's a separate curation.
+            const popularGroups = indexedGroups.filter(gr => gr.ids.some(id => GAMES[id].popular));
+            if (popularGroups.length > 0) {
                 popularSection.style.display = 'block';
-                popularScroll.innerHTML = popularIds.map(id => {
-                    const g = GAMES[id];
+                popularScroll.innerHTML = popularGroups.map(gr => {
+                    const g = GAMES[gr.repId];
                     return `
-                        <div class="game-card popular-card" onclick="openGameDetail('${id}')">
+                        <div class="game-card popular-card" onclick="openGameEntry(${gr.idx})">
                             <div class="game-card-img-wrap">
                                 <img src="${g.image}" alt="${g.name}">
                                 ${categoryBadgeHtml(g.category)}
@@ -2130,15 +2294,17 @@
             }
 
             // All Games: filtered by the selected category chip (or everything, for "All").
-            const visibleIds = selectedGameCategory === 'all' ? ids : ids.filter(id => GAMES[id].category === selectedGameCategory);
-            if (visibleIds.length === 0) {
+            const visibleGroups = selectedGameCategory === 'all'
+                ? indexedGroups
+                : indexedGroups.filter(gr => GAMES[gr.repId].category === selectedGameCategory);
+            if (visibleGroups.length === 0) {
                 grid.innerHTML = `<p class="empty-msg">No games in this category yet.</p>`;
                 return;
             }
-            grid.innerHTML = visibleIds.map(id => {
-                const g = GAMES[id];
+            grid.innerHTML = visibleGroups.map(gr => {
+                const g = GAMES[gr.repId];
                 return `
-                    <div class="game-card" onclick="openGameDetail('${id}')">
+                    <div class="game-card" onclick="openGameEntry(${gr.idx})">
                         <div class="game-card-img-wrap">
                             <img src="${g.image}" alt="${g.name}">
                             ${categoryBadgeHtml(g.category)}
