@@ -78,6 +78,15 @@
         .game-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .game-card-name { margin: 8px 0 0; padding: 7px 6px; background: #ffffff; border: 1px solid #E4E6EB; border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); color: #050505; font-size: 13px; font-weight: 700; text-align: center; line-height: 1.25; }
 
+        /* Skeleton loading placeholders — shown instead of "Loading..." text while
+           games/packages/history are being fetched, so the layout doesn't jump once
+           real content arrives. */
+        @keyframes skeletonShimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+        .skel { background: linear-gradient(90deg, #E4E6EB 25%, #EDEFF2 37%, #E4E6EB 63%); background-size: 400% 100%; animation: skeletonShimmer 1.4s ease-in-out infinite; }
+        .skel-game-card { display: block; }
+        .skel-game-card .skel-img { aspect-ratio: 1 / 1; border-radius: 14px; }
+        .skel-game-card .skel-name { height: 30px; border-radius: 8px; margin-top: 8px; }
+
         /* Small colored category pill overlaid on the game's cover image */
         .game-cat-badge { position: absolute; top: 6px; left: 6px; display: flex; align-items: center; gap: 3px; padding: 3px 8px 3px 6px; border-radius: 9px; font-size: 9.5px; font-weight: 700; color: #fff; backdrop-filter: blur(4px); box-shadow: 0 2px 6px rgba(0,0,0,0.25); }
         .game-cat-badge svg { width: 10px; height: 10px; }
@@ -216,12 +225,12 @@
         .pkg-type-tab.active { background: #ffffff; color: #1877F2; box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
 
         .package-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
-        .package-grid.layout-package { grid-template-columns: 1fr; }
         .package-grid.layout-currency { grid-template-columns: repeat(3, 1fr); gap: 9px; }
         .package-card { border: 2px solid #E4E6EB; border-radius: 14px; cursor: pointer; transition: 0.15s; background: #fff; overflow: hidden; display: flex; flex-direction: column; }
         .package-card.selected { border-color: #1877F2; }
 
-        /* Currency type: tall card, big square image on top, price in its own bottom bar */
+        /* Both Currency and Package types now share this same grid-card look:
+           tall card, square image on top, price in its own bottom bar. */
         .package-card.type-currency { border-radius: 11px; }
         .package-card.type-currency .pc-img-wrap { width: 100%; aspect-ratio: 1 / 1; background: #F0F2F5; overflow: hidden; }
         .package-card.type-currency .pc-img { width: 100%; height: 100%; object-fit: cover; display: block; }
@@ -229,14 +238,6 @@
         .package-card.type-currency .pc-label { font-size: 11px; line-height: 1.2; }
         .package-card.type-currency .pc-price-bar { margin-top: 5px; padding: 5px 6px; }
         .package-card.type-currency .pc-price { font-size: 12px; }
-
-        /* Package type: wide card, square image on the left, price in its own bottom bar under the label */
-        .package-card.type-package { flex-direction: row; align-items: stretch; }
-        .package-card.type-package .pc-img-wrap { width: 84px; aspect-ratio: 1 / 1; flex-shrink: 0; background: #F0F2F5; overflow: hidden; }
-        .package-card.type-package .pc-img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .package-card.type-package .pc-body { flex: 1; min-width: 0; display: flex; flex-direction: column; }
-        .package-card.type-package .pc-info { padding: 10px 12px 0; text-align: left; }
-        .package-card.type-package .pc-price-bar { margin-top: auto; text-align: left; }
 
         .pc-info { min-width: 0; }
         .pc-label { font-size: 14px; font-weight: 600; color: #050505; line-height: 1.3; display: block; }
@@ -434,7 +435,12 @@
             <h2 class="title-header section-title-spaced">All Games</h2>
             <div class="cat-filter-scroll" id="cat-filter-scroll"></div>
             <div class="cards-grid" id="all-games-grid">
-                <p class="empty-msg">Loading games...</p>
+                <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
+                <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
+                <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
+                <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
+                <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
+                <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
             </div>
         </div>
 
@@ -982,8 +988,10 @@
             const list = document.getElementById('detail-package-list');
             const packages = window.currentGamePackages || [];
             const isPackageType = activePackageTab === 'package';
-            list.classList.toggle('layout-package', isPackageType);
-            list.classList.toggle('layout-currency', !isPackageType);
+            // Both tabs now share the same compact grid look — no more separate
+            // wide-banner layout for "package" type items.
+            list.classList.remove('layout-package');
+            list.classList.add('layout-currency');
 
             const entries = packages
                 .map((pkg, i) => ({ pkg, i }))
@@ -997,16 +1005,6 @@
             list.innerHTML = entries.map(({ pkg, i }) => {
                 const img = pkg.image || DEFAULT_PACKAGE_ICON;
                 const imgTag = `<img class="pc-img" src="${img}" alt="" loading="lazy" onerror="this.src='${DEFAULT_PACKAGE_ICON}'">`;
-                if (isPackageType) {
-                    return `
-                    <div class="package-card type-package" data-index="${i}" onclick="selectPackageOption(${i})">
-                        <div class="pc-img-wrap">${imgTag}</div>
-                        <div class="pc-body">
-                            <div class="pc-info"><span class="pc-label">${pkg.amount}</span></div>
-                            <div class="pc-price-bar"><span class="pc-price">${pkg.price.toLocaleString()} MMK</span></div>
-                        </div>
-                    </div>`;
-                }
                 return `
                 <div class="package-card type-currency" data-index="${i}" onclick="selectPackageOption(${i})">
                     <div class="pc-img-wrap">${imgTag}</div>
