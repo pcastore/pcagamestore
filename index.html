@@ -44,22 +44,40 @@
         .notif-item p { font-size: 13px; color: #65676B; margin-bottom: 6px; }
         .notif-item span { font-size: 11px; color: #9C9EA1; }
         
-        /* Marquee Chat (real top-up activity, only shows when real orders exist) */
+        /* Live Ticker (real top-up activity, only shows when real orders exist) */
         .bullet-chat-wrapper {
-            margin: 8px 15px 0;
-            padding: 2px;
-            border-radius: 11px;
-            background: linear-gradient(90deg, #ff5f6d, #ffc371, #f9f871, #47cf73, #36a3ff, #a66bff, #ff5f6d);
-            background-size: 400% 400%;
-            animation: rainbowBorder 6s linear infinite;
+            margin: 10px 15px 0;
+            border-radius: 12px;
+            background: #ffffff;
+            border: 1px solid #E4E6EB;
+            box-shadow: 0 1px 3px rgba(0,0,0,0.04);
             display: none;
+            align-items: stretch;
+            overflow: hidden;
         }
-        .bullet-chat-wrapper.show { display: block; }
-        @keyframes rainbowBorder { 0% { background-position: 0% 50%; } 100% { background-position: 400% 50%; } }
-        .bullet-chat-container { background: #ffffff; color: #1C1E21; padding: 5px 0; overflow: hidden; white-space: nowrap; border-radius: 9.5px; }
+        .bullet-chat-wrapper.show { display: flex; }
+        .bullet-chat-badge {
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            gap: 5px;
+            background: #1877F2;
+            color: #fff;
+            font-size: 10.5px;
+            font-weight: 700;
+            letter-spacing: 0.4px;
+            padding: 0 11px;
+        }
+        .bullet-chat-badge .live-dot {
+            width: 6px; height: 6px; border-radius: 50%;
+            background: #fff;
+            animation: liveDotPulse 1.4s ease-in-out infinite;
+        }
+        @keyframes liveDotPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
+        .bullet-chat-container { flex: 1; background: #F7F8FA; color: #1C1E21; padding: 7px 0; overflow: hidden; white-space: nowrap; min-width: 0; }
         .bullet-chat { display: inline-block; animation-name: moveBullet; animation-timing-function: linear; animation-iteration-count: 1; animation-fill-mode: forwards; }
-        .bullet-chat span { display: inline-flex; align-items: center; gap: 5px; margin-right: 14px; font-size: 11.5px; background: #F0F2F5; color: #1C1E21; padding: 4px 11px; border-radius: 16px; font-weight: 500; }
-        .bullet-chat span svg { width: 13px; height: 13px; }
+        .bullet-chat span { display: inline-flex; align-items: center; gap: 6px; margin-right: 10px; font-size: 12px; background: #ffffff; color: #1C1E21; padding: 5px 12px; border-radius: 16px; font-weight: 500; border: 1px solid #E9EBEE; }
+        .bullet-chat span svg { width: 13px; height: 13px; flex-shrink: 0; }
         .bullet-chat span b { color: #1877F2; }
         @keyframes moveBullet { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
 
@@ -344,6 +362,20 @@
         .avatar-upload-box { position: relative; width: 100px; height: 100px; border-radius: 50%; background: #E7F3FF; display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden; border: 2px solid #E4E6EB; margin: 4px auto 0; flex-shrink: 0; }
         .avatar-upload-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .avatar-upload-placeholder { color: #1877F2; display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+
+        /* Google account card (Profile page) */
+        .google-account-card { margin-bottom: 14px; }
+        .google-login-btn { width: 100%; padding: 11px 12px; border-radius: 10px; font-weight: 600; font-size: 14px; border: 1px solid #DADCE0; background: #fff; color: #3C4043; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+        .google-login-btn:disabled { opacity: 0.6; }
+        .google-login-btn:active { background: #F8F9FA; }
+        .google-account-hint { font-size: 11px; color: #9C9EA1; text-align: center; margin-top: 6px; }
+        .google-account-signedin { display: flex; align-items: center; gap: 10px; background: #ffffff; border: 1px solid #E4E6EB; border-radius: 12px; padding: 10px 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .google-account-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background: #E7F3FF; }
+        .google-account-details { flex: 1; min-width: 0; }
+        .google-account-details span { display: block; font-size: 14px; font-weight: 700; color: #050505; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .google-account-details small { font-size: 11.5px; color: #65676B; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
+        .google-signout-btn { flex-shrink: 0; background: #F0F2F5; color: #C0392B; border: none; padding: 7px 12px; border-radius: 8px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+        .google-signout-btn:active { background: #E4E6EB; }
         .avatar-upload-badge { position: absolute; bottom: 2px; right: 2px; width: 30px; height: 30px; border-radius: 50%; background: #1877F2; color: #fff; display: flex; align-items: center; justify-content: center; border: 2px solid #fff; }
         .avatar-upload-badge svg { width: 14px; height: 14px; }
 
@@ -439,6 +471,7 @@
     </div>
 
     <div class="bullet-chat-wrapper" id="bullet-chat-wrapper">
+        <div class="bullet-chat-badge"><span class="live-dot"></span>LIVE</div>
         <div class="bullet-chat-container">
             <div class="bullet-chat" id="bullet-chat-track"></div>
         </div>
@@ -494,6 +527,31 @@
         <!-- PROFILE PAGE (saved locally on this device, photo hosted on ImgBB) -->
         <div id="profile" class="page-section">
             <h2 class="title-header">My Profile</h2>
+
+            <!-- Google account: optional. Signing in just auto-fills the name/photo
+                 below and keeps you recognized next time you open the site - it
+                 doesn't gate anything, and staying signed out works exactly as before. -->
+            <div class="google-account-card" id="google-account-signedout">
+                <button type="button" class="google-login-btn" id="google-signin-btn" onclick="handleGoogleSignIn()">
+                    <svg width="18" height="18" viewBox="0 0 48 48">
+                        <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
+                        <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/>
+                        <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/>
+                        <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.1 5.6l6.2 5.2C40.9 36.2 44 30.6 44 24c0-1.3-.1-2.7-.4-3.5z"/>
+                    </svg>
+                    Continue with Google
+                </button>
+                <p class="google-account-hint">Optional — just auto-fills your name &amp; photo below and remembers you next visit.</p>
+            </div>
+            <div class="google-account-card google-account-signedin" id="google-account-signedin" style="display:none;">
+                <img id="google-account-avatar" src="" alt="" class="google-account-avatar">
+                <div class="google-account-details">
+                    <span id="google-account-name">—</span>
+                    <small id="google-account-email">—</small>
+                </div>
+                <button type="button" class="google-signout-btn" id="google-signout-btn" onclick="handleGoogleSignOut()">Sign Out</button>
+            </div>
+
             <div class="detail-form-card" style="align-items:center;">
                 <label class="avatar-upload-box" id="avatar-upload-box" for="profile-photo-file">
                     <img id="profile-photo-preview" src="" alt="Profile photo" style="display:none;">
@@ -1416,6 +1474,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, doc, getDoc, setDoc, serverTimestamp, query, where, orderBy, limit, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyB4kcQXS-C3zXxKg2Lj1TPllEAbJ30noY4",
@@ -1429,6 +1488,11 @@
 
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
+        const auth = getAuth(app);
+        // Stay signed in across visits/app restarts until the user explicitly
+        // signs out - stored in the browser's IndexedDB, so a plain reload or
+        // reopening the site never asks for Google sign-in again on its own.
+        setPersistence(auth, browserLocalPersistence).catch((e) => console.error('Auth persistence error:', e));
 
         // Free image hosting for payment receipts (no Firebase Storage / Blaze plan needed).
         // Uses the same free ImgBB key as the admin panel's game photo uploads.
@@ -1488,6 +1552,7 @@
                     name: profile.name || '',
                     phone: profile.phone || '',
                     photo: profile.photo || '',
+                    googleEmail: (auth.currentUser && auth.currentUser.email) || '',
                     lastSeen: serverTimestamp()
                 };
                 // Only stamp createdAt the first time this guest is seen, so it works
@@ -1503,6 +1568,93 @@
             }
         }
         window.syncUserToFirestore = syncUserToFirestore;
+
+        // ---------- Google sign-in (optional) ----------
+        // Purely a convenience on the Profile page: auto-fills name/photo below
+        // and, thanks to browserLocalPersistence above, stays signed in across
+        // visits until the customer taps Sign Out. Everything else (guest ID,
+        // order history, Firestore user doc) still works exactly the same
+        // whether or not someone ever signs in with Google.
+        const googleProvider = new GoogleAuthProvider();
+        googleProvider.setCustomParameters({ prompt: 'select_account' });
+
+        function renderGoogleAccountUI(user) {
+            const signedOutEl = document.getElementById('google-account-signedout');
+            const signedInEl = document.getElementById('google-account-signedin');
+            if (!signedOutEl || !signedInEl) return;
+            if (user) {
+                signedOutEl.style.display = 'none';
+                signedInEl.style.display = 'flex';
+                document.getElementById('google-account-name').innerText = user.displayName || user.email || 'Signed in';
+                document.getElementById('google-account-email').innerText = user.email || '';
+                const avatarImg = document.getElementById('google-account-avatar');
+                avatarImg.src = user.photoURL || '';
+                avatarImg.style.display = user.photoURL ? 'block' : 'none';
+            } else {
+                signedOutEl.style.display = 'block';
+                signedInEl.style.display = 'none';
+            }
+        }
+
+        // Fills in name/photo from the Google account, but only where the
+        // customer hasn't already set something manually - never overwrites a
+        // deliberate edit they made before signing in.
+        function applyGoogleProfile(user) {
+            const existing = window.getSavedProfile ? window.getSavedProfile() : { name: '', phone: '', photo: '' };
+            const profile = {
+                name: existing.name || user.displayName || '',
+                phone: existing.phone || '',
+                photo: existing.photo || user.photoURL || ''
+            };
+            try { localStorage.setItem('gz_profile', JSON.stringify(profile)); } catch (e) { /* private browsing */ }
+            if (window.renderProfileFields) window.renderProfileFields();
+            if (window.renderMiniProfile) window.renderMiniProfile();
+            syncUserToFirestore();
+        }
+
+        async function handleGoogleSignIn() {
+            const btn = document.getElementById('google-signin-btn');
+            const originalHTML = btn.innerHTML;
+            btn.disabled = true;
+            btn.innerHTML = 'Signing in...';
+            try {
+                const result = await signInWithPopup(auth, googleProvider);
+                applyGoogleProfile(result.user);
+            } catch (error) {
+                console.error('Google sign-in error:', error);
+                if (error.code === 'auth/popup-blocked' || error.code === 'auth/operation-not-supported-in-this-environment') {
+                    // Mobile/in-app browsers often block popups - fall back to a
+                    // full-page redirect, which getRedirectResult() picks up below.
+                    await signInWithRedirect(auth, googleProvider);
+                    return;
+                }
+                if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+                    if (window.showToast) window.showToast('Google sign-in failed. Please try again.');
+                }
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = originalHTML;
+            }
+        }
+        window.handleGoogleSignIn = handleGoogleSignIn;
+
+        function handleGoogleSignOut() {
+            signOut(auth).catch((e) => console.error('Google sign out error:', e));
+        }
+        window.handleGoogleSignOut = handleGoogleSignOut;
+
+        onAuthStateChanged(auth, (user) => {
+            renderGoogleAccountUI(user);
+        });
+
+        // Picks up the result after a signInWithRedirect() round-trip (the
+        // popup-blocked fallback above). Harmless no-op on a normal page load
+        // with no pending redirect.
+        getRedirectResult(auth).then((result) => {
+            if (result && result.user) applyGoogleProfile(result.user);
+        }).catch((error) => {
+            console.error('Google redirect sign-in error:', error);
+        });
 
         // ---------- VIP Tiers (based on lifetime successful top-up spend) ----------
         // Rank names/colors are fixed here (mirrored in the admin panel); only
@@ -2002,7 +2154,7 @@
             }
             track.innerHTML = latestAnnouncements.map(a => {
                 const text = String(a.text || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                return `<span style="background:#FFF3CD;color:#856404;"><svg class="svg-icon" style="stroke:#856404"><use href="#icon-megaphone"></use></svg> ${text}</span>`;
+                return `<span><svg class="svg-icon" style="stroke:#1877F2"><use href="#icon-megaphone"></use></svg> ${text}</span>`;
             }).join('');
 
             playBulletChatPass();
