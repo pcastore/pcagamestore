@@ -46,38 +46,39 @@
         
         /* Live Ticker (real top-up activity, only shows when real orders exist) */
         .bullet-chat-wrapper {
-            margin: 10px 15px 0;
-            border-radius: 12px;
+            margin: 8px 15px 0;
+            border-radius: 9px;
             background: #ffffff;
             border: 1px solid #E4E6EB;
             box-shadow: 0 1px 3px rgba(0,0,0,0.04);
             display: none;
             align-items: stretch;
             overflow: hidden;
+            height: 26px;
         }
         .bullet-chat-wrapper.show { display: flex; }
         .bullet-chat-badge {
             flex-shrink: 0;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 4px;
             background: #1877F2;
             color: #fff;
-            font-size: 10.5px;
+            font-size: 8.5px;
             font-weight: 700;
-            letter-spacing: 0.4px;
-            padding: 0 11px;
+            letter-spacing: 0.3px;
+            padding: 0 8px;
         }
         .bullet-chat-badge .live-dot {
-            width: 6px; height: 6px; border-radius: 50%;
+            width: 5px; height: 5px; border-radius: 50%;
             background: #fff;
             animation: liveDotPulse 1.4s ease-in-out infinite;
         }
         @keyframes liveDotPulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.35; } }
-        .bullet-chat-container { flex: 1; background: #F7F8FA; color: #1C1E21; padding: 7px 0; overflow: hidden; white-space: nowrap; min-width: 0; }
+        .bullet-chat-container { flex: 1; background: #F7F8FA; color: #1C1E21; padding: 0; overflow: hidden; white-space: nowrap; min-width: 0; display: flex; align-items: center; }
         .bullet-chat { display: inline-block; animation-name: moveBullet; animation-timing-function: linear; animation-iteration-count: 1; animation-fill-mode: forwards; }
-        .bullet-chat span { display: inline-flex; align-items: center; gap: 6px; margin-right: 10px; font-size: 12px; background: #ffffff; color: #1C1E21; padding: 5px 12px; border-radius: 16px; font-weight: 500; border: 1px solid #E9EBEE; }
-        .bullet-chat span svg { width: 13px; height: 13px; flex-shrink: 0; }
+        .bullet-chat span { display: inline-flex; align-items: center; gap: 4px; margin-right: 7px; font-size: 10px; line-height: 1; background: #ffffff; color: #1C1E21; padding: 3px 9px; border-radius: 12px; font-weight: 500; border: 1px solid #E9EBEE; }
+        .bullet-chat span svg { width: 10px; height: 10px; flex-shrink: 0; }
         .bullet-chat span b { color: #1877F2; }
         @keyframes moveBullet { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
 
@@ -2591,8 +2592,13 @@
             const map = {};
             ids.forEach(id => {
                 const g = GAMES[id];
-                if (!map[g.name]) { map[g.name] = { name: g.name, ids: [], repId: id }; order.push(g.name); }
-                const group = map[g.name];
+                // Group by a normalized key (trimmed + lowercased) instead of the
+                // raw name, so two server/region uploads of the same game never
+                // fall apart into separate cards just because of a stray space or
+                // different capitalization (e.g. "Mobile Legends " vs "mobile legends").
+                const key = (g.name || '').trim().toLowerCase();
+                if (!map[key]) { map[key] = { name: g.name, ids: [], repId: id }; order.push(key); }
+                const group = map[key];
                 group.ids.push(id);
                 // The representative (used for the card's image/category/name)
                 // is whichever variant has no Server name set, i.e. the "default"
@@ -2600,7 +2606,7 @@
                 // Server name.
                 if (!g.serverName && (GAMES[group.repId] || {}).serverName) group.repId = id;
             });
-            return order.map(name => map[name]);
+            return order.map(key => map[key]);
         }
 
         function openGameEntry(idx) {
@@ -2684,9 +2690,13 @@
             }
 
             // All Games: filtered by the selected category chip (or everything, for "All").
+            // Checks every server/region variant in the group (not just the
+            // representative) so a group never disappears from a category filter
+            // just because its rep variant happens to have a different category
+            // set than its siblings.
             const visibleGroups = selectedGameCategory === 'all'
                 ? indexedGroups
-                : indexedGroups.filter(gr => GAMES[gr.repId].category === selectedGameCategory);
+                : indexedGroups.filter(gr => gr.ids.some(id => GAMES[id].category === selectedGameCategory));
             if (visibleGroups.length === 0) {
                 grid.innerHTML = `<p class="empty-msg">No games in this category yet.</p>`;
                 return;
