@@ -25,11 +25,11 @@
             --bg-gradient: radial-gradient(circle at 15% 0%, #EAF2FF 0%, #F0F2F5 45%), radial-gradient(circle at 100% 30%, #F3ECFF 0%, transparent 40%);
             --surface: #ffffff;
             --surface-alt: #F8F9FA;
-            --glass-bg: rgba(255,255,255,0.55);
-            --glass-bg-strong: rgba(255,255,255,0.72);
-            --glass-border: rgba(255,255,255,0.75);
-            --glass-shadow: 0 8px 28px rgba(31,45,90,0.10), inset 0 1px 1px rgba(255,255,255,0.9), inset 0 -6px 10px rgba(0,0,0,0.03);
-            --glass-shadow-sm: 0 4px 14px rgba(31,45,90,0.08), inset 0 1px 1px rgba(255,255,255,0.85);
+            --glass-bg: rgba(255,255,255,0.32);
+            --glass-bg-strong: rgba(255,255,255,0.5);
+            --glass-border: rgba(255,255,255,0.65);
+            --glass-shadow: 0 10px 34px rgba(31,45,90,0.14), inset 0 1px 1px rgba(255,255,255,0.85), inset 0 -8px 14px rgba(0,0,0,0.035);
+            --glass-shadow-sm: 0 6px 18px rgba(31,45,90,0.11), inset 0 1px 1px rgba(255,255,255,0.8);
             --text: #050505;
             --text-secondary: #65676B;
             --text-muted: #9C9EA1;
@@ -40,7 +40,7 @@
             --accent-dark: #166FE5;
             --accent-soft: #E7F3FF;
             --accent-rgb: 24,119,242;
-            --blur: blur(18px) saturate(180%);
+            --blur: blur(26px) saturate(190%);
             color-scheme: light;
         }
         /* Dark theme — deep blue "liquid glass" palette */
@@ -49,11 +49,11 @@
             --bg-gradient: radial-gradient(circle at 15% 0%, #10203F 0%, #060B18 45%), radial-gradient(circle at 100% 25%, #0B1A3A 0%, transparent 45%);
             --surface: #0D1830;
             --surface-alt: #101E3B;
-            --glass-bg: rgba(20,35,68,0.55);
-            --glass-bg-strong: rgba(22,38,74,0.72);
-            --glass-border: rgba(255,255,255,0.10);
-            --glass-shadow: 0 8px 28px rgba(0,0,10,0.45), inset 0 1px 1px rgba(255,255,255,0.06), inset 0 -6px 10px rgba(0,0,0,0.25);
-            --glass-shadow-sm: 0 4px 14px rgba(0,0,10,0.4), inset 0 1px 1px rgba(255,255,255,0.05);
+            --glass-bg: rgba(20,35,68,0.4);
+            --glass-bg-strong: rgba(22,38,74,0.58);
+            --glass-border: rgba(255,255,255,0.14);
+            --glass-shadow: 0 10px 34px rgba(0,0,10,0.5), inset 0 1px 1px rgba(255,255,255,0.08), inset 0 -8px 14px rgba(0,0,0,0.3);
+            --glass-shadow-sm: 0 6px 18px rgba(0,0,10,0.45), inset 0 1px 1px rgba(255,255,255,0.07);
             --text: #EAF1FF;
             --text-secondary: #9FB3D9;
             --text-muted: #718098;
@@ -64,11 +64,11 @@
             --accent-dark: #2F7BFF;
             --accent-soft: rgba(76,147,255,0.16);
             --accent-rgb: 76,147,255;
-            --blur: blur(18px) saturate(180%);
+            --blur: blur(26px) saturate(190%);
             color-scheme: dark;
         }
         html, body { transition: background-color 0.35s ease, color 0.35s ease; }
-        body { background-color: var(--bg); background-image: var(--bg-gradient); background-attachment: fixed; color: var(--text); padding-bottom: 70px; }
+        body { background-color: var(--bg); background-image: var(--bg-gradient); background-attachment: fixed; color: var(--text); padding-bottom: 96px; }
 
         /* ===================== LIQUID GLASS PANEL ===================== */
         .glass-panel {
@@ -104,10 +104,10 @@
         .header-icon {
             position: relative; width: 40px; height: 40px; border-radius: 50%;
             display: flex; justify-content: center; align-items: center; cursor: pointer;
-            color: #16A34A; background: rgba(255,255,255,0.55);
-            backdrop-filter: blur(14px) saturate(180%); -webkit-backdrop-filter: blur(14px) saturate(180%);
-            border: 1px solid rgba(255,255,255,0.7);
-            box-shadow: 0 4px 14px rgba(0,0,0,0.08), inset 0 1px 1px rgba(255,255,255,0.9), inset 0 -6px 10px rgba(0,0,0,0.03);
+            color: #16A34A; background: var(--glass-bg);
+            backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+            border: 1px solid var(--glass-border);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.08), inset 0 1px 1px rgba(255,255,255,0.4), inset 0 -6px 10px rgba(0,0,0,0.04);
             transition: transform 0.15s ease;
         }
         .header-icon:active { transform: scale(0.92); }
@@ -324,8 +324,9 @@
         .slide-confirm-wrap:has(#detail-confirm-btn:disabled) .slide-confirm-thumb { cursor: not-allowed; opacity: 0.6; }
         .slide-confirm-thumb.completed svg { color: #28a745; }
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--surface); display: flex; justify-content: space-around; padding: 8px 0; border-top: 1px solid var(--border); z-index: 100; box-shadow: 0 -2px 5px rgba(0,0,0,0.05); }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 4px; font-size: 12px; font-weight: 500; color: var(--text-secondary); cursor: pointer; width: 20%; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; font-weight: 600; color: var(--text-secondary); cursor: pointer; width: 20%; }
         .nav-item.active { color: var(--accent); }
+        .nav-icon-wrap { width: 40px; height: 40px; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
         .nav-item.active .ui-icon { stroke: var(--accent); }
         
         /* Toast */
@@ -491,9 +492,63 @@
         /* ===================== LIQUID GLASS RESKIN ===================== */
         /* Header, bottom nav, notif dot ring */
         .header { background: var(--glass-bg-strong); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); border-bottom: 1px solid var(--glass-border); box-shadow: var(--glass-shadow-sm); }
-        .bottom-nav { background: var(--glass-bg-strong); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); border-top: 1px solid var(--glass-border); box-shadow: 0 -8px 28px rgba(31,45,90,0.10); border-radius: 22px 22px 0 0; }
-        .nav-item { border-radius: 14px; padding: 6px 0; transition: background 0.2s ease, color 0.2s ease; }
-        .nav-item.active { background: var(--accent-soft); }
+
+        /* Bottom nav = a floating 3D glass dock, detached from the screen edge */
+        .bottom-nav {
+            left: 12px; right: 12px; width: auto; bottom: 12px;
+            background: var(--glass-bg-strong);
+            -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+            border: 1px solid var(--glass-border);
+            border-top: 1px solid var(--glass-border);
+            border-radius: 28px;
+            padding: 8px 6px calc(8px + env(safe-area-inset-bottom, 0px));
+            box-shadow: 0 16px 40px -10px rgba(20,30,60,0.35), inset 0 1px 1px rgba(255,255,255,0.5), inset 0 -1px 8px rgba(0,0,0,0.04);
+            position: fixed;
+        }
+        html[data-theme="dark"] .bottom-nav { box-shadow: 0 16px 40px -10px rgba(0,0,10,0.6), inset 0 1px 1px rgba(255,255,255,0.06), inset 0 -1px 8px rgba(0,0,0,0.3); }
+        .nav-item { border-radius: 16px; padding: 5px 0 4px; transition: color 0.2s ease; position: relative; }
+        .nav-label { transition: transform 0.2s ease, opacity 0.2s ease; }
+        .nav-item.active .nav-label { transform: translateY(-1px); font-weight: 700; }
+
+        /* Each icon sits in its own little 3D glass button — flat by default,
+           and "pops" up out of the dock with a glossy highlight + drop shadow
+           when active, like a physical glass key being pressed up from below. */
+        .nav-icon-wrap {
+            position: relative;
+            background: rgba(var(--accent-rgb), 0.06);
+            border: 1px solid transparent;
+            transform: translateY(0) scale(1);
+            transition: transform 0.32s cubic-bezier(.34,1.56,.64,1), background 0.25s ease, box-shadow 0.3s ease, border-color 0.25s ease;
+            overflow: hidden;
+        }
+        .nav-item:active .nav-icon-wrap { transform: translateY(0) scale(0.9); }
+        .nav-item.active .nav-icon-wrap {
+            background: linear-gradient(150deg, rgba(var(--accent-rgb),0.5), rgba(var(--accent-rgb),0.22) 60%, rgba(var(--accent-rgb),0.32));
+            border-color: rgba(255,255,255,0.5);
+            box-shadow:
+                0 10px 18px -6px rgba(var(--accent-rgb),0.55),
+                0 2px 4px rgba(0,0,0,0.08),
+                inset 0 1px 1px rgba(255,255,255,0.75),
+                inset 0 -4px 8px rgba(0,0,0,0.12);
+            transform: translateY(-9px) scale(1.08);
+        }
+        html[data-theme="dark"] .nav-item.active .nav-icon-wrap {
+            box-shadow:
+                0 10px 20px -6px rgba(var(--accent-rgb),0.6),
+                0 2px 6px rgba(0,0,0,0.4),
+                inset 0 1px 1px rgba(255,255,255,0.25),
+                inset 0 -4px 8px rgba(0,0,0,0.3);
+        }
+        /* Specular glass highlight streak across the top of the active bubble */
+        .nav-icon-wrap::before {
+            content: '';
+            position: absolute; top: 0; left: 0; right: 0; height: 55%;
+            background: linear-gradient(180deg, rgba(255,255,255,0.55), rgba(255,255,255,0));
+            opacity: 0; transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .nav-item.active .nav-icon-wrap::before { opacity: 1; }
+        .nav-item.active .nav-icon-wrap .ui-icon { filter: drop-shadow(0 1px 1px rgba(0,0,0,0.12)); }
 
         /* Cards */
         .game-card-name, .list-card, .notif-item, .detail-form-card, .stat-box, .vip-card,
@@ -889,19 +944,24 @@
     <!-- Bottom Navigation -->
     <nav class="bottom-nav">
         <div class="nav-item active" id="btn-home" onclick="showPage('home')">
-            <svg class="ui-icon"><use href="#icon-home"></use></svg> Home
+            <span class="nav-icon-wrap"><svg class="ui-icon"><use href="#icon-home"></use></svg></span>
+            <span class="nav-label">Home</span>
         </div>
         <div class="nav-item" id="btn-history" onclick="showPage('history')">
-            <svg class="ui-icon"><use href="#icon-history"></use></svg> History
+            <span class="nav-icon-wrap"><svg class="ui-icon"><use href="#icon-history"></use></svg></span>
+            <span class="nav-label">History</span>
         </div>
         <div class="nav-item" id="btn-leaderboard" onclick="showPage('leaderboard')">
-            <svg class="ui-icon"><use href="#icon-trophy"></use></svg> Top
+            <span class="nav-icon-wrap"><svg class="ui-icon"><use href="#icon-trophy"></use></svg></span>
+            <span class="nav-label">Top</span>
         </div>
         <div class="nav-item" id="btn-wallet" onclick="showPage('wallet')">
-            <svg class="ui-icon"><use href="#icon-wallet"></use></svg> Wallet
+            <span class="nav-icon-wrap"><svg class="ui-icon"><use href="#icon-wallet"></use></svg></span>
+            <span class="nav-label">Wallet</span>
         </div>
         <div class="nav-item" id="btn-profile" onclick="showPage('profile')">
-            <svg class="ui-icon"><use href="#icon-user"></use></svg> Profile
+            <span class="nav-icon-wrap"><svg class="ui-icon"><use href="#icon-user"></use></svg></span>
+            <span class="nav-label">Profile</span>
         </div>
     </nav>
 
