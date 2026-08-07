@@ -40,7 +40,7 @@
             --accent-dark: #166FE5;
             --accent-soft: #E7F3FF;
             --accent-rgb: 24,119,242;
-            --blur: blur(26px) saturate(190%);
+            --blur: blur(16px) saturate(180%);
             color-scheme: light;
         }
         /* Dark theme — deep blue "liquid glass" palette */
@@ -64,7 +64,7 @@
             --accent-dark: #2F7BFF;
             --accent-soft: rgba(76,147,255,0.16);
             --accent-rgb: 76,147,255;
-            --blur: blur(26px) saturate(190%);
+            --blur: blur(16px) saturate(180%);
             color-scheme: dark;
         }
         html, body { transition: background-color 0.35s ease, color 0.35s ease; }
@@ -104,8 +104,7 @@
         .header-icon {
             position: relative; width: 40px; height: 40px; border-radius: 50%;
             display: flex; justify-content: center; align-items: center; cursor: pointer;
-            color: #16A34A; background: var(--glass-bg);
-            backdrop-filter: var(--blur); -webkit-backdrop-filter: var(--blur);
+            color: #16A34A; background: var(--glass-bg-strong);
             border: 1px solid var(--glass-border);
             box-shadow: 0 4px 14px rgba(0,0,0,0.08), inset 0 1px 1px rgba(255,255,255,0.4), inset 0 -6px 10px rgba(0,0,0,0.04);
             transition: transform 0.15s ease;
@@ -192,7 +191,7 @@
         .skel-game-card .skel-name { height: 30px; border-radius: 8px; margin-top: 8px; }
 
         /* Small colored category pill overlaid on the game's cover image */
-        .game-cat-badge { position: absolute; top: 6px; left: 6px; display: flex; align-items: center; gap: 3px; padding: 3px 8px 3px 6px; border-radius: 9px; font-size: 9.5px; font-weight: 700; color: var(--on-color); backdrop-filter: blur(4px); box-shadow: 0 2px 6px rgba(0,0,0,0.25); }
+        .game-cat-badge { position: absolute; top: 6px; left: 6px; display: flex; align-items: center; gap: 3px; padding: 3px 8px 3px 6px; border-radius: 9px; font-size: 9.5px; font-weight: 700; color: var(--on-color); box-shadow: 0 2px 6px rgba(0,0,0,0.25); }
         .game-cat-badge svg { width: 10px; height: 10px; }
 
         /* Category filter chips row, above the All Games grid */
@@ -200,7 +199,7 @@
         .cat-filter-scroll::-webkit-scrollbar { display: none; }
         .cat-filter-chip {
             display: flex; align-items: center; gap: 6px; flex: 0 0 auto; padding: 9px 15px 9px 11px; border-radius: 20px;
-            background: rgba(255,255,255,0.75); backdrop-filter: blur(6px); border: 1.5px solid var(--border);
+            background: rgba(255,255,255,0.9); border: 1.5px solid var(--border);
             color: var(--text-secondary); font-size: 13px; font-weight: 700; cursor: pointer; user-select: none;
             transition: transform 0.12s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
         }
@@ -305,24 +304,61 @@
         .btn:disabled { opacity: 0.55; cursor: not-allowed; }
 
         /* Slide-to-confirm control wrapping #detail-confirm-btn: the button
-           itself becomes the pill-shaped track (its text/color/disabled state
-           is still driven from JS exactly as a normal button would be), and a
-           separate circular thumb sits on top and must be dragged from left to
-           right to actually fire the purchase - a plain tap on the track no
-           longer submits anything, which is the whole point (prevents an
-           accidental tap from placing a real order). */
-        .slide-confirm-wrap { position: relative; touch-action: pan-y; }
-        .slide-confirm-wrap .btn { padding-left: 52px; pointer-events: none; /* track is visual only, drag is handled by the thumb */ }
-        .slide-confirm-thumb {
-            position: absolute; top: 3px; left: 3px; width: 38px; height: 38px;
-            border-radius: 50%; background: var(--surface); box-shadow: 0 1px 4px rgba(0,0,0,0.25);
-            display: flex; align-items: center; justify-content: center;
-            cursor: grab; touch-action: none; transition: left 0.25s ease;
+           itself is the pill-shaped track (its text/color/disabled state is
+           still driven from JS exactly as a normal button would be). On top
+           sits a fill trail (grows as you drag, so the track visibly "fills
+           up"), an idle chevron hint that invites the swipe, and a thumb
+           that must be dragged from left to right to actually fire the
+           purchase — a plain tap does nothing, which is the whole point
+           (prevents an accidental tap from placing a real order). Thumb
+           position is driven by `transform: translateX()` (not `left`) so
+           the drag stays smooth/GPU-composited instead of causing layout
+           on every pointermove. */
+        .slide-confirm-wrap {
+            position: relative; touch-action: pan-y; height: 54px; border-radius: 27px; overflow: hidden;
+            box-shadow: 0 8px 20px -8px rgba(var(--accent-rgb),0.55);
         }
-        .slide-confirm-thumb svg { color: var(--accent); }
-        .slide-confirm-thumb.dragging { transition: none; cursor: grabbing; }
-        .slide-confirm-wrap:has(#detail-confirm-btn:disabled) .slide-confirm-thumb { cursor: not-allowed; opacity: 0.6; }
-        .slide-confirm-thumb.completed svg { color: #28a745; }
+        .slide-confirm-wrap:has(#detail-confirm-btn:disabled) { box-shadow: none; }
+        .slide-confirm-wrap .btn {
+            height: 100%; padding-left: 56px; pointer-events: none; border-radius: 27px;
+            display: flex; align-items: center; justify-content: center;
+        }
+        .slide-confirm-fill {
+            position: absolute; top: 0; left: 0; height: 100%; width: 0;
+            background: linear-gradient(90deg, rgba(255,255,255,0.28), rgba(255,255,255,0.1));
+            pointer-events: none; z-index: 1;
+        }
+        .slide-confirm-thumb.dragging ~ .slide-confirm-fill { transition: none; }
+        .slide-confirm-wrap.completed .slide-confirm-fill {
+            width: 100% !important; background: linear-gradient(90deg, rgba(52,211,153,0.4), rgba(22,163,74,0.22));
+            transition: width 0.3s ease, background 0.3s ease;
+        }
+        /* Idle affordance: three chevrons pulsing in sequence to hint "swipe
+           this way" — fades out the moment a drag starts. */
+        .slide-confirm-hint {
+            position: absolute; top: 0; right: 20px; height: 100%; display: flex; align-items: center; gap: 1px;
+            pointer-events: none; z-index: 1; transition: opacity 0.2s ease;
+        }
+        .slide-confirm-hint svg { width: 14px; height: 14px; color: #fff; opacity: 0.3; animation: slideHintPulse 1.6s ease-in-out infinite; }
+        .slide-confirm-hint svg:nth-child(2) { animation-delay: 0.14s; }
+        .slide-confirm-hint svg:nth-child(3) { animation-delay: 0.28s; }
+        @keyframes slideHintPulse { 0%, 100% { opacity: 0.22; transform: translateX(0); } 50% { opacity: 0.95; transform: translateX(3px); } }
+        .slide-confirm-wrap.in-progress .slide-confirm-hint,
+        .slide-confirm-wrap.completed .slide-confirm-hint,
+        .slide-confirm-wrap:has(#detail-confirm-btn:disabled) .slide-confirm-hint { opacity: 0; }
+        .slide-confirm-thumb {
+            position: absolute; top: 3px; left: 3px; width: 48px; height: 48px; z-index: 2;
+            border-radius: 50%; background: linear-gradient(160deg, #fff, #eef2f8);
+            box-shadow: 0 3px 10px rgba(0,0,0,0.3), inset 0 1px 1px rgba(255,255,255,0.9);
+            display: flex; align-items: center; justify-content: center;
+            cursor: grab; touch-action: none; transform: translateX(0);
+            transition: transform 0.28s cubic-bezier(.2,.8,.3,1.3), box-shadow 0.2s ease;
+        }
+        .slide-confirm-thumb svg { width: 20px; height: 20px; color: var(--accent); transition: color 0.2s ease; }
+        .slide-confirm-thumb.dragging { transition: none; cursor: grabbing; box-shadow: 0 4px 14px rgba(0,0,0,0.35), inset 0 1px 1px rgba(255,255,255,0.9); }
+        .slide-confirm-wrap:has(#detail-confirm-btn:disabled) .slide-confirm-thumb { cursor: not-allowed; opacity: 0.55; }
+        .slide-confirm-thumb.completed { background: linear-gradient(160deg, #34D399, #16A34A); box-shadow: 0 3px 12px rgba(22,163,74,0.5), inset 0 1px 1px rgba(255,255,255,0.4); }
+        .slide-confirm-thumb.completed svg { color: #fff; }
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--surface); display: flex; justify-content: space-around; padding: 8px 0; border-top: 1px solid var(--border); z-index: 100; box-shadow: 0 -2px 5px rgba(0,0,0,0.05); }
         .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; font-weight: 600; color: var(--text-secondary); cursor: pointer; width: 20%; }
         .nav-item.active { color: var(--accent); }
@@ -550,11 +586,23 @@
         .nav-item.active .nav-icon-wrap::before { opacity: 1; }
         .nav-item.active .nav-icon-wrap .ui-icon { filter: drop-shadow(0 1px 1px rgba(0,0,0,0.12)); }
 
-        /* Cards */
+        /* Cards
+           IMPORTANT (perf): these repeat many times per screen (every game
+           card, list row, package/payment option...), so each one used to
+           carry its own backdrop-filter blur. Blurring dozens of elements
+           at once — especially while scrolling a grid/list of them — is
+           what made scrolling and taps feel stuck. Only .modal-box (a
+           single full-screen sheet, one on screen at a time) keeps the
+           real blur; the rest keep the same translucent glass tint
+           without the per-element blur cost. */
         .game-card-name, .list-card, .notif-item, .detail-form-card, .stat-box, .vip-card,
-        .modal-box, .package-card, .payment-option, .google-account-signedin, .history-date-chip,
-        .cat-filter-chip, .mini-profile-bar, .upload-shot-box, .id-result-card, .id-fail-card,
+        .package-card, .payment-option, .google-account-signedin, .history-date-chip,
+        .mini-profile-bar, .upload-shot-box, .id-result-card, .id-fail-card,
         .social-link-btn, .detail-grid-item, .vip-stat, .success-box, .avatar-upload-box {
+            background: var(--glass-bg-strong);
+            border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow-sm);
+        }
+        .modal-box {
             background: var(--glass-bg); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
             border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow-sm);
         }
@@ -572,7 +620,6 @@
         /* Buttons -> frosted glass pill with accent tint */
         .btn-primary {
             background: linear-gradient(135deg, rgba(var(--accent-rgb),0.92), rgba(var(--accent-rgb),0.78));
-            -webkit-backdrop-filter: blur(10px); backdrop-filter: blur(10px);
             color: #fff; border: 1px solid rgba(255,255,255,0.35);
             box-shadow: 0 6px 18px rgba(var(--accent-rgb),0.35), inset 0 1px 1px rgba(255,255,255,0.5);
             border-radius: 16px;
@@ -580,8 +627,7 @@
         .btn-primary:active { transform: scale(0.98); }
         .confirm-id-btn, .avatar-upload-badge, .payment-option-icon, .header-icon.notif-active { border-radius: 14px; }
         .header-icon { border-radius: 50%; }
-        .modal-close, .pm-copy-btn { border-radius: 12px; background: var(--glass-bg); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); border: 1px solid var(--glass-border); }
-        .slide-confirm-thumb { background: var(--glass-bg-strong); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); border: 1px solid var(--glass-border); }
+        .modal-close, .pm-copy-btn { border-radius: 12px; background: var(--glass-bg-strong); border: 1px solid var(--glass-border); }
         .google-login-btn { background: var(--glass-bg); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); border: 1px solid var(--glass-border); color: var(--text); border-radius: 14px; }
         .pkg-type-tabs { background: rgba(0,0,0,0.04); border-radius: 16px; }
         html[data-theme="dark"] .pkg-type-tabs { background: rgba(255,255,255,0.04); }
@@ -895,8 +941,14 @@
 
             <div class="slide-confirm-wrap" id="detail-confirm-wrap" style="margin-top:20px;">
                 <button type="button" class="btn btn-primary" id="detail-confirm-btn" disabled>Select a Package</button>
+                <div class="slide-confirm-fill" id="detail-confirm-fill" aria-hidden="true"></div>
+                <div class="slide-confirm-hint" id="detail-confirm-hint" aria-hidden="true">
+                    <svg class="ui-icon"><use href="#icon-chevron-right"></use></svg>
+                    <svg class="ui-icon"><use href="#icon-chevron-right"></use></svg>
+                    <svg class="ui-icon"><use href="#icon-chevron-right"></use></svg>
+                </div>
                 <div class="slide-confirm-thumb" id="detail-confirm-thumb" aria-hidden="true">
-                    <svg class="ui-icon" style="width:20px;height:20px;color:#fff;"><use href="#icon-chevron-right"></use></svg>
+                    <svg class="ui-icon"><use href="#icon-chevron-right"></use></svg>
                 </div>
             </div>
         </div>
@@ -1453,6 +1505,7 @@
             const wrap = document.getElementById('detail-confirm-wrap');
             const thumb = document.getElementById('detail-confirm-thumb');
             const track = document.getElementById('detail-confirm-btn');
+            const fill = document.getElementById('detail-confirm-fill');
             if (!wrap || !thumb || !track) return;
 
             let dragging = false;
@@ -1466,7 +1519,9 @@
 
             function setThumbX(x) {
                 currentX = x;
-                thumb.style.left = (3 + x) + 'px';
+                thumb.style.transform = `translateX(${x}px)`;
+                if (fill) fill.style.width = (x + thumb.offsetWidth / 2 + 3) + 'px';
+                wrap.classList.toggle('in-progress', x > 4);
             }
 
             thumb.addEventListener('pointerdown', (e) => {
@@ -1493,6 +1548,8 @@
                 if (maxTravel > 0 && currentX >= threshold) {
                     setThumbX(maxTravel);
                     thumb.classList.add('completed');
+                    wrap.classList.add('completed');
+                    thumb.innerHTML = '<svg class="ui-icon"><use href="#icon-check"></use></svg>';
                     confirmPackagePurchase(track);
                 } else {
                     setThumbX(0); // snap back - CSS transition animates this since .dragging was removed
@@ -1513,12 +1570,16 @@
                     maxTravel = travelRange();
                     setThumbX(maxTravel);
                     thumb.classList.add('completed');
+                    wrap.classList.add('completed');
+                    thumb.innerHTML = '<svg class="ui-icon"><use href="#icon-check"></use></svg>';
                     confirmPackagePurchase(track);
                 }
             });
 
             window.resetSlideConfirmThumb = function () {
                 thumb.classList.remove('completed', 'dragging');
+                wrap.classList.remove('completed', 'in-progress');
+                thumb.innerHTML = '<svg class="ui-icon"><use href="#icon-chevron-right"></use></svg>';
                 dragging = false;
                 setThumbX(0);
             };
