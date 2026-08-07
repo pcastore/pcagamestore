@@ -318,7 +318,7 @@
             position: relative; touch-action: pan-y; height: 54px; border-radius: 27px; overflow: hidden;
             box-shadow: 0 8px 20px -8px rgba(var(--accent-rgb),0.55);
         }
-        .slide-confirm-wrap:has(#detail-confirm-btn:disabled) { box-shadow: none; }
+        .slide-confirm-wrap:has(> .btn:disabled) { box-shadow: none; }
         .slide-confirm-wrap .btn {
             height: 100%; padding-left: 56px; pointer-events: none; border-radius: 27px;
             display: flex; align-items: center; justify-content: center;
@@ -345,7 +345,7 @@
         @keyframes slideHintPulse { 0%, 100% { opacity: 0.22; transform: translateX(0); } 50% { opacity: 0.95; transform: translateX(3px); } }
         .slide-confirm-wrap.in-progress .slide-confirm-hint,
         .slide-confirm-wrap.completed .slide-confirm-hint,
-        .slide-confirm-wrap:has(#detail-confirm-btn:disabled) .slide-confirm-hint { opacity: 0; }
+        .slide-confirm-wrap:has(> .btn:disabled) .slide-confirm-hint { opacity: 0; }
         .slide-confirm-thumb {
             position: absolute; top: 3px; left: 3px; width: 48px; height: 48px; z-index: 2;
             border-radius: 50%; background: linear-gradient(160deg, #fff, #eef2f8);
@@ -356,7 +356,7 @@
         }
         .slide-confirm-thumb svg { width: 20px; height: 20px; color: var(--accent); transition: color 0.2s ease; }
         .slide-confirm-thumb.dragging { transition: none; cursor: grabbing; box-shadow: 0 4px 14px rgba(0,0,0,0.35), inset 0 1px 1px rgba(255,255,255,0.9); }
-        .slide-confirm-wrap:has(#detail-confirm-btn:disabled) .slide-confirm-thumb { cursor: not-allowed; opacity: 0.55; }
+        .slide-confirm-wrap:has(> .btn:disabled) .slide-confirm-thumb { cursor: not-allowed; opacity: 0.55; }
         .slide-confirm-thumb.completed { background: linear-gradient(160deg, #34D399, #16A34A); box-shadow: 0 3px 12px rgba(22,163,74,0.5), inset 0 1px 1px rgba(255,255,255,0.4); }
         .slide-confirm-thumb.completed svg { color: #fff; }
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--surface); display: flex; justify-content: space-around; padding: 8px 0; border-top: 1px solid var(--border); z-index: 100; box-shadow: 0 -2px 5px rgba(0,0,0,0.05); }
@@ -385,6 +385,17 @@
         .pkg-type-tabs { display: flex; background: var(--bg); border-radius: 10px; padding: 4px; gap: 4px; margin-bottom: 14px; }
         .pkg-type-tab { flex: 1; text-align: center; padding: 9px 0; border: none; background: transparent; border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: 0.15s; }
         .pkg-type-tab.active { background: var(--surface); color: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+        /* Pay-with (Wallet vs Payment method) tabs — same look as pkg-type-tabs
+           but a separate class so the two toggles never fight over which one
+           has ".active" when either is re-rendered. */
+        .pay-type-tabs { display: flex; background: var(--bg); border-radius: 10px; padding: 4px; gap: 4px; margin-bottom: 14px; }
+        .pay-type-tab { flex: 1; text-align: center; padding: 9px 0; border: none; background: transparent; border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: 0.15s; }
+        .pay-type-tab.active { background: var(--surface); color: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+        .wallet-pay-box .wallet-pay-balance-label { font-size: 12.5px; color: var(--text-secondary); }
+        .wallet-pay-box .wallet-pay-balance-amount { font-size: 20px; font-weight: 800; color: var(--text); margin-top: 2px; }
+        .wallet-pay-box .wallet-pay-note { font-size: 12.5px; margin-top: 6px; line-height: 1.4; }
+        .wallet-pay-box .wallet-pay-note.ok { color: #31A24C; }
+        .wallet-pay-box .wallet-pay-note.low { color: #E53935; }
 
         .package-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .package-grid.layout-currency { grid-template-columns: repeat(3, 1fr); gap: 9px; }
@@ -500,12 +511,18 @@
         }
         .wallet-topup-btn:active { transform: scale(0.96); }
 
-        .wallet-amount-presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 4px; }
+        .wallet-amount-presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 4px; }
         .wallet-preset-chip {
-            padding: 9px 4px; border-radius: 10px; text-align: center; font-size: 13px; font-weight: 700;
+            padding: 13px 6px; border-radius: 12px; text-align: center; font-size: 14.5px; font-weight: 700;
             background: var(--surface-alt); border: 1px solid var(--border); color: var(--text); cursor: pointer;
         }
         .wallet-preset-chip.active { background: var(--accent); border-color: var(--accent); color: var(--on-color); }
+        .wallet-topup-amount-input {
+            width: 100%; padding: 16px 16px; font-size: 20px; font-weight: 700; border: 1.5px solid var(--border);
+            border-radius: 12px; margin-bottom: 10px; background: var(--surface); color: var(--text); box-sizing: border-box;
+            transition: 0.15s;
+        }
+        .wallet-topup-amount-input:focus { outline: none; border-color: var(--accent); background: #F8FBFF; }
 
         .wallet-topup-row { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); cursor: pointer; }
         .wallet-topup-row:active { transform: scale(0.98); }
@@ -703,6 +720,9 @@
         .pkg-type-tabs { background: rgba(0,0,0,0.04); border-radius: 16px; }
         html[data-theme="dark"] .pkg-type-tabs { background: rgba(255,255,255,0.04); }
         .pkg-type-tab.active { background: var(--glass-bg-strong); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); border-radius: 12px; }
+        .pay-type-tabs { background: rgba(0,0,0,0.04); border-radius: 16px; }
+        html[data-theme="dark"] .pay-type-tabs { background: rgba(255,255,255,0.04); }
+        .pay-type-tab.active { background: var(--glass-bg-strong); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); border-radius: 12px; }
         .recent-id-chip { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; }
         .modal-overlay, .success-overlay { background: rgba(0,0,10,0.45); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
     </style>
@@ -858,7 +878,7 @@
                 </div>
                 <div class="modal-body">
                     <label style="display:block;">Amount (MMK)</label>
-                    <input type="number" id="wallet-topup-amount" placeholder="Enter amount" style="width:100%;margin-bottom:8px;" inputmode="numeric" oninput="renderWalletTopupPresets()">
+                    <input type="number" id="wallet-topup-amount" class="wallet-topup-amount-input" placeholder="Enter amount" inputmode="numeric" oninput="renderWalletTopupPresets()">
                     <div class="wallet-amount-presets" id="wallet-amount-presets"></div>
 
                     <label style="display:block;margin-top:14px;">Payment Method</label>
@@ -893,7 +913,18 @@
                         <p id="wallet-receipt-upload-status" style="font-size:12px;color:var(--text-secondary);display:none;"></p>
                     </div>
 
-                    <button type="button" class="btn btn-primary" id="wallet-topup-submit-btn" style="margin-top:18px;" onclick="submitWalletTopup(this)" disabled>Select a Payment Method</button>
+                    <div class="slide-confirm-wrap" id="wallet-topup-confirm-wrap" style="margin-top:18px;">
+                        <button type="button" class="btn btn-primary" id="wallet-topup-submit-btn" disabled>Select a Payment Method</button>
+                        <div class="slide-confirm-fill" id="wallet-topup-confirm-fill" aria-hidden="true"></div>
+                        <div class="slide-confirm-hint" id="wallet-topup-confirm-hint" aria-hidden="true">
+                            <svg class="ui-icon"><use href="#icon-chevron-right"></use></svg>
+                            <svg class="ui-icon"><use href="#icon-chevron-right"></use></svg>
+                            <svg class="ui-icon"><use href="#icon-chevron-right"></use></svg>
+                        </div>
+                        <div class="slide-confirm-thumb" id="wallet-topup-confirm-thumb" aria-hidden="true">
+                            <svg class="ui-icon"><use href="#icon-chevron-right"></use></svg>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1069,36 +1100,50 @@
             <div id="detail-package-list" class="package-grid"></div>
 
             <div id="detail-payment-section" style="display:none;">
-                <h3 class="detail-section-title">Payment Method</h3>
-                <div id="detail-payment-methods" style="display:flex; flex-direction:column; gap:10px;"></div>
+                <h3 class="detail-section-title">How do you want to pay?</h3>
+                <div class="pay-type-tabs" id="detail-pay-type-tabs">
+                    <button type="button" class="pay-type-tab" data-type="wallet" onclick="choosePaymentType('wallet')">Wallet Balance</button>
+                    <button type="button" class="pay-type-tab" data-type="payment" onclick="choosePaymentType('payment')">Kpay / Wave / etc.</button>
+                </div>
 
-                <div id="detail-payment-info" class="detail-form-card" style="display:none; margin-top:10px;">
-                    <p style="font-size:12px;color:var(--text-secondary);">Transfer the exact amount to:</p>
-                    <div class="pm-copy-row" style="margin-top:2px;">
-                        <p style="font-size:17px;font-weight:700;color:#1877F2;" id="pm-number"></p>
-                        <button type="button" class="pm-copy-btn" onclick="copyPaymentField('pm-number', this)" title="Copy phone number">
-                            <svg class="ui-icon"><use href="#icon-copy"></use></svg>
-                        </button>
-                    </div>
-                    <div class="pm-copy-row" style="margin-bottom:4px;">
-                        <p style="font-size:14px;color:var(--text);" id="pm-name"></p>
-                        <button type="button" class="pm-copy-btn" onclick="copyPaymentField('pm-name', this)" title="Copy name">
-                            <svg class="ui-icon"><use href="#icon-copy"></use></svg>
-                        </button>
-                    </div>
+                <!-- WALLET: shown when the customer chooses to pay from their
+                     existing wallet balance. No payment-method grid, no
+                     receipt upload — if the balance covers the price they can
+                     submit immediately; otherwise this nudges them to top up. -->
+                <div id="detail-wallet-pay-box" class="wallet-pay-box detail-form-card" style="display:none; align-items:flex-start;"></div>
 
-                    <label>Upload Payment Receipt</label>
-                    <label class="upload-shot-box" id="upload-shot-box" for="receipt-file">
-                        <div class="upload-shot-icon"><svg class="ui-icon"><use href="#icon-camera"></use></svg></div>
-                        <span class="upload-shot-label">Upload Screenshot</span>
-                        <span class="upload-shot-hint">Tap to choose your payment screenshot</span>
-                        <img id="receipt-preview" src="" style="display:none;">
-                        <span class="upload-shot-change" id="upload-shot-change" style="display:none;">
-                            <svg style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><use href="#icon-camera"></use></svg> Change
-                        </span>
-                    </label>
-                    <input type="file" id="receipt-file" class="upload-shot-input" accept="image/*" onchange="previewReceiptImage(event)">
-                    <p id="receipt-upload-status" style="font-size:12px;color:var(--text-secondary);display:none;"></p>
+                <!-- PAYMENT METHOD: unchanged Kpay/Wave/etc. flow with receipt upload. -->
+                <div id="detail-payment-methods-wrap" style="display:none;">
+                    <div id="detail-payment-methods" style="display:flex; flex-direction:column; gap:10px;"></div>
+
+                    <div id="detail-payment-info" class="detail-form-card" style="display:none; margin-top:10px;">
+                        <p style="font-size:12px;color:var(--text-secondary);">Transfer the exact amount to:</p>
+                        <div class="pm-copy-row" style="margin-top:2px;">
+                            <p style="font-size:17px;font-weight:700;color:#1877F2;" id="pm-number"></p>
+                            <button type="button" class="pm-copy-btn" onclick="copyPaymentField('pm-number', this)" title="Copy phone number">
+                                <svg class="ui-icon"><use href="#icon-copy"></use></svg>
+                            </button>
+                        </div>
+                        <div class="pm-copy-row" style="margin-bottom:4px;">
+                            <p style="font-size:14px;color:var(--text);" id="pm-name"></p>
+                            <button type="button" class="pm-copy-btn" onclick="copyPaymentField('pm-name', this)" title="Copy name">
+                                <svg class="ui-icon"><use href="#icon-copy"></use></svg>
+                            </button>
+                        </div>
+
+                        <label>Upload Payment Receipt</label>
+                        <label class="upload-shot-box" id="upload-shot-box" for="receipt-file">
+                            <div class="upload-shot-icon"><svg class="ui-icon"><use href="#icon-camera"></use></svg></div>
+                            <span class="upload-shot-label">Upload Screenshot</span>
+                            <span class="upload-shot-hint">Tap to choose your payment screenshot</span>
+                            <img id="receipt-preview" src="" style="display:none;">
+                            <span class="upload-shot-change" id="upload-shot-change" style="display:none;">
+                                <svg style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><use href="#icon-camera"></use></svg> Change
+                            </span>
+                        </label>
+                        <input type="file" id="receipt-file" class="upload-shot-input" accept="image/*" onchange="previewReceiptImage(event)">
+                        <p id="receipt-upload-status" style="font-size:12px;color:var(--text-secondary);display:none;"></p>
+                    </div>
                 </div>
             </div>
 
@@ -1237,6 +1282,8 @@
         let selectedGameJCPlaysProduct = null;
         let selectedPaymentMethod = null;
         let editingReceiptFile = null;
+        let selectedPaymentType = null; // 'wallet' | 'payment' — how the customer wants to pay for a game order
+        let currentWalletBalance = 0; // kept in sync by listenWalletBalance()
         let playerIdVerified = null; // null = not checked, true = valid, false = failed
         let playerIdCheckTimer = null;
 
@@ -1441,6 +1488,7 @@
             idConfirmBtn.classList.remove('checking', 'confirmed');
             document.getElementById('confirm-id-btn-text').innerText = 'Confirm ID';
             selectedPaymentMethod = null;
+            selectedPaymentType = null;
             editingReceiptFile = null;
             window.currentGamePackages = game.packages;
 
@@ -1469,6 +1517,9 @@
             document.getElementById('receipt-upload-status').style.display = 'none';
             document.getElementById('upload-shot-box').classList.remove('has-image');
             document.getElementById('upload-shot-change').style.display = 'none';
+            document.querySelectorAll('#detail-pay-type-tabs .pay-type-tab').forEach(el => el.classList.remove('active'));
+            document.getElementById('detail-wallet-pay-box').style.display = 'none';
+            document.getElementById('detail-payment-methods-wrap').style.display = 'none';
 
             const confirmBtn = document.getElementById('detail-confirm-btn');
             confirmBtn.disabled = true;
@@ -1520,12 +1571,83 @@
             document.querySelectorAll('#detail-package-list .package-card').forEach(el => el.classList.remove('selected'));
             document.querySelector(`#detail-package-list .package-card[data-index="${index}"]`).classList.add('selected');
 
-            const confirmBtn = document.getElementById('detail-confirm-btn');
-            confirmBtn.disabled = false;
-            confirmBtn.innerText = `Buy ${selectedPackage.amount} - ${selectedPackage.price.toLocaleString()} MMK`;
+            // Picking a new package invalidates whatever "how do I pay" choice
+            // was made for the previous one — price may have changed, so the
+            // wallet-eligibility check has to be redone from scratch.
+            selectedPaymentType = null;
+            selectedPaymentMethod = null;
+            editingReceiptFile = null;
+            document.querySelectorAll('#detail-pay-type-tabs .pay-type-tab').forEach(el => el.classList.remove('active'));
+            document.getElementById('detail-wallet-pay-box').style.display = 'none';
+            document.getElementById('detail-payment-methods-wrap').style.display = 'none';
+            document.getElementById('detail-payment-info').style.display = 'none';
 
-            renderPaymentMethods();
+            const confirmBtn = document.getElementById('detail-confirm-btn');
+            confirmBtn.disabled = true;
+            confirmBtn.innerText = 'Choose How to Pay';
+
             document.getElementById('detail-payment-section').style.display = 'block';
+        }
+
+        // ---------- Pay with Wallet vs Pay with Kpay/Wave/etc. ----------
+        function choosePaymentType(type) {
+            selectedPaymentType = type;
+            document.querySelectorAll('#detail-pay-type-tabs .pay-type-tab').forEach(el => el.classList.toggle('active', el.dataset.type === type));
+
+            if (type === 'wallet') {
+                selectedPaymentMethod = null;
+                editingReceiptFile = null;
+                document.getElementById('detail-payment-methods-wrap').style.display = 'none';
+                document.getElementById('detail-payment-info').style.display = 'none';
+                document.getElementById('detail-wallet-pay-box').style.display = 'flex';
+                renderWalletPayBox();
+            } else {
+                document.getElementById('detail-wallet-pay-box').style.display = 'none';
+                document.getElementById('detail-payment-methods-wrap').style.display = 'block';
+                renderPaymentMethods();
+                updateConfirmButtonForPaymentType();
+            }
+        }
+        window.choosePaymentType = choosePaymentType;
+
+        // Renders the balance/insufficient-funds box and keeps the confirm
+        // button in sync with it. Also re-run whenever the live wallet
+        // balance changes while this box is on screen, so an approved top-up
+        // flips "Not enough balance" over to "Enough balance" without the
+        // customer needing to reopen the page.
+        function renderWalletPayBox() {
+            const box = document.getElementById('detail-wallet-pay-box');
+            if (!selectedPackage) { box.innerHTML = ''; return; }
+            const price = selectedPackage.price;
+            const bal = currentWalletBalance;
+            const enough = bal >= price;
+            box.innerHTML = enough ? `
+                <span class="wallet-pay-balance-label">Wallet Balance</span>
+                <span class="wallet-pay-balance-amount">${bal.toLocaleString()} MMK</span>
+                <span class="wallet-pay-note ok">✓ Enough balance — ${price.toLocaleString()} MMK will be deducted when you confirm.</span>
+            ` : `
+                <span class="wallet-pay-balance-label">Wallet Balance</span>
+                <span class="wallet-pay-balance-amount">${bal.toLocaleString()} MMK</span>
+                <span class="wallet-pay-note low">Not enough balance — top up ${(price - bal).toLocaleString()} MMK more to pay from your wallet.</span>
+                <button type="button" class="btn btn-primary" style="margin-top:10px;width:100%;" onclick="openWalletTopupModal()">Top Up Wallet</button>
+            `;
+            updateConfirmButtonForPaymentType();
+        }
+        window.renderWalletPayBox = renderWalletPayBox;
+
+        function updateConfirmButtonForPaymentType() {
+            if (!selectedPackage) return;
+            const confirmBtn = document.getElementById('detail-confirm-btn');
+            if (selectedPaymentType === 'wallet') {
+                const enough = currentWalletBalance >= selectedPackage.price;
+                confirmBtn.disabled = !enough;
+                confirmBtn.innerText = enough
+                    ? `Buy ${selectedPackage.amount} - ${selectedPackage.price.toLocaleString()} MMK (Wallet)`
+                    : 'Insufficient Wallet Balance';
+            } else if (selectedPaymentType === 'payment') {
+                confirmBtn.disabled = false;
+                confirmBtn.innerText = `Buy ${selectedPackage.amount} - ${selectedPackage.price.toLocaleString()} MMK`;
+            }
         }
 
         function renderPaymentMethods() {
@@ -1625,6 +1747,7 @@
         function closeGameDetail() {
             selectedPackage = null;
             selectedPaymentMethod = null;
+            selectedPaymentType = null;
             editingReceiptFile = null;
             showPage('home');
         }
@@ -1645,8 +1768,7 @@
             const serverId = document.getElementById('detail-server-id').value.trim();
 
             if (!inGameId) { window.showToast('Please enter your In-Game ID'); if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb(); return; }
-            if (!selectedPaymentMethod) { window.showToast('Please select a payment method'); if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb(); return; }
-            if (!editingReceiptFile) { window.showToast('Please upload your payment receipt'); if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb(); return; }
+            if (!selectedPaymentType) { window.showToast('Please choose how you want to pay'); if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb(); return; }
 
             if (selectedGameG2BulkCode && playerIdVerified === false) {
                 if (!confirm('We could not find this In-Game ID on the server. Continue with this order anyway?')) {
@@ -1654,6 +1776,19 @@
                     return;
                 }
             }
+
+            if (selectedPaymentType === 'wallet') {
+                if (currentWalletBalance < selectedPackage.price) {
+                    window.showToast('Not enough wallet balance. Please top up.');
+                    if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb();
+                    return;
+                }
+                await doSubmitWalletOrder(inGameId, serverId, btnElement);
+                return;
+            }
+
+            if (!selectedPaymentMethod) { window.showToast('Please select a payment method'); if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb(); return; }
+            if (!editingReceiptFile) { window.showToast('Please upload your payment receipt'); if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb(); return; }
 
             await doSubmitOrder(inGameId, serverId, btnElement);
         }
@@ -1664,12 +1799,18 @@
         // a separate circular thumb (#detail-confirm-thumb) layered on top. The
         // thumb has to be dragged all the way from left to right to actually call
         // confirmPackagePurchase() - a plain tap does nothing, on purpose.
-        function initSlideConfirm() {
-            const wrap = document.getElementById('detail-confirm-wrap');
-            const thumb = document.getElementById('detail-confirm-thumb');
-            const track = document.getElementById('detail-confirm-btn');
-            const fill = document.getElementById('detail-confirm-fill');
-            if (!wrap || !thumb || !track) return;
+        // Generic slide-to-confirm factory: wires up a wrap/thumb/track/fill
+        // set of elements (see the .slide-confirm-wrap markup) so the thumb
+        // must be dragged all the way from left to right before onConfirm(track)
+        // fires - a plain tap does nothing, on purpose. Returns a reset()
+        // function the caller can invoke to snap the thumb back to idle
+        // (e.g. after a validation error or when the modal reopens).
+        function createSlideConfirm({ wrapId, thumbId, trackId, fillId, ariaLabel, onConfirm }) {
+            const wrap = document.getElementById(wrapId);
+            const thumb = document.getElementById(thumbId);
+            const track = document.getElementById(trackId);
+            const fill = fillId ? document.getElementById(fillId) : null;
+            if (!wrap || !thumb || !track) return function () {};
 
             let dragging = false;
             let startX = 0;
@@ -1685,6 +1826,13 @@
                 thumb.style.transform = `translateX(${x}px)`;
                 if (fill) fill.style.width = (x + thumb.offsetWidth / 2 + 3) + 'px';
                 wrap.classList.toggle('in-progress', x > 4);
+            }
+
+            function complete() {
+                thumb.classList.add('completed');
+                wrap.classList.add('completed');
+                thumb.innerHTML = '<svg class="ui-icon"><use href="#icon-check"></use></svg>';
+                onConfirm(track);
             }
 
             thumb.addEventListener('pointerdown', (e) => {
@@ -1710,10 +1858,7 @@
                 const threshold = maxTravel * 0.82; // has to reach ~82% of the way across
                 if (maxTravel > 0 && currentX >= threshold) {
                     setThumbX(maxTravel);
-                    thumb.classList.add('completed');
-                    wrap.classList.add('completed');
-                    thumb.innerHTML = '<svg class="ui-icon"><use href="#icon-check"></use></svg>';
-                    confirmPackagePurchase(track);
+                    complete();
                 } else {
                     setThumbX(0); // snap back - CSS transition animates this since .dragging was removed
                 }
@@ -1725,27 +1870,44 @@
             // also confirms, for anyone who can't perform a drag gesture.
             thumb.setAttribute('tabindex', '0');
             thumb.setAttribute('role', 'button');
-            thumb.setAttribute('aria-label', 'Slide to confirm purchase');
+            thumb.setAttribute('aria-label', ariaLabel || 'Slide to confirm');
             thumb.addEventListener('keydown', (e) => {
                 if (track.disabled) return;
                 if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
                     maxTravel = travelRange();
                     setThumbX(maxTravel);
-                    thumb.classList.add('completed');
-                    wrap.classList.add('completed');
-                    thumb.innerHTML = '<svg class="ui-icon"><use href="#icon-check"></use></svg>';
-                    confirmPackagePurchase(track);
+                    complete();
                 }
             });
 
-            window.resetSlideConfirmThumb = function () {
+            return function reset() {
                 thumb.classList.remove('completed', 'dragging');
                 wrap.classList.remove('completed', 'in-progress');
                 thumb.innerHTML = '<svg class="ui-icon"><use href="#icon-chevron-right"></use></svg>';
                 dragging = false;
                 setThumbX(0);
             };
+        }
+
+        function initSlideConfirm() {
+            window.resetSlideConfirmThumb = createSlideConfirm({
+                wrapId: 'detail-confirm-wrap',
+                thumbId: 'detail-confirm-thumb',
+                trackId: 'detail-confirm-btn',
+                fillId: 'detail-confirm-fill',
+                ariaLabel: 'Slide to confirm purchase',
+                onConfirm: confirmPackagePurchase
+            });
+
+            window.resetWalletSlideConfirmThumb = createSlideConfirm({
+                wrapId: 'wallet-topup-confirm-wrap',
+                thumbId: 'wallet-topup-confirm-thumb',
+                trackId: 'wallet-topup-submit-btn',
+                fillId: 'wallet-topup-confirm-fill',
+                ariaLabel: 'Slide to submit top up request',
+                onConfirm: submitWalletTopup
+            });
         }
         window.initSlideConfirm = initSlideConfirm;
 
@@ -1759,6 +1921,21 @@
                 serverId,
                 paymentMethodName: selectedPaymentMethod.name,
                 receiptFile: editingReceiptFile,
+                g2bulkGameCode: selectedGameG2BulkCode,
+                g2bulkCatalogueName: selectedPackage.g2bulk || null,
+                jcplaysProduct: selectedGameJCPlaysProduct,
+                jcplaysProductId: selectedPackage.jcplays || null
+            }, btnElement);
+        }
+
+        async function doSubmitWalletOrder(inGameId, serverId, btnElement) {
+            await window.submitWalletOrder({
+                gameName: selectedGameName,
+                serverRegion: selectedGameServerName,
+                amount: selectedPackage.amount,
+                price: selectedPackage.price,
+                inGameId,
+                serverId,
                 g2bulkGameCode: selectedGameG2BulkCode,
                 g2bulkCatalogueName: selectedPackage.g2bulk || null,
                 jcplaysProduct: selectedGameJCPlaysProduct,
@@ -1931,7 +2108,7 @@
     <!-- FIREBASE CODE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, getDoc, setDoc, serverTimestamp, query, where, orderBy, limit, getDocs, onSnapshot } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, getDoc, setDoc, serverTimestamp, query, where, orderBy, limit, getDocs, onSnapshot, increment, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
@@ -2069,8 +2246,15 @@
             if (!gid) return;
             onSnapshot(doc(db, "users", gid), (snap) => {
                 const bal = snap.exists() ? Number(snap.data().walletBalance || 0) : 0;
+                currentWalletBalance = bal;
                 const el = document.getElementById('wallet-balance-amount');
                 if (el && window.formatMMK) el.innerText = window.formatMMK(bal);
+                // If the customer currently has the "pay with Wallet" box open
+                // on a checkout, keep it live too — e.g. an admin approving a
+                // top-up should instantly flip "Not enough balance" to "Enough".
+                if (selectedPaymentType === 'wallet' && document.getElementById('detail-wallet-pay-box').style.display !== 'none') {
+                    renderWalletPayBox();
+                }
             }, (error) => console.error('Wallet balance listener error:', error));
         }
 
@@ -2088,6 +2272,7 @@
             const btn = document.getElementById('wallet-topup-submit-btn');
             btn.disabled = true;
             btn.innerText = 'Select a Payment Method';
+            if (window.resetWalletSlideConfirmThumb) window.resetWalletSlideConfirmThumb();
             renderWalletTopupPresets();
             renderWalletPaymentMethods();
             document.getElementById('wallet-topup-overlay').classList.add('show');
@@ -2166,12 +2351,12 @@
 
         async function submitWalletTopup(btnEl) {
             const amount = Number(document.getElementById('wallet-topup-amount').value);
-            if (!amount || amount <= 0) { window.showToast('Please enter a valid amount.'); return; }
-            if (!selectedWalletPaymentMethod) { window.showToast('Please select a payment method.'); return; }
-            if (!editingWalletReceiptFile) { window.showToast('Please upload your payment receipt.'); return; }
+            if (!amount || amount <= 0) { window.showToast('Please enter a valid amount.'); if (window.resetWalletSlideConfirmThumb) window.resetWalletSlideConfirmThumb(); return; }
+            if (!selectedWalletPaymentMethod) { window.showToast('Please select a payment method.'); if (window.resetWalletSlideConfirmThumb) window.resetWalletSlideConfirmThumb(); return; }
+            if (!editingWalletReceiptFile) { window.showToast('Please upload your payment receipt.'); if (window.resetWalletSlideConfirmThumb) window.resetWalletSlideConfirmThumb(); return; }
 
             const guestId = window.getGuestId ? window.getGuestId() : null;
-            if (!guestId) { window.showToast('Could not identify your account. Please reload.'); return; }
+            if (!guestId) { window.showToast('Could not identify your account. Please reload.'); if (window.resetWalletSlideConfirmThumb) window.resetWalletSlideConfirmThumb(); return; }
 
             const originalText = btnEl.innerText;
             btnEl.disabled = true;
@@ -2195,6 +2380,7 @@
             } catch (error) {
                 console.error('submitWalletTopup error:', error);
                 window.showToast(error.message || 'Failed to submit top up request.');
+                if (window.resetWalletSlideConfirmThumb) window.resetWalletSlideConfirmThumb();
             } finally {
                 btnEl.disabled = false;
                 btnEl.innerText = originalText;
@@ -2814,6 +3000,85 @@
                 if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb();
             }
         }
+
+        // Same as submitOrder above, but the customer is paying out of their
+        // existing wallet balance instead of a Kpay/Wave/etc. transfer — so
+        // no payment method, no receipt upload, and the balance is deducted
+        // atomically inside a transaction (re-checked against the *live*
+        // balance at write time, not the possibly-stale value the UI last
+        // rendered) so two rapid orders can never both slip through on a
+        // balance that only actually covers one of them.
+        async function submitWalletOrder(orderData, btnElement) {
+            const { gameName, serverRegion, amount, price, inGameId, serverId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId } = orderData;
+
+            const originalText = btnElement.innerText;
+            btnElement.innerText = "Processing...";
+            btnElement.disabled = true;
+
+            try {
+                const guestId = window.getGuestId ? window.getGuestId() : '';
+                if (!guestId) throw new Error('Could not identify your account. Please reload and try again.');
+
+                try {
+                    const userSnap = await getDoc(doc(db, "users", guestId));
+                    if (userSnap.exists() && userSnap.data().banned) {
+                        window.showToast('Your account has been restricted. Contact support.', 'fail');
+                        btnElement.innerText = originalText;
+                        btnElement.disabled = false;
+                        if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb();
+                        return;
+                    }
+                } catch (banCheckError) {
+                    console.error("Ban check error:", banCheckError);
+                }
+
+                const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
+                const location = await getOrderLocation();
+
+                const userRef = doc(db, "users", guestId);
+                await runTransaction(db, async (tx) => {
+                    const snap = await tx.get(userRef);
+                    const bal = snap.exists() ? Number(snap.data().walletBalance || 0) : 0;
+                    if (bal < price) throw new Error('INSUFFICIENT_BALANCE');
+                    tx.set(userRef, { walletBalance: increment(-price) }, { merge: true });
+                });
+
+                await addDoc(collection(db, "orders"), {
+                    playerId: inGameId,
+                    serverId: serverId || '',
+                    serverRegion: serverRegion || '',
+                    game: gameName,
+                    itemAmount: amount,
+                    price: price,
+                    paymentMethod: 'Wallet Balance',
+                    paidFromWallet: true,
+                    status: "Pending",
+                    timestamp: serverTimestamp(),
+                    userId: guestId,
+                    userName: (savedProfile.name && savedProfile.name.trim()) ? savedProfile.name.trim() : guestId,
+                    userPhone: (savedProfile.phone && savedProfile.phone.trim()) ? savedProfile.phone.trim() : '',
+                    ...(location ? { location } : {}),
+                    ...(g2bulkGameCode && g2bulkCatalogueName ? { g2bulkGameCode, g2bulkCatalogueName } : {}),
+                    ...(jcplaysProduct && jcplaysProductId ? { jcplaysProduct, jcplaysProductId } : {})
+                });
+
+                saveContact(inGameId, selectedGameId);
+                btnElement.innerText = "Order Sent";
+                btnElement.style.backgroundColor = "#28a745";
+                window.openSuccessOverlay();
+            } catch (error) {
+                console.error("Wallet order error: ", error);
+                const msg = error.message === 'INSUFFICIENT_BALANCE'
+                    ? 'Your wallet balance is no longer enough for this order. Please top up.'
+                    : (error.message || 'Failed to place order! Check Connection.');
+                window.showToast(msg);
+                btnElement.innerText = originalText;
+                btnElement.disabled = false;
+                if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb();
+                if (selectedPaymentType === 'wallet') renderWalletPayBox();
+            }
+        }
+        window.submitWalletOrder = submitWalletOrder;
 
         // ---------- Payment Methods (live from Firestore "paymentMethods" collection) ----------
         let paymentMethodsListenerAttached = false;
