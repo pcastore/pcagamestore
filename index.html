@@ -93,6 +93,15 @@
         }
         html[data-theme="dark"] .theme-toggle-thumb { transform: translateX(22px); background: linear-gradient(160deg,#25335A,#0D1830); color: #9FB3D9; }
         .theme-toggle-thumb svg { width: 14px; height: 14px; }
+
+        /* Preferences card on the Profile page (e.g. dark mode row) */
+        .prefs-row { display: flex; align-items: center; justify-content: space-between; gap: 12px; width: 100%; padding: 4px 0; }
+        .prefs-row-label { display: flex; align-items: center; gap: 10px; color: var(--text); font-size: 14px; font-weight: 500; }
+        .prefs-row-icon {
+            width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+            background: var(--accent-soft); color: var(--accent);
+        }
+        .prefs-row-icon svg { width: 18px; height: 18px; }
         .ui-icon { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
         .svg-icon { width: 16px; height: 16px; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
         
@@ -189,6 +198,16 @@
         .skel-game-card { display: block; }
         .skel-game-card .skel-img { aspect-ratio: 1 / 1; border-radius: 14px; }
         .skel-game-card .skel-name { height: 30px; border-radius: 8px; margin-top: 8px; }
+        /* History list skeleton — mirrors .list-card/.history-card layout */
+        .skel-history-card { background: var(--surface); padding: 15px; border-radius: 10px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--border); }
+        .skel-history-card .skel-hc-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
+        .skel-history-card .skel-thumb { width: 44px; height: 44px; border-radius: 10px; flex-shrink: 0; }
+        .skel-history-card .skel-hc-lines { flex: 1; min-width: 0; }
+        .skel-history-card .skel-line1 { height: 14px; width: 55%; border-radius: 6px; }
+        .skel-history-card .skel-line2 { height: 12px; width: 40%; border-radius: 6px; margin-top: 8px; }
+        .skel-history-card .skel-hc-right { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; flex-shrink: 0; }
+        .skel-history-card .skel-line3 { height: 14px; width: 70px; border-radius: 6px; }
+        .skel-history-card .skel-line4 { height: 18px; width: 60px; border-radius: 20px; }
 
         /* Small colored category pill overlaid on the game's cover image */
         .game-cat-badge { position: absolute; top: 6px; left: 6px; display: flex; align-items: center; gap: 3px; padding: 3px 8px 3px 6px; border-radius: 9px; font-size: 9.5px; font-weight: 700; color: var(--on-color); box-shadow: 0 2px 6px rgba(0,0,0,0.25); }
@@ -197,6 +216,22 @@
         /* Category filter chips row, above the All Games grid */
         .cat-filter-scroll { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 12px; -webkit-overflow-scrolling: touch; }
         .cat-filter-scroll::-webkit-scrollbar { display: none; }
+
+        /* Game search bar */
+        .game-search-wrap { position: relative; display: flex; align-items: center; margin-bottom: 12px; }
+        .game-search-icon { position: absolute; left: 12px; width: 18px; height: 18px; color: var(--text-muted); pointer-events: none; }
+        .game-search-input {
+            width: 100%; height: 42px; padding: 0 38px 0 38px; border-radius: 12px;
+            border: 1px solid var(--border); background: var(--surface); color: var(--text);
+            font-size: 14px; outline: none; transition: border-color 0.15s ease, box-shadow 0.15s ease;
+        }
+        .game-search-input::placeholder { color: var(--text-muted); }
+        .game-search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb),0.15); }
+        .game-search-clear {
+            position: absolute; right: 10px; width: 20px; height: 20px; padding: 4px; border-radius: 50%;
+            color: var(--text-muted); cursor: pointer; box-sizing: content-box;
+        }
+        .game-search-clear:active { background: var(--surface-alt); }
         .cat-filter-chip {
             display: flex; align-items: center; gap: 6px; flex: 0 0 auto; padding: 9px 15px 9px 11px; border-radius: 20px;
             background: rgba(255,255,255,0.9); border: 1.5px solid var(--border);
@@ -532,11 +567,12 @@
 
         /* ===================== PROFILE PAGE — REDESIGN ===================== */
         /* Hero card: gradient cover + centered avatar overlapping the bottom edge */
-        .profile-hero { position: relative; border-radius: 24px; overflow: hidden; margin-bottom: 40px; box-shadow: var(--glass-shadow); }
+        .profile-hero { position: relative; border-radius: 24px; overflow: visible; margin-bottom: 40px; box-shadow: var(--glass-shadow); }
         .profile-hero-cover {
-            height: 108px; width: 100%;
+            height: 96px; width: 100%;
             background: linear-gradient(120deg, var(--accent) 0%, #8B5CF6 55%, #EC4899 100%);
             position: relative;
+            border-radius: 24px 24px 0 0;
         }
         .profile-hero-cover::after {
             content: ''; position: absolute; inset: 0;
@@ -546,26 +582,32 @@
         .profile-hero-body {
             background: var(--glass-bg-strong); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
             border: 1px solid var(--glass-border); border-top: none;
-            padding: 46px 18px 18px; text-align: center; position: relative;
+            border-radius: 0 0 24px 24px;
+            padding: 56px 18px 20px; text-align: center; position: relative;
         }
-        .profile-hero-name { font-size: 18px; font-weight: 800; color: var(--text); margin-top: 2px; }
-        .profile-hero-id { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
-        .profile-hero-tier { display: flex; justify-content: center; margin-top: 8px; }
+        .profile-hero-name { font-size: 18px; font-weight: 800; color: var(--text); margin-top: 4px; }
+        .profile-hero-id { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+        .profile-hero-tier { display: flex; justify-content: center; margin-top: 10px; }
         .profile-hero-edit-btn {
-            margin-top: 16px; display: inline-flex; align-items: center; gap: 6px;
+            margin-top: 14px; display: inline-flex; align-items: center; gap: 6px;
             background: var(--accent-soft); color: var(--accent); border: none; cursor: pointer;
             font-size: 12.5px; font-weight: 700; padding: 8px 16px; border-radius: 20px; transition: 0.15s;
         }
         .profile-hero-edit-btn:active { transform: scale(0.96); }
         .profile-hero-edit-btn svg { width: 13px; height: 13px; }
 
-        /* Profile: circular photo upload control (sits half-in/half-out of the cover) */
+        /* Profile: circular photo upload control (sits half-in/half-out of the cover).
+           Positioned relative to the cover only (not the whole card), with a fixed
+           pixel offset from its center so the body's top padding can reliably clear
+           it — this is what keeps the tier badge / edit button from ever sitting
+           underneath the photo, regardless of font-size or browser differences. */
         .avatar-upload-input { display: none; }
         .avatar-upload-box {
-            position: absolute; left: 50%; top: 108px; transform: translate(-50%, -50%);
-            width: 92px; height: 92px; border-radius: 50%; background: var(--accent-soft);
+            position: absolute; left: 50%; top: 96px; transform: translate(-50%, -50%);
+            width: 84px; height: 84px; border-radius: 50%; background: var(--accent-soft);
             display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden;
             border: 4px solid var(--surface); flex-shrink: 0; box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+            z-index: 2;
         }
         .avatar-upload-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .avatar-upload-placeholder { color: var(--accent); display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
@@ -742,11 +784,13 @@
         <symbol id="icon-rocket" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2l.5-.5M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path></symbol>
         <symbol id="icon-megaphone" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></symbol>
         <symbol id="icon-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></symbol>
+        <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></symbol>
         <symbol id="icon-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></symbol>
         <symbol id="icon-chevron-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></symbol>
         <symbol id="icon-chevron-left" viewBox="0 0 24 24"><polyline points="15 18 9 12 15 6"></polyline></symbol>
         <symbol id="icon-copy" viewBox="0 0 24 24"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"></rect><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path></symbol>
         <symbol id="icon-camera" viewBox="0 0 24 24"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"></path><circle cx="12" cy="13" r="4"></circle></symbol>
+        <symbol id="icon-edit" viewBox="0 0 24 24"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></symbol>
         <symbol id="icon-facebook" viewBox="0 0 24 24"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"></path></symbol>
         <symbol id="icon-telegram" viewBox="0 0 24 24"><line x1="22" y1="2" x2="11" y2="13"></line><polygon points="22 2 15 22 11 13 2 9 22 2"></polygon></symbol>
         <symbol id="icon-tiktok" viewBox="0 0 24 24"><path d="M9 18V5l12-2v13"></path><circle cx="6" cy="18" r="3"></circle><circle cx="18" cy="16" r="3"></circle></symbol>
@@ -821,6 +865,11 @@
                 <div class="popular-scroll-wrap" id="popular-games-scroll"></div>
             </div>
             <h2 class="title-header section-title-spaced">All Games</h2>
+            <div class="game-search-wrap">
+                <svg class="ui-icon game-search-icon"><use href="#icon-search"></use></svg>
+                <input type="text" id="game-search-input" class="game-search-input" placeholder="Search games..." oninput="filterGamesBySearch(this.value)">
+                <svg class="ui-icon game-search-clear" id="game-search-clear" style="display:none;" onclick="clearGameSearch()"><use href="#icon-close"></use></svg>
+            </div>
             <div class="cat-filter-scroll" id="cat-filter-scroll"></div>
             <div class="cards-grid" id="all-games-grid">
                 <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
@@ -966,9 +1015,26 @@
                     <div class="profile-hero-tier" id="vip-tier-badge-hero"></div>
 
                     <button type="button" class="profile-hero-edit-btn" id="profile-edit-toggle-btn" onclick="toggleProfileEditCard()">
-                        <svg class="ui-icon"><use href="#icon-camera"></use></svg>
+                        <svg class="ui-icon" id="profile-edit-toggle-icon"><use href="#icon-edit"></use></svg>
                         <span id="profile-edit-toggle-text">Edit Profile</span>
                     </button>
+                </div>
+            </div>
+
+            <!-- Preferences: mirrors the header's dark mode toggle so it's reachable
+                 from the Profile page too, without needing a separate Settings page. -->
+            <div class="detail-form-card" id="profile-prefs-card">
+                <label style="align-self:flex-start;">Preferences</label>
+                <div class="prefs-row">
+                    <span class="prefs-row-label">
+                        <span class="prefs-row-icon"><svg class="ui-icon" id="theme-toggle-icon-profile-static"><use href="#icon-moon"></use></svg></span>
+                        Dark Mode
+                    </span>
+                    <div class="theme-toggle" id="theme-toggle-profile" onclick="toggleTheme()" role="button" aria-label="Toggle dark mode">
+                        <span class="theme-toggle-thumb" id="theme-toggle-thumb-profile">
+                            <svg class="svg-icon" id="theme-toggle-icon-profile" style="stroke:currentColor;"><use href="#icon-sun"></use></svg>
+                        </span>
+                    </div>
                 </div>
             </div>
 
@@ -1290,9 +1356,9 @@
         function loadSavedContactIntoForm() {
             // Scoped to the currently open game only, so an ID typed for one game
             // never auto-fills or shows up as a "recent" suggestion on another game.
-            const saved = window.getSavedContactForGame ? window.getSavedContactForGame(selectedGameId) : { playerId: '' };
+            const saved = window.getSavedContactForGame ? window.getSavedContactForGame(selectedGameId) : { playerId: '', serverId: '' };
             document.getElementById('detail-ingame-id').value = saved.playerId || '';
-            document.getElementById('detail-server-id').value = '';
+            document.getElementById('detail-server-id').value = saved.serverId || '';
             if (window.renderRecentIds) window.renderRecentIds(selectedGameId);
             onPlayerIdFieldChange();
         }
@@ -2052,10 +2118,12 @@
         function toggleProfileEditCard() {
             const card = document.getElementById('profile-edit-card');
             const btnText = document.getElementById('profile-edit-toggle-text');
+            const btnIcon = document.getElementById('profile-edit-toggle-icon')?.querySelector('use');
             if (!card) return;
             const nowOpen = !card.classList.contains('show');
             card.classList.toggle('show', nowOpen);
             if (btnText) btnText.innerText = nowOpen ? 'Close' : 'Edit Profile';
+            if (btnIcon) btnIcon.setAttribute('href', nowOpen ? '#icon-close' : '#icon-edit');
         }
         window.toggleProfileEditCard = toggleProfileEditCard;
 
@@ -2840,18 +2908,27 @@
         // FOR THIS SPECIFIC GAME. Prevents a Free Fire ID from auto-filling into
         // Mobile Legends just because it was the most recently used ID overall.
         function getSavedContactForGame(gameId) {
-            if (!gameId) return { playerId: '' };
+            if (!gameId) return { playerId: '', serverId: '' };
             try {
-                return { playerId: localStorage.getItem('gz_playerId:' + gameId) || '' };
+                return {
+                    playerId: localStorage.getItem('gz_playerId:' + gameId) || '',
+                    serverId: localStorage.getItem('gz_serverId:' + gameId) || ''
+                };
             } catch (e) {
-                return { playerId: '' };
+                return { playerId: '', serverId: '' };
             }
         }
 
-        function saveContact(playerId, gameId) {
+        function saveContact(playerId, gameId, serverId) {
             try {
                 localStorage.setItem('gz_playerId', playerId); // global, for History lookup
-                if (gameId) localStorage.setItem('gz_playerId:' + gameId, playerId); // per-game, for prefill
+                if (gameId) {
+                    localStorage.setItem('gz_playerId:' + gameId, playerId); // per-game, for prefill
+                    // Per-game Server ID, for prefill. Only overwrite when a value was
+                    // actually provided so games that don't use Server ID (or an order
+                    // placed with it left blank) don't wipe out a previously saved one.
+                    if (serverId) localStorage.setItem('gz_serverId:' + gameId, serverId);
+                }
             } catch (e) { /* private browsing - ignore, order itself still succeeds */ }
             addRecentId(playerId, gameId);
         }
@@ -2988,7 +3065,7 @@
                     ...(jcplaysProduct && jcplaysProductId ? { jcplaysProduct, jcplaysProductId } : {})
                 });
 
-                saveContact(inGameId, selectedGameId);
+                saveContact(inGameId, selectedGameId, serverId);
                 btnElement.innerText = "Order Sent";
                 btnElement.style.backgroundColor = "#28a745";
                 window.openSuccessOverlay();
@@ -3062,7 +3139,7 @@
                     ...(jcplaysProduct && jcplaysProductId ? { jcplaysProduct, jcplaysProductId } : {})
                 });
 
-                saveContact(inGameId, selectedGameId);
+                saveContact(inGameId, selectedGameId, serverId);
                 btnElement.innerText = "Order Sent";
                 btnElement.style.backgroundColor = "#28a745";
                 window.openSuccessOverlay();
@@ -3297,7 +3374,7 @@
         function historyOrderCardHTML(data, index) {
             const dateStr = data.timestamp ? historyDateTimeFmt.format(data.timestamp.toDate()) : 'Just now';
             const badgeClass = historyBadgeClassFor(data.status);
-            const gameImg = findGameImage(data.game);
+            const gameImg = findGameImage(data.game, data.serverRegion);
             // For completed orders, also show the exact time it was confirmed —
             // not just how long it took — so the customer can see both moments.
             const successTimeLine = (data.status === 'Success' && data.confirmedAt)
@@ -3330,6 +3407,27 @@
                     </div>
                 </div>
             `;
+        }
+
+        // Shown while the history listener is attaching/fetching its first
+        // snapshot, in place of a plain spinner/"Loading..." text.
+        function historySkeletonHTML(count = 4) {
+            const card = `
+                <div class="skel-history-card">
+                    <div class="skel-hc-left">
+                        <div class="skel skel-thumb"></div>
+                        <div class="skel-hc-lines">
+                            <div class="skel skel-line1"></div>
+                            <div class="skel skel-line2"></div>
+                        </div>
+                    </div>
+                    <div class="skel-hc-right">
+                        <div class="skel skel-line3"></div>
+                        <div class="skel skel-line4"></div>
+                    </div>
+                </div>
+            `;
+            return card.repeat(count);
         }
 
         function renderHistoryOrders(orders) {
@@ -3375,7 +3473,7 @@
             if (!data) return;
             const dateStr = data.timestamp ? historyDateTimeFmt.format(data.timestamp.toDate()) : 'Just now';
             const badgeClass = historyBadgeClassFor(data.status);
-            const gameImg = findGameImage(data.game);
+            const gameImg = findGameImage(data.game, data.serverRegion);
             const durationItem = (data.status === 'Success' && data.confirmedAt && data.timestamp)
                 ? `<div class="detail-grid-item"><span>Confirmed In</span><b>${formatDuration(data.confirmedAt.toMillis() - data.timestamp.toMillis())}</b></div>`
                 : '';
@@ -3461,7 +3559,7 @@
             if (historyUnsubscribe) { historyUnsubscribe(); historyUnsubscribe = null; }
             historyListenerPlayerId = saved.playerId;
             HISTORY_FILTER_DATE = null;
-            container.innerHTML = '<p class="empty-msg">Loading...</p>';
+            container.innerHTML = historySkeletonHTML();
 
             const q = query(collection(db, "orders"), where("playerId", "==", saved.playerId));
             historyUnsubscribe = onSnapshot(q, (snap) => {
@@ -3479,9 +3577,21 @@
 
         // Order documents only store the game's name (not its id), so order cards
         // look the image up by matching name against the loaded games catalogue.
-        function findGameImage(gameName) {
-            const match = Object.values(GAMES).find(g => g.name === gameName);
-            return match ? match.image : '';
+        // Games with multiple server/region variants share the same `name` but
+        // have different `serverName` values and different images — so when the
+        // order recorded a serverRegion, match on both name AND serverName. Only
+        // when nothing matches that (e.g. old orders placed before serverRegion
+        // was tracked, or games with a single variant) do we fall back to the
+        // first same-named entry.
+        function findGameImage(gameName, serverRegion) {
+            const candidates = Object.values(GAMES).filter(g => g.name === gameName);
+            if (candidates.length === 0) return '';
+            if (serverRegion) {
+                const exact = candidates.find(g => (g.serverName || '') === serverRegion);
+                if (exact) return exact.image;
+            }
+            const noServer = candidates.find(g => !g.serverName);
+            return (noServer || candidates[0]).image;
         }
 
         // Formats a millisecond duration as e.g. "45s", "12m 30s", "3h 5m", "2d 4h".
@@ -3509,6 +3619,26 @@
         ];
         function findCategory(id) { return GAME_CATEGORIES.find(c => c.id === id); }
         let selectedGameCategory = 'all';
+        let gameSearchQuery = '';
+
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+        }
+
+        function filterGamesBySearch(value) {
+            gameSearchQuery = (value || '').trim().toLowerCase();
+            document.getElementById('game-search-clear').style.display = gameSearchQuery ? 'block' : 'none';
+            renderHomeGames();
+        }
+        window.filterGamesBySearch = filterGamesBySearch;
+
+        function clearGameSearch() {
+            const input = document.getElementById('game-search-input');
+            input.value = '';
+            filterGamesBySearch('');
+            input.focus();
+        }
+        window.clearGameSearch = clearGameSearch;
 
         function categoryBadgeHtml(categoryId) {
             const c = findCategory(categoryId);
@@ -3630,9 +3760,9 @@
 
             // Popular Games: only groups where at least one variant is flagged
             // "popular" from the admin panel, shown as a horizontal scroll row.
-            // Hidden entirely if none are flagged. Not affected by the category
-            // filter — it's a separate curation.
-            const popularGroups = indexedGroups.filter(gr => gr.ids.some(id => GAMES[id].popular));
+            // Hidden entirely if none are flagged, or while the user is searching
+            // (search results below are the focus at that point).
+            const popularGroups = gameSearchQuery ? [] : indexedGroups.filter(gr => gr.ids.some(id => GAMES[id].popular));
             if (popularGroups.length > 0) {
                 popularSection.style.display = 'block';
                 popularScroll.innerHTML = popularGroups.map(gr => {
@@ -3652,16 +3782,19 @@
                 popularScroll.innerHTML = '';
             }
 
-            // All Games: filtered by the selected category chip (or everything, for "All").
-            // Checks every server/region variant in the group (not just the
-            // representative) so a group never disappears from a category filter
-            // just because its rep variant happens to have a different category
-            // set than its siblings.
-            const visibleGroups = selectedGameCategory === 'all'
+            // All Games: filtered by the selected category chip (or everything, for "All"),
+            // then further narrowed by the search box (matches the group name, so it still
+            // catches a game via any of its server/region variants' shared name).
+            let visibleGroups = selectedGameCategory === 'all'
                 ? indexedGroups
                 : indexedGroups.filter(gr => gr.ids.some(id => GAMES[id].category === selectedGameCategory));
+            if (gameSearchQuery) {
+                visibleGroups = visibleGroups.filter(gr => (gr.name || '').toLowerCase().includes(gameSearchQuery));
+            }
             if (visibleGroups.length === 0) {
-                grid.innerHTML = `<p class="empty-msg">No games in this category yet.</p>`;
+                grid.innerHTML = gameSearchQuery
+                    ? `<p class="empty-msg">No games found for "${escapeHtml(gameSearchQuery)}".</p>`
+                    : `<p class="empty-msg">No games in this category yet.</p>`;
                 return;
             }
             grid.innerHTML = visibleGroups.map(gr => {
@@ -3760,8 +3893,13 @@
 
         // ---------- Dark / Light theme toggle ----------
         function applyThemeIcon(theme) {
-            const use = document.getElementById('theme-toggle-icon')?.querySelector('use');
-            if (use) use.setAttribute('href', theme === 'dark' ? '#icon-moon' : '#icon-sun');
+            const href = theme === 'dark' ? '#icon-moon' : '#icon-sun';
+            // Header toggle + Profile page toggle (kept in sync so either one
+            // reflects the current theme no matter which was used to switch it).
+            ['theme-toggle-icon', 'theme-toggle-icon-profile'].forEach(id => {
+                const use = document.getElementById(id)?.querySelector('use');
+                if (use) use.setAttribute('href', href);
+            });
         }
         function toggleTheme() {
             const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
