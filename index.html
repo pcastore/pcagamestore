@@ -6,10 +6,19 @@
     <title>PCA Store</title>
     <script>
         // Apply saved theme immediately (before CSS paints) to avoid a light-mode flash.
+        // Priority: an explicit manual choice (gz_theme) always wins. Otherwise the
+        // theme is picked automatically from the time of day — Light from 7:00 AM
+        // up to (not including) 7:00 PM, Dark the rest of the time.
         (function () {
             try {
                 var saved = localStorage.getItem('gz_theme');
-                var theme = saved || (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+                var theme;
+                if (saved) {
+                    theme = saved;
+                } else {
+                    var hour = new Date().getHours();
+                    theme = (hour >= 7 && hour < 19) ? 'light' : 'dark';
+                }
                 document.documentElement.setAttribute('data-theme', theme);
             } catch (e) { /* ignore */ }
         })();
@@ -352,6 +361,7 @@
         .slide-confirm-wrap {
             position: relative; touch-action: pan-y; height: 54px; border-radius: 27px; overflow: hidden;
             box-shadow: 0 8px 20px -8px rgba(var(--accent-rgb),0.55);
+            flex-shrink: 0;
         }
         .slide-confirm-wrap:has(> .btn:disabled) { box-shadow: none; }
         .slide-confirm-wrap .btn {
@@ -410,12 +420,12 @@
         /* Package Selection */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: flex-end; justify-content: center; z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
         .modal-overlay.show { opacity: 1; pointer-events: auto; }
-        .modal-box { background: var(--surface); width: 100%; max-width: 480px; border-radius: 16px 16px 0 0; padding: 20px; max-height: 80vh; display: flex; flex-direction: column; transform: translateY(100%); transition: transform 0.25s ease; }
+        .modal-box { background: var(--surface); width: 100%; max-width: 480px; border-radius: 16px 16px 0 0; padding: 20px; max-height: 80vh; display: flex; flex-direction: column; transform: translateY(100%); transition: transform 0.25s ease; overflow: hidden; }
         .modal-overlay.show .modal-box { transform: translateY(0); }
-        .modal-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--border); margin-bottom: 14px; }
+        .modal-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--border); margin-bottom: 14px; flex-shrink: 0; }
         .modal-header h3 { font-size: 17px; font-weight: 700; color: var(--text); }
         .modal-close { width: 32px; height: 32px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
-        .modal-body { overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+        .modal-body { overflow-y: auto; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 10px; flex: 1 1 auto; min-height: 0; }
         /* Package/Currency tab switcher */
         .pkg-type-tabs { display: flex; background: var(--bg); border-radius: 10px; padding: 4px; gap: 4px; margin-bottom: 14px; }
         .pkg-type-tab { flex: 1; text-align: center; padding: 9px 0; border: none; background: transparent; border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: 0.15s; }
@@ -526,44 +536,108 @@
         .success-overlay.show .success-box { transform: scale(1); }
         .success-check { width: 72px; height: 72px; border-radius: 50%; background: #E7F8EE; display: flex; align-items: center; justify-content: center; margin: 0 auto 16px; }
 
-        /* ===================== WALLET PAGE ===================== */
+        /* ===================== WALLET PAGE — REDESIGN ===================== */
         .wallet-balance-card {
-            position: relative; overflow: hidden; border-radius: 22px; padding: 26px 22px;
+            position: relative; overflow: hidden; border-radius: 26px; padding: 24px 22px 22px;
             background: linear-gradient(135deg, #0F1E3D 0%, #1B2E5C 45%, #3B2E6B 100%);
-            box-shadow: var(--glass-shadow); text-align: center;
+            box-shadow: var(--glass-shadow);
         }
         .wallet-balance-card-glow {
             position: absolute; inset: 0;
-            background: radial-gradient(circle at 20% 15%, rgba(76,147,255,0.35), transparent 50%),
-                        radial-gradient(circle at 85% 90%, rgba(236,72,153,0.28), transparent 55%);
+            background: radial-gradient(circle at 15% 10%, rgba(76,147,255,0.38), transparent 50%),
+                        radial-gradient(circle at 92% 100%, rgba(236,72,153,0.3), transparent 55%);
             pointer-events: none;
         }
-        .wallet-balance-label { position: relative; display: block; font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,0.65); letter-spacing: 0.3px; }
-        .wallet-balance-amount { position: relative; font-size: 32px; font-weight: 800; color: #fff; margin: 8px 0 20px; }
+        .wallet-balance-pattern {
+            position: absolute; inset: 0; pointer-events: none; opacity: 0.55;
+            background-image: radial-gradient(rgba(255,255,255,0.09) 1.4px, transparent 1.4px);
+            background-size: 15px 15px;
+            -webkit-mask-image: radial-gradient(circle at 100% 0%, #000 0%, transparent 62%);
+            mask-image: radial-gradient(circle at 100% 0%, #000 0%, transparent 62%);
+        }
+        .wallet-balance-top { position: relative; display: flex; align-items: center; justify-content: space-between; }
+        .wallet-balance-icon {
+            width: 42px; height: 42px; border-radius: 13px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+            background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.24); color: #fff;
+            -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
+        }
+        .wallet-balance-icon svg { width: 20px; height: 20px; }
+        .wallet-balance-tag {
+            font-size: 11px; font-weight: 700; letter-spacing: 0.3px; color: rgba(255,255,255,0.8);
+            background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.2); padding: 5px 11px; border-radius: 20px;
+        }
+        .wallet-balance-label { position: relative; display: block; font-size: 12.5px; font-weight: 600; color: rgba(255,255,255,0.65); letter-spacing: 0.3px; margin-top: 20px; }
+        .wallet-balance-amount { position: relative; font-size: 33px; font-weight: 800; color: #fff; margin: 6px 0 22px; letter-spacing: -0.3px; }
         .wallet-topup-btn {
-            position: relative; width: auto; display: inline-flex; align-items: center; gap: 7px;
-            background: #fff; color: #1B2E5C; padding: 11px 22px; border-radius: 26px; font-size: 14px;
+            position: relative; width: 100%; display: flex; align-items: center; justify-content: center; gap: 9px;
+            background: #fff; color: #16234A; padding: 14px 22px; border-radius: 16px; font-size: 14.5px; font-weight: 700;
+            box-shadow: 0 10px 22px rgba(0,0,0,0.25);
         }
-        .wallet-topup-btn:active { transform: scale(0.96); }
+        .wallet-topup-btn:active { transform: scale(0.97); }
+        .wallet-topup-btn-icon {
+            width: 22px; height: 22px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+            background: var(--accent-soft); color: var(--accent);
+        }
+        .wallet-topup-btn-icon svg { width: 13px; height: 13px; }
 
-        .wallet-amount-presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 4px; }
-        .wallet-preset-chip {
-            padding: 13px 6px; border-radius: 12px; text-align: center; font-size: 14.5px; font-weight: 700;
-            background: var(--surface-alt); border: 1px solid var(--border); color: var(--text); cursor: pointer;
+        .wallet-section-title {
+            display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--text-secondary);
+            margin: 22px 2px 12px;
         }
-        .wallet-preset-chip.active { background: var(--accent); border-color: var(--accent); color: var(--on-color); }
+        .wallet-section-title svg { width: 15px; height: 15px; color: var(--text-muted); }
+
+        /* Amount entry */
+        .wallet-amount-input-wrap { position: relative; }
         .wallet-topup-amount-input {
-            width: 100%; padding: 16px 16px; font-size: 20px; font-weight: 700; border: 1.5px solid var(--border);
-            border-radius: 12px; margin-bottom: 10px; background: var(--surface); color: var(--text); box-sizing: border-box;
+            width: 100%; padding: 16px 68px 16px 16px; font-size: 21px; font-weight: 800; border: 1.5px solid var(--border);
+            border-radius: 14px; margin-bottom: 0; background: var(--surface); color: var(--text); box-sizing: border-box;
             transition: 0.15s;
         }
         .wallet-topup-amount-input:focus { outline: none; border-color: var(--accent); background: #F8FBFF; }
+        .wallet-amount-currency {
+            position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none;
+            font-size: 12.5px; font-weight: 700; color: var(--text-muted); background: var(--bg);
+            padding: 6px 10px; border-radius: 8px; letter-spacing: 0.3px;
+        }
+        .wallet-amount-presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0 2px; }
+        .wallet-preset-chip {
+            padding: 13px 6px; border-radius: 13px; text-align: center; font-size: 14px; font-weight: 700;
+            background: var(--surface-alt); border: 1.5px solid var(--border); color: var(--text); cursor: pointer; transition: 0.15s;
+        }
+        .wallet-preset-chip:active { transform: scale(0.94); }
+        .wallet-preset-chip.active { background: var(--accent); border-color: var(--accent); color: var(--on-color); box-shadow: 0 5px 14px rgba(var(--accent-rgb),0.35); }
 
-        .wallet-topup-row { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 14px; margin-bottom: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); cursor: pointer; }
+        /* Payment method picker */
+        .wallet-pay-info-card {
+            position: relative; overflow: hidden; border-radius: 16px; padding: 16px 16px 14px;
+            background: linear-gradient(135deg, #16234A 0%, #24345E 100%); color: #fff;
+            box-shadow: 0 10px 22px rgba(15,30,61,0.3);
+        }
+        .wallet-pay-info-label { position: relative; font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.6); letter-spacing: 0.3px; }
+        .wallet-pay-info-card .pm-copy-row p { color: #fff; }
+        .wallet-pay-info-card .pm-copy-btn { background: rgba(255,255,255,0.14); color: #fff; }
+        .wallet-pay-info-card .pm-copy-btn:active { background: rgba(255,255,255,0.3); transform: scale(0.92); }
+
+        /* Top up history rows */
+        .wallet-topup-row {
+            display: flex; align-items: center; gap: 12px;
+            background: var(--surface); border: 1px solid var(--border); border-radius: 16px; padding: 13px 14px;
+            margin-bottom: 10px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); cursor: pointer; transition: 0.15s;
+        }
         .wallet-topup-row:active { transform: scale(0.98); }
-        .wallet-topup-row-top { display: flex; justify-content: space-between; align-items: center; }
-        .wallet-topup-amount { font-size: 16px; font-weight: 800; color: var(--text); }
-        .wallet-topup-meta { font-size: 12px; color: var(--text-muted); margin-top: 4px; }
+        .wallet-topup-row-icon {
+            width: 40px; height: 40px; border-radius: 12px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+            background: var(--accent-soft); color: var(--accent);
+        }
+        .wallet-topup-row-icon svg { width: 18px; height: 18px; }
+        .wallet-topup-row-icon.st-pending { background: #FFF3CD; color: #856404; }
+        .wallet-topup-row-icon.st-processing { background: var(--border); color: #405DE6; }
+        .wallet-topup-row-icon.st-rejected { background: #FDE8E8; color: #C0392B; }
+        .wallet-topup-row-icon.st-completed { background: #E7F8EE; color: #1E8E4F; }
+        .wallet-topup-row-body { flex: 1; min-width: 0; }
+        .wallet-topup-row-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
+        .wallet-topup-amount { font-size: 15.5px; font-weight: 800; color: var(--text); }
+        .wallet-topup-meta { font-size: 12px; color: var(--text-muted); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 
         /* ===================== PROFILE PAGE — REDESIGN ===================== */
         /* Hero card: gradient cover + centered avatar overlapping the bottom edge */
@@ -781,6 +855,7 @@
         <symbol id="icon-trophy" viewBox="0 0 24 24"><path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path><path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path><path d="M4 22h16"></path><path d="M10 14.66V17c0 .55-.47.98-.97 1.21C7.85 18.75 7 20.24 7 22"></path></symbol>
         <symbol id="icon-bell" viewBox="0 0 24 24"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></symbol>
         <symbol id="icon-check" viewBox="0 0 24 24"><polyline points="20 6 9 17 4 12"></polyline></symbol>
+        <symbol id="icon-refresh" viewBox="0 0 24 24"><polyline points="23 4 23 10 17 10"></polyline><polyline points="1 20 1 14 7 14"></polyline><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"></path></symbol>
         <symbol id="icon-rocket" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2l.5-.5M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path></symbol>
         <symbol id="icon-megaphone" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></symbol>
         <symbol id="icon-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></symbol>
@@ -903,15 +978,27 @@
 
             <div class="wallet-balance-card">
                 <div class="wallet-balance-card-glow"></div>
+                <div class="wallet-balance-pattern"></div>
+                <div class="wallet-balance-top">
+                    <div class="wallet-balance-icon">
+                        <svg class="ui-icon"><use href="#icon-wallet"></use></svg>
+                    </div>
+                    <span class="wallet-balance-tag">Store Wallet</span>
+                </div>
                 <span class="wallet-balance-label">Available Balance</span>
                 <div class="wallet-balance-amount" id="wallet-balance-amount">0 MMK</div>
                 <button class="btn wallet-topup-btn" onclick="openWalletTopupModal()">
-                    <svg class="ui-icon" style="width:16px;height:16px;"><use href="#icon-plus"></use></svg>
+                    <span class="wallet-topup-btn-icon">
+                        <svg class="ui-icon"><use href="#icon-plus"></use></svg>
+                    </span>
                     Top Up Wallet
                 </button>
             </div>
 
-            <h3 class="detail-section-title" style="margin-top:20px;">Top Up History</h3>
+            <h3 class="wallet-section-title">
+                <svg class="ui-icon"><use href="#icon-history"></use></svg>
+                Top Up History
+            </h3>
             <div id="wallet-topup-list"></div>
             <p class="empty-msg" id="wallet-topup-empty" style="display:none;">No top up requests yet.</p>
         </div>
@@ -926,29 +1013,40 @@
                     </div>
                 </div>
                 <div class="modal-body">
-                    <label style="display:block;">Amount (MMK)</label>
-                    <input type="number" id="wallet-topup-amount" class="wallet-topup-amount-input" placeholder="Enter amount" inputmode="numeric" oninput="renderWalletTopupPresets()">
+                    <h3 class="wallet-section-title" style="margin:0 0 4px;">
+                        <svg class="ui-icon"><use href="#icon-wallet"></use></svg>
+                        Enter Amount
+                    </h3>
+                    <div class="wallet-amount-input-wrap">
+                        <input type="number" id="wallet-topup-amount" class="wallet-topup-amount-input" placeholder="0" inputmode="numeric" oninput="renderWalletTopupPresets()">
+                        <span class="wallet-amount-currency">MMK</span>
+                    </div>
                     <div class="wallet-amount-presets" id="wallet-amount-presets"></div>
 
-                    <label style="display:block;margin-top:14px;">Payment Method</label>
+                    <h3 class="wallet-section-title">
+                        <svg class="ui-icon"><use href="#icon-grid"></use></svg>
+                        Payment Method
+                    </h3>
                     <div id="wallet-topup-payment-methods" style="display:flex; flex-direction:column; gap:10px;"></div>
 
-                    <div id="wallet-topup-payment-info" class="detail-form-card" style="display:none; margin-top:10px;">
-                        <p style="font-size:12px;color:var(--text-secondary);">Transfer the exact amount to:</p>
-                        <div class="pm-copy-row" style="margin-top:2px;">
-                            <p style="font-size:17px;font-weight:700;color:#1877F2;" id="wallet-pm-number"></p>
-                            <button type="button" class="pm-copy-btn" onclick="copyPaymentField('wallet-pm-number', this)" title="Copy phone number">
-                                <svg class="ui-icon"><use href="#icon-copy"></use></svg>
-                            </button>
-                        </div>
-                        <div class="pm-copy-row" style="margin-bottom:4px;">
-                            <p style="font-size:14px;color:var(--text);" id="wallet-pm-name"></p>
-                            <button type="button" class="pm-copy-btn" onclick="copyPaymentField('wallet-pm-name', this)" title="Copy name">
-                                <svg class="ui-icon"><use href="#icon-copy"></use></svg>
-                            </button>
+                    <div id="wallet-topup-payment-info" style="display:none; margin-top:12px; flex-direction:column; gap:4px;">
+                        <div class="wallet-pay-info-card">
+                            <p class="wallet-pay-info-label">Transfer the exact amount to</p>
+                            <div class="pm-copy-row" style="margin-top:6px;">
+                                <p style="font-size:18px;font-weight:800;letter-spacing:0.3px;" id="wallet-pm-number"></p>
+                                <button type="button" class="pm-copy-btn" onclick="copyPaymentField('wallet-pm-number', this)" title="Copy phone number">
+                                    <svg class="ui-icon"><use href="#icon-copy"></use></svg>
+                                </button>
+                            </div>
+                            <div class="pm-copy-row">
+                                <p style="font-size:13.5px;opacity:0.85;" id="wallet-pm-name"></p>
+                                <button type="button" class="pm-copy-btn" onclick="copyPaymentField('wallet-pm-name', this)" title="Copy name">
+                                    <svg class="ui-icon"><use href="#icon-copy"></use></svg>
+                                </button>
+                            </div>
                         </div>
 
-                        <label>Upload Payment Receipt</label>
+                        <label style="display:block;font-size:13px;font-weight:700;color:var(--text);margin-top:14px;">Upload Payment Receipt</label>
                         <label class="upload-shot-box" id="wallet-upload-shot-box" for="wallet-receipt-file">
                             <div class="upload-shot-icon"><svg class="ui-icon"><use href="#icon-camera"></use></svg></div>
                             <span class="upload-shot-label">Upload Screenshot</span>
@@ -1036,6 +1134,10 @@
                         </span>
                     </div>
                 </div>
+                <p style="font-size:11px;color:var(--text-muted);margin-top:8px;font-weight:400;line-height:1.5;">
+                    Auto-switches: Light 7 AM–7 PM, Dark 7 PM–7 AM.
+                    <span id="theme-auto-reset-link" style="color:var(--accent);font-weight:700;cursor:pointer;display:none;" onclick="resetThemeToAuto()">Switched off — tap to re-enable auto</span>
+                </p>
             </div>
 
             <!-- Google account: optional. Signing in just auto-fills the name/photo
@@ -2304,6 +2406,12 @@
             if (status === 'Rejected') return 'badge-danger';
             return 'badge-warning'; // Pending
         }
+        function walletStatusIconMeta(status) {
+            if (status === 'Completed') return { cls: 'st-completed', icon: '#icon-check' };
+            if (status === 'Processing') return { cls: 'st-processing', icon: '#icon-refresh' };
+            if (status === 'Rejected') return { cls: 'st-rejected', icon: '#icon-close' };
+            return { cls: 'st-pending', icon: '#icon-history' }; // Pending
+        }
 
         // ---------- Balance (live) ----------
         let walletBalanceListenerAttached = false;
@@ -2466,15 +2574,23 @@
                 return;
             }
             empty.style.display = 'none';
-            list.innerHTML = walletTopupCache.map((t, i) => `
+            list.innerHTML = walletTopupCache.map((t, i) => {
+                const sm = walletStatusIconMeta(t.status);
+                return `
                 <div class="wallet-topup-row" onclick="openWalletTopupDetail(${i})">
-                    <div class="wallet-topup-row-top">
-                        <span class="wallet-topup-amount">+${(t.amount || 0).toLocaleString()} MMK</span>
-                        <span class="badge ${walletStatusBadgeClass(t.status)}">${t.status}</span>
+                    <div class="wallet-topup-row-icon ${sm.cls}">
+                        <svg class="ui-icon"><use href="${sm.icon}"></use></svg>
                     </div>
-                    <div class="wallet-topup-meta">${t.paymentMethod || '-'} • ${t.timestamp && t.timestamp.toDate ? t.timestamp.toDate().toLocaleString() : 'Just now'}</div>
+                    <div class="wallet-topup-row-body">
+                        <div class="wallet-topup-row-top">
+                            <span class="wallet-topup-amount">+${(t.amount || 0).toLocaleString()} MMK</span>
+                            <span class="badge ${walletStatusBadgeClass(t.status)}">${t.status}</span>
+                        </div>
+                        <div class="wallet-topup-meta">${t.paymentMethod || '-'} • ${t.timestamp && t.timestamp.toDate ? t.timestamp.toDate().toLocaleString() : 'Just now'}</div>
+                    </div>
                 </div>
-            `).join('');
+            `;
+            }).join('');
         }
 
         let walletTopupsListenerAttached = false;
@@ -3901,14 +4017,53 @@
                 if (use) use.setAttribute('href', href);
             });
         }
+
+        // Automatic day/night schedule: Light from 7:00 AM up to (not including)
+        // 7:00 PM, Dark the rest of the time. Only takes effect when the user
+        // hasn't manually picked a theme (no 'gz_theme' saved) — a manual tap
+        // on the toggle always wins from then on, until they reset it.
+        function getAutoTheme() {
+            const hour = new Date().getHours();
+            return (hour >= 7 && hour < 19) ? 'light' : 'dark';
+        }
+        function hasManualTheme() {
+            try { return !!localStorage.getItem('gz_theme'); } catch (e) { return false; }
+        }
+        function updateThemeAutoNote() {
+            const link = document.getElementById('theme-auto-reset-link');
+            if (link) link.style.display = hasManualTheme() ? 'inline' : 'none';
+        }
+        function applyAutoThemeIfDue() {
+            if (hasManualTheme()) return; // user has an explicit preference — automation stays out of the way
+            const auto = getAutoTheme();
+            if (document.documentElement.getAttribute('data-theme') !== auto) {
+                document.documentElement.setAttribute('data-theme', auto);
+                applyThemeIcon(auto);
+            }
+        }
+        // Re-check every minute so the theme flips live at 7:00 AM / 7:00 PM
+        // if the app is left open across the boundary.
+        setInterval(applyAutoThemeIfDue, 60 * 1000);
+
+        function resetThemeToAuto() {
+            try { localStorage.removeItem('gz_theme'); } catch (e) { /* private browsing */ }
+            const auto = getAutoTheme();
+            document.documentElement.setAttribute('data-theme', auto);
+            applyThemeIcon(auto);
+            updateThemeAutoNote();
+        }
+        window.resetThemeToAuto = resetThemeToAuto;
+
         function toggleTheme() {
             const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
             const next = current === 'dark' ? 'light' : 'dark';
             document.documentElement.setAttribute('data-theme', next);
             try { localStorage.setItem('gz_theme', next); } catch (e) { /* private browsing */ }
             applyThemeIcon(next);
+            updateThemeAutoNote();
         }
         applyThemeIcon(document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
+        updateThemeAutoNote();
         window.toggleTheme = toggleTheme;
 
         listenNotifications();
