@@ -2539,7 +2539,7 @@
                 trackId: 'wallet-topup-submit-btn',
                 fillId: 'wallet-topup-confirm-fill',
                 ariaLabel: 'Slide to submit top up request',
-                onConfirm: submitWalletTopup
+                onConfirm: (track) => window.submitWalletTopup(track)
             });
         }
         window.initSlideConfirm = initSlideConfirm;
