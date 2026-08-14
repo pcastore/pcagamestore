@@ -415,6 +415,7 @@
             position: relative; touch-action: pan-y; height: 54px; border-radius: 27px; overflow: hidden;
             box-shadow: 0 8px 20px -8px rgba(var(--accent-rgb),0.55);
             flex-shrink: 0;
+            -webkit-user-select: none; user-select: none;
         }
         .slide-confirm-wrap:has(> .btn:disabled) { box-shadow: none; }
         .slide-confirm-wrap .btn {
@@ -451,6 +452,11 @@
             display: flex; align-items: center; justify-content: center;
             cursor: grab; touch-action: none; transform: translateX(0);
             transition: transform 0.28s cubic-bezier(.2,.8,.3,1.3), box-shadow 0.2s ease;
+            /* Without these, Android Chrome can treat a slow/held drag as a
+               text-selection or "callout" long-press gesture, which fires a
+               pointercancel mid-drag and makes the thumb feel stuck/undraggable. */
+            -webkit-user-select: none; user-select: none;
+            -webkit-touch-callout: none; -webkit-user-drag: none;
         }
         .slide-confirm-thumb svg { width: 20px; height: 20px; color: var(--accent); transition: color 0.2s ease; }
         .slide-confirm-thumb.dragging { transition: none; cursor: grabbing; box-shadow: 0 4px 14px rgba(0,0,0,0.35), inset 0 1px 1px rgba(255,255,255,0.9); }
@@ -1724,11 +1730,12 @@
     <!-- Order Success Screen -->
     <div class="success-overlay" id="success-overlay">
         <div class="success-box">
-            <div class="success-check">
+            <div class="success-check" id="success-check-icon">
                 <svg class="ui-icon" style="width:36px;height:36px;color:#28a745;"><use href="#icon-check"></use></svg>
             </div>
-            <h3 style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px;">Order Placed!</h3>
-            <p style="font-size:14px;color:var(--text-secondary);margin-bottom:20px;">We've received your order and receipt. Our team will confirm it shortly.</p>
+            <h3 style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px;" id="success-title">Order Placed!</h3>
+            <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px;" id="success-subtext">We've received your order and receipt. Our team will confirm it shortly.</p>
+            <div id="success-timeline" style="text-align:left;"></div>
             <button class="btn btn-primary" onclick="goHomeFromSuccess()">Back to Home</button>
         </div>
     </div>
@@ -2312,12 +2319,68 @@
             showPage('home');
         }
 
-        function openSuccessOverlay() {
+        // Live status tracking on the success screen: once an order is placed
+        // we keep listening to that exact order doc so the Pending -> Processing
+        // -> Success/Fail bar updates the instant an admin acts on it, with the
+        // customer still standing right there on the success screen.
+        let successOrderUnsubscribe = null;
+
+        function openSuccessOverlay(orderId, initialData) {
             document.getElementById('success-overlay').classList.add('show');
+
+            if (successOrderUnsubscribe) { successOrderUnsubscribe(); successOrderUnsubscribe = null; }
+
+            const timelineEl = document.getElementById('success-timeline');
+            if (!orderId) { timelineEl.innerHTML = ''; return; } // no id available (shouldn't normally happen) - fall back to the static message only
+
+            // Render immediately with what we already know (status: Pending),
+            // then swap in live data the moment Firestore confirms the write
+            // and on every status change after that.
+            timelineEl.innerHTML = orderTimelineHTML(initialData || { status: 'Pending' });
+
+            successOrderUnsubscribe = onSnapshot(doc(db, "orders", orderId), (snap) => {
+                if (!snap.exists()) return;
+                const data = snap.data();
+                timelineEl.innerHTML = orderTimelineHTML(data);
+                updateSuccessOverlayText(data.status);
+            }, (error) => {
+                console.error("Success screen order tracking error:", error);
+            });
+        }
+
+        // Swaps the headline/checkmark/subtext once the order moves past
+        // Pending, so the screen doesn't keep saying "shortly" after it's
+        // actually done (or failed).
+        function updateSuccessOverlayText(status) {
+            const title = document.getElementById('success-title');
+            const subtext = document.getElementById('success-subtext');
+            const iconWrap = document.getElementById('success-check-icon');
+            if (status === 'Processing') {
+                title.innerText = 'Processing Your Order';
+                subtext.innerText = "Our team is working on it now — this won't take long.";
+                iconWrap.style.background = '#E7F0FF';
+                iconWrap.innerHTML = '<span class="status-anim-spin" style="width:28px;height:28px;border-width:3px;"></span>';
+            } else if (status === 'Success') {
+                title.innerText = 'Order Completed!';
+                subtext.innerText = 'Your top up has been delivered. Thanks for ordering with us.';
+                iconWrap.style.background = '#E7F8EE';
+                iconWrap.innerHTML = '<svg class="ui-icon" style="width:36px;height:36px;color:#28a745;"><use href="#icon-check"></use></svg>';
+            } else if (status === 'Fail') {
+                title.innerText = 'Order Failed';
+                subtext.innerText = 'Something went wrong with this order. Check the details in History or contact support.';
+                iconWrap.style.background = '#FCE8E6';
+                iconWrap.innerHTML = '<svg class="ui-icon" style="width:36px;height:36px;color:#D93025;"><use href="#icon-close"></use></svg>';
+            } else {
+                title.innerText = 'Order Placed!';
+                subtext.innerText = "We've received your order and receipt. Our team will confirm it shortly.";
+                iconWrap.style.background = '#E7F8EE';
+                iconWrap.innerHTML = '<svg class="ui-icon" style="width:36px;height:36px;color:#28a745;"><use href="#icon-check"></use></svg>';
+            }
         }
 
         function goHomeFromSuccess() {
             document.getElementById('success-overlay').classList.remove('show');
+            if (successOrderUnsubscribe) { successOrderUnsubscribe(); successOrderUnsubscribe = null; }
             closeGameDetail();
         }
 
@@ -3550,7 +3613,7 @@
                     if (serverId) localStorage.setItem('gz_serverId:' + gameId, serverId);
                 }
             } catch (e) { /* private browsing - ignore, order itself still succeeds */ }
-            addRecentId(playerId, gameId);
+            addRecentId(playerId, gameId, serverId);
         }
 
         // Keeps a short history (most-recent-first, deduped) of every ID the
@@ -3562,18 +3625,25 @@
         function recentIdsStorageKey(gameId) {
             return gameId ? (RECENT_IDS_KEY + ':' + gameId) : RECENT_IDS_KEY;
         }
+        // Each entry is stored as {playerId, serverId} so a tapped chip can
+        // restore both fields together, not just the in-game ID. Old entries
+        // saved before this change (plain strings) are upgraded on read.
         function getRecentIds(gameId) {
             try {
                 const list = JSON.parse(localStorage.getItem(recentIdsStorageKey(gameId)) || '[]');
-                return Array.isArray(list) ? list.filter(id => typeof id === 'string' && id.trim()) : [];
+                if (!Array.isArray(list)) return [];
+                return list
+                    .map(entry => typeof entry === 'string' ? { playerId: entry, serverId: '' } : entry)
+                    .filter(e => e && typeof e.playerId === 'string' && e.playerId.trim());
             } catch (e) { return []; }
         }
-        function addRecentId(playerId, gameId) {
+        function addRecentId(playerId, gameId, serverId) {
             if (!playerId || !playerId.trim()) return;
             try {
-                const cleaned = playerId.trim();
-                let list = getRecentIds(gameId).filter(id => id !== cleaned);
-                list.unshift(cleaned);
+                const cleanedId = playerId.trim();
+                const cleanedServer = (serverId || '').trim();
+                let list = getRecentIds(gameId).filter(e => e.playerId !== cleanedId);
+                list.unshift({ playerId: cleanedId, serverId: cleanedServer });
                 list = list.slice(0, RECENT_IDS_MAX);
                 localStorage.setItem(recentIdsStorageKey(gameId), JSON.stringify(list));
             } catch (e) { /* private browsing - ignore */ }
@@ -3583,21 +3653,25 @@
             const block = document.getElementById('recent-ids-block');
             const row = document.getElementById('recent-ids-row');
             if (!block || !row) return;
-            const ids = getRecentIds(gameId);
-            if (ids.length === 0) {
+            const entries = getRecentIds(gameId);
+            if (entries.length === 0) {
                 block.style.display = 'none';
                 row.innerHTML = '';
                 return;
             }
             block.style.display = 'block';
-            row.innerHTML = ids.map(id => {
-                const safe = id.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                const jsSafe = id.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-                return `<div class="recent-id-chip" onclick="fillRecentId('${jsSafe}')">${safe}</div>`;
+            row.innerHTML = entries.map(e => {
+                const label = e.serverId ? `${e.playerId} (${e.serverId})` : e.playerId;
+                const safe = label.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                const jsSafeId = e.playerId.replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                const jsSafeServer = (e.serverId || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'");
+                return `<div class="recent-id-chip" onclick="fillRecentId('${jsSafeId}', '${jsSafeServer}')">${safe}</div>`;
             }).join('');
         }
-        function fillRecentId(id) {
+        function fillRecentId(id, serverId) {
             document.getElementById('detail-ingame-id').value = id;
+            const serverField = document.getElementById('detail-server-id');
+            if (serverField) serverField.value = serverId || '';
             if (window.onPlayerIdFieldChange) window.onPlayerIdFieldChange();
         }
         window.fillRecentId = fillRecentId;
@@ -3660,7 +3734,7 @@
                 // permission prompt or geolocation just isn't available.
                 const location = await getOrderLocation();
 
-                await addDoc(collection(db, "orders"), {
+                const orderRef = await addDoc(collection(db, "orders"), {
                     playerId: inGameId,
                     serverId: serverId || '',
                     serverRegion: serverRegion || '',
@@ -3688,7 +3762,9 @@
                 saveContact(inGameId, selectedGameId, serverId);
                 btnElement.innerText = "Order Sent";
                 btnElement.style.backgroundColor = "#28a745";
-                window.openSuccessOverlay();
+                // Pass the new doc's id so the success screen can live-track this
+                // exact order's status (Pending -> Processing -> Success/Fail).
+                window.openSuccessOverlay(orderRef.id, { status: 'Pending', timestamp: { toDate: () => new Date() } });
             } catch (error) {
                 console.error("Firebase Error: ", error);
                 window.showToast(error.message || "Failed to place order! Check Connection.");
@@ -3740,7 +3816,7 @@
                     tx.set(userRef, { walletBalance: increment(-price) }, { merge: true });
                 });
 
-                await addDoc(collection(db, "orders"), {
+                const orderRef = await addDoc(collection(db, "orders"), {
                     playerId: inGameId,
                     serverId: serverId || '',
                     serverRegion: serverRegion || '',
@@ -3762,7 +3838,7 @@
                 saveContact(inGameId, selectedGameId, serverId);
                 btnElement.innerText = "Order Sent";
                 btnElement.style.backgroundColor = "#28a745";
-                window.openSuccessOverlay();
+                window.openSuccessOverlay(orderRef.id, { status: 'Pending', timestamp: { toDate: () => new Date() } });
             } catch (error) {
                 console.error("Wallet order error: ", error);
                 const msg = error.message === 'INSUFFICIENT_BALANCE'
