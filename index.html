@@ -24,8 +24,17 @@
         })();
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;700&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Roboto', sans-serif; -webkit-tap-highlight-color: transparent; }
+        @import url('https://fonts.googleapis.com/css2?family=Manrope:wght@300;400;500;600;700;800&family=Outfit:wght@400;500;600;700;800&display=swap');
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Manrope', sans-serif; -webkit-tap-highlight-color: transparent; }
+        /* Premium/elegant pairing: Outfit for display text (logo, headings,
+           prices, stat numbers, names) - it has more geometric character at
+           larger sizes - while Manrope stays the workhorse body/UI font. */
+        .logo, .title-header, .stat-box p, .profile-hero-name, .vip-stat b,
+        .lb-amount, .pc-price, h1, h2, h3, h4,
+        .game-card-name, .detail-grid-item b, .mini-profile-info span,
+        .id-result-name, .google-account-details span, .vip-card-head h4 {
+            font-family: 'Outfit', sans-serif;
+        }
 
         /* ===================== THEME TOKENS ===================== */
         /* Light theme (default) */
@@ -537,6 +546,11 @@
            of stacked full-width fields. Collapses to 1 column on very narrow
            screens so labels/inputs never get cramped. */
         .profile-edit-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 10px; }
+        /* Profile Edit modal only: center it as a rounded card instead of the
+           default bottom-sheet (slide-up) treatment used by other modals. */
+        #profile-edit-overlay { align-items: center; padding: 20px; }
+        #profile-edit-overlay .modal-box { border-radius: 20px; max-height: 90vh; transform: translateY(12px) scale(0.96); opacity: 0; transition: transform 0.22s ease, opacity 0.22s ease; }
+        #profile-edit-overlay.show .modal-box { transform: translateY(0) scale(1); opacity: 1; }
         .profile-edit-field label { display: block; font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
         .profile-edit-field input[type="text"] { width: 100%; padding: 13px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 15px; transition: 0.15s; }
         .profile-edit-field input[type="text"]:focus { outline: none; border-color: var(--accent); background: #F8FBFF; }
@@ -2342,7 +2356,7 @@
             // and on every status change after that.
             timelineEl.innerHTML = orderTimelineHTML(initialData || { status: 'Pending' });
 
-            successOrderUnsubscribe = onSnapshot(doc(db, "orders", orderId), (snap) => {
+            successOrderUnsubscribe = window.onSnapshot(window.doc(window.db, "orders", orderId), (snap) => {
                 if (!snap.exists()) return;
                 const data = snap.data();
                 timelineEl.innerHTML = orderTimelineHTML(data);
@@ -2755,6 +2769,11 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
+        // Expose to the non-module <script> above (e.g. openSuccessOverlay's
+        // live order tracking) since ES module imports aren't global.
+        window.db = db;
+        window.doc = doc;
+        window.onSnapshot = onSnapshot;
         // Stay signed in across visits/app restarts until the user explicitly
         // signs out - stored in the browser's IndexedDB, so a plain reload or
         // reopening the site never asks for Google sign-in again on its own.
