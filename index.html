@@ -220,8 +220,16 @@
         
         /* Cards & Lists */
         .cards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
-        .game-card { cursor: pointer; transition: transform 0.1s; }
+        html { scroll-behavior: smooth; }
+        body { -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; }
+        /* Cards render on their own compositor layer so scroll-drag doesn't
+           repaint/reflow the grid every frame, and the tap-scale only fires
+           on a real tap (not a finger dragging across the card while scrolling). */
+        .game-card { cursor: pointer; transition: transform 0.1s; will-change: transform; }
         .game-card:active { transform: scale(0.97); }
+        @media (hover: none) and (pointer: coarse) {
+            .game-card:active { transition-delay: 80ms; }
+        }
         .game-card-img-wrap { position: relative; aspect-ratio: 1 / 1; border-radius: 14px; overflow: hidden; background: var(--border); border: 1px solid var(--border); }
         .game-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .game-card-name { margin: 8px 0 0; padding: 7px 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); color: var(--text); font-size: 13px; font-weight: 700; text-align: center; line-height: 1.25; }
@@ -403,6 +411,27 @@
         .lb-amount { text-align: right; font-size: 13px; font-weight: 700; color: var(--text); flex-shrink: 0; }
         .lb-you-row { background: #F8FBFF; border-radius: 10px; margin-top: 6px; border: 1px dashed var(--accent); padding: 12px; }
 
+        /* Top-3 podium — the #1/#2/#3 spenders get an elevated card layout
+           instead of blending into the plain list; ranks 4+ stay as rows. */
+        .lb-podium { display: flex; align-items: flex-end; gap: 10px; margin-bottom: 18px; padding: 0 2px; }
+        .lb-podium-slot { flex: 1; display: flex; flex-direction: column; align-items: center; gap: 6px; border-radius: 16px; padding: 14px 8px 12px; position: relative; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 4px 14px rgba(0,0,0,0.06); }
+        .lb-podium-slot.rank-1 { order: 2; padding-top: 22px; padding-bottom: 18px; background: linear-gradient(180deg, rgba(212,160,23,0.14), var(--surface) 55%); border-color: rgba(212,160,23,0.45); }
+        .lb-podium-slot.rank-2 { order: 1; background: linear-gradient(180deg, rgba(142,154,175,0.14), var(--surface) 55%); border-color: rgba(142,154,175,0.4); }
+        .lb-podium-slot.rank-3 { order: 3; background: linear-gradient(180deg, rgba(169,103,58,0.14), var(--surface) 55%); border-color: rgba(169,103,58,0.4); }
+        .lb-podium-medal { position: absolute; top: -12px; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; color: #fff; box-shadow: 0 3px 8px rgba(0,0,0,0.2); }
+        .lb-podium-slot.rank-1 .lb-podium-medal { background: linear-gradient(135deg, #F4D06F, #D4A017); }
+        .lb-podium-slot.rank-2 .lb-podium-medal { background: linear-gradient(135deg, #C7CFDA, #8E9AAF); }
+        .lb-podium-slot.rank-3 .lb-podium-medal { background: linear-gradient(135deg, #C98B5E, #A9673A); }
+        .lb-podium-avatar { width: 56px; height: 56px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px; overflow: hidden; border: 3px solid var(--surface); box-shadow: 0 0 0 2px currentColor; }
+        .lb-podium-slot.rank-1 .lb-podium-avatar { width: 68px; height: 68px; font-size: 24px; }
+        .lb-podium-slot.rank-1 .lb-podium-avatar { color: #D4A017; }
+        .lb-podium-slot.rank-2 .lb-podium-avatar { color: #8E9AAF; }
+        .lb-podium-slot.rank-3 .lb-podium-avatar { color: #A9673A; }
+        .lb-podium-avatar img { width: 100%; height: 100%; object-fit: cover; }
+        .lb-podium-name { font-size: 13px; font-weight: 700; color: var(--text); text-align: center; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+        .lb-podium-amount { font-size: 12.5px; font-weight: 800; color: var(--text-secondary); }
+        .lb-list-heading { font-size: 12px; font-weight: 700; color: var(--text-muted); margin: 2px 4px 6px; }
+
         /* Buttons & Nav */
         .btn { width: 100%; padding: 10px; border-radius: 6px; font-weight: 600; font-size: 15px; cursor: pointer; border: none; text-align: center; transition: 0.2s;}
         .btn-primary { background-color: var(--accent); color: white; }
@@ -485,6 +514,17 @@
         #toast .toast-icon-circle svg { width: 15px; height: 15px; }
         .empty-msg { text-align: center; color: var(--text-secondary); font-size: 14px; padding: 20px 0; }
 
+        /* Empty-state illustration — icon-in-circle + title + subtext, used
+           anywhere a list can be genuinely empty (history, wallet top ups).
+           Keeps things calmer than a bare "No X yet." line and gives a hint
+           on what to do next. */
+        .empty-state { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 44px 24px 36px; gap: 4px; }
+        .empty-state-icon { width: 64px; height: 64px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
+        .empty-state-icon svg { width: 28px; height: 28px; stroke: var(--text-muted); }
+        .empty-state-title { font-size: 15px; font-weight: 700; color: var(--text); }
+        .empty-state-sub { font-size: 13px; color: var(--text-secondary); line-height: 1.45; max-width: 260px; }
+        .empty-state-action { margin-top: 14px; }
+
         /* Package Selection */
         .modal-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: flex; align-items: flex-end; justify-content: center; z-index: 200; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
         .modal-overlay.show { opacity: 1; pointer-events: auto; }
@@ -551,6 +591,13 @@
         #profile-edit-overlay { align-items: center; padding: 20px; }
         #profile-edit-overlay .modal-box { border-radius: 20px; max-height: 90vh; transform: translateY(12px) scale(0.96); opacity: 0; transition: transform 0.22s ease, opacity 0.22s ease; }
         #profile-edit-overlay.show .modal-box { transform: translateY(0) scale(1); opacity: 1; }
+
+        /* Order Detail modal: same centered-card treatment as Profile Edit,
+           instead of the default bottom-sheet used by other modals — this one
+           gets reopened often (from History) so it reads better as a card. */
+        #order-detail-overlay { align-items: center; padding: 20px; }
+        #order-detail-overlay .modal-box { border-radius: 20px; max-height: 88vh; transform: translateY(12px) scale(0.96); opacity: 0; transition: transform 0.22s ease, opacity 0.22s ease; }
+        #order-detail-overlay.show .modal-box { transform: translateY(0) scale(1); opacity: 1; }
         .profile-edit-field label { display: block; font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
         .profile-edit-field input[type="text"] { width: 100%; padding: 13px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 15px; transition: 0.15s; }
         .profile-edit-field input[type="text"]:focus { outline: none; border-color: var(--accent); background: #F8FBFF; }
@@ -769,6 +816,53 @@
         }
         .avatar-upload-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .avatar-upload-placeholder { color: var(--accent); display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
+
+        /* Custom equipped avatar frame (Frame Collection) — same anchor point as
+           avatar-tier-frame/avatar-upload-box but drawn from real frame art, sized
+           larger so the art's ring/spikes/ornaments show clearly around the photo.
+           Sits above the photo (z-index 3) and pointer-events:none so tapping the
+           avatar still opens the photo picker underneath it. */
+        .custom-avatar-frame {
+            position: absolute; left: 50%; top: 0; transform: translate(-50%, -50%);
+            width: 132px; height: 132px; pointer-events: none; z-index: 3;
+            object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.2));
+        }
+
+        /* Name frame — decorative banner art placed behind the display name text.
+           Applied inline (backgroundImage) by applyEquippedFrames() in JS. */
+        .profile-hero-name.has-name-frame {
+            display: inline-block; background-size: 100% 100%; background-repeat: no-repeat;
+            background-position: center; padding: 8px 30px; border-radius: 8px; margin-top: 2px;
+        }
+
+        /* ===================== FRAME COLLECTION PAGE ===================== */
+        .frame-type-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
+        .frame-type-tab { flex: 1; padding: 10px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--surface); color: var(--text-muted); font-weight: 700; font-size: 13px; cursor: pointer; transition: 0.15s; }
+        .frame-type-tab.active { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
+        .frame-collection-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
+        .frame-coll-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 6px; position: relative; }
+        .frame-coll-card.equipped { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent); }
+        .frame-coll-thumb { width: 100%; aspect-ratio: 1; border-radius: 12px; background: radial-gradient(circle, rgba(0,0,0,0.06), rgba(0,0,0,0.02)); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
+        .frame-coll-thumb.name-type { aspect-ratio: 2.2; }
+        .frame-coll-thumb img { max-width: 88%; max-height: 88%; object-fit: contain; }
+        .frame-coll-thumb.locked img { filter: grayscale(1) brightness(0.55); }
+        .frame-coll-lock { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; background: rgba(0,0,0,0.15); }
+        .frame-coll-lock svg { width: 20px; height: 20px; }
+        .frame-coll-name { font-size: 12.5px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .frame-coll-rarity { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+        .frame-coll-rarity.rarity-common { color: #64748B; }
+        .frame-coll-rarity.rarity-rare { color: #2563EB; }
+        .frame-coll-rarity.rarity-epic { color: #9333EA; }
+        .frame-coll-rarity.rarity-legendary { color: #B45309; }
+        .frame-coll-rarity.rarity-mythic { color: #DB2777; }
+        .frame-coll-progress-track { height: 5px; border-radius: 3px; background: var(--border); overflow: hidden; margin-top: 2px; }
+        .frame-coll-progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.3s ease; }
+        .frame-coll-progress-text { font-size: 10.5px; color: var(--text-muted); }
+        .frame-coll-event-badge { position: absolute; top: 8px; right: 8px; background: #FA3E3E; color: #fff; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
+        .frame-coll-btn { margin-top: 2px; padding: 7px; border-radius: 9px; border: none; font-size: 12px; font-weight: 700; cursor: pointer; text-align: center; }
+        .frame-coll-btn.equip { background: var(--accent); color: #fff; }
+        .frame-coll-btn.unequip { background: var(--border); color: var(--text); }
+        .frame-coll-btn.manual-locked { background: var(--border); color: var(--text-muted); cursor: default; }
 
         /* Editable fields card - collapsed by default, toggled by the Edit Profile button */
 
@@ -1237,6 +1331,8 @@
         <symbol id="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></symbol>
         <symbol id="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></symbol>
         <symbol id="icon-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></symbol>
+        <symbol id="icon-frame" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"></rect><circle cx="12" cy="12" r="4.2"></circle></symbol>
+        <symbol id="icon-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="9" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></symbol>
     </svg>
 
     <!-- Toast Notification -->
@@ -1319,9 +1415,7 @@
         <!-- HISTORY PAGE (Live Firebase Orders) -->
         <div id="history" class="page-section">
             <h2 class="title-header">Transaction History</h2>
-            <div id="history-container">
-                <p class="empty-msg">Place a Top Up to see your history here.</p>
-            </div>
+            <div id="history-container"></div>
         </div>
 
         <!-- LEADERBOARD PAGE — ranks real customers by lifetime successful top-up
@@ -1360,7 +1454,7 @@
                 Top Up History
             </h3>
             <div id="wallet-topup-list"></div>
-            <p class="empty-msg" id="wallet-topup-empty" style="display:none;">No top up requests yet.</p>
+            <div id="wallet-topup-empty" style="display:none;"></div>
         </div>
 
         <!-- WALLET TOP UP MODAL: amount + payment method + receipt upload -->
@@ -1473,6 +1567,10 @@
                         <span class="tier-frame-spark spark-7"></span>
                         <span class="tier-frame-spark spark-8"></span>
                     </div>
+                    <!-- Custom equipped avatar frame (from Frame Collection). Overlaid on
+                         top of the tier-ring above; whichever is showing is decided in
+                         applyEquippedFrames() based on whether the user has one equipped. -->
+                    <img class="custom-avatar-frame" id="custom-avatar-frame" src="" alt="" style="display:none;">
                     <label class="avatar-upload-box" id="avatar-upload-box" for="profile-photo-file">
                         <img id="profile-photo-preview" src="" alt="Profile photo" style="display:none;">
                         <div class="avatar-upload-placeholder" id="avatar-upload-placeholder">
@@ -1522,10 +1620,16 @@
                         </span>
                     </div>
                 </div>
-                <p style="font-size:11px;color:var(--text-muted);margin-top:8px;font-weight:400;line-height:1.5;">
-                    Auto-switches: Light 7 AM–7 PM, Dark 7 PM–7 AM.
-                    <span id="theme-auto-reset-link" style="color:var(--accent);font-weight:700;cursor:pointer;display:none;" onclick="resetThemeToAuto()">Switched off — tap to re-enable auto</span>
-                </p>
+                <div style="margin-top:8px;">
+                    <span onclick="togglePrefsAutoInfo()" role="button" aria-label="Show auto-switch info" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);font-weight:600;cursor:pointer;">
+                        Auto-switch info
+                        <svg class="ui-icon" id="prefs-auto-info-chevron" style="width:12px;height:12px;transition:transform 0.2s;"><use href="#icon-chevron-right"></use></svg>
+                    </span>
+                    <p id="prefs-auto-info-text" style="display:none;font-size:11px;color:var(--text-muted);margin-top:6px;font-weight:400;line-height:1.5;">
+                        Auto-switches: Light 7 AM–7 PM, Dark 7 PM–7 AM.
+                        <span id="theme-auto-reset-link" style="color:var(--accent);font-weight:700;cursor:pointer;display:none;" onclick="resetThemeToAuto()">Switched off — tap to re-enable auto</span>
+                    </p>
+                </div>
             </div>
 
             <!-- Google account: optional. Signing in just auto-fills the name/photo
@@ -1569,8 +1673,24 @@
             </div>
 
             <div class="detail-form-card" id="tier-preview-card" style="margin-top:14px;">
-                <label style="align-self:flex-start;">Tier Designs</label>
-                <div class="tier-preview-grid" id="tier-preview-grid"></div>
+                <div onclick="toggleTierPreviewGrid()" role="button" aria-label="Show tier designs" style="display:flex;align-items:center;justify-content:space-between;width:100%;cursor:pointer;">
+                    <label style="align-self:flex-start;margin-top:0;">Tier Designs</label>
+                    <svg class="ui-icon" id="tier-preview-chevron" style="width:16px;height:16px;color:var(--text-muted);transition:transform 0.2s;"><use href="#icon-chevron-right"></use></svg>
+                </div>
+                <div class="tier-preview-grid" id="tier-preview-grid" style="display:none;"></div>
+            </div>
+
+            <!-- Frame Collection entry: opens the dedicated #frame-collection page
+                 where every avatar/name frame (mission-unlocked, event-limited, or
+                 manually granted) can be viewed and equipped. -->
+            <div class="detail-form-card" id="frame-collection-entry-card" style="margin-top:14px;cursor:pointer;" onclick="openFrameCollection()" role="button" aria-label="Open frame collection">
+                <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+                    <span class="prefs-row-label">
+                        <span class="prefs-row-icon"><svg class="ui-icon" style="width:18px;height:18px;"><use href="#icon-frame"></use></svg></span>
+                        <span>Frame Collection <span id="frame-collection-count-badge" style="font-size:11px;color:var(--text-muted);font-weight:600;"></span></span>
+                    </span>
+                    <svg class="ui-icon" style="width:16px;height:16px;color:var(--text-muted);"><use href="#icon-chevron-right"></use></svg>
+                </div>
             </div>
 
             <div class="detail-form-card" id="social-links-card" style="margin-top:14px;">
@@ -1635,6 +1755,24 @@
                 <h2 style="font-size:18px; font-weight:700; color:var(--text);" id="server-select-title">Game</h2>
             </div>
             <div class="cards-grid" id="server-select-grid"></div>
+        </div>
+
+        <!-- FRAME COLLECTION PAGE: every avatar/name frame — mission-unlocked,
+             event-limited, or manually granted — with progress + equip/unequip. -->
+        <div id="frame-collection" class="page-section">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+                <div class="header-icon" style="width:36px;height:36px;" onclick="closeFrameCollection()">
+                    <svg class="ui-icon" style="width:18px;"><use href="#icon-chevron-left"></use></svg>
+                </div>
+                <h2 style="font-size:18px; font-weight:700; color:var(--text);">Frame Collection</h2>
+            </div>
+            <div class="frame-type-tabs" id="frame-type-tabs">
+                <button type="button" class="frame-type-tab active" data-ftype="avatar" onclick="setFrameCollectionTab('avatar')">Avatar Frames</button>
+                <button type="button" class="frame-type-tab" data-ftype="name" onclick="setFrameCollectionTab('name')">Name Frames</button>
+            </div>
+            <div class="frame-collection-grid" id="frame-collection-grid">
+                <p class="empty-msg">Loading frames...</p>
+            </div>
         </div>
 
         <!-- GAME CURRENCY PRICE LIST PAGE -->
@@ -1747,7 +1885,7 @@
             <div class="success-check" id="success-check-icon">
                 <svg class="ui-icon" style="width:36px;height:36px;color:#28a745;"><use href="#icon-check"></use></svg>
             </div>
-            <h3 style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px;" id="success-title">Order Placed!</h3>
+            <h3 style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px;" id="success-title">Order Confirmed</h3>
             <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px;" id="success-subtext">We've received your order and receipt. Our team will confirm it shortly.</p>
             <div id="success-timeline" style="text-align:left;"></div>
             <button class="btn btn-primary" onclick="goHomeFromSuccess()">Back to Home</button>
@@ -1806,6 +1944,21 @@
 
     <!-- Vanilla JS for Navigation & Toast -->
     <script>
+        // Reusable empty-state block: icon-in-circle + title + subtext,
+        // optionally with an action button. iconId must match one of the
+        // <symbol> ids defined in the SVG sprite up top (e.g. "icon-history").
+        function emptyStateHTML(iconId, title, sub, actionHtml) {
+            return `
+                <div class="empty-state">
+                    <div class="empty-state-icon"><svg class="ui-icon"><use href="#${iconId}"></use></svg></div>
+                    <div class="empty-state-title">${title}</div>
+                    ${sub ? `<div class="empty-state-sub">${sub}</div>` : ''}
+                    ${actionHtml ? `<div class="empty-state-action">${actionHtml}</div>` : ''}
+                </div>
+            `;
+        }
+        window.emptyStateHTML = emptyStateHTML;
+
         function showPage(pageId) {
             document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(m => m.classList.remove('active'));
@@ -1870,6 +2023,7 @@
         let selectedPaymentType = null; // 'wallet' | 'payment' — how the customer wants to pay for a game order
         let currentWalletBalance = 0; // kept in sync by listenWalletBalance()
         let playerIdVerified = null; // null = not checked, true = valid, false = failed
+        let verifiedPlayerName = null; // in-game name resolved by checkPlayerId, saved with the order
         let playerIdCheckTimer = null;
 
         function loadSavedContactIntoForm() {
@@ -1905,6 +2059,7 @@
             const statusEl = document.getElementById('detail-id-status');
             const confirmBtn = document.getElementById('confirm-id-btn');
             playerIdVerified = null;
+            verifiedPlayerName = null;
             clearTimeout(playerIdCheckTimer);
 
             if (!selectedGameG2BulkCode) { statusEl.style.display = 'none'; confirmBtn.style.display = 'none'; return; }
@@ -2025,6 +2180,7 @@
                 const data = await res.json();
                 if (res.ok && data.valid === 'valid') {
                     playerIdVerified = true;
+                    verifiedPlayerName = data.name || null;
                     const verifiedLabel = selectedGameServerName ? `${selectedGameName} - ${selectedGameServerName}` : selectedGameName;
                     renderIdConfirmedCard(data.name, verifiedLabel);
                     confirmBtn.classList.remove('checking');
@@ -2033,6 +2189,7 @@
                     confirmBtn.disabled = true;
                 } else {
                     playerIdVerified = false;
+                    verifiedPlayerName = null;
                     renderIdFailCard();
                     confirmBtn.classList.remove('checking', 'confirmed');
                     btnText.innerText = 'Confirm ID';
@@ -2389,7 +2546,7 @@
                 iconWrap.style.background = '#FCE8E6';
                 iconWrap.innerHTML = '<svg class="ui-icon" style="width:36px;height:36px;color:#D93025;"><use href="#icon-close"></use></svg>';
             } else {
-                title.innerText = 'Order Placed!';
+                title.innerText = 'Order Confirmed';
                 subtext.innerText = "We've received your order and receipt. Our team will confirm it shortly.";
                 iconWrap.style.background = '#E7F8EE';
                 iconWrap.innerHTML = '<svg class="ui-icon" style="width:36px;height:36px;color:#28a745;"><use href="#icon-check"></use></svg>';
@@ -2570,6 +2727,11 @@
                 price: selectedPackage.price,
                 inGameId,
                 serverId,
+                // Only trust this when the ID that got verified is the exact
+                // ID still in the field — if the customer edited it after
+                // confirming, playerIdVerified is already reset to null so
+                // this naturally comes through as null too.
+                inGameName: playerIdVerified === true ? verifiedPlayerName : null,
                 paymentMethodName: selectedPaymentMethod.name,
                 receiptFile: editingReceiptFile,
                 g2bulkGameCode: selectedGameG2BulkCode,
@@ -2587,6 +2749,7 @@
                 price: selectedPackage.price,
                 inGameId,
                 serverId,
+                inGameName: playerIdVerified === true ? verifiedPlayerName : null,
                 g2bulkGameCode: selectedGameG2BulkCode,
                 g2bulkCatalogueName: selectedPackage.g2bulk || null,
                 jcplaysProduct: selectedGameJCPlaysProduct,
@@ -2753,7 +2916,7 @@
     <!-- FIREBASE CODE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, getDoc, setDoc, serverTimestamp, query, where, orderBy, limit, getDocs, onSnapshot, increment, runTransaction } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, getDoc, setDoc, updateDoc, serverTimestamp, query, where, orderBy, limit, getDocs, onSnapshot, increment, runTransaction, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
@@ -3050,6 +3213,8 @@
             const empty = document.getElementById('wallet-topup-empty');
             if (walletTopupCache.length === 0) {
                 list.innerHTML = '';
+                empty.innerHTML = emptyStateHTML('icon-wallet', 'No top up requests yet', 'Top up your wallet to pay for orders instantly.',
+                    '<button class="btn" style="padding:9px 22px;font-size:13.5px;" onclick="openWalletTopupModal()">Top Up Wallet</button>');
                 empty.style.display = 'block';
                 return;
             }
@@ -3115,6 +3280,8 @@
         window.formatMMK = window.formatMMK || function (n) { return Math.round(n || 0).toLocaleString('en-US') + ' MMK'; };
         listenWalletBalance();
         listenWalletTopups();
+        listenFrames();
+        listenUserFrameState();
 
         // ---------- Google sign-in (optional) ----------
         // Purely a convenience on the Profile page: auto-fills name/photo below
@@ -3366,16 +3533,22 @@
         // Sums lifetime successful-order spend for one customer, straight from
         // Firestore (not cached), so tier/rank are always accurate.
         async function computeUserStats(guestId) {
-            if (!guestId) return { total: 0, count: 0 };
+            if (!guestId) return { total: 0, count: 0, games: 0 };
             try {
                 const q = query(collection(db, "orders"), where("userId", "==", guestId), where("status", "==", "Success"));
                 const snap = await getDocs(q);
                 let total = 0, count = 0;
-                snap.forEach(d => { total += Number(d.data().price) || 0; count++; });
-                return { total, count };
+                const gameSet = new Set();
+                snap.forEach(d => {
+                    const data = d.data();
+                    total += Number(data.price) || 0;
+                    count++;
+                    if (data.game) gameSet.add(data.game);
+                });
+                return { total, count, games: gameSet.size };
             } catch (error) {
                 console.error("computeUserStats error:", error);
-                return { total: 0, count: 0 };
+                return { total: 0, count: 0, games: 0 };
             }
         }
 
@@ -3385,7 +3558,8 @@
         async function loadProfileStats() {
             const guestId = window.getGuestId ? window.getGuestId() : '';
             if (!guestId) return;
-            const { total, count } = await computeUserStats(guestId);
+            const { total, count, games } = await computeUserStats(guestId);
+            window.__lastUserStats = { total, count, games };
             const tier = tierForSpend(total);
             const next = nextTierForSpend(total);
 
@@ -3437,8 +3611,241 @@
                     tierFrame.dataset.tier = tier.name.toLowerCase();
                 }
             }
+
+            if (window.checkFrameUnlocks) window.checkFrameUnlocks({ total, count, games });
+            if (window.renderFrameCollection) window.renderFrameCollection();
         }
         window.loadProfileStats = loadProfileStats;
+
+        // ===================== CUSTOM FRAMES (Frame Collection) =====================
+        // frames/{id}: { name, type:'avatar'|'name', imageUrl, rarity, unlockType:
+        //   'spend'|'orders'|'games'|'manual', target, eventLimited, eventStart,
+        //   eventEnd, active }
+        // users/{uid}: unlockedFrames:[frameId,...], equippedAvatarFrame, equippedNameFrame
+        let FRAMES = {};
+        let framesListenerAttached = false;
+        let frameCollectionTab = 'avatar';
+        let myUnlockedFrames = [];
+        let myEquippedAvatarFrame = '';
+        let myEquippedNameFrame = '';
+
+        function listenFrames() {
+            if (framesListenerAttached) return;
+            framesListenerAttached = true;
+            onSnapshot(collection(db, "frames"), (snap) => {
+                FRAMES = {};
+                snap.forEach(d => { FRAMES[d.id] = { id: d.id, ...d.data() }; });
+                if (window.currentStorePage === 'frame-collection' && window.renderFrameCollection) window.renderFrameCollection();
+                updateFrameCollectionBadge();
+                if (window.applyEquippedFrames) window.applyEquippedFrames();
+            }, (error) => console.error("Frames listener error:", error));
+        }
+
+        // Live user-doc listener for this customer's frame state (separate from
+        // the wallet-balance listener above so either can be added/removed
+        // independently). Keeps equip choices and newly-granted frames in sync
+        // across devices/tabs without a reload.
+        let userFrameStateListenerAttached = false;
+        function listenUserFrameState() {
+            if (userFrameStateListenerAttached) return;
+            userFrameStateListenerAttached = true;
+            const gid = window.getGuestId ? window.getGuestId() : null;
+            if (!gid) return;
+            onSnapshot(doc(db, "users", gid), (snap) => {
+                const data = snap.exists() ? snap.data() : {};
+                myUnlockedFrames = data.unlockedFrames || [];
+                myEquippedAvatarFrame = data.equippedAvatarFrame || '';
+                myEquippedNameFrame = data.equippedNameFrame || '';
+                if (window.currentStorePage === 'frame-collection' && window.renderFrameCollection) window.renderFrameCollection();
+                updateFrameCollectionBadge();
+                if (window.applyEquippedFrames) window.applyEquippedFrames();
+            }, (error) => console.error("User frame state listener error:", error));
+        }
+
+        function updateFrameCollectionBadge() {
+            const badge = document.getElementById('frame-collection-count-badge');
+            if (!badge) return;
+            const activeCount = Object.values(FRAMES).filter(f => f.active !== false).length;
+            badge.innerText = activeCount ? `${myUnlockedFrames.length}/${activeCount}` : '';
+        }
+
+        function frameIsEventOpen(f) {
+            if (!f.eventLimited) return true;
+            const now = Date.now();
+            const start = f.eventStart ? new Date(f.eventStart).getTime() : 0;
+            const end = f.eventEnd ? new Date(f.eventEnd).getTime() : Infinity;
+            return now >= start && now <= end;
+        }
+
+        function frameProgressValue(f, stats) {
+            if (f.unlockType === 'spend') return stats.total;
+            if (f.unlockType === 'orders') return stats.count;
+            if (f.unlockType === 'games') return stats.games;
+            return 0;
+        }
+
+        // Auto-unlocks any mission-based frame the customer now qualifies for
+        // (only while its event window is open, for event-limited frames).
+        // Manual-only frames never unlock here — an admin grants those.
+        async function checkFrameUnlocks(stats) {
+            const gid = window.getGuestId ? window.getGuestId() : null;
+            if (!gid) return;
+            const toUnlock = Object.values(FRAMES).filter(f =>
+                f.active !== false &&
+                f.unlockType !== 'manual' &&
+                !myUnlockedFrames.includes(f.id) &&
+                frameIsEventOpen(f) &&
+                frameProgressValue(f, stats) >= (Number(f.target) || 0) && Number(f.target) > 0
+            );
+            if (toUnlock.length === 0) return;
+            try {
+                await updateDoc(doc(db, "users", gid), {
+                    unlockedFrames: arrayUnion(...toUnlock.map(f => f.id))
+                });
+                toUnlock.forEach(f => {
+                    if (window.showToast) window.showToast(`🎉 New frame unlocked: ${f.name}!`, 'success');
+                });
+            } catch (error) {
+                console.error("checkFrameUnlocks error:", error);
+            }
+        }
+        window.checkFrameUnlocks = checkFrameUnlocks;
+
+        function setFrameCollectionTab(type) {
+            frameCollectionTab = type;
+            document.querySelectorAll('.frame-type-tab').forEach(el => {
+                el.classList.toggle('active', el.dataset.ftype === type);
+            });
+            renderFrameCollection();
+        }
+        window.setFrameCollectionTab = setFrameCollectionTab;
+
+        function openFrameCollection() {
+            showPage('frame-collection');
+            renderFrameCollection();
+        }
+        window.openFrameCollection = openFrameCollection;
+
+        function closeFrameCollection() {
+            showPage('profile');
+        }
+        window.closeFrameCollection = closeFrameCollection;
+
+        function renderFrameCollection() {
+            const grid = document.getElementById('frame-collection-grid');
+            if (!grid) return;
+            const stats = window.__lastUserStats || { total: 0, count: 0, games: 0 };
+            const list = Object.values(FRAMES).filter(f => f.active !== false && f.type === frameCollectionTab);
+            if (list.length === 0) {
+                grid.innerHTML = '<p class="empty-msg" style="grid-column:1/-1;">No frames here yet — check back soon!</p>';
+                return;
+            }
+            grid.innerHTML = list.map(f => {
+                const unlocked = myUnlockedFrames.includes(f.id);
+                const equippedId = f.type === 'name' ? myEquippedNameFrame : myEquippedAvatarFrame;
+                const isEquipped = unlocked && equippedId === f.id;
+                const eventOpen = frameIsEventOpen(f);
+                const progress = frameProgressValue(f, stats);
+                const target = Number(f.target) || 0;
+                const pct = target > 0 ? Math.min(100, (progress / target) * 100) : 0;
+
+                let progressHTML = '';
+                if (!unlocked) {
+                    if (f.unlockType === 'manual') {
+                        progressHTML = `<span class="frame-coll-progress-text">Special frame — ask support how to earn it</span>`;
+                    } else if (f.eventLimited && !eventOpen) {
+                        progressHTML = `<span class="frame-coll-progress-text">Event window closed</span>`;
+                    } else {
+                        const unitLabel = f.unlockType === 'spend' ? `${formatMMK(progress)} / ${formatMMK(target)}` : `${progress} / ${target}`;
+                        progressHTML = `<div class="frame-coll-progress-track"><div class="frame-coll-progress-fill" style="width:${pct}%;"></div></div><span class="frame-coll-progress-text">${unitLabel}</span>`;
+                    }
+                }
+
+                let btnHTML = '';
+                if (unlocked) {
+                    btnHTML = isEquipped
+                        ? `<button class="frame-coll-btn unequip" onclick="unequipFrame('${f.type}')">Unequip</button>`
+                        : `<button class="frame-coll-btn equip" onclick="equipFrame('${f.id}','${f.type}')">Equip</button>`;
+                } else {
+                    btnHTML = `<button class="frame-coll-btn manual-locked" disabled>Locked</button>`;
+                }
+
+                return `
+                <div class="frame-coll-card ${isEquipped ? 'equipped' : ''}">
+                    ${f.eventLimited ? `<span class="frame-coll-event-badge">${eventOpen ? 'Event' : 'Ended'}</span>` : ''}
+                    <div class="frame-coll-thumb ${f.type === 'name' ? 'name-type' : ''} ${!unlocked ? 'locked' : ''}">
+                        ${f.imageUrl ? `<img src="${f.imageUrl}" alt="">` : ''}
+                        ${!unlocked ? `<div class="frame-coll-lock"><svg class="ui-icon"><use href="#icon-lock"></use></svg></div>` : ''}
+                    </div>
+                    <div class="frame-coll-name">${f.name || 'Untitled'}</div>
+                    <div class="frame-coll-rarity rarity-${f.rarity || 'common'}">${f.rarity || 'common'}</div>
+                    ${progressHTML}
+                    ${btnHTML}
+                </div>`;
+            }).join('');
+        }
+        window.renderFrameCollection = renderFrameCollection;
+
+        async function equipFrame(frameId, type) {
+            const gid = window.getGuestId ? window.getGuestId() : null;
+            if (!gid) return;
+            const field = type === 'name' ? 'equippedNameFrame' : 'equippedAvatarFrame';
+            try {
+                await updateDoc(doc(db, "users", gid), { [field]: frameId });
+                if (window.showToast) window.showToast('Frame equipped!', 'success');
+            } catch (error) {
+                console.error("equipFrame error:", error);
+                if (window.showToast) window.showToast('Failed to equip frame.', 'fail');
+            }
+        }
+        window.equipFrame = equipFrame;
+
+        async function unequipFrame(type) {
+            const gid = window.getGuestId ? window.getGuestId() : null;
+            if (!gid) return;
+            const field = type === 'name' ? 'equippedNameFrame' : 'equippedAvatarFrame';
+            try {
+                await updateDoc(doc(db, "users", gid), { [field]: '' });
+            } catch (error) {
+                console.error("unequipFrame error:", error);
+                if (window.showToast) window.showToast('Failed to unequip frame.', 'fail');
+            }
+        }
+        window.unequipFrame = unequipFrame;
+
+        // Swaps the equipped custom avatar frame image in over the automatic
+        // VIP tier ring, and paints the equipped name-frame banner behind the
+        // display name. Falls back to the tier ring / plain name when nothing
+        // custom is equipped (or the frame data hasn't loaded yet).
+        function applyEquippedFrames() {
+            const avatarImgEl = document.getElementById('custom-avatar-frame');
+            const tierFrameEl = document.getElementById('avatar-tier-frame');
+            const avatarFrame = myEquippedAvatarFrame ? FRAMES[myEquippedAvatarFrame] : null;
+            if (avatarImgEl) {
+                if (avatarFrame && avatarFrame.imageUrl) {
+                    avatarImgEl.src = avatarFrame.imageUrl;
+                    avatarImgEl.style.display = 'block';
+                    if (tierFrameEl) tierFrameEl.style.display = 'none';
+                } else {
+                    avatarImgEl.style.display = 'none';
+                    if (tierFrameEl) tierFrameEl.style.display = '';
+                }
+            }
+
+            const nameEl = document.getElementById('profile-hero-name');
+            const nameFrame = myEquippedNameFrame ? FRAMES[myEquippedNameFrame] : null;
+            if (nameEl) {
+                if (nameFrame && nameFrame.imageUrl) {
+                    nameEl.classList.add('has-name-frame');
+                    nameEl.style.backgroundImage = `url('${nameFrame.imageUrl}')`;
+                } else {
+                    nameEl.classList.remove('has-name-frame');
+                    nameEl.style.backgroundImage = '';
+                }
+            }
+        }
+        window.applyEquippedFrames = applyEquippedFrames;
+
 
         // Aggregates every successful order by customer, ranks by lifetime
         // spend, and renders the top 20 — plus the current user's own rank if
@@ -3474,25 +3881,51 @@
 
                 const guestId = window.getGuestId ? window.getGuestId() : '';
                 const top = ranked.slice(0, 20);
+                const podium = top.slice(0, 3);
+                const rest = top.slice(3);
 
-                listEl.innerHTML = top.map((r, i) => {
-                    const rank = i + 1;
-                    const tier = tierForSpend(r.total);
-                    const initial = (r.name || '?').trim().charAt(0).toUpperCase() || '?';
-                    const rankClass = rank <= 3 ? ` lb-rank-${rank}` : '';
-                    const isYou = r.uid === guestId;
-                    return `
-                        <div class="lb-row" style="${isYou ? 'background:#F8FBFF;border-radius:10px;' : ''}">
-                            <div class="lb-rank${rankClass}">${rank}</div>
-                            <div class="lb-avatar">${initial}</div>
-                            <div class="lb-info">
-                                <div class="lb-name">${r.name}${isYou ? ' (You)' : ''}</div>
-                                ${tierBadgeHTML(tier)}
+                const podiumHTML = podium.length ? `
+                    <div class="lb-podium">
+                        ${podium.map((r, i) => {
+                            const rank = i + 1;
+                            const tier = tierForSpend(r.total);
+                            const initial = (r.name || '?').trim().charAt(0).toUpperCase() || '?';
+                            const isYou = r.uid === guestId;
+                            return `
+                                <div class="lb-podium-slot rank-${rank}">
+                                    <div class="lb-podium-medal">${rank}</div>
+                                    <div class="lb-podium-avatar">${initial}</div>
+                                    <div class="lb-podium-name">${r.name}${isYou ? ' (You)' : ''}</div>
+                                    ${tierBadgeHTML(tier)}
+                                    <div class="lb-podium-amount">${formatMMK(r.total)}</div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                ` : '';
+
+                const restHTML = rest.length ? `
+                    <div class="lb-list-heading">Rankings</div>
+                    ${rest.map((r, i) => {
+                        const rank = i + 4;
+                        const tier = tierForSpend(r.total);
+                        const initial = (r.name || '?').trim().charAt(0).toUpperCase() || '?';
+                        const isYou = r.uid === guestId;
+                        return `
+                            <div class="lb-row" style="${isYou ? 'background:#F8FBFF;border-radius:10px;' : ''}">
+                                <div class="lb-rank">${rank}</div>
+                                <div class="lb-avatar">${initial}</div>
+                                <div class="lb-info">
+                                    <div class="lb-name">${r.name}${isYou ? ' (You)' : ''}</div>
+                                    ${tierBadgeHTML(tier)}
+                                </div>
+                                <div class="lb-amount">${formatMMK(r.total)}</div>
                             </div>
-                            <div class="lb-amount">${formatMMK(r.total)}</div>
-                        </div>
-                    `;
-                }).join('');
+                        `;
+                    }).join('')}
+                ` : '';
+
+                listEl.innerHTML = podiumHTML + restHTML;
 
                 const myRankIndex = ranked.findIndex(r => r.uid === guestId);
                 if (guestId && myRankIndex >= 20) {
@@ -3723,7 +4156,7 @@
         }
 
         async function submitOrder(orderData, btnElement) {
-            const { gameName, serverRegion, amount, price, inGameId, serverId, paymentMethodName, receiptFile, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId } = orderData;
+            const { gameName, serverRegion, amount, price, inGameId, inGameName, serverId, paymentMethodName, receiptFile, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId } = orderData;
 
             const originalText = btnElement.innerText;
             btnElement.innerText = "Processing...";
@@ -4227,7 +4660,7 @@
             const container = document.getElementById('history-container');
             HISTORY_ORDERS = orders;
             if (orders.length === 0) {
-                container.innerHTML = '<p class="empty-msg">No orders yet.</p>';
+                container.innerHTML = emptyStateHTML('icon-history', 'No orders yet', 'Your top ups and purchases will show up here once you place one.');
                 return;
             }
             // Sort newest first (done client-side so no Firestore index is required)
@@ -4243,7 +4676,7 @@
             const chipsHTML = historyDateChipsHTML(orders);
 
             if (entries.length === 0) {
-                container.innerHTML = chipsHTML + '<p class="empty-msg">No orders on this day.</p>';
+                container.innerHTML = chipsHTML + emptyStateHTML('icon-history', 'No orders on this day', 'Try a different date, or tap "All" to see everything.');
                 return;
             }
 
@@ -4267,26 +4700,29 @@
             const dateStr = data.timestamp ? historyDateTimeFmt.format(data.timestamp.toDate()) : 'Just now';
             const badgeClass = historyBadgeClassFor(data.status);
             const gameImg = findGameImage(data.game, data.serverRegion);
-            const durationItem = (data.status === 'Success' && data.confirmedAt && data.timestamp)
-                ? `<div class="detail-grid-item"><span>Confirmed In</span><b>${formatDuration(data.confirmedAt.toMillis() - data.timestamp.toMillis())}</b></div>`
+            const durationRow = (data.status === 'Success' && data.confirmedAt && data.timestamp)
+                ? `<div class="od-row"><span>Confirmed In</span><b>${formatDuration(data.confirmedAt.toMillis() - data.timestamp.toMillis())}</b></div>`
                 : '';
-            const orderedAtItem = data.timestamp
-                ? `<div class="detail-grid-item"><span>Ordered At</span><b>${historyDateTimeFmt.format(data.timestamp.toDate())}</b></div>`
+            const orderedAtRow = data.timestamp
+                ? `<div class="od-row"><span>Ordered At</span><b>${historyDateTimeFmt.format(data.timestamp.toDate())}</b></div>`
                 : '';
-            const completedAtItem = (data.status === 'Success' && data.confirmedAt)
-                ? `<div class="detail-grid-item"><span>Success At</span><b style="color:#1E8E4F;">${historyDateTimeFmt.format(data.confirmedAt.toDate())}</b></div>`
+            const completedAtRow = (data.status === 'Success' && data.confirmedAt)
+                ? `<div class="od-row"><span>Success At</span><b style="color:#1E8E4F;">${historyDateTimeFmt.format(data.confirmedAt.toDate())}</b></div>`
                 : '';
             // Same rule as the history card: the real provider Order ID only
             // shows up once the order is actually Success — never before.
             const providerOrderId = data.g2bulkOrderId || data.jcplaysOrderId;
-            const orderIdItem = (data.status === 'Success' && providerOrderId)
-                ? `<div class="detail-grid-item"><span>Order ID</span><b style="font-family:monospace;">${providerOrderId}</b></div>`
+            const orderIdRow = (data.status === 'Success' && providerOrderId)
+                ? `<div class="od-row"><span>Order ID</span><b style="font-family:monospace;">${providerOrderId}</b></div>`
                 : '';
-            const serverIdItem = data.serverId
-                ? `<div class="detail-grid-item"><span>Server ID</span><b>${data.serverId}</b></div>`
+            const inGameNameRow = data.inGameName
+                ? `<div class="od-row"><span>In-Game Name</span><b>${data.inGameName}</b></div>`
                 : '';
-            const serverRegionItem = data.serverRegion
-                ? `<div class="detail-grid-item"><span>Server</span><b>${data.serverRegion}</b></div>`
+            const serverIdRow = data.serverId
+                ? `<div class="od-row"><span>Server ID</span><b>${data.serverId}</b></div>`
+                : '';
+            const serverRegionRow = data.serverRegion
+                ? `<div class="od-row"><span>Server</span><b>${data.serverRegion}</b></div>`
                 : '';
             document.getElementById('order-detail-body').innerHTML = `
                 <div style="display:flex;align-items:center;gap:12px;">
@@ -4300,17 +4736,22 @@
 
                 ${orderTimelineHTML(data)}
 
-                <div class="detail-grid">
-                    <div class="detail-grid-item"><span>Package</span><b>${data.itemAmount || '-'}</b></div>
-                    <div class="detail-grid-item"><span>Amount Paid</span><b>${Number(data.price).toLocaleString()} MMK</b></div>
-                    <div class="detail-grid-item"><span>In-Game ID</span><b>${data.playerId || '-'}</b></div>
-                    ${serverIdItem}
-                    ${serverRegionItem}
-                    ${orderedAtItem}
-                    ${completedAtItem}
-                    ${orderIdItem}
-                    ${durationItem}
-                    <div class="detail-grid-item full"><span>Payment Method</span><b>${data.paymentMethod || '-'}</b></div>
+                <div class="detail-form-card" style="gap:0;">
+                    <div class="od-row"><span>Package</span><b>${data.itemAmount || '-'}</b></div>
+                    <div class="od-row"><span>Amount Paid</span><b style="color:var(--accent);font-size:15px;">${Number(data.price).toLocaleString()} MMK</b></div>
+                    <div class="od-row"><span>Payment Method</span><b>${data.paymentMethod || '-'}</b></div>
+                </div>
+
+                <p class="detail-section-title" style="margin:16px 0 8px;">Order Info</p>
+                <div class="detail-form-card" style="gap:0;">
+                    <div class="od-row"><span>In-Game ID</span><b>${data.playerId || '-'}</b></div>
+                    ${inGameNameRow}
+                    ${serverIdRow}
+                    ${serverRegionRow}
+                    ${orderedAtRow}
+                    ${completedAtRow}
+                    ${orderIdRow}
+                    ${durationRow}
                 </div>
 
                 ${data.receiptUrl ? `
@@ -4882,7 +5323,7 @@
 
             if (!saved.playerId) {
                 if (historyUnsubscribe) { historyUnsubscribe(); historyUnsubscribe = null; historyListenerPlayerId = null; }
-                container.innerHTML = '<p class="empty-msg">Place a Top Up to see your history here.</p>';
+                container.innerHTML = emptyStateHTML('icon-history', 'No orders yet', 'Place a top up and your order history will show up here.');
                 return;
             }
 
@@ -4901,7 +5342,7 @@
                 renderHistoryOrders(orders);
             }, (error) => {
                 console.error("History fetch error: ", error);
-                container.innerHTML = '<p class="empty-msg" style="color:red;">Could not load history. Check connection.</p>';
+                container.innerHTML = emptyStateHTML('icon-refresh', 'Could not load history', 'Check your connection and try again.');
             });
         }
 
@@ -5057,7 +5498,7 @@
                 return `
                     <div class="game-card" onclick="openGameDetail('${id}')">
                         <div class="game-card-img-wrap">
-                            <img src="${g.image}" alt="${label}">
+                            <img src="${g.image}" alt="${label}" loading="lazy" decoding="async">
                         </div>
                         <div class="game-card-name">${label}</div>
                     </div>
@@ -5103,7 +5544,7 @@
                     return `
                         <div class="game-card popular-card" onclick="openGameEntry(${gr.idx})">
                             <div class="game-card-img-wrap">
-                                <img src="${g.image}" alt="${g.name}">
+                                <img src="${g.image}" alt="${g.name}" loading="lazy" decoding="async">
                                 ${categoryBadgeHtml(g.category)}
                             </div>
                             <div class="game-card-name">${g.name}</div>
@@ -5135,7 +5576,7 @@
                 return `
                     <div class="game-card" onclick="openGameEntry(${gr.idx})">
                         <div class="game-card-img-wrap">
-                            <img src="${g.image}" alt="${g.name}">
+                            <img src="${g.image}" alt="${g.name}" loading="lazy" decoding="async">
                             ${categoryBadgeHtml(g.category)}
                         </div>
                         <div class="game-card-name">${g.name}</div>
@@ -5357,6 +5798,31 @@
             updateThemeAutoNote();
         }
         window.resetThemeToAuto = resetThemeToAuto;
+
+        // Collapsed-by-default helper text under Preferences — tap "Auto-switch
+        // info" to reveal it, so the card stays short instead of always
+        // showing a paragraph most people never need to read.
+        function togglePrefsAutoInfo() {
+            const text = document.getElementById('prefs-auto-info-text');
+            const chevron = document.getElementById('prefs-auto-info-chevron');
+            if (!text) return;
+            const open = text.style.display !== 'none';
+            text.style.display = open ? 'none' : 'block';
+            if (chevron) chevron.style.transform = open ? 'rotate(0deg)' : 'rotate(90deg)';
+        }
+        window.togglePrefsAutoInfo = togglePrefsAutoInfo;
+
+        // Tier Designs preview grid — collapsed by default so the Profile
+        // page reads cleanly; tap the "Tier Designs" row to open it.
+        function toggleTierPreviewGrid() {
+            const grid = document.getElementById('tier-preview-grid');
+            const chevron = document.getElementById('tier-preview-chevron');
+            if (!grid) return;
+            const open = grid.style.display !== 'none';
+            grid.style.display = open ? 'none' : 'grid';
+            if (chevron) chevron.style.transform = open ? 'rotate(0deg)' : 'rotate(90deg)';
+        }
+        window.toggleTierPreviewGrid = toggleTierPreviewGrid;
 
         function toggleTheme() {
             const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
