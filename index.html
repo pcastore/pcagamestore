@@ -1814,7 +1814,11 @@
                 success: { icon: '#icon-check', circleBg: '#22C55E', textColor: '#4ADE80', border: 'rgba(74,222,128,0.35)' },
                 fail: { icon: '#icon-close', circleBg: '#EF4444', textColor: '#FCA5A5', border: 'rgba(239,68,68,0.35)' }
             };
-            const s = styles[type] || styles.success;
+            // Any error-ish type string (error/fail/danger) maps to the red style;
+            // unrecognized types fall back to red too, so an uncaught error never
+            // silently renders green.
+            const isErrorType = type && type !== 'success';
+            const s = styles[type] || (isErrorType ? styles.fail : styles.success);
             document.getElementById('toast-icon-use').setAttribute('href', s.icon);
             document.getElementById('toast-icon-circle').style.background = s.circleBg;
             toast.style.borderColor = s.border;
@@ -2297,7 +2301,7 @@
             };
             const onFailed = () => {
                 if (legacyCopyText(text)) onCopied();
-                else window.showToast('Could not copy. Please copy manually.');
+                else window.showToast('Could not copy. Please copy manually.', 'fail');
             };
 
             try {
@@ -2390,8 +2394,8 @@
             const inGameId = document.getElementById('detail-ingame-id').value.trim();
             const serverId = document.getElementById('detail-server-id').value.trim();
 
-            if (!inGameId) { window.showToast('Please enter your In-Game ID'); if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb(); return; }
-            if (!selectedPaymentType) { window.showToast('Please choose how you want to pay'); if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb(); return; }
+            if (!inGameId) { window.showToast('Please enter your In-Game ID', 'fail'); if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb(); return; }
+            if (!selectedPaymentType) { window.showToast('Please choose how you want to pay', 'fail'); if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb(); return; }
 
             if (selectedGameG2BulkCode && playerIdVerified === false) {
                 if (!confirm('We could not find this In-Game ID on the server. Continue with this order anyway?')) {
@@ -2402,7 +2406,7 @@
 
             if (selectedPaymentType === 'wallet') {
                 if (currentWalletBalance < selectedPackage.price) {
-                    window.showToast('Not enough wallet balance. Please top up.');
+                    window.showToast('Not enough wallet balance. Please top up.', 'fail');
                     if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb();
                     return;
                 }
@@ -2410,8 +2414,8 @@
                 return;
             }
 
-            if (!selectedPaymentMethod) { window.showToast('Please select a payment method'); if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb(); return; }
-            if (!editingReceiptFile) { window.showToast('Please upload your payment receipt'); if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb(); return; }
+            if (!selectedPaymentMethod) { window.showToast('Please select a payment method', 'fail'); if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb(); return; }
+            if (!editingReceiptFile) { window.showToast('Please upload your payment receipt', 'fail'); if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb(); return; }
 
             await doSubmitOrder(inGameId, serverId, btnElement);
         }
@@ -2713,7 +2717,7 @@
                 window.showToast('Profile saved!');
             } catch (error) {
                 console.error('Save profile error:', error);
-                window.showToast(error.message || 'Failed to save profile photo.');
+                window.showToast(error.message || 'Failed to save profile photo.', 'fail');
             } finally {
                 saveBtn.disabled = false;
                 saveBtn.innerText = originalText;
@@ -2984,12 +2988,12 @@
 
         async function submitWalletTopup(btnEl) {
             const amount = Number(document.getElementById('wallet-topup-amount').value);
-            if (!amount || amount <= 0) { window.showToast('Please enter a valid amount.'); if (window.resetWalletSlideConfirmThumb) window.resetWalletSlideConfirmThumb(); return; }
-            if (!selectedWalletPaymentMethod) { window.showToast('Please select a payment method.'); if (window.resetWalletSlideConfirmThumb) window.resetWalletSlideConfirmThumb(); return; }
-            if (!editingWalletReceiptFile) { window.showToast('Please upload your payment receipt.'); if (window.resetWalletSlideConfirmThumb) window.resetWalletSlideConfirmThumb(); return; }
+            if (!amount || amount <= 0) { window.showToast('Please enter a valid amount.', 'fail'); if (window.resetWalletSlideConfirmThumb) window.resetWalletSlideConfirmThumb(); return; }
+            if (!selectedWalletPaymentMethod) { window.showToast('Please select a payment method.', 'fail'); if (window.resetWalletSlideConfirmThumb) window.resetWalletSlideConfirmThumb(); return; }
+            if (!editingWalletReceiptFile) { window.showToast('Please upload your payment receipt.', 'fail'); if (window.resetWalletSlideConfirmThumb) window.resetWalletSlideConfirmThumb(); return; }
 
             const guestId = window.getGuestId ? window.getGuestId() : null;
-            if (!guestId) { window.showToast('Could not identify your account. Please reload.'); if (window.resetWalletSlideConfirmThumb) window.resetWalletSlideConfirmThumb(); return; }
+            if (!guestId) { window.showToast('Could not identify your account. Please reload.', 'fail'); if (window.resetWalletSlideConfirmThumb) window.resetWalletSlideConfirmThumb(); return; }
 
             const originalText = btnEl.innerText;
             btnEl.disabled = true;
@@ -3012,7 +3016,7 @@
                 closeWalletTopupModal();
             } catch (error) {
                 console.error('submitWalletTopup error:', error);
-                window.showToast(error.message || 'Failed to submit top up request.');
+                window.showToast(error.message || 'Failed to submit top up request.', 'fail');
                 if (window.resetWalletSlideConfirmThumb) window.resetWalletSlideConfirmThumb();
             } finally {
                 btnEl.disabled = false;
@@ -3153,7 +3157,7 @@
                     return;
                 }
                 if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
-                    if (window.showToast) window.showToast('Google sign-in failed. Please try again.');
+                    if (window.showToast) window.showToast('Google sign-in failed. Please try again.', 'fail');
                 }
             } finally {
                 btn.disabled = false;
@@ -3767,7 +3771,7 @@
                 window.openSuccessOverlay(orderRef.id, { status: 'Pending', timestamp: { toDate: () => new Date() } });
             } catch (error) {
                 console.error("Firebase Error: ", error);
-                window.showToast(error.message || "Failed to place order! Check Connection.");
+                window.showToast(error.message || "Failed to place order! Check Connection.", 'fail');
                 btnElement.innerText = originalText;
                 btnElement.disabled = false;
                 if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb();
@@ -3844,7 +3848,7 @@
                 const msg = error.message === 'INSUFFICIENT_BALANCE'
                     ? 'Your wallet balance is no longer enough for this order. Please top up.'
                     : (error.message || 'Failed to place order! Check Connection.');
-                window.showToast(msg);
+                window.showToast(msg, 'fail');
                 btnElement.innerText = originalText;
                 btnElement.disabled = false;
                 if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb();
@@ -4117,6 +4121,7 @@
                 </div>
             `;
         }
+        window.orderTimelineHTML = orderTimelineHTML;
         // Compact dots-only strip for the narrow History list card.
         function orderTimelineMiniHTML(status) {
             const rank = ORDER_STATUS_RANK[status] ?? 0;
