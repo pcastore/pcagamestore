@@ -1859,6 +1859,10 @@
                         </label>
                         <input type="file" id="receipt-file" class="upload-shot-input" accept="image/*" onchange="previewReceiptImage(event)">
                         <p id="receipt-upload-status" style="font-size:12px;color:var(--text-secondary);display:none;"></p>
+
+                        <label style="display:block;margin-top:14px;">Transaction ID</label>
+                        <input type="text" id="detail-transaction-id" placeholder="e.g. the reference number on your receipt" autocomplete="off" style="width:100%;padding:11px 14px;border-radius:12px;border:1px solid var(--border-glass);background:var(--fill-soft);color:var(--text);font-size:14px;">
+                        <p style="font-size:11px;color:var(--text-secondary);margin-top:4px;">Copy the transaction / reference number shown on your payment receipt.</p>
                     </div>
                 </div>
             </div>
@@ -2257,6 +2261,7 @@
             document.getElementById('receipt-preview').style.display = 'none';
             document.getElementById('receipt-file').value = '';
             document.getElementById('receipt-upload-status').style.display = 'none';
+            document.getElementById('detail-transaction-id').value = '';
             document.getElementById('upload-shot-box').classList.remove('has-image');
             document.getElementById('upload-shot-change').style.display = 'none';
             document.querySelectorAll('#detail-pay-type-tabs .pay-type-tab').forEach(el => el.classList.remove('active'));
@@ -2319,6 +2324,7 @@
             selectedPaymentType = null;
             selectedPaymentMethod = null;
             editingReceiptFile = null;
+            document.getElementById('detail-transaction-id').value = '';
             document.querySelectorAll('#detail-pay-type-tabs .pay-type-tab').forEach(el => el.classList.remove('active'));
             document.getElementById('detail-wallet-pay-box').style.display = 'none';
             document.getElementById('detail-payment-methods-wrap').style.display = 'none';
@@ -2339,6 +2345,7 @@
             if (type === 'wallet') {
                 selectedPaymentMethod = null;
                 editingReceiptFile = null;
+                document.getElementById('detail-transaction-id').value = '';
                 document.getElementById('detail-payment-methods-wrap').style.display = 'none';
                 document.getElementById('detail-payment-info').style.display = 'none';
                 document.getElementById('detail-wallet-pay-box').style.display = 'flex';
@@ -2587,8 +2594,10 @@
 
             if (!selectedPaymentMethod) { window.showToast('Please select a payment method', 'fail'); if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb(); return; }
             if (!editingReceiptFile) { window.showToast('Please upload your payment receipt', 'fail'); if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb(); return; }
+            const transactionId = document.getElementById('detail-transaction-id').value.trim();
+            if (!transactionId) { window.showToast('Please enter the transaction ID from your receipt', 'fail'); if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb(); return; }
 
-            await doSubmitOrder(inGameId, serverId, btnElement);
+            await doSubmitOrder(inGameId, serverId, btnElement, transactionId);
         }
 
         // ---------- Slide-to-confirm gesture for the final purchase button ----------
@@ -2719,7 +2728,7 @@
         }
         window.initSlideConfirm = initSlideConfirm;
 
-        async function doSubmitOrder(inGameId, serverId, btnElement) {
+        async function doSubmitOrder(inGameId, serverId, btnElement, transactionId) {
             await window.submitOrder({
                 gameName: selectedGameName,
                 serverRegion: selectedGameServerName,
@@ -2734,6 +2743,7 @@
                 inGameName: playerIdVerified === true ? verifiedPlayerName : null,
                 paymentMethodName: selectedPaymentMethod.name,
                 receiptFile: editingReceiptFile,
+                transactionId,
                 g2bulkGameCode: selectedGameG2BulkCode,
                 g2bulkCatalogueName: selectedPackage.g2bulk || null,
                 jcplaysProduct: selectedGameJCPlaysProduct,
@@ -4171,7 +4181,7 @@
         }
 
         async function submitOrder(orderData, btnElement) {
-            const { gameName, serverRegion, amount, price, inGameId, inGameName, serverId, paymentMethodName, receiptFile, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId } = orderData;
+            const { gameName, serverRegion, amount, price, inGameId, inGameName, serverId, paymentMethodName, receiptFile, transactionId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId } = orderData;
 
             const originalText = btnElement.innerText;
             btnElement.innerText = "Processing...";
@@ -4214,6 +4224,7 @@
                     price: price,
                     paymentMethod: paymentMethodName,
                     receiptUrl: receiptUrl,
+                    transactionId: transactionId || '',
                     status: "Pending",
                     timestamp: serverTimestamp(),
                     userId: guestId,
@@ -4755,6 +4766,7 @@
                     <div class="od-row"><span>Package</span><b>${data.itemAmount || '-'}</b></div>
                     <div class="od-row"><span>Amount Paid</span><b style="color:var(--accent);font-size:15px;">${Number(data.price).toLocaleString()} MMK</b></div>
                     <div class="od-row"><span>Payment Method</span><b>${data.paymentMethod || '-'}</b></div>
+                    ${data.transactionId ? `<div class="od-row"><span>Transaction ID</span><b style="font-family:monospace;">${data.transactionId}</b></div>` : ''}
                 </div>
 
                 <p class="detail-section-title" style="margin:16px 0 8px;">Order Info</p>
