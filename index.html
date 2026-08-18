@@ -3330,7 +3330,17 @@
             const originalHTML = btn.innerHTML;
             btn.disabled = true;
             btn.innerHTML = 'Signing in...';
+            // Popup-based sign-in relies on postMessage between the popup and this
+            // window, which mobile browsers frequently break (third-party storage
+            // partitioning / ITP) - it then just hangs on "Signing in..." forever
+            // with no error thrown. Mobile always goes straight to the redirect
+            // flow instead, which doesn't depend on that channel.
+            const isMobile = /Android|iPhone|iPad|iPod|Mobile|webOS/i.test(navigator.userAgent);
             try {
+                if (isMobile) {
+                    await signInWithRedirect(auth, googleProvider);
+                    return; // page navigates away; getRedirectResult() below picks it up on return
+                }
                 const result = await signInWithPopup(auth, googleProvider);
                 applyGoogleProfile(result.user);
             } catch (error) {
