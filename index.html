@@ -3277,6 +3277,20 @@
         window.closeWalletTopupDetail = closeWalletTopupDetail;
 
         window.formatMMK = window.formatMMK || function (n) { return Math.round(n || 0).toLocaleString('en-US') + ' MMK'; };
+        // Frame-collection state must exist before the listener calls below
+        // run (they were previously declared much further down the file with
+        // `let`, which threw a ReferenceError here due to the temporal dead
+        // zone - that uncaught error silently killed every later top-level
+        // statement in this script, including the theme toggle and VIP tier
+        // setup, which is why those stopped working too).
+        let FRAMES = {};
+        let framesListenerAttached = false;
+        let frameCollectionTab = 'avatar';
+        let myUnlockedFrames = [];
+        let myEquippedAvatarFrame = '';
+        let myEquippedNameFrame = '';
+        let userFrameStateListenerAttached = false;
+
         listenWalletBalance();
         listenWalletTopups();
         listenFrames();
@@ -3631,13 +3645,6 @@
         //   'spend'|'orders'|'games'|'manual', target, eventLimited, eventStart,
         //   eventEnd, active }
         // users/{uid}: unlockedFrames:[frameId,...], equippedAvatarFrame, equippedNameFrame
-        let FRAMES = {};
-        let framesListenerAttached = false;
-        let frameCollectionTab = 'avatar';
-        let myUnlockedFrames = [];
-        let myEquippedAvatarFrame = '';
-        let myEquippedNameFrame = '';
-
         function listenFrames() {
             if (framesListenerAttached) return;
             framesListenerAttached = true;
@@ -3654,7 +3661,6 @@
         // the wallet-balance listener above so either can be added/removed
         // independently). Keeps equip choices and newly-granted frames in sync
         // across devices/tabs without a reload.
-        let userFrameStateListenerAttached = false;
         function listenUserFrameState() {
             if (userFrameStateListenerAttached) return;
             userFrameStateListenerAttached = true;
@@ -4427,7 +4433,7 @@
         let orderStatusKnown = {};
         let orderStatusNotified = new Set();
         function listenOwnOrderStatus() {
-            const guestId = getGuestId();
+            const guestId = window.getGuestId ? window.getGuestId() : '';
             if (!guestId) return;
             const q = query(collection(db, "orders"), where("userId", "==", guestId));
             onSnapshot(q, (snap) => {
