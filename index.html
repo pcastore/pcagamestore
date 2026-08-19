@@ -5569,7 +5569,16 @@
             const popularSection = document.getElementById('popular-games-section');
             const popularScroll = document.getElementById('popular-games-scroll');
             const grid = document.getElementById('all-games-grid');
-            const ids = Object.keys(GAMES);
+            // Explicit `order` field (set from the admin's manual Reorder
+            // screen) wins, ascending; games that don't have one yet fall to
+            // the end, alphabetically - so nothing reshuffles on its own.
+            const ids = Object.keys(GAMES).sort((a, b) => {
+                const ga = GAMES[a], gb = GAMES[b];
+                const oa = typeof ga.order === 'number' ? ga.order : Infinity;
+                const ob = typeof gb.order === 'number' ? gb.order : Infinity;
+                if (oa !== ob) return oa - ob;
+                return (ga.name || '').localeCompare(gb.name || '');
+            });
             renderCategoryFilterChips();
             if (ids.length === 0) {
                 grid.innerHTML = '<p class="empty-msg">No games available yet.</p>';
