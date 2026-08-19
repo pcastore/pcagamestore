@@ -1809,10 +1809,7 @@
             </div>
 
             <h3 class="detail-section-title">Select Currency Package</h3>
-            <div class="pkg-type-tabs" id="pkg-type-tabs" style="display:none;">
-                <button type="button" class="pkg-type-tab" data-type="currency" onclick="switchPackageTypeTab('currency')">Currency</button>
-                <button type="button" class="pkg-type-tab" data-type="package" onclick="switchPackageTypeTab('package')">Package</button>
-            </div>
+            <div class="pkg-type-tabs" id="pkg-type-tabs" style="display:none;"></div>
             <div id="detail-package-list" class="package-grid"></div>
 
             <div id="detail-payment-section" style="display:none;">
@@ -2007,6 +2004,21 @@
         // the same way into window.PAYMENT_METHODS.
         let selectedPackage = null;
         let activePackageTab = 'currency';
+        // Label shown on a tab button/chip. Admin's two built-in tabs get
+        // friendly names; any custom tab (e.g. "Wow") just uses its own name
+        // as saved by the admin panel, matching pkgTabLabel() in index.html.
+        function pkgTabLabel(tabId) {
+            if (tabId === 'package') return 'Package';
+            if (tabId === 'currency') return 'Currency';
+            return tabId;
+        }
+        // A package's organizational tab is its `tab` field. Older saved
+        // packages (or ones synced from before the admin's custom-tab
+        // feature) may not have one, so fall back to `type` — which itself
+        // defaults to 'currency' — so nothing that worked before regresses.
+        function pkgTabOf(pkg) {
+            return pkg.tab || pkg.type || 'currency';
+        }
         let selectedGameName = null;
         let selectedGameServerName = '';
 
@@ -2243,17 +2255,30 @@
             document.getElementById('detail-game-banner').alt = game.name;
             loadSavedContactIntoForm();
 
-            const hasCurrency = game.packages.some(pkg => pkg.type !== 'package');
-            const hasPackage = game.packages.some(pkg => pkg.type === 'package');
+            // Build the tab list from whatever tabs the admin actually put
+            // packages into (Currency/Package built-ins plus any custom tab
+            // like "Wow"), not just the two hardcoded types — otherwise a
+            // custom tab's packages are invisible as their own section here.
             const tabsEl = document.getElementById('pkg-type-tabs');
-            if (hasCurrency && hasPackage) {
+            const seenTabs = [];
+            game.packages.forEach(pkg => {
+                const t = pkgTabOf(pkg);
+                if (!seenTabs.includes(t)) seenTabs.push(t);
+            });
+            // Keep a stable, familiar order: built-ins first, then custom
+            // tabs in the order the admin created them.
+            const orderedTabs = ['package', 'currency', ...seenTabs.filter(t => t !== 'package' && t !== 'currency')]
+                .filter(t => seenTabs.includes(t));
+            if (orderedTabs.length > 1) {
                 tabsEl.style.display = 'flex';
-                activePackageTab = 'currency';
+                activePackageTab = orderedTabs.includes('currency') ? 'currency' : orderedTabs[0];
             } else {
                 tabsEl.style.display = 'none';
-                activePackageTab = hasPackage ? 'package' : 'currency';
+                activePackageTab = orderedTabs[0] || 'currency';
             }
-            document.querySelectorAll('.pkg-type-tab').forEach(el => el.classList.toggle('active', el.dataset.type === activePackageTab));
+            tabsEl.innerHTML = orderedTabs.map(t => `
+                <button type="button" class="pkg-type-tab ${t === activePackageTab ? 'active' : ''}" data-type="${t}" onclick="switchPackageTab('${t.replace(/'/g, "\\'")}')">${pkgTabLabel(t)}</button>
+            `).join('');
             renderDetailPackageList();
 
             document.getElementById('detail-payment-section').style.display = 'none';
@@ -2277,16 +2302,16 @@
             showPage('game-detail');
         }
 
-        function switchPackageTypeTab(type) {
-            activePackageTab = type;
-            document.querySelectorAll('.pkg-type-tab').forEach(el => el.classList.toggle('active', el.dataset.type === type));
+        function switchPackageTab(tabId) {
+            activePackageTab = tabId;
+            document.querySelectorAll('.pkg-type-tab').forEach(el => el.classList.toggle('active', el.dataset.type === tabId));
             renderDetailPackageList();
         }
+        window.switchPackageTab = switchPackageTab;
 
         function renderDetailPackageList() {
             const list = document.getElementById('detail-package-list');
             const packages = window.currentGamePackages || [];
-            const isPackageType = activePackageTab === 'package';
             // Both tabs now share the same compact grid look — no more separate
             // wide-banner layout for "package" type items.
             list.classList.remove('layout-package');
@@ -2294,7 +2319,7 @@
 
             const entries = packages
                 .map((pkg, i) => ({ pkg, i }))
-                .filter(({ pkg }) => (pkg.type === 'package') === isPackageType);
+                .filter(({ pkg }) => pkgTabOf(pkg) === activePackageTab);
 
             if (!entries.length) {
                 list.innerHTML = '<p class="empty-msg">No packages available</p>';
