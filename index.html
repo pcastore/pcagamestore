@@ -244,14 +244,21 @@
            into place with a slight overshoot, staggered card-by-card so the whole
            grid feels like it "unrolls" in whenever it appears (on load, category
            switch, search, or scroll) instead of popping in flat. */
-        .game-card-anim { opacity: 0; animation: gameCardIn 0.5s cubic-bezier(.22,1.12,.36,1) both; }
+        /* Cards start hidden and only play the entrance keyframe once the
+           scroll-reveal observer (see revealCardsIn() in JS) marks them
+           ".in-view" - i.e. as the user actually drags the page up/down and
+           each card scrolls into the viewport, rather than all firing at once
+           on render. Cards already on-screen at render time reveal almost
+           immediately (staggered by the existing per-card animation-delay). */
+        .game-card-anim { opacity: 0; }
+        .game-card-anim.in-view { animation: gameCardIn 0.5s cubic-bezier(.22,1.12,.36,1) both; }
         @keyframes gameCardIn {
             0%   { opacity: 0; transform: translateY(18px) scale(0.92); }
             60%  { opacity: 1; transform: translateY(-2px) scale(1.015); }
             100% { opacity: 1; transform: translateY(0) scale(1); }
         }
         @media (prefers-reduced-motion: reduce) {
-            .game-card-anim { animation: none; opacity: 1; }
+            .game-card-anim, .game-card-anim.in-view { animation: none; opacity: 1; }
         }
 
         /* Skeleton loading placeholders — shown instead of "Loading..." text while
@@ -2376,6 +2383,7 @@
                     <div class="pc-price-bar"><span class="pc-price">${pkg.price.toLocaleString()} MMK</span></div>
                 </div>`;
             }).join('');
+            revealCardsIn(list);
         }
 
         function selectPackageOption(index) {
@@ -5596,6 +5604,7 @@
                     </div>
                 `;
             }).join('');
+            revealCardsIn(grid);
             showPage('server-select');
         }
         window.openServerSelect = openServerSelect;
@@ -5604,6 +5613,33 @@
             showPage('home');
         }
         window.closeServerSelect = closeServerSelect;
+
+        // Scroll-reveal for .game-card-anim elements: instead of every card
+        // animating in the instant it's rendered, each card stays invisible
+        // until it actually scrolls into view, then plays the entrance
+        // animation - so dragging the page up/down reveals cards one by one.
+        const cardRevealObserver = ('IntersectionObserver' in window)
+            ? new IntersectionObserver((entries) => {
+                entries.forEach(entry => {
+                    if (entry.isIntersecting) {
+                        entry.target.classList.add('in-view');
+                        cardRevealObserver.unobserve(entry.target);
+                    }
+                });
+            }, { root: null, rootMargin: '0px 0px -8% 0px', threshold: 0.15 })
+            : null;
+
+        function revealCardsIn(container) {
+            if (!container) return;
+            const cards = container.querySelectorAll('.game-card-anim:not(.in-view)');
+            if (!cardRevealObserver) {
+                // No IntersectionObserver support - just show them.
+                cards.forEach(el => el.classList.add('in-view'));
+                return;
+            }
+            cards.forEach(el => cardRevealObserver.observe(el));
+        }
+        window.revealCardsIn = revealCardsIn;
 
         function renderHomeGames() {
             const popularSection = document.getElementById('popular-games-section');
@@ -5652,6 +5688,7 @@
                         </div>
                     `;
                 }).join('');
+                revealCardsIn(popularScroll);
             } else {
                 popularSection.style.display = 'none';
                 popularScroll.innerHTML = '';
@@ -5684,6 +5721,7 @@
                     </div>
                 `;
             }).join('');
+            revealCardsIn(grid);
         }
 
 
