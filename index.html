@@ -220,6 +220,12 @@
         
         /* Cards & Lists */
         .cards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
+        /* Wider screens (tablet/desktop/laptop): the phone-style 2-up grid would
+           blow each card up to half the browser width, so switch to a proper
+           multi-column tile grid there instead — mobile stays untouched at 2/row. */
+        @media (min-width: 700px) {
+            .cards-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px; }
+        }
         html { scroll-behavior: smooth; }
         body { -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; }
         /* Cards render on their own compositor layer so scroll-drag doesn't
@@ -233,6 +239,20 @@
         .game-card-img-wrap { position: relative; aspect-ratio: 1 / 1; border-radius: 14px; overflow: hidden; background: var(--border); border: 1px solid var(--border); }
         .game-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .game-card-name { margin: 8px 0 0; padding: 7px 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); color: var(--text); font-size: 13px; font-weight: 700; text-align: center; line-height: 1.25; }
+
+        /* Entrance motion for game/order cards: each card fades + rises + settles
+           into place with a slight overshoot, staggered card-by-card so the whole
+           grid feels like it "unrolls" in whenever it appears (on load, category
+           switch, search, or scroll) instead of popping in flat. */
+        .game-card-anim { opacity: 0; animation: gameCardIn 0.5s cubic-bezier(.22,1.12,.36,1) both; }
+        @keyframes gameCardIn {
+            0%   { opacity: 0; transform: translateY(18px) scale(0.92); }
+            60%  { opacity: 1; transform: translateY(-2px) scale(1.015); }
+            100% { opacity: 1; transform: translateY(0) scale(1); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .game-card-anim { animation: none; opacity: 1; }
+        }
 
         /* Skeleton loading placeholders — shown instead of "Loading..." text while
            games/packages/history are being fetched, so the layout doesn't jump once
@@ -552,6 +572,19 @@
 
         .package-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .package-grid.layout-currency { grid-template-columns: repeat(3, 1fr); gap: 9px; }
+
+        /* Order/detail page on wider screens: banner shrinks and sits in its
+           own sidebar column instead of stretching full-width, account info +
+           packages + payment move beside it, and the package tiles fall back
+           to an auto-fill grid so they stay a sensible size instead of growing
+           into oversized squares. Mobile (below 700px) is untouched. */
+        .detail-layout { display: block; }
+        @media (min-width: 700px) {
+            .detail-layout { display: grid; grid-template-columns: minmax(220px, 300px) 1fr; gap: 28px; align-items: start; }
+            .detail-banner-col { position: sticky; top: 88px; }
+            #detail-game-banner { margin-bottom: 0; }
+            .package-grid.layout-currency { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; }
+        }
         .package-card { border: 2px solid var(--border); border-radius: 14px; cursor: pointer; transition: 0.15s; background: var(--surface); overflow: hidden; display: flex; flex-direction: column; }
         .package-card.selected { border-color: var(--accent); }
 
@@ -1783,7 +1816,11 @@
                 </div>
                 <h2 style="font-size:18px; font-weight:700; color:var(--text);" id="detail-game-name">Game</h2>
             </div>
+            <div class="detail-layout">
+            <div class="detail-banner-col">
             <img id="detail-game-banner" src="" alt="" style="width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:12px; margin-bottom:8px;">
+            </div>
+            <div class="detail-main-col">
 
             <h3 class="detail-section-title">Account Info</h3>
             <div class="detail-form-card">
@@ -1862,6 +1899,9 @@
                         <p style="font-size:11px;color:var(--text-secondary);margin-top:4px;">Copy the transaction / reference number shown on your payment receipt.</p>
                     </div>
                 </div>
+            </div>
+
+            </div>
             </div>
 
             <div class="slide-confirm-wrap" id="detail-confirm-wrap" style="margin-top:20px;">
@@ -2326,11 +2366,11 @@
                 return;
             }
 
-            list.innerHTML = entries.map(({ pkg, i }) => {
+            list.innerHTML = entries.map(({ pkg, i }, pos) => {
                 const img = pkg.image || DEFAULT_PACKAGE_ICON;
                 const imgTag = `<img class="pc-img" src="${img}" alt="" loading="lazy" onerror="this.src='${DEFAULT_PACKAGE_ICON}'">`;
                 return `
-                <div class="package-card type-currency" data-index="${i}" onclick="selectPackageOption(${i})">
+                <div class="package-card type-currency game-card-anim" style="animation-delay:${Math.min(pos * 40, 360)}ms" data-index="${i}" onclick="selectPackageOption(${i})">
                     <div class="pc-img-wrap">${imgTag}</div>
                     <div class="pc-info"><span class="pc-label">${pkg.amount}</span></div>
                     <div class="pc-price-bar"><span class="pc-price">${pkg.price.toLocaleString()} MMK</span></div>
@@ -5544,11 +5584,11 @@
             if (!group) return;
             document.getElementById('server-select-title').innerText = group.name;
             const grid = document.getElementById('server-select-grid');
-            grid.innerHTML = group.ids.map(id => {
+            grid.innerHTML = group.ids.map((id, i) => {
                 const g = GAMES[id];
                 const label = g.serverName || g.name;
                 return `
-                    <div class="game-card" onclick="openGameDetail('${id}')">
+                    <div class="game-card game-card-anim" style="animation-delay:${Math.min(i * 45, 400)}ms" onclick="openGameDetail('${id}')">
                         <div class="game-card-img-wrap">
                             <img src="${g.image}" alt="${label}" loading="lazy" decoding="async">
                         </div>
@@ -5600,10 +5640,10 @@
             const popularGroups = gameSearchQuery ? [] : indexedGroups.filter(gr => gr.ids.some(id => GAMES[id].popular));
             if (popularGroups.length > 0) {
                 popularSection.style.display = 'block';
-                popularScroll.innerHTML = popularGroups.map(gr => {
+                popularScroll.innerHTML = popularGroups.map((gr, i) => {
                     const g = GAMES[gr.repId];
                     return `
-                        <div class="game-card popular-card" onclick="openGameEntry(${gr.idx})">
+                        <div class="game-card popular-card game-card-anim" style="animation-delay:${Math.min(i * 45, 400)}ms" onclick="openGameEntry(${gr.idx})">
                             <div class="game-card-img-wrap">
                                 <img src="${g.image}" alt="${g.name}" loading="lazy" decoding="async">
                                 ${categoryBadgeHtml(g.category)}
@@ -5632,10 +5672,10 @@
                     : `<p class="empty-msg">No games in this category yet.</p>`;
                 return;
             }
-            grid.innerHTML = visibleGroups.map(gr => {
+            grid.innerHTML = visibleGroups.map((gr, i) => {
                 const g = GAMES[gr.repId];
                 return `
-                    <div class="game-card" onclick="openGameEntry(${gr.idx})">
+                    <div class="game-card game-card-anim" style="animation-delay:${Math.min(i * 45, 400)}ms" onclick="openGameEntry(${gr.idx})">
                         <div class="game-card-img-wrap">
                             <img src="${g.image}" alt="${g.name}" loading="lazy" decoding="async">
                             ${categoryBadgeHtml(g.category)}
