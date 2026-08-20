@@ -251,10 +251,10 @@
            on render. Cards already on-screen at render time reveal almost
            immediately (staggered by the existing per-card animation-delay). */
         .game-card-anim { opacity: 0; }
-        .game-card-anim.in-view { animation: gameCardIn 0.5s cubic-bezier(.22,1.12,.36,1) both; }
+        .game-card-anim.in-view { animation: gameCardIn 0.32s cubic-bezier(.22,1.12,.36,1) both; }
         @keyframes gameCardIn {
-            0%   { opacity: 0; transform: translateY(18px) scale(0.92); }
-            60%  { opacity: 1; transform: translateY(-2px) scale(1.015); }
+            0%   { opacity: 0; transform: translateY(12px) scale(0.95); }
+            60%  { opacity: 1; transform: translateY(-1px) scale(1.01); }
             100% { opacity: 1; transform: translateY(0) scale(1); }
         }
         @media (prefers-reduced-motion: reduce) {
@@ -2377,7 +2377,7 @@
                 const img = pkg.image || DEFAULT_PACKAGE_ICON;
                 const imgTag = `<img class="pc-img" src="${img}" alt="" loading="lazy" onerror="this.src='${DEFAULT_PACKAGE_ICON}'">`;
                 return `
-                <div class="package-card type-currency game-card-anim" style="animation-delay:${Math.min(pos * 40, 360)}ms" data-index="${i}" onclick="selectPackageOption(${i})">
+                <div class="package-card type-currency game-card-anim" style="animation-delay:${Math.min(pos * 25, 200)}ms" data-index="${i}" onclick="selectPackageOption(${i})">
                     <div class="pc-img-wrap">${imgTag}</div>
                     <div class="pc-info"><span class="pc-label">${pkg.amount}</span></div>
                     <div class="pc-price-bar"><span class="pc-price">${pkg.price.toLocaleString()} MMK</span></div>
@@ -5596,7 +5596,7 @@
                 const g = GAMES[id];
                 const label = g.serverName || g.name;
                 return `
-                    <div class="game-card game-card-anim" style="animation-delay:${Math.min(i * 45, 400)}ms" onclick="openGameDetail('${id}')">
+                    <div class="game-card game-card-anim" style="animation-delay:${Math.min(i * 25, 200)}ms" onclick="openGameDetail('${id}')">
                         <div class="game-card-img-wrap">
                             <img src="${g.image}" alt="${label}" loading="lazy" decoding="async">
                         </div>
@@ -5626,7 +5626,7 @@
                         cardRevealObserver.unobserve(entry.target);
                     }
                 });
-            }, { root: null, rootMargin: '0px 0px -8% 0px', threshold: 0.15 })
+            }, { root: null, rootMargin: '0px 0px 15% 0px', threshold: 0.01 })
             : null;
 
         function revealCardsIn(container) {
@@ -5679,7 +5679,7 @@
                 popularScroll.innerHTML = popularGroups.map((gr, i) => {
                     const g = GAMES[gr.repId];
                     return `
-                        <div class="game-card popular-card game-card-anim" style="animation-delay:${Math.min(i * 45, 400)}ms" onclick="openGameEntry(${gr.idx})">
+                        <div class="game-card popular-card game-card-anim" style="animation-delay:${Math.min(i * 25, 200)}ms" onclick="openGameEntry(${gr.idx})">
                             <div class="game-card-img-wrap">
                                 <img src="${g.image}" alt="${g.name}" loading="lazy" decoding="async">
                                 ${categoryBadgeHtml(g.category)}
@@ -5712,7 +5712,7 @@
             grid.innerHTML = visibleGroups.map((gr, i) => {
                 const g = GAMES[gr.repId];
                 return `
-                    <div class="game-card game-card-anim" style="animation-delay:${Math.min(i * 45, 400)}ms" onclick="openGameEntry(${gr.idx})">
+                    <div class="game-card game-card-anim" style="animation-delay:${Math.min(i * 25, 200)}ms" onclick="openGameEntry(${gr.idx})">
                         <div class="game-card-img-wrap">
                             <img src="${g.image}" alt="${g.name}" loading="lazy" decoding="async">
                             ${categoryBadgeHtml(g.category)}
