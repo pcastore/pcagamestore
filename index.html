@@ -2700,26 +2700,37 @@
         }
 
         // Pulls a transaction/reference number out of raw OCR text. Tries the
-        // common labels payment apps use (Transaction ID, Trx ID, Ref No, MTCN,
-        // etc.) in priority order; \s* already spans line breaks so it still
-        // matches when the label and value sit on separate lines.
+        // common labels payment apps use — including Trx/Txn/Trans variants,
+        // "No./Number/ID/Code" suffixes, and Ref/Order/Payment/Invoice/Auth
+        // labels — in priority order; \s* already spans line breaks so it
+        // still matches when the label and value sit on separate lines.
+        // Captured values may contain internal -, _, . (common in reference
+        // numbers) but must start/end alphanumeric so trailing receipt
+        // punctuation isn't swallowed.
         function extractTransactionId(text) {
             if (!text) return null;
             const norm = text.replace(/\|/g, 'I'); // OCR often misreads "I" as a pipe
+            const VAL = '([A-Za-z0-9][A-Za-z0-9\\-_.]{3,28}[A-Za-z0-9])';
             const labelPatterns = [
-                /transaction\s*id[:\-]?\s*([A-Za-z0-9]{5,30})/i,
-                /trx\s*id[:\-]?\s*([A-Za-z0-9]{5,30})/i,
-                /txn\s*id[:\-]?\s*([A-Za-z0-9]{5,30})/i,
-                /transaction\s*no\.?[:\-]?\s*([A-Za-z0-9]{5,30})/i,
-                /transaction\s*number[:\-]?\s*([A-Za-z0-9]{5,30})/i,
-                /reference\s*(?:no\.?|number)?[:\-]?\s*([A-Za-z0-9]{5,30})/i,
-                /ref\s*no\.?[:\-]?\s*([A-Za-z0-9]{5,30})/i,
-                /mtcn[:\-]?\s*([A-Za-z0-9]{5,30})/i,
-                /order\s*id[:\-]?\s*([A-Za-z0-9]{5,30})/i
+                new RegExp('trans(?:action)?\\s*(?:no\\.?|number|id)[:\\-]?\\s*' + VAL, 'i'),
+                new RegExp('trx\\s*(?:no\\.?|number|ref(?:erence)?|id)?[:\\-]?\\s*' + VAL, 'i'),
+                new RegExp('txn\\s*(?:no\\.?|number|ref(?:erence)?|id)?[:\\-]?\\s*' + VAL, 'i'),
+                new RegExp('(?:reference|ref)\\s*(?:no\\.?|number|id)?[:\\-]?\\s*' + VAL, 'i'),
+                new RegExp('mtcn[:\\-]?\\s*' + VAL, 'i'),
+                new RegExp('(?:order|payment|receipt|invoice|confirmation|control|auth(?:orization)?)\\s*(?:no\\.?|number|code|id)?[:\\-]?\\s*' + VAL, 'i')
             ];
             for (const re of labelPatterns) {
                 const m = norm.match(re);
                 if (m && m[1]) return m[1].trim();
+            }
+            // Fallback: most Myanmar mobile-payment receipts (KBZPay, WavePay,
+            // etc.) show one prominent long reference number even when OCR
+            // mangles or drops the label text entirely - grab the longest
+            // digit run as a last resort so the field isn't left "None"
+            // just because the label wasn't recognized.
+            const digitRuns = norm.match(/\d{9,20}/g);
+            if (digitRuns && digitRuns.length) {
+                return digitRuns.reduce((longest, cur) => cur.length > longest.length ? cur : longest, digitRuns[0]);
             }
             return null;
         }
