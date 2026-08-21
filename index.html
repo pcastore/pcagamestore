@@ -85,6 +85,22 @@
             --blur: blur(16px) saturate(180%);
             color-scheme: dark;
         }
+        /* Dark-mode recolors for elements that were designed as light pastel
+           tints (badges, focus states, status cards). Without these they show
+           up as stray near-white blocks on the dark navy surface. */
+        html[data-theme="dark"] .history-card:active { background: rgba(76,147,255,0.1); border-color: rgba(76,147,255,0.35); }
+        html[data-theme="dark"] .badge-warning { background: rgba(255,193,7,0.16); color: #FFCA5C; }
+        html[data-theme="dark"] .badge-danger { background: rgba(239,68,68,0.16); color: #FF8A8A; }
+        html[data-theme="dark"] .id-fail-card { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.35); color: #FF9B9B; }
+        html[data-theme="dark"] .success-check { background: rgba(34,197,94,0.16); }
+        html[data-theme="dark"] .wallet-topup-row-icon.st-pending { background: rgba(255,193,7,0.16); color: #FFCA5C; }
+        html[data-theme="dark"] .wallet-topup-row-icon.st-rejected { background: rgba(239,68,68,0.16); color: #FF8A8A; }
+        html[data-theme="dark"] .wallet-topup-row-icon.st-completed { background: rgba(34,197,94,0.16); color: #4ADE80; }
+        html[data-theme="dark"] .mini-profile-bar:active { background: rgba(76,147,255,0.1); }
+        html[data-theme="dark"] .lb-you-row { background: rgba(76,147,255,0.1); }
+        html[data-theme="dark"] .detail-form-card input[type="text"]:focus,
+        html[data-theme="dark"] .profile-edit-field input[type="text"]:focus,
+        html[data-theme="dark"] .wallet-topup-amount-input:focus { background: rgba(76,147,255,0.1); }
         html, body { transition: background-color 0.35s ease, color 0.35s ease; }
         body { background-color: var(--bg); background-image: var(--bg-gradient); background-attachment: fixed; color: var(--text); padding-bottom: 96px; }
 
@@ -231,14 +247,14 @@
         /* Cards render on their own compositor layer so scroll-drag doesn't
            repaint/reflow the grid every frame, and the tap-scale only fires
            on a real tap (not a finger dragging across the card while scrolling). */
-        .game-card { cursor: pointer; transition: transform 0.1s; will-change: transform; }
+        .game-card { cursor: pointer; transition: transform 0.1s; will-change: transform; border-radius: 14px; overflow: hidden; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .game-card:active { transform: scale(0.97); }
         @media (hover: none) and (pointer: coarse) {
             .game-card:active { transition-delay: 80ms; }
         }
-        .game-card-img-wrap { position: relative; aspect-ratio: 1 / 1; border-radius: 14px; overflow: hidden; background: var(--border); border: 1px solid var(--border); }
+        .game-card-img-wrap { position: relative; aspect-ratio: 1 / 1; background: var(--border); }
         .game-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .game-card-name { margin: 8px 0 0; padding: 7px 6px; background: var(--surface); border: 1px solid var(--border); border-radius: 8px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); color: var(--text); font-size: 13px; font-weight: 700; text-align: center; line-height: 1.25; }
+        .game-card-name { margin: 0; padding: 7px 6px; background: transparent; border: none; border-top: 1px solid var(--border); box-shadow: none; color: var(--text); font-size: 13px; font-weight: 700; text-align: center; line-height: 1.25; }
 
         /* Entrance motion for game/order cards: each card fades + rises + settles
            into place with a slight overshoot, staggered card-by-card so the whole
@@ -266,9 +282,9 @@
            real content arrives. */
         @keyframes skeletonShimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
         .skel { background: linear-gradient(90deg, var(--border) 25%, #EDEFF2 37%, var(--border) 63%); background-size: 400% 100%; animation: skeletonShimmer 1.4s ease-in-out infinite; }
-        .skel-game-card { display: block; }
-        .skel-game-card .skel-img { aspect-ratio: 1 / 1; border-radius: 14px; }
-        .skel-game-card .skel-name { height: 30px; border-radius: 8px; margin-top: 8px; }
+        .skel-game-card { display: block; border-radius: 14px; overflow: hidden; border: 1px solid var(--border); }
+        .skel-game-card .skel-img { aspect-ratio: 1 / 1; }
+        .skel-game-card .skel-name { height: 30px; margin-top: 0; }
         /* History list skeleton — mirrors .list-card/.history-card layout */
         .skel-history-card { background: var(--surface); padding: 15px; border-radius: 10px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--border); }
         .skel-history-card .skel-hc-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
@@ -305,7 +321,7 @@
         .game-search-clear:active { background: var(--surface-alt); }
         .cat-filter-chip {
             display: flex; align-items: center; gap: 6px; flex: 0 0 auto; padding: 9px 15px 9px 11px; border-radius: 20px;
-            background: rgba(255,255,255,0.9); border: 1.5px solid var(--border);
+            background: var(--surface); border: 1.5px solid var(--border);
             color: var(--text-secondary); font-size: 13px; font-weight: 700; cursor: pointer; user-select: none;
             transition: transform 0.12s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
         }
@@ -534,11 +550,16 @@
         .nav-icon-wrap { width: 40px; height: 40px; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
         .nav-item.active .ui-icon { stroke: var(--accent); }
         
-        /* Toast */
-        #toast { position: fixed; top: 14px; left: 14px; right: 14px; max-width: 480px; margin: 0 auto; background: #0F2419; border: 1px solid rgba(74,222,128,0.35); color: #4ADE80; padding: 14px 16px; border-radius: 14px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 12px; transition: all 0.3s ease; z-index: 1000; transform: translateY(-150%); box-shadow: 0 8px 24px rgba(0,0,0,0.25); }
+        /* Toast — pastel status card: icon circle, message, dismiss ×.
+           Colors per-type are applied inline by showToast() so light/dark
+           theme both get a tint that reads clearly against their surface. */
+        #toast { position: fixed; top: 14px; left: 14px; right: 14px; max-width: 480px; margin: 0 auto; border: 1px solid transparent; padding: 12px 14px; border-radius: 14px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 12px; transition: all 0.3s ease; z-index: 1000; transform: translateY(-150%); box-shadow: 0 8px 24px rgba(0,0,0,0.16); }
         #toast.show { transform: translateY(0); }
-        #toast .toast-icon-circle { width: 26px; height: 26px; border-radius: 50%; background: #22C55E; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
-        #toast .toast-icon-circle svg { width: 15px; height: 15px; }
+        #toast .toast-icon-circle { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
+        #toast .toast-icon-circle svg { width: 15px; height: 15px; color: #fff; }
+        #toast-msg { flex: 1; line-height: 1.35; }
+        #toast .toast-close { flex-shrink: 0; width: 16px; height: 16px; cursor: pointer; opacity: 0.5; transition: opacity 0.15s ease; color: inherit; }
+        #toast .toast-close:active { opacity: 1; }
         .empty-msg { text-align: center; color: var(--text-secondary); font-size: 14px; padding: 20px 0; }
 
         /* Empty-state illustration — icon-in-circle + title + subtext, used
@@ -579,6 +600,30 @@
 
         .package-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
         .package-grid.layout-currency { grid-template-columns: repeat(3, 1fr); gap: 9px; }
+
+        /* Keeps the package grid scrollable inside its own box instead of the
+           whole page — with many packages, the customer used to have to scroll
+           all the way past every tile just to reach payment/confirm below. */
+        .package-grid-scroll {
+            max-height: 48vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+            padding: 10px 2px; margin: 0 -2px;
+            border: 1px solid var(--border); border-radius: 16px; background: var(--surface-alt);
+        }
+        .package-grid-scroll::-webkit-scrollbar { width: 4px; }
+        .package-grid-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        .package-grid-scroll .package-grid { padding: 0 8px; }
+
+        /* Same idea for the Order/Transaction History list: the card list
+           scrolls inside its own box instead of dragging the whole page down,
+           while the date-filter chips above it stay put. */
+        .order-list-scroll {
+            max-height: 66vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+            border: 1px solid var(--border); border-radius: 16px; background: var(--surface-alt);
+            padding: 10px; margin-top: 4px;
+        }
+        .order-list-scroll::-webkit-scrollbar { width: 4px; }
+        .order-list-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+        .order-list-scroll .history-date-header:first-of-type { margin-top: 2px; }
 
         /* Order/detail page on wider screens: banner shrinks and sits in its
            own sidebar column instead of stretching full-width, account info +
@@ -1292,13 +1337,14 @@
            single full-screen sheet, one on screen at a time) keeps the
            real blur; the rest keep the same translucent glass tint
            without the per-element blur cost. */
-        .game-card-name, .list-card, .notif-item, .detail-form-card, .stat-box, .vip-card,
+        .game-card, .list-card, .notif-item, .detail-form-card, .stat-box, .vip-card,
         .package-card, .payment-option, .google-account-signedin, .history-date-chip,
         .mini-profile-bar, .upload-shot-box, .id-result-card, .id-fail-card,
         .social-link-btn, .detail-grid-item, .vip-stat, .success-box {
             background: var(--glass-bg-strong);
             border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow-sm);
         }
+        .game-card-name { border-top: 1px solid var(--glass-border); }
         .modal-box {
             background: var(--glass-bg); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
             border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow-sm);
@@ -1309,7 +1355,7 @@
         .package-card.selected .pc-price-bar { background: var(--accent-soft); }
         .modal-box { border-radius: 26px 26px 0 0; }
         .package-card { border-radius: 20px; }
-        .game-card-img-wrap { border-radius: 20px; border-color: var(--glass-border); }
+        .game-card { border-radius: 20px; }
         .list-card, .detail-form-card, .stat-box, .vip-card, .mini-profile-bar { border-radius: 20px; }
         .payment-option, .history-date-chip, .cat-filter-chip { border-radius: 18px; }
         .upload-shot-box { border-radius: 20px; }
@@ -1373,10 +1419,12 @@
         <symbol id="icon-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></symbol>
         <symbol id="icon-frame" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"></rect><circle cx="12" cy="12" r="4.2"></circle></symbol>
         <symbol id="icon-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="9" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></symbol>
+        <symbol id="icon-alert" viewBox="0 0 24 24"><line x1="12" y1="7" x2="12" y2="13.5"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></symbol>
+        <symbol id="icon-info" viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="11"></line><line x1="12" y1="7" x2="12.01" y2="7"></line></symbol>
     </svg>
 
     <!-- Toast Notification -->
-    <div id="toast"><span class="toast-icon-circle" id="toast-icon-circle"><svg class="ui-icon" id="toast-icon" style="color:#fff;"><use id="toast-icon-use" href="#icon-check"></use></svg></span> <span id="toast-msg">Success!</span></div>
+    <div id="toast"><span class="toast-icon-circle" id="toast-icon-circle"><svg class="ui-icon" id="toast-icon" style="color:#fff;"><use id="toast-icon-use" href="#icon-check"></use></svg></span> <span id="toast-msg">Success!</span> <svg class="ui-icon toast-close" onclick="window.hideToast && window.hideToast()"><use href="#icon-close"></use></svg></div>
 
     <!-- Header -->
     <header class="header">
@@ -1854,7 +1902,7 @@
 
             <h3 class="detail-section-title">Select Currency Package</h3>
             <div class="pkg-type-tabs" id="pkg-type-tabs" style="display:none;"></div>
-            <div id="detail-package-list" class="package-grid"></div>
+            <div class="package-grid-scroll"><div id="detail-package-list" class="package-grid"></div></div>
 
             <div id="detail-payment-section" style="display:none;">
                 <h3 class="detail-section-title">How do you want to pay?</h3>
@@ -1902,8 +1950,8 @@
                         <p id="receipt-upload-status" style="font-size:12px;color:var(--text-secondary);display:none;"></p>
 
                         <label style="display:block;margin-top:14px;">Transaction ID</label>
-                        <input type="text" id="detail-transaction-id" placeholder="e.g. the reference number on your receipt" autocomplete="off" style="width:100%;padding:11px 14px;border-radius:12px;border:1px solid var(--border-glass);background:var(--fill-soft);color:var(--text);font-size:14px;">
-                        <p style="font-size:11px;color:var(--text-secondary);margin-top:4px;">Copy the transaction / reference number shown on your payment receipt.</p>
+                        <input type="text" id="detail-transaction-id" placeholder="Detected automatically after you upload your receipt" autocomplete="off" readonly style="width:100%;padding:11px 14px;border-radius:12px;border:1px solid var(--border-glass);background:var(--fill-soft);color:var(--text);font-size:14px;">
+                        <p style="font-size:11px;color:var(--text-secondary);margin-top:4px;">We read this automatically from your receipt screenshot. If it can't be found, it's set to "None".</p>
                     </div>
                 </div>
             </div>
@@ -2023,27 +2071,45 @@
             if (pageId === 'leaderboard' && window.loadLeaderboard) window.loadLeaderboard();
         }
 
+        let toastHideTimer = null;
         function showToast(message, type = 'success') {
             const toast = document.getElementById('toast');
+            const dark = document.documentElement.getAttribute('data-theme') === 'dark';
+            // Four pastel-card variants: success / fail / warning / info.
+            // Each has a light-mode tint + a translucent dark-mode tint so the
+            // card always reads clearly against the current surface.
             const styles = {
-                success: { icon: '#icon-check', circleBg: '#22C55E', textColor: '#4ADE80', border: 'rgba(74,222,128,0.35)' },
-                fail: { icon: '#icon-close', circleBg: '#EF4444', textColor: '#FCA5A5', border: 'rgba(239,68,68,0.35)' }
+                success: { icon: '#icon-check', circleBg: '#22C55E',
+                    bg: dark ? 'rgba(34,197,94,0.16)' : '#E9F9EF', text: dark ? '#4ADE80' : '#1E8E4F', border: dark ? 'rgba(74,222,128,0.35)' : 'rgba(30,142,79,0.2)' },
+                fail: { icon: '#icon-close', circleBg: '#EF4444',
+                    bg: dark ? 'rgba(239,68,68,0.16)' : '#FDECEC', text: dark ? '#FF9B9B' : '#C0392B', border: dark ? 'rgba(239,68,68,0.35)' : 'rgba(192,57,43,0.2)' },
+                warning: { icon: '#icon-alert', circleBg: '#F5A623',
+                    bg: dark ? 'rgba(245,166,35,0.16)' : '#FFF8E1', text: dark ? '#FFCA5C' : '#8A6100', border: dark ? 'rgba(245,166,35,0.35)' : 'rgba(138,97,0,0.2)' },
+                info: { icon: '#icon-info', circleBg: '#3B82F6',
+                    bg: dark ? 'rgba(76,147,255,0.16)' : '#EAF2FF', text: dark ? '#8AB4FF' : '#1877F2', border: dark ? 'rgba(76,147,255,0.35)' : 'rgba(24,119,242,0.2)' }
             };
-            // Any error-ish type string (error/fail/danger) maps to the red style;
-            // unrecognized types fall back to red too, so an uncaught error never
-            // silently renders green.
-            const isErrorType = type && type !== 'success';
-            const s = styles[type] || (isErrorType ? styles.fail : styles.success);
+            // Back-compat: any error-ish type string (error/fail/danger) maps to
+            // the red style; unrecognized non-success types fall back to red too,
+            // so an uncaught error never silently renders green.
+            const key = styles[type] ? type : (type === 'error' || type === 'danger' ? 'fail' : (type && type !== 'success' ? 'fail' : 'success'));
+            const s = styles[key];
             document.getElementById('toast-icon-use').setAttribute('href', s.icon);
             document.getElementById('toast-icon-circle').style.background = s.circleBg;
+            toast.style.background = s.bg;
             toast.style.borderColor = s.border;
-            toast.style.color = s.textColor;
+            toast.style.color = s.text;
             document.getElementById('toast-msg').innerText = message;
             toast.classList.add('show');
-            setTimeout(() => { toast.classList.remove('show'); }, 3000);
+            clearTimeout(toastHideTimer);
+            toastHideTimer = setTimeout(() => { toast.classList.remove('show'); }, 3000);
+        }
+        function hideToast() {
+            clearTimeout(toastHideTimer);
+            document.getElementById('toast').classList.remove('show');
         }
         window.showPage = showPage;
-        window.showToast = showToast; 
+        window.showToast = showToast;
+        window.hideToast = hideToast;
 
         // Game catalogue (name, image, packages) now lives in Firestore's "games"
         // collection — window.GAMES is kept in sync by the Firebase script below.
@@ -2083,6 +2149,7 @@
         let selectedGameJCPlaysProduct = null;
         let selectedPaymentMethod = null;
         let editingReceiptFile = null;
+        let receiptOcrPromise = null; // resolves once auto-detection of the Transaction ID from the uploaded receipt finishes
         let selectedPaymentType = null; // 'wallet' | 'payment' — how the customer wants to pay for a game order
         let currentWalletBalance = 0; // kept in sync by listenWalletBalance()
         let playerIdVerified = null; // null = not checked, true = valid, false = failed
@@ -2295,6 +2362,7 @@
             selectedPaymentMethod = null;
             selectedPaymentType = null;
             editingReceiptFile = null;
+            receiptOcrPromise = null;
             window.currentGamePackages = game.packages;
 
             document.getElementById('detail-game-name').innerText = game.name;
@@ -2397,6 +2465,7 @@
             selectedPaymentType = null;
             selectedPaymentMethod = null;
             editingReceiptFile = null;
+            receiptOcrPromise = null;
             document.getElementById('detail-transaction-id').value = '';
             document.querySelectorAll('#detail-pay-type-tabs .pay-type-tab').forEach(el => el.classList.remove('active'));
             document.getElementById('detail-wallet-pay-box').style.display = 'none';
@@ -2418,6 +2487,7 @@
             if (type === 'wallet') {
                 selectedPaymentMethod = null;
                 editingReceiptFile = null;
+            receiptOcrPromise = null;
                 document.getElementById('detail-transaction-id').value = '';
                 document.getElementById('detail-payment-methods-wrap').style.display = 'none';
                 document.getElementById('detail-payment-info').style.display = 'none';
@@ -2504,6 +2574,78 @@
             document.getElementById('detail-payment-info').style.display = 'flex';
         }
 
+        // ---------- Auto-detect Transaction ID from the uploaded receipt (OCR) ----------
+        // Loads Tesseract.js lazily (only once, on first receipt upload) so pages
+        // that never touch the order form don't pay for it.
+        let tesseractLoadPromise = null;
+        function loadTesseract() {
+            if (window.Tesseract) return Promise.resolve();
+            if (tesseractLoadPromise) return tesseractLoadPromise;
+            tesseractLoadPromise = new Promise((resolve, reject) => {
+                const s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/tesseract.js@5/dist/tesseract.min.js';
+                s.onload = () => resolve();
+                s.onerror = () => reject(new Error('Failed to load OCR library'));
+                document.head.appendChild(s);
+            });
+            return tesseractLoadPromise;
+        }
+
+        // Pulls a transaction/reference number out of raw OCR text. Tries the
+        // common labels payment apps use (Transaction ID, Trx ID, Ref No, MTCN,
+        // etc.) in priority order; \s* already spans line breaks so it still
+        // matches when the label and value sit on separate lines.
+        function extractTransactionId(text) {
+            if (!text) return null;
+            const norm = text.replace(/\|/g, 'I'); // OCR often misreads "I" as a pipe
+            const labelPatterns = [
+                /transaction\s*id[:\-]?\s*([A-Za-z0-9]{5,30})/i,
+                /trx\s*id[:\-]?\s*([A-Za-z0-9]{5,30})/i,
+                /txn\s*id[:\-]?\s*([A-Za-z0-9]{5,30})/i,
+                /transaction\s*no\.?[:\-]?\s*([A-Za-z0-9]{5,30})/i,
+                /transaction\s*number[:\-]?\s*([A-Za-z0-9]{5,30})/i,
+                /reference\s*(?:no\.?|number)?[:\-]?\s*([A-Za-z0-9]{5,30})/i,
+                /ref\s*no\.?[:\-]?\s*([A-Za-z0-9]{5,30})/i,
+                /mtcn[:\-]?\s*([A-Za-z0-9]{5,30})/i,
+                /order\s*id[:\-]?\s*([A-Za-z0-9]{5,30})/i
+            ];
+            for (const re of labelPatterns) {
+                const m = norm.match(re);
+                if (m && m[1]) return m[1].trim();
+            }
+            return null;
+        }
+
+        // Runs OCR on the uploaded receipt and fills the (read-only) Transaction
+        // ID field automatically. Falls back to "None" if nothing is found or
+        // the OCR library/recognition fails, so the customer is never blocked
+        // waiting on it and never has to type it in by hand.
+        async function detectTransactionId(file, inputId, statusId) {
+            const input = document.getElementById(inputId);
+            const statusEl = statusId ? document.getElementById(statusId) : null;
+            input.value = '';
+            input.placeholder = 'Reading receipt...';
+            if (statusEl) { statusEl.style.display = 'block'; statusEl.innerText = 'Reading receipt for transaction ID...'; }
+
+            let result = 'None';
+            try {
+                await loadTesseract();
+                const { data: { text } } = await window.Tesseract.recognize(file, 'eng');
+                result = extractTransactionId(text) || 'None';
+            } catch (err) {
+                console.error('Transaction ID OCR error:', err);
+                result = 'None';
+            }
+            input.value = result;
+            input.placeholder = 'Detected automatically after you upload your receipt';
+            if (statusEl) {
+                statusEl.innerText = result === 'None'
+                    ? 'Transaction ID not found on the receipt — set to "None".'
+                    : `Transaction ID detected: ${result}`;
+            }
+            return result;
+        }
+
         function previewReceiptImage(e) {
             const file = e.target.files[0];
             if (!file) return;
@@ -2517,6 +2659,7 @@
                 document.getElementById('upload-shot-change').style.display = 'flex';
             };
             reader.readAsDataURL(file);
+            receiptOcrPromise = detectTransactionId(file, 'detail-transaction-id', 'receipt-upload-status');
         }
 
         // Fallback copy for browsers/webviews (common on older Android / in-app
@@ -2571,6 +2714,7 @@
             selectedPaymentMethod = null;
             selectedPaymentType = null;
             editingReceiptFile = null;
+            receiptOcrPromise = null;
             showPage('home');
         }
 
@@ -2667,8 +2811,10 @@
 
             if (!selectedPaymentMethod) { window.showToast('Please select a payment method', 'fail'); if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb(); return; }
             if (!editingReceiptFile) { window.showToast('Please upload your payment receipt', 'fail'); if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb(); return; }
-            const transactionId = document.getElementById('detail-transaction-id').value.trim();
-            if (!transactionId) { window.showToast('Please enter the transaction ID from your receipt', 'fail'); if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb(); return; }
+            // Transaction ID is auto-detected from the receipt (see previewReceiptImage);
+            // wait for that to finish rather than asking the customer to type it in.
+            if (receiptOcrPromise) { try { await receiptOcrPromise; } catch (e) { /* detectTransactionId already falls back to "None" internally */ } }
+            const transactionId = document.getElementById('detail-transaction-id').value.trim() || 'None';
 
             await doSubmitOrder(inGameId, serverId, btnElement, transactionId);
         }
@@ -2906,13 +3052,13 @@
             try {
                 let gid = localStorage.getItem('gz_guest_id');
                 if (!gid) {
-                    gid = 'Guest-' + Math.floor(1000 + Math.random() * 9000);
+                    gid = 'PCA-' + Math.floor(1000 + Math.random() * 9000);
                     localStorage.setItem('gz_guest_id', gid);
                     localStorage.setItem('gz_member_since', String(Date.now()));
                 }
                 return gid;
             } catch (e) {
-                return 'Guest-0000'; // private browsing / storage blocked
+                return 'PCA-0000'; // private browsing / storage blocked
             }
         }
 
@@ -4790,7 +4936,7 @@
                 listHTML += historyOrderCardHTML(data, index);
             });
 
-            container.innerHTML = chipsHTML + listHTML;
+            container.innerHTML = chipsHTML + `<div class="order-list-scroll">${listHTML}</div>`;
         }
 
         function openOrderDetail(index) {
@@ -5107,7 +5253,8 @@
 
             const customerRows = [
                 ['User', data.userName || '-', receiptTier],
-                ['In-Game Name', data.game || '-'],
+                ['Game', data.game || '-'],
+                ...(data.inGameName ? [['Player Name', data.inGameName]] : []),
                 ['In-Game ID', data.playerId || '-'],
                 ...(data.serverId ? [['Server ID', data.serverId]] : [])
             ];
