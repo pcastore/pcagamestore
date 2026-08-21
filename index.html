@@ -159,7 +159,7 @@
         
         /* Header */
         .header { background-color: var(--surface); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .logo { color: var(--accent); font-size: 24px; font-weight: 700; display: flex; align-items: center; gap: 8px; }
+        .logo { color: var(--accent); font-size: 24px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
         .logo-icon-wrap { width: 28px; height: 28px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
         .logo-icon-wrap img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; display: block; }
         .header-icon {
@@ -179,13 +179,13 @@
         }
         .notif-dot.show { display: block; animation: notifPulse 1.8s ease-in-out infinite; }
         @keyframes notifPulse { 0%, 100% { box-shadow: 0 0 0 2px rgba(229,57,53,0.25); } 50% { box-shadow: 0 0 0 6px rgba(229,57,53,0); } }
-        .admin-status-bar { display: flex; align-items: center; gap: 6px; padding: 6px 20px; font-size: 12px; font-weight: 600; color: var(--text-secondary); background: var(--bg); }
+        .admin-status-bar { display: flex; align-items: center; gap: 6px; padding: 6px 20px; font-size: 12px; font-weight: 500; color: var(--text-secondary); background: var(--bg); }
         .admin-status-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--text-muted); flex-shrink: 0; }
         .admin-status-dot.online { background: #31A24C; box-shadow: 0 0 0 3px rgba(49,162,76,0.15); }
         .admin-status-dot.offline { background: var(--text-muted); }
         .admin-status-bar.online-text #admin-status-text { color: #31A24C; }
         .notif-item { background: var(--surface); padding: 14px; border-radius: 10px; margin-bottom: 10px; border: 1px solid var(--border); }
-        .notif-item h5 { font-size: 15px; color: var(--text); margin-bottom: 4px; font-weight: 600; }
+        .notif-item h5 { font-size: 15px; color: var(--text); margin-bottom: 4px; font-weight: 500; }
         .notif-item p { font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
         .notif-item span { font-size: 11px; color: var(--text-muted); }
         
@@ -210,7 +210,7 @@
             background: var(--accent);
             color: var(--on-color);
             font-size: 8.5px;
-            font-weight: 700;
+            font-weight: 600;
             letter-spacing: 0.3px;
             padding: 0 8px;
         }
@@ -232,7 +232,7 @@
         .page-section { display: none; animation: fadeIn 0.3s ease-in-out; }
         .page-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
-        .title-header { font-size: 18px; font-weight: 700; color: var(--text); margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        .title-header { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
         
         /* Cards & Lists */
         .cards-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 14px; }
@@ -254,7 +254,7 @@
         }
         .game-card-img-wrap { position: relative; aspect-ratio: 1 / 1; background: var(--border); }
         .game-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .game-card-name { margin: 0; padding: 7px 6px; background: transparent; border: none; border-top: 1px solid var(--border); box-shadow: none; color: var(--text); font-size: 13px; font-weight: 700; text-align: center; line-height: 1.25; }
+        .game-card-name { margin: 0; padding: 7px 6px; background: transparent; border: none; border-top: 1px solid var(--border); box-shadow: none; color: var(--text); font-size: 13px; font-weight: 600; text-align: center; line-height: 1.25; }
 
         /* Entrance motion for game/order cards: each card fades + rises + settles
            into place with a slight overshoot, staggered card-by-card so the whole
@@ -297,7 +297,7 @@
         .skel-history-card .skel-line4 { height: 18px; width: 60px; border-radius: 20px; }
 
         /* Small colored category pill overlaid on the game's cover image */
-        .game-cat-badge { position: absolute; top: 6px; left: 6px; display: flex; align-items: center; gap: 3px; padding: 3px 8px 3px 6px; border-radius: 9px; font-size: 9.5px; font-weight: 700; color: var(--on-color); box-shadow: 0 2px 6px rgba(0,0,0,0.25); }
+        .game-cat-badge { position: absolute; top: 6px; left: 6px; display: flex; align-items: center; gap: 3px; padding: 3px 8px 3px 6px; border-radius: 9px; font-size: 9.5px; font-weight: 600; color: var(--on-color); box-shadow: 0 2px 6px rgba(0,0,0,0.25); }
         .game-cat-badge svg { width: 10px; height: 10px; }
 
         /* Category filter chips row, above the All Games grid */
@@ -322,7 +322,7 @@
         .cat-filter-chip {
             display: flex; align-items: center; gap: 6px; flex: 0 0 auto; padding: 9px 15px 9px 11px; border-radius: 20px;
             background: var(--surface); border: 1.5px solid var(--border);
-            color: var(--text-secondary); font-size: 13px; font-weight: 700; cursor: pointer; user-select: none;
+            color: var(--text-secondary); font-size: 13px; font-weight: 600; cursor: pointer; user-select: none;
             transition: transform 0.12s ease, box-shadow 0.15s ease, border-color 0.15s ease, background 0.15s ease, color 0.15s ease;
         }
         .cat-filter-chip svg { width: 15px; height: 15px; opacity: 0.8; }
@@ -338,7 +338,7 @@
         .popular-card .game-card-img-wrap { width: 108px; height: 108px; }
         .popular-card .game-card-name { font-size: 12px; padding: 6px 5px; }
         .card-body { padding: 15px; }
-        .card-body h4 { font-size: 16px; font-weight: 600; margin-bottom: 10px; color: var(--text); }
+        .card-body h4 { font-size: 16px; font-weight: 500; margin-bottom: 10px; color: var(--text); }
         
         .list-card { background: var(--surface); padding: 15px; border-radius: 10px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .history-card { cursor: pointer; transition: 0.12s; }
@@ -349,21 +349,21 @@
         .hc-right { display: flex; align-items: center; gap: 10px; }
         .hc-chevron { color: var(--text-faint); flex-shrink: 0; width: 18px; height: 18px; }
         .list-info { min-width: 0; }
-        .list-info h5 { font-size: 15px; color: var(--text); margin-bottom: 4px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .list-info h5 { font-size: 15px; color: var(--text); margin-bottom: 4px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .list-info p { font-size: 13px; color: var(--text-secondary); }
-        .hc-success-time { display: flex; align-items: center; gap: 3px; font-size: 11.5px !important; color: #1E8E4F !important; font-weight: 600; margin-top: 2px; }
+        .hc-success-time { display: flex; align-items: center; gap: 3px; font-size: 11.5px !important; color: #1E8E4F !important; font-weight: 500; margin-top: 2px; }
         .hc-success-time svg { width: 11px; height: 11px; stroke: #1E8E4F; }
         .hc-order-id { font-size: 11px !important; color: var(--text-muted) !important; font-family: monospace; margin-top: 1px; }
         .list-amount { text-align: right; }
-        .list-amount h5 { font-size: 15px; color: var(--text); margin-bottom: 4px; font-weight: 600; }
+        .list-amount h5 { font-size: 15px; color: var(--text); margin-bottom: 4px; font-weight: 500; }
         
         /* Order History: date filter chips + day-group headers (Yangon time) */
         .history-date-filter-wrap { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 12px; -webkit-overflow-scrolling: touch; }
         .history-date-filter-wrap::-webkit-scrollbar { display: none; }
-        .history-date-chip { flex: 0 0 auto; padding: 7px 14px; border-radius: 16px; background: var(--surface); border: 1px solid var(--border); color: var(--text-secondary); font-size: 13px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: 0.12s; }
+        .history-date-chip { flex: 0 0 auto; padding: 7px 14px; border-radius: 16px; background: var(--surface); border: 1px solid var(--border); color: var(--text-secondary); font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; transition: 0.12s; }
         .history-date-chip:active { transform: scale(0.96); }
         .history-date-chip.active { background: var(--accent); border-color: var(--accent); color: var(--on-color); }
-        .history-date-header { font-size: 13px; font-weight: 700; color: var(--text-secondary); margin: 16px 2px 8px; }
+        .history-date-header { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin: 16px 2px 8px; }
         .history-date-header:first-of-type { margin-top: 2px; }
 
         .badge { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; }
@@ -377,7 +377,7 @@
         @keyframes statusPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.35; transform: scale(0.55); } }
         .status-anim-spin { display: inline-block; width: 9px; height: 9px; margin-right: 5px; border: 2px solid #C7CCE0; border-top-color: #405DE6; border-radius: 50%; animation: statusSpin 0.7s linear infinite; }
         @keyframes statusSpin { to { transform: rotate(360deg); } }
-        .status-anim-check { display: inline-block; margin-right: 3px; font-weight: 900; animation: statusPop 0.35s ease; }
+        .status-anim-check { display: inline-block; margin-right: 3px; font-weight: 800; animation: statusPop 0.35s ease; }
         @keyframes statusPop { 0% { transform: scale(0); } 60% { transform: scale(1.3); } 100% { transform: scale(1); } }
 
         /* ===================== ORDER STATUS TIMELINE =====================
@@ -389,7 +389,7 @@
         .ot-dot {
             width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center;
             background: var(--border); color: var(--text-faint); z-index: 2; border: 2px solid var(--surface);
-            font-size: 12px; font-weight: 700; flex-shrink: 0; transition: background 0.25s ease, color 0.25s ease;
+            font-size: 12px; font-weight: 600; flex-shrink: 0; transition: background 0.25s ease, color 0.25s ease;
         }
         .ot-dot svg { width: 13px; height: 13px; }
         .ot-dot.done { background: #1E8E4F; color: #fff; }
@@ -399,7 +399,7 @@
         .ot-line.done { background: #1E8E4F; }
         .ot-line.fail { background: #D93025; }
         .ot-step:first-child .ot-line { display: none; }
-        .ot-label { font-size: 10.5px; font-weight: 600; color: var(--text-muted); margin-top: 6px; }
+        .ot-label { font-size: 10.5px; font-weight: 500; color: var(--text-muted); margin-top: 6px; }
         .ot-label.done, .ot-label.active, .ot-label.fail { color: var(--text); }
         .ot-time { font-size: 9px; color: var(--text-faint); margin-top: 1px; }
 
@@ -416,14 +416,14 @@
 
         .od-row { display: flex; align-items: center; justify-content: space-between; padding: 10px 0; border-bottom: 1px solid var(--bg); font-size: 13px; }
         .od-row span { color: var(--text-secondary); }
-        .od-row b { color: var(--text); font-weight: 600; text-align: right; }
+        .od-row b { color: var(--text); font-weight: 500; text-align: right; }
         .od-row:last-of-type { border-bottom: none; }
         .stat-box { background: var(--surface); padding: 20px; border-radius: 10px; text-align: center; border: 1px solid var(--border); border-left: 5px solid var(--accent); box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-bottom: 15px;}
-        .stat-box p { font-size: 28px; font-weight: 700; color: var(--text); margin: 8px 0 15px 0; }
+        .stat-box p { font-size: 28px; font-weight: 600; color: var(--text); margin: 8px 0 15px 0; }
 
         /* VIP tier badges — colors are set per-tier via inline style from JS,
            this class just supplies the shared chip shape. */
-        .tier-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 11px 4px 8px; border-radius: 999px; font-size: 11px; font-weight: 700; white-space: nowrap; }
+        .tier-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 11px 4px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; white-space: nowrap; }
         .tier-badge svg { width: 12px; height: 12px; }
         .mini-profile-info .tier-badge { margin-top: 3px; }
 
@@ -431,10 +431,10 @@
         .avatar-upload-box.has-tier-ring { box-shadow: 0 0 0 3px var(--tier-color, var(--border)); }
         .vip-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-top: 14px; }
         .vip-card-head { display: flex; align-items: center; justify-content: space-between; }
-        .vip-card-head h4 { font-size: 15px; font-weight: 700; color: var(--text); }
+        .vip-card-head h4 { font-size: 15px; font-weight: 600; color: var(--text); }
         .vip-stats-row { display: flex; gap: 10px; margin-top: 14px; }
         .vip-stat { flex: 1; text-align: center; background: var(--surface-alt); border-radius: 10px; padding: 10px 4px; }
-        .vip-stat b { display: block; font-size: 15px; font-weight: 700; color: var(--text); }
+        .vip-stat b { display: block; font-size: 15px; font-weight: 600; color: var(--text); }
         .vip-stat span { font-size: 11px; color: var(--text-muted); }
         .vip-progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-secondary); margin-top: 14px; margin-bottom: 6px; }
         .vip-progress-track { height: 8px; background: var(--bg); border-radius: 6px; overflow: hidden; }
@@ -443,15 +443,15 @@
         /* Leaderboard rows */
         .lb-row { display: flex; align-items: center; gap: 12px; padding: 12px 4px; border-bottom: 1px solid var(--bg); }
         .lb-row:last-child { border-bottom: none; }
-        .lb-rank { width: 26px; flex-shrink: 0; text-align: center; font-size: 14px; font-weight: 800; color: var(--text-muted); }
+        .lb-rank { width: 26px; flex-shrink: 0; text-align: center; font-size: 14px; font-weight: 700; color: var(--text-muted); }
         .lb-rank.lb-rank-1 { color: #D4A017; }
         .lb-rank.lb-rank-2 { color: #8E9AAF; }
         .lb-rank.lb-rank-3 { color: #A9673A; }
-        .lb-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-weight: 700; font-size: 15px; overflow: hidden; }
+        .lb-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-weight: 600; font-size: 15px; overflow: hidden; }
         .lb-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .lb-info { flex: 1; min-width: 0; }
-        .lb-info .lb-name { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .lb-amount { text-align: right; font-size: 13px; font-weight: 700; color: var(--text); flex-shrink: 0; }
+        .lb-info .lb-name { font-size: 14px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .lb-amount { text-align: right; font-size: 13px; font-weight: 600; color: var(--text); flex-shrink: 0; }
         .lb-you-row { background: #F8FBFF; border-radius: 10px; margin-top: 6px; border: 1px dashed var(--accent); padding: 12px; }
 
         /* Top-3 podium — the #1/#2/#3 spenders get an elevated card layout
@@ -461,22 +461,22 @@
         .lb-podium-slot.rank-1 { order: 2; padding-top: 22px; padding-bottom: 18px; background: linear-gradient(180deg, rgba(212,160,23,0.14), var(--surface) 55%); border-color: rgba(212,160,23,0.45); }
         .lb-podium-slot.rank-2 { order: 1; background: linear-gradient(180deg, rgba(142,154,175,0.14), var(--surface) 55%); border-color: rgba(142,154,175,0.4); }
         .lb-podium-slot.rank-3 { order: 3; background: linear-gradient(180deg, rgba(169,103,58,0.14), var(--surface) 55%); border-color: rgba(169,103,58,0.4); }
-        .lb-podium-medal { position: absolute; top: -12px; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 800; color: #fff; box-shadow: 0 3px 8px rgba(0,0,0,0.2); }
+        .lb-podium-medal { position: absolute; top: -12px; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 14px; font-weight: 700; color: #fff; box-shadow: 0 3px 8px rgba(0,0,0,0.2); }
         .lb-podium-slot.rank-1 .lb-podium-medal { background: linear-gradient(135deg, #F4D06F, #D4A017); }
         .lb-podium-slot.rank-2 .lb-podium-medal { background: linear-gradient(135deg, #C7CFDA, #8E9AAF); }
         .lb-podium-slot.rank-3 .lb-podium-medal { background: linear-gradient(135deg, #C98B5E, #A9673A); }
-        .lb-podium-avatar { width: 56px; height: 56px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 800; font-size: 20px; overflow: hidden; border: 3px solid var(--surface); box-shadow: 0 0 0 2px currentColor; }
+        .lb-podium-avatar { width: 56px; height: 56px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 20px; overflow: hidden; border: 3px solid var(--surface); box-shadow: 0 0 0 2px currentColor; }
         .lb-podium-slot.rank-1 .lb-podium-avatar { width: 68px; height: 68px; font-size: 24px; }
         .lb-podium-slot.rank-1 .lb-podium-avatar { color: #D4A017; }
         .lb-podium-slot.rank-2 .lb-podium-avatar { color: #8E9AAF; }
         .lb-podium-slot.rank-3 .lb-podium-avatar { color: #A9673A; }
         .lb-podium-avatar img { width: 100%; height: 100%; object-fit: cover; }
-        .lb-podium-name { font-size: 13px; font-weight: 700; color: var(--text); text-align: center; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
-        .lb-podium-amount { font-size: 12.5px; font-weight: 800; color: var(--text-secondary); }
-        .lb-list-heading { font-size: 12px; font-weight: 700; color: var(--text-muted); margin: 2px 4px 6px; }
+        .lb-podium-name { font-size: 13px; font-weight: 600; color: var(--text); text-align: center; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
+        .lb-podium-amount { font-size: 12.5px; font-weight: 700; color: var(--text-secondary); }
+        .lb-list-heading { font-size: 12px; font-weight: 600; color: var(--text-muted); margin: 2px 4px 6px; }
 
         /* Buttons & Nav */
-        .btn { width: 100%; padding: 10px; border-radius: 6px; font-weight: 600; font-size: 15px; cursor: pointer; border: none; text-align: center; transition: 0.2s;}
+        .btn { width: 100%; padding: 10px; border-radius: 6px; font-weight: 500; font-size: 15px; cursor: pointer; border: none; text-align: center; transition: 0.2s;}
         .btn-primary { background-color: var(--accent); color: white; }
         .btn-primary:active { background-color: var(--accent-dark); }
         .btn:disabled { opacity: 0.55; cursor: not-allowed; }
@@ -545,7 +545,7 @@
         .slide-confirm-thumb.completed { background: linear-gradient(160deg, #34D399, #16A34A); box-shadow: 0 3px 12px rgba(22,163,74,0.5), inset 0 1px 1px rgba(255,255,255,0.4); }
         .slide-confirm-thumb.completed svg { color: #fff; }
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--surface); display: flex; justify-content: space-around; padding: 8px 0; border-top: 1px solid var(--border); z-index: 100; box-shadow: 0 -2px 5px rgba(0,0,0,0.05); }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; font-weight: 600; color: var(--text-secondary); cursor: pointer; width: 20%; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; font-weight: 500; color: var(--text-secondary); cursor: pointer; width: 20%; }
         .nav-item.active { color: var(--accent); }
         .nav-icon-wrap { width: 40px; height: 40px; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
         .nav-item.active .ui-icon { stroke: var(--accent); }
@@ -553,7 +553,7 @@
         /* Toast — pastel status card: icon circle, message, dismiss ×.
            Colors per-type are applied inline by showToast() so light/dark
            theme both get a tint that reads clearly against their surface. */
-        #toast { position: fixed; top: 14px; left: 14px; right: 14px; max-width: 480px; margin: 0 auto; border: 1px solid transparent; padding: 12px 14px; border-radius: 14px; font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 12px; transition: all 0.3s ease; z-index: 1000; transform: translateY(-150%); box-shadow: 0 8px 24px rgba(0,0,0,0.16); }
+        #toast { position: fixed; top: 14px; left: 14px; right: 14px; max-width: 480px; margin: 0 auto; border: 1px solid transparent; padding: 12px 14px; border-radius: 14px; font-size: 14px; font-weight: 500; display: flex; align-items: center; gap: 12px; transition: all 0.3s ease; z-index: 1000; transform: translateY(-150%); box-shadow: 0 8px 24px rgba(0,0,0,0.16); }
         #toast.show { transform: translateY(0); }
         #toast .toast-icon-circle { width: 26px; height: 26px; border-radius: 50%; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
         #toast .toast-icon-circle svg { width: 15px; height: 15px; color: #fff; }
@@ -569,7 +569,7 @@
         .empty-state { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 44px 24px 36px; gap: 4px; }
         .empty-state-icon { width: 64px; height: 64px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
         .empty-state-icon svg { width: 28px; height: 28px; stroke: var(--text-muted); }
-        .empty-state-title { font-size: 15px; font-weight: 700; color: var(--text); }
+        .empty-state-title { font-size: 15px; font-weight: 600; color: var(--text); }
         .empty-state-sub { font-size: 13px; color: var(--text-secondary); line-height: 1.45; max-width: 260px; }
         .empty-state-action { margin-top: 14px; }
 
@@ -579,21 +579,21 @@
         .modal-box { background: var(--surface); width: 100%; max-width: 480px; border-radius: 16px 16px 0 0; padding: 20px; max-height: 80vh; display: flex; flex-direction: column; transform: translateY(100%); transition: transform 0.25s ease; overflow: hidden; }
         .modal-overlay.show .modal-box { transform: translateY(0); }
         .modal-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--border); margin-bottom: 14px; flex-shrink: 0; }
-        .modal-header h3 { font-size: 17px; font-weight: 700; color: var(--text); }
+        .modal-header h3 { font-size: 17px; font-weight: 600; color: var(--text); }
         .modal-close { width: 32px; height: 32px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
         .modal-body { overflow-y: auto; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 10px; flex: 1 1 auto; min-height: 0; }
         /* Package/Currency tab switcher */
         .pkg-type-tabs { display: flex; background: var(--bg); border-radius: 10px; padding: 4px; gap: 4px; margin-bottom: 14px; }
-        .pkg-type-tab { flex: 1; text-align: center; padding: 9px 0; border: none; background: transparent; border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: 0.15s; }
+        .pkg-type-tab { flex: 1; text-align: center; padding: 9px 0; border: none; background: transparent; border-radius: 8px; font-size: 14px; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: 0.15s; }
         .pkg-type-tab.active { background: var(--surface); color: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
         /* Pay-with (Wallet vs Payment method) tabs — same look as pkg-type-tabs
            but a separate class so the two toggles never fight over which one
            has ".active" when either is re-rendered. */
         .pay-type-tabs { display: flex; background: var(--bg); border-radius: 10px; padding: 4px; gap: 4px; margin-bottom: 14px; }
-        .pay-type-tab { flex: 1; text-align: center; padding: 9px 0; border: none; background: transparent; border-radius: 8px; font-size: 14px; font-weight: 600; color: var(--text-secondary); cursor: pointer; transition: 0.15s; }
+        .pay-type-tab { flex: 1; text-align: center; padding: 9px 0; border: none; background: transparent; border-radius: 8px; font-size: 14px; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: 0.15s; }
         .pay-type-tab.active { background: var(--surface); color: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
         .wallet-pay-box .wallet-pay-balance-label { font-size: 12.5px; color: var(--text-secondary); }
-        .wallet-pay-box .wallet-pay-balance-amount { font-size: 20px; font-weight: 800; color: var(--text); margin-top: 2px; }
+        .wallet-pay-box .wallet-pay-balance-amount { font-size: 20px; font-weight: 700; color: var(--text); margin-top: 2px; }
         .wallet-pay-box .wallet-pay-note { font-size: 12.5px; margin-top: 6px; line-height: 1.4; }
         .wallet-pay-box .wallet-pay-note.ok { color: #31A24C; }
         .wallet-pay-box .wallet-pay-note.low { color: #E53935; }
@@ -651,10 +651,10 @@
         .package-card.type-currency .pc-price { font-size: 12px; }
 
         .pc-info { min-width: 0; }
-        .pc-label { font-size: 14px; font-weight: 600; color: var(--text); line-height: 1.3; display: block; }
+        .pc-label { font-size: 14px; font-weight: 500; color: var(--text); line-height: 1.3; display: block; }
         .pc-price-bar { margin-top: 8px; padding: 8px 10px; border-top: 1px solid var(--border); background: var(--surface-alt); text-align: center; }
         .package-card.selected .pc-price-bar { background: var(--accent-soft); border-top-color: var(--accent); }
-        .pc-price { font-size: 14px; font-weight: 700; color: var(--accent); }
+        .pc-price { font-size: 14px; font-weight: 600; color: var(--accent); }
         .modal-footer { padding-top: 16px; }
         .modal-footer .btn:disabled { background: var(--text-faint); cursor: not-allowed; }
 
@@ -681,7 +681,7 @@
             background: var(--accent-soft); color: var(--accent);
         }
         .game-desc-head-icon svg { width: 14px; height: 14px; }
-        .game-desc-head h4 { position: relative; font-size: 13.5px; font-weight: 700; color: var(--text-secondary); margin: 0; }
+        .game-desc-head h4 { position: relative; font-size: 13.5px; font-weight: 600; color: var(--text-secondary); margin: 0; }
         .game-desc-text {
             position: relative; font-size: 13.5px; line-height: 1.65; color: var(--text); margin: 0; white-space: pre-line;
             display: -webkit-box; -webkit-line-clamp: 4; -webkit-box-orient: vertical; overflow: hidden;
@@ -689,13 +689,13 @@
         .game-desc-text.expanded { -webkit-line-clamp: unset; overflow: visible; }
         .game-desc-toggle {
             position: relative; display: inline-block; margin-top: 7px; background: none; border: none; padding: 0;
-            font-size: 12.5px; font-weight: 700; color: var(--accent); cursor: pointer;
+            font-size: 12.5px; font-weight: 600; color: var(--accent); cursor: pointer;
         }
 
         /* Checkout: account info, payment methods, success screen */
-        .detail-section-title { font-size: 14px; font-weight: 700; color: var(--text-secondary); margin: 18px 0 10px; }
+        .detail-section-title { font-size: 14px; font-weight: 600; color: var(--text-secondary); margin: 18px 0 10px; }
         .detail-form-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; display: flex; flex-direction: column; gap: 4px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
-        .detail-form-card label { font-size: 13px; font-weight: 700; color: var(--text); margin-top: 12px; }
+        .detail-form-card label { font-size: 13px; font-weight: 600; color: var(--text); margin-top: 12px; }
         .detail-form-card label:first-child { margin-top: 0; }
         .detail-form-card input[type="text"] { padding: 13px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 15px; margin-top: 6px; transition: 0.15s; width: 100%; }
         .detail-form-card input[type="text"]:focus { outline: none; border-color: var(--accent); background: #F8FBFF; }
@@ -717,7 +717,7 @@
         #order-detail-overlay { align-items: center; padding: 20px; }
         #order-detail-overlay .modal-box { border-radius: 20px; max-height: 88vh; transform: translateY(12px) scale(0.96); opacity: 0; transition: transform 0.22s ease, opacity 0.22s ease; }
         #order-detail-overlay.show .modal-box { transform: translateY(0) scale(1); opacity: 1; }
-        .profile-edit-field label { display: block; font-size: 13px; font-weight: 700; color: var(--text); margin-bottom: 6px; }
+        .profile-edit-field label { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
         .profile-edit-field input[type="text"] { width: 100%; padding: 13px 14px; border: 1.5px solid var(--border); border-radius: 10px; font-size: 15px; transition: 0.15s; }
         .profile-edit-field input[type="text"]:focus { outline: none; border-color: var(--accent); background: #F8FBFF; }
         @media (max-width: 360px) {
@@ -726,15 +726,15 @@
 
         /* Recent IDs: horizontal chip row so switching between previously-used
            In-Game IDs doesn't require retyping */
-        .recent-ids-label { font-size: 11px; color: var(--text-muted); font-weight: 600; margin-top: 12px; }
+        .recent-ids-label { font-size: 11px; color: var(--text-muted); font-weight: 500; margin-top: 12px; }
         .recent-ids-row { display: flex; gap: 8px; overflow-x: auto; padding: 8px 2px 2px; -webkit-overflow-scrolling: touch; }
         .recent-ids-row::-webkit-scrollbar { display: none; }
-        .recent-id-chip { flex: 0 0 auto; background: var(--bg); border: 1px solid var(--border); border-radius: 16px; padding: 7px 14px; font-size: 13px; font-weight: 600; color: var(--accent); cursor: pointer; white-space: nowrap; max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
+        .recent-id-chip { flex: 0 0 auto; background: var(--bg); border: 1px solid var(--border); border-radius: 16px; padding: 7px 14px; font-size: 13px; font-weight: 500; color: var(--accent); cursor: pointer; white-space: nowrap; max-width: 160px; overflow: hidden; text-overflow: ellipsis; }
         .recent-id-chip:active { background: var(--accent-soft); }
 
         /* Confirm ID button - sits full-width below the ID fields with an
            animated "checking" and "confirmed" state for clear feedback. */
-        .confirm-id-btn { width: 100%; margin-top: 12px; padding: 12px; border: none; border-radius: 10px; background: var(--accent); color: var(--on-color); font-weight: 700; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background-color 0.25s ease, transform 0.15s ease; }
+        .confirm-id-btn { width: 100%; margin-top: 12px; padding: 12px; border: none; border-radius: 10px; background: var(--accent); color: var(--on-color); font-weight: 600; font-size: 14px; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 8px; transition: background-color 0.25s ease, transform 0.15s ease; }
         .confirm-id-btn:active { transform: scale(0.98); }
         .confirm-id-btn:disabled { cursor: default; }
         .confirm-id-btn.checking { background: linear-gradient(90deg, var(--accent) 0%, #5AA0FF 50%, var(--accent) 100%); background-size: 200% 100%; animation: confirmIdShimmer 1.4s linear infinite; }
@@ -747,21 +747,21 @@
 
         /* Resolved player-name display shown after a successful ID check */
         .id-result-card { display: flex; align-items: center; gap: 10px; background: linear-gradient(135deg, #F0FFF4, #E9FBEF); border: 1px solid #BBF7D0; border-radius: 12px; padding: 10px 12px; animation: idResultIn 0.35s ease; }
-        .id-result-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #28a745, #20c997); color: var(--on-color); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 15px; flex-shrink: 0; }
+        .id-result-avatar { width: 36px; height: 36px; border-radius: 50%; background: linear-gradient(135deg, #28a745, #20c997); color: var(--on-color); display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 15px; flex-shrink: 0; }
         .id-result-info { flex: 1; min-width: 0; }
-        .id-result-name { font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .id-result-label { font-size: 11px; color: #28a745; font-weight: 600; margin-top: 1px; }
+        .id-result-name { font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .id-result-label { font-size: 11px; color: #28a745; font-weight: 500; margin-top: 1px; }
         .id-result-check { width: 20px; height: 20px; border-radius: 50%; background: #28a745; color: var(--on-color); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-size: 12px; animation: idCheckPop 0.4s ease 0.1s both; }
         @keyframes idResultIn { from { opacity: 0; transform: translateY(-6px); } to { opacity: 1; transform: translateY(0); } }
         @keyframes idCheckPop { 0% { transform: scale(0); } 70% { transform: scale(1.15); } 100% { transform: scale(1); } }
 
-        .id-fail-card { display: flex; align-items: center; gap: 8px; background: #FDF2F2; border: 1px solid #F5C2C2; border-radius: 10px; padding: 9px 12px; font-size: 12.5px; color: #C0392B; font-weight: 600; animation: idResultIn 0.3s ease; }
+        .id-fail-card { display: flex; align-items: center; gap: 8px; background: #FDF2F2; border: 1px solid #F5C2C2; border-radius: 10px; padding: 9px 12px; font-size: 12.5px; color: #C0392B; font-weight: 500; animation: idResultIn 0.3s ease; }
         .id-checking-text { font-size: 12px; color: var(--text-muted); margin: 0; }
         .payment-option { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 2px solid var(--border); border-radius: 10px; cursor: pointer; transition: 0.15s; background: var(--surface); }
         .payment-option.selected { border-color: var(--accent); background: var(--accent-soft); }
         .payment-option-icon { width: 38px; height: 38px; border-radius: 8px; background: var(--accent); color: var(--on-color); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
         .payment-option-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .payment-option-name { font-size: 14px; font-weight: 600; color: var(--text); }
+        .payment-option-name { font-size: 14px; font-weight: 500; color: var(--text); }
         .pm-copy-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
         .pm-copy-btn { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); cursor: pointer; flex-shrink: 0; transition: 0.15s; border: none; }
         .pm-copy-btn:active { background: var(--accent); color: var(--on-color); transform: scale(0.92); }
@@ -775,10 +775,10 @@
         .upload-shot-box.has-image .upload-shot-label,
         .upload-shot-box.has-image .upload-shot-hint { display: none; }
         .upload-shot-icon { width: 40px; height: 40px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; }
-        .upload-shot-label { font-size: 13px; font-weight: 600; color: var(--text); }
+        .upload-shot-label { font-size: 13px; font-weight: 500; color: var(--text); }
         .upload-shot-hint { font-size: 11px; color: var(--text-muted); }
         .upload-shot-box img { width: 100%; max-height: 220px; object-fit: contain; background: var(--bg); display: block; }
-        .upload-shot-change { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.65); color: var(--on-color); font-size: 12px; font-weight: 600; padding: 6px 12px; border-radius: 20px; display: flex; align-items: center; gap: 5px; }
+        .upload-shot-change { position: absolute; bottom: 8px; right: 8px; background: rgba(0,0,0,0.65); color: var(--on-color); font-size: 12px; font-weight: 500; padding: 6px 12px; border-radius: 20px; display: flex; align-items: center; gap: 5px; }
         .upload-shot-change svg { width: 13px; height: 13px; }
         .success-overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.55); display: flex; align-items: center; justify-content: center; z-index: 300; opacity: 0; pointer-events: none; transition: opacity 0.25s ease; }
         .success-overlay.show { opacity: 1; pointer-events: auto; }
@@ -831,16 +831,16 @@
         .wallet-balance-icon svg { width: 20px; height: 20px; }
         .wallet-balance-tag {
             display: inline-flex; align-items: center; gap: 6px;
-            font-size: 11px; font-weight: 700; letter-spacing: 0.3px; color: rgba(255,255,255,0.85);
+            font-size: 11px; font-weight: 600; letter-spacing: 0.3px; color: rgba(255,255,255,0.85);
             background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.22); padding: 6px 12px 6px 10px; border-radius: 20px;
             box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
         }
         .wallet-balance-tag::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #4ADE80; box-shadow: 0 0 6px #4ADE80; flex-shrink: 0; }
-        .wallet-balance-label { position: relative; z-index: 2; display: block; font-size: 12px; font-weight: 600; color: rgba(255,255,255,0.6); letter-spacing: 0.6px; text-transform: uppercase; margin-top: 22px; }
-        .wallet-balance-amount { position: relative; z-index: 2; font-size: 37px; font-weight: 800; color: #fff; margin: 7px 0 24px; letter-spacing: -0.4px; font-variant-numeric: tabular-nums; text-shadow: 0 2px 18px rgba(0,0,0,0.25); }
+        .wallet-balance-label { position: relative; z-index: 2; display: block; font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.6); letter-spacing: 0.6px; text-transform: uppercase; margin-top: 22px; }
+        .wallet-balance-amount { position: relative; z-index: 2; font-size: 37px; font-weight: 700; color: #fff; margin: 7px 0 24px; letter-spacing: -0.4px; font-variant-numeric: tabular-nums; text-shadow: 0 2px 18px rgba(0,0,0,0.25); }
         .wallet-topup-btn {
             position: relative; z-index: 2; width: 100%; display: flex; align-items: center; justify-content: center; gap: 9px;
-            background: linear-gradient(180deg, #ffffff 0%, #F4F6FB 100%); color: #16234A; padding: 14.5px 22px; border-radius: 16px; font-size: 14.5px; font-weight: 700;
+            background: linear-gradient(180deg, #ffffff 0%, #F4F6FB 100%); color: #16234A; padding: 14.5px 22px; border-radius: 16px; font-size: 14.5px; font-weight: 600;
             box-shadow: 0 12px 26px rgba(0,0,0,0.28), inset 0 1px 0 #fff;
         }
         .wallet-topup-btn:active { transform: scale(0.97); }
@@ -851,7 +851,7 @@
         .wallet-topup-btn-icon svg { width: 13px; height: 13px; }
 
         .wallet-section-title {
-            display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 700; color: var(--text-secondary);
+            display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--text-secondary);
             margin: 22px 2px 12px;
         }
         .wallet-section-title svg { width: 15px; height: 15px; color: var(--text-muted); }
@@ -859,19 +859,19 @@
         /* Amount entry */
         .wallet-amount-input-wrap { position: relative; }
         .wallet-topup-amount-input {
-            width: 100%; padding: 16px 68px 16px 16px; font-size: 21px; font-weight: 800; border: 1.5px solid var(--border);
+            width: 100%; padding: 16px 68px 16px 16px; font-size: 21px; font-weight: 700; border: 1.5px solid var(--border);
             border-radius: 14px; margin-bottom: 0; background: var(--surface); color: var(--text); box-sizing: border-box;
             transition: 0.15s;
         }
         .wallet-topup-amount-input:focus { outline: none; border-color: var(--accent); background: #F8FBFF; }
         .wallet-amount-currency {
             position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none;
-            font-size: 12.5px; font-weight: 700; color: var(--text-muted); background: var(--bg);
+            font-size: 12.5px; font-weight: 600; color: var(--text-muted); background: var(--bg);
             padding: 6px 10px; border-radius: 8px; letter-spacing: 0.3px;
         }
         .wallet-amount-presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0 2px; }
         .wallet-preset-chip {
-            padding: 13px 6px; border-radius: 13px; text-align: center; font-size: 14px; font-weight: 700;
+            padding: 13px 6px; border-radius: 13px; text-align: center; font-size: 14px; font-weight: 600;
             background: var(--surface-alt); border: 1.5px solid var(--border); color: var(--text); cursor: pointer; transition: 0.15s;
         }
         .wallet-preset-chip:active { transform: scale(0.94); }
@@ -883,7 +883,7 @@
             background: linear-gradient(135deg, #16234A 0%, #24345E 100%); color: #fff;
             box-shadow: 0 10px 22px rgba(15,30,61,0.3);
         }
-        .wallet-pay-info-label { position: relative; font-size: 11px; font-weight: 600; color: rgba(255,255,255,0.6); letter-spacing: 0.3px; }
+        .wallet-pay-info-label { position: relative; font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.6); letter-spacing: 0.3px; }
         .wallet-pay-info-card .pm-copy-row p { color: #fff; }
         .wallet-pay-info-card .pm-copy-btn { background: rgba(255,255,255,0.14); color: #fff; }
         .wallet-pay-info-card .pm-copy-btn:active { background: rgba(255,255,255,0.3); transform: scale(0.92); }
@@ -915,10 +915,10 @@
         .wallet-topup-row-icon.st-completed { background: #E7F8EE; color: #1E8E4F; }
         .wallet-topup-row-body { flex: 1; min-width: 0; }
         .wallet-topup-row-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-        .wallet-topup-amount { font-size: 16px; font-weight: 800; color: var(--text); letter-spacing: -0.2px; font-variant-numeric: tabular-nums; }
+        .wallet-topup-amount { font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.2px; font-variant-numeric: tabular-nums; }
         .wallet-topup-meta { font-size: 12px; color: var(--text-muted); margin-top: 3.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         #wallet .badge, #wallet-topup-detail-body .badge {
-            padding: 5px 12px 5px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 700; letter-spacing: 0.2px;
+            padding: 5px 12px 5px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 600; letter-spacing: 0.2px;
             display: inline-flex; align-items: center; gap: 5px;
         }
         #wallet .badge::before, #wallet-topup-detail-body .badge::before {
@@ -945,13 +945,13 @@
             border-radius: 0 0 24px 24px;
             padding: 56px 18px 20px; text-align: center; position: relative;
         }
-        .profile-hero-name { font-size: 18px; font-weight: 800; color: var(--text); margin-top: 4px; }
+        .profile-hero-name { font-size: 18px; font-weight: 700; color: var(--text); margin-top: 4px; }
         .profile-hero-id { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
         .profile-hero-tier { display: flex; justify-content: center; margin-top: 10px; }
         .profile-hero-edit-btn {
             margin-top: 14px; display: inline-flex; align-items: center; gap: 6px;
             background: var(--accent-soft); color: var(--accent); border: none; cursor: pointer;
-            font-size: 12.5px; font-weight: 700; padding: 8px 16px; border-radius: 20px; transition: 0.15s;
+            font-size: 12.5px; font-weight: 600; padding: 8px 16px; border-radius: 20px; transition: 0.15s;
         }
         .profile-hero-edit-btn:active { transform: scale(0.96); }
         .profile-hero-edit-btn svg { width: 13px; height: 13px; }
@@ -992,7 +992,7 @@
 
         /* ===================== FRAME COLLECTION PAGE ===================== */
         .frame-type-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
-        .frame-type-tab { flex: 1; padding: 10px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--surface); color: var(--text-muted); font-weight: 700; font-size: 13px; cursor: pointer; transition: 0.15s; }
+        .frame-type-tab { flex: 1; padding: 10px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--surface); color: var(--text-muted); font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.15s; }
         .frame-type-tab.active { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
         .frame-collection-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
         .frame-coll-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 6px; position: relative; }
@@ -1003,8 +1003,8 @@
         .frame-coll-thumb.locked img { filter: grayscale(1) brightness(0.55); }
         .frame-coll-lock { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; background: rgba(0,0,0,0.15); }
         .frame-coll-lock svg { width: 20px; height: 20px; }
-        .frame-coll-name { font-size: 12.5px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .frame-coll-rarity { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.3px; }
+        .frame-coll-name { font-size: 12.5px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .frame-coll-rarity { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
         .frame-coll-rarity.rarity-common { color: #64748B; }
         .frame-coll-rarity.rarity-rare { color: #2563EB; }
         .frame-coll-rarity.rarity-epic { color: #9333EA; }
@@ -1013,8 +1013,8 @@
         .frame-coll-progress-track { height: 5px; border-radius: 3px; background: var(--border); overflow: hidden; margin-top: 2px; }
         .frame-coll-progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.3s ease; }
         .frame-coll-progress-text { font-size: 10.5px; color: var(--text-muted); }
-        .frame-coll-event-badge { position: absolute; top: 8px; right: 8px; background: #FA3E3E; color: #fff; font-size: 9px; font-weight: 800; padding: 2px 6px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
-        .frame-coll-btn { margin-top: 2px; padding: 7px; border-radius: 9px; border: none; font-size: 12px; font-weight: 700; cursor: pointer; text-align: center; }
+        .frame-coll-event-badge { position: absolute; top: 8px; right: 8px; background: #FA3E3E; color: #fff; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
+        .frame-coll-btn { margin-top: 2px; padding: 7px; border-radius: 9px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; }
         .frame-coll-btn.equip { background: var(--accent); color: #fff; }
         .frame-coll-btn.unequip { background: var(--border); color: var(--text); }
         .frame-coll-btn.manual-locked { background: var(--border); color: var(--text-muted); cursor: default; }
@@ -1023,16 +1023,16 @@
 
         /* Google account card (Profile page) */
         .google-account-card { margin-bottom: 14px; }
-        .google-login-btn { width: 100%; padding: 11px 12px; border-radius: 10px; font-weight: 600; font-size: 14px; border: 1px solid #DADCE0; background: var(--surface); color: #3C4043; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
+        .google-login-btn { width: 100%; padding: 11px 12px; border-radius: 10px; font-weight: 500; font-size: 14px; border: 1px solid #DADCE0; background: var(--surface); color: #3C4043; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
         .google-login-btn:disabled { opacity: 0.6; }
         .google-login-btn:active { background: var(--surface-alt); }
         .google-account-hint { font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 6px; }
         .google-account-signedin { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .google-account-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background: var(--accent-soft); }
         .google-account-details { flex: 1; min-width: 0; }
-        .google-account-details span { display: block; font-size: 14px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .google-account-details span { display: block; font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .google-account-details small { font-size: 11.5px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
-        .google-signout-btn { flex-shrink: 0; background: var(--bg); color: #C0392B; border: none; padding: 7px 12px; border-radius: 8px; font-size: 12.5px; font-weight: 600; cursor: pointer; }
+        .google-signout-btn { flex-shrink: 0; background: var(--bg); color: #C0392B; border: none; padding: 7px 12px; border-radius: 8px; font-size: 12.5px; font-weight: 500; cursor: pointer; }
         .google-signout-btn:active { background: var(--border); }
         .avatar-upload-badge { position: absolute; top: 0px; right: 0px; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--on-color); display: flex; align-items: center; justify-content: center; border: 2px solid var(--surface); }
         .avatar-upload-badge svg { width: 13px; height: 13px; }
@@ -1312,14 +1312,14 @@
             display: flex; align-items: center; justify-content: center; border: 4px solid var(--surface); z-index: 2;
         }
         .tier-preview-photo svg { width: 34px; height: 34px; }
-        .tier-preview-label { font-size: 10.5px; font-weight: 700; color: var(--text-secondary); text-align: center; }
+        .tier-preview-label { font-size: 10.5px; font-weight: 600; color: var(--text-secondary); text-align: center; }
 
         /* Order Detail modal: clean 2-column info grid instead of stacked rows */
         .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 14px; }
         .detail-grid-item { background: var(--surface-alt); border: 1px solid var(--border); border-radius: 10px; padding: 10px 12px; }
         .detail-grid-item.full { grid-column: 1 / -1; }
-        .detail-grid-item span { display: block; font-size: 11px; color: var(--text-muted); font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px; }
-        .detail-grid-item b { display: block; font-size: 14px; color: var(--text); font-weight: 700; word-break: break-word; }
+        .detail-grid-item span { display: block; font-size: 11px; color: var(--text-muted); font-weight: 500; text-transform: uppercase; letter-spacing: 0.3px; margin-bottom: 4px; }
+        .detail-grid-item b { display: block; font-size: 14px; color: var(--text); font-weight: 600; word-break: break-word; }
 
         /* Mini profile strip shown at the top of the Store (below header) */
         .mini-profile-bar { margin: 10px 15px 0; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
@@ -1327,7 +1327,7 @@
         .mini-profile-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
         .mini-profile-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .mini-profile-info { flex: 1; min-width: 0; }
-        .mini-profile-info span { display: block; font-size: 15px; font-weight: 700; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .mini-profile-info span { display: block; font-size: 15px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .mini-profile-info small { font-size: 11px; color: var(--text-muted); }
 
         /* Social links (Facebook / Telegram / TikTok) on the Profile page - 3 separate grid cards */
@@ -1335,7 +1335,7 @@
         .social-link-btn { flex-direction: column; padding: 14px 8px; border-radius: 12px; display: flex; align-items: center; justify-content: center; gap: 8px; background: var(--surface-alt); border: 1px solid var(--border); text-decoration: none; transition: 0.15s; }
         .social-link-btn:active { transform: scale(0.96); background: var(--bg); }
         .social-link-icon { width: 38px; height: 38px; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: var(--on-color); flex-shrink: 0; }
-        .social-link-name { font-size: 12px; font-weight: 600; color: var(--text); }
+        .social-link-name { font-size: 12px; font-weight: 500; color: var(--text); }
 
         /* ===================== LIQUID GLASS RESKIN ===================== */
         /* Header, bottom nav, notif dot ring */
@@ -1356,7 +1356,7 @@
         html[data-theme="dark"] .bottom-nav { box-shadow: 0 16px 40px -10px rgba(0,0,10,0.6), inset 0 1px 1px rgba(255,255,255,0.06), inset 0 -1px 8px rgba(0,0,0,0.3); }
         .nav-item { border-radius: 16px; padding: 5px 0 4px; transition: color 0.2s ease; position: relative; }
         .nav-label { transition: transform 0.2s ease, opacity 0.2s ease; }
-        .nav-item.active .nav-label { transform: translateY(-1px); font-weight: 700; }
+        .nav-item.active .nav-label { transform: translateY(-1px); font-weight: 600; }
 
         /* Each icon sits in its own little 3D glass button — flat by default,
            and "pops" up out of the dock with a glossy highlight + drop shadow
@@ -1645,7 +1645,7 @@
                         <div class="wallet-pay-info-card">
                             <p class="wallet-pay-info-label">Transfer the exact amount to</p>
                             <div class="pm-copy-row" style="margin-top:6px;">
-                                <p style="font-size:18px;font-weight:800;letter-spacing:0.3px;" id="wallet-pm-number"></p>
+                                <p style="font-size:18px;font-weight: 700;letter-spacing:0.3px;" id="wallet-pm-number"></p>
                                 <button type="button" class="pm-copy-btn" onclick="copyPaymentField('wallet-pm-number', this)" title="Copy phone number">
                                     <svg class="ui-icon"><use href="#icon-copy"></use></svg>
                                 </button>
@@ -1658,7 +1658,7 @@
                             </div>
                         </div>
 
-                        <label style="display:block;font-size:13px;font-weight:700;color:var(--text);margin-top:14px;">Upload Payment Receipt</label>
+                        <label style="display:block;font-size:13px;font-weight: 600;color:var(--text);margin-top:14px;">Upload Payment Receipt</label>
                         <label class="upload-shot-box" id="wallet-upload-shot-box" for="wallet-receipt-file">
                             <div class="upload-shot-icon"><svg class="ui-icon"><use href="#icon-camera"></use></svg></div>
                             <span class="upload-shot-label">Upload Screenshot</span>
@@ -1779,13 +1779,13 @@
                     </div>
                 </div>
                 <div style="margin-top:8px;">
-                    <span onclick="togglePrefsAutoInfo()" role="button" aria-label="Show auto-switch info" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);font-weight:600;cursor:pointer;">
+                    <span onclick="togglePrefsAutoInfo()" role="button" aria-label="Show auto-switch info" style="display:inline-flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);font-weight: 500;cursor:pointer;">
                         Auto-switch info
                         <svg class="ui-icon" id="prefs-auto-info-chevron" style="width:12px;height:12px;transition:transform 0.2s;"><use href="#icon-chevron-right"></use></svg>
                     </span>
                     <p id="prefs-auto-info-text" style="display:none;font-size:11px;color:var(--text-muted);margin-top:6px;font-weight:400;line-height:1.5;">
                         Auto-switches: Light 7 AM–7 PM, Dark 7 PM–7 AM.
-                        <span id="theme-auto-reset-link" style="color:var(--accent);font-weight:700;cursor:pointer;display:none;" onclick="resetThemeToAuto()">Switched off — tap to re-enable auto</span>
+                        <span id="theme-auto-reset-link" style="color:var(--accent);font-weight: 600;cursor:pointer;display:none;" onclick="resetThemeToAuto()">Switched off — tap to re-enable auto</span>
                     </p>
                 </div>
             </div>
@@ -1845,7 +1845,7 @@
                 <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
                     <span class="prefs-row-label">
                         <span class="prefs-row-icon"><svg class="ui-icon" style="width:18px;height:18px;"><use href="#icon-frame"></use></svg></span>
-                        <span>Frame Collection <span id="frame-collection-count-badge" style="font-size:11px;color:var(--text-muted);font-weight:600;"></span></span>
+                        <span>Frame Collection <span id="frame-collection-count-badge" style="font-size:11px;color:var(--text-muted);font-weight: 500;"></span></span>
                     </span>
                     <svg class="ui-icon" style="width:16px;height:16px;color:var(--text-muted);"><use href="#icon-chevron-right"></use></svg>
                 </div>
@@ -1910,7 +1910,7 @@
                 <div class="header-icon" style="width:36px;height:36px;" onclick="closeServerSelect()">
                     <svg class="ui-icon" style="width:18px;"><use href="#icon-chevron-left"></use></svg>
                 </div>
-                <h2 style="font-size:18px; font-weight:700; color:var(--text);" id="server-select-title">Game</h2>
+                <h2 style="font-size:18px; font-weight: 600; color:var(--text);" id="server-select-title">Game</h2>
             </div>
             <div class="cards-grid" id="server-select-grid"></div>
         </div>
@@ -1922,7 +1922,7 @@
                 <div class="header-icon" style="width:36px;height:36px;" onclick="closeFrameCollection()">
                     <svg class="ui-icon" style="width:18px;"><use href="#icon-chevron-left"></use></svg>
                 </div>
-                <h2 style="font-size:18px; font-weight:700; color:var(--text);">Frame Collection</h2>
+                <h2 style="font-size:18px; font-weight: 600; color:var(--text);">Frame Collection</h2>
             </div>
             <div class="frame-type-tabs" id="frame-type-tabs">
                 <button type="button" class="frame-type-tab active" data-ftype="avatar" onclick="setFrameCollectionTab('avatar')">Avatar Frames</button>
@@ -1939,7 +1939,7 @@
                 <div class="header-icon" style="width:36px;height:36px;" onclick="closeGameDetail()">
                     <svg class="ui-icon" style="width:18px;"><use href="#icon-chevron-left"></use></svg>
                 </div>
-                <h2 style="font-size:18px; font-weight:700; color:var(--text);" id="detail-game-name">Game</h2>
+                <h2 style="font-size:18px; font-weight: 600; color:var(--text);" id="detail-game-name">Game</h2>
             </div>
             <div class="detail-layout">
             <div class="detail-banner-col">
@@ -2003,7 +2003,7 @@
                     <div id="detail-payment-info" class="detail-form-card" style="display:none; margin-top:10px;">
                         <p style="font-size:12px;color:var(--text-secondary);">Transfer the exact amount to:</p>
                         <div class="pm-copy-row" style="margin-top:2px;">
-                            <p style="font-size:17px;font-weight:700;color:#1877F2;" id="pm-number"></p>
+                            <p style="font-size:17px;font-weight: 600;color:#1877F2;" id="pm-number"></p>
                             <button type="button" class="pm-copy-btn" onclick="copyPaymentField('pm-number', this)" title="Copy phone number">
                                 <svg class="ui-icon"><use href="#icon-copy"></use></svg>
                             </button>
@@ -2060,7 +2060,7 @@
             <div class="success-check" id="success-check-icon">
                 <svg class="ui-icon" style="width:36px;height:36px;color:#28a745;"><use href="#icon-check"></use></svg>
             </div>
-            <h3 style="font-size:18px;font-weight:700;color:var(--text);margin-bottom:8px;" id="success-title">Order Confirmed</h3>
+            <h3 style="font-size:18px;font-weight: 600;color:var(--text);margin-bottom:8px;" id="success-title">Order Confirmed</h3>
             <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px;" id="success-subtext">We've received your order and receipt. Our team will confirm it shortly.</p>
             <div id="success-timeline" style="text-align:left;"></div>
             <button class="btn btn-primary" onclick="goHomeFromSuccess()">Back to Home</button>
@@ -5092,7 +5092,7 @@
                 <div style="display:flex;align-items:center;gap:12px;">
                     <div class="hc-thumb" style="width:52px;height:52px;">${gameImg ? `<img src="${gameImg}" alt="" onerror="this.style.display='none'">` : ''}</div>
                     <div style="flex:1;min-width:0;">
-                        <h4 style="font-size:17px;font-weight:700;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${data.game}</h4>
+                        <h4 style="font-size:17px;font-weight: 600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${data.game}</h4>
                         <p style="font-size:12px;color:var(--text-muted);margin-top:2px;">${dateStr}</p>
                     </div>
                     <span class="badge ${badgeClass}">${historyStatusIconHTML(data.status)}${data.status}</span>
