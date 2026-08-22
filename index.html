@@ -545,7 +545,8 @@
         .slide-confirm-thumb.completed { background: linear-gradient(160deg, #34D399, #16A34A); box-shadow: 0 3px 12px rgba(22,163,74,0.5), inset 0 1px 1px rgba(255,255,255,0.4); }
         .slide-confirm-thumb.completed svg { color: #fff; }
         .bottom-nav { position: fixed; bottom: 0; left: 0; width: 100%; background: var(--surface); display: flex; justify-content: space-around; padding: 8px 0; border-top: 1px solid var(--border); z-index: 100; box-shadow: 0 -2px 5px rgba(0,0,0,0.05); }
-        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; font-weight: 500; color: var(--text-secondary); cursor: pointer; width: 20%; }
+        .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; font-weight: 500; color: var(--text-secondary); cursor: pointer; flex: 1; min-width: 0; }
+        .nav-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .nav-item.active { color: var(--accent); }
         .nav-icon-wrap { width: 40px; height: 40px; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
         .nav-item.active .ui-icon { stroke: var(--accent); }
@@ -1508,6 +1509,7 @@
         <symbol id="icon-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="9" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></symbol>
         <symbol id="icon-alert" viewBox="0 0 24 24"><line x1="12" y1="7" x2="12" y2="13.5"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></symbol>
         <symbol id="icon-info" viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="11"></line><line x1="12" y1="7" x2="12.01" y2="7"></line></symbol>
+        <symbol id="icon-gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4"></rect><path d="M12 8v13"></path><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"></path><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"></path></symbol>
     </svg>
 
     <!-- Toast Notification -->
@@ -1581,6 +1583,20 @@
                 <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
                 <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
                 <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
+                <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
+                <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
+                <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
+            </div>
+        </div>
+
+        <!-- VOUCHER PAGE — games/servers whose packages are fulfilled via the
+             G2Bulk Giftcards & Vouchers catalogue (see fulfillProvider ===
+             'g2bulk_voucher' in the admin game editor). Same card grid and
+             purchase flow as Home, just pre-filtered to voucher-only entries. -->
+        <div id="voucher" class="page-section">
+            <h2 class="title-header">Vouchers & Gift Cards</h2>
+            <p class="empty-msg" style="text-align:left;padding:0 2px 12px;">Instant-delivery gift cards & top-up vouchers.</p>
+            <div class="cards-grid" id="voucher-games-grid">
                 <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
                 <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
                 <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
@@ -2133,6 +2149,10 @@
             <span class="nav-icon-wrap"><svg class="ui-icon"><use href="#icon-home"></use></svg></span>
             <span class="nav-label">Home</span>
         </div>
+        <div class="nav-item" id="btn-voucher" onclick="showPage('voucher')">
+            <span class="nav-icon-wrap"><svg class="ui-icon"><use href="#icon-gift"></use></svg></span>
+            <span class="nav-label">Voucher</span>
+        </div>
         <div class="nav-item" id="btn-history" onclick="showPage('history')">
             <span class="nav-icon-wrap"><svg class="ui-icon"><use href="#icon-history"></use></svg></span>
             <span class="nav-label">History</span>
@@ -2182,6 +2202,7 @@
             if (pageId === 'profile' && window.renderTierPreviewGrid) window.renderTierPreviewGrid();
             if (pageId === 'profile' && window.renderPushToggleUI) window.renderPushToggleUI();
             if (pageId === 'leaderboard' && window.loadLeaderboard) window.loadLeaderboard();
+            if (pageId === 'voucher' && window.renderVoucherGames) window.renderVoucherGames();
         }
 
         let toastHideTimer = null;
@@ -2229,6 +2250,10 @@
         // Payment methods live in Firestore's "paymentMethods" collection, synced
         // the same way into window.PAYMENT_METHODS.
         let selectedPackage = null;
+        // Which bottom-nav page a game's detail modal was opened from (Home
+        // or Voucher) - so closing it returns the customer to the right tab
+        // instead of always dropping back to Home.
+        let gameDetailReturnPage = 'home';
         let activePackageTab = 'currency';
         // Label shown on a tab button/chip. The two built-ins ('package' /
         // 'currency') can be renamed per game from the admin panel (e.g.
@@ -2909,7 +2934,7 @@
             selectedPaymentType = null;
             editingReceiptFile = null;
             receiptOcrPromise = null;
-            showPage('home');
+            showPage(gameDetailReturnPage);
         }
 
         // Live status tracking on the success screen: once an order is placed
@@ -3160,7 +3185,11 @@
                 g2bulkGameCode: selectedGameG2BulkCode,
                 g2bulkCatalogueName: selectedPackage.g2bulk || null,
                 jcplaysProduct: selectedGameJCPlaysProduct,
-                jcplaysProductId: selectedPackage.jcplays || null
+                jcplaysProductId: selectedPackage.jcplays || null,
+                // Voucher/giftcard packages carry their own G2Bulk product ID
+                // directly on the package (no game-level link needed) - see
+                // pkg-voucher-id in the admin game editor.
+                g2bulkVoucherProductId: selectedPackage.voucherId || null
             }, btnElement);
         }
 
@@ -3176,7 +3205,8 @@
                 g2bulkGameCode: selectedGameG2BulkCode,
                 g2bulkCatalogueName: selectedPackage.g2bulk || null,
                 jcplaysProduct: selectedGameJCPlaysProduct,
-                jcplaysProductId: selectedPackage.jcplays || null
+                jcplaysProductId: selectedPackage.jcplays || null,
+                g2bulkVoucherProductId: selectedPackage.voucherId || null
             }, btnElement);
         }
 
@@ -4613,7 +4643,7 @@
         }
 
         async function submitOrder(orderData, btnElement) {
-            const { gameName, serverRegion, amount, price, inGameId, inGameName, serverId, paymentMethodName, receiptFile, transactionId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId } = orderData;
+            const { gameName, serverRegion, amount, price, inGameId, inGameName, serverId, paymentMethodName, receiptFile, transactionId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId } = orderData;
 
             const originalText = btnElement.innerText;
             btnElement.innerText = "Processing...";
@@ -4670,7 +4700,12 @@
                     // Code and the package was linked to a JCPlays Product ID in the
                     // game editor (see openGameEditor / saveGame). Both are needed to
                     // call JCPlays' createorder endpoint later.
-                    ...(jcplaysProduct && jcplaysProductId ? { jcplaysProduct, jcplaysProductId } : {})
+                    ...(jcplaysProduct && jcplaysProductId ? { jcplaysProduct, jcplaysProductId } : {}),
+                    // Voucher/giftcard packages - lets the admin panel route this
+                    // order through the G2Bulk purchase/delivery flow instead of
+                    // the game top-up order flow (see g2bulkVoucherProductId
+                    // handling in the admin panel's fulfillment code).
+                    ...(g2bulkVoucherProductId ? { g2bulkVoucherProductId } : {})
                 });
 
                 saveContact(inGameId, selectedGameId, serverId);
@@ -4696,7 +4731,7 @@
         // rendered) so two rapid orders can never both slip through on a
         // balance that only actually covers one of them.
         async function submitWalletOrder(orderData, btnElement) {
-            const { gameName, serverRegion, amount, price, inGameId, serverId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId } = orderData;
+            const { gameName, serverRegion, amount, price, inGameId, serverId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId } = orderData;
 
             const originalText = btnElement.innerText;
             btnElement.innerText = "Processing...";
@@ -4746,7 +4781,8 @@
                     userPhone: (savedProfile.phone && savedProfile.phone.trim()) ? savedProfile.phone.trim() : '',
                     ...(location ? { location } : {}),
                     ...(g2bulkGameCode && g2bulkCatalogueName ? { g2bulkGameCode, g2bulkCatalogueName } : {}),
-                    ...(jcplaysProduct && jcplaysProductId ? { jcplaysProduct, jcplaysProductId } : {})
+                    ...(jcplaysProduct && jcplaysProductId ? { jcplaysProduct, jcplaysProductId } : {}),
+                    ...(g2bulkVoucherProductId ? { g2bulkVoucherProductId } : {})
                 });
 
                 saveContact(inGameId, selectedGameId, serverId);
@@ -5947,6 +5983,7 @@
         function openGameEntry(idx) {
             const group = HOME_GAME_GROUPS[idx];
             if (!group) return;
+            gameDetailReturnPage = 'home';
             if (group.ids.length <= 1) {
                 openGameDetail(group.ids[0]);
             } else {
@@ -5955,9 +5992,11 @@
         }
         window.openGameEntry = openGameEntry;
 
-        function openServerSelect(idx) {
-            const group = HOME_GAME_GROUPS[idx];
+        let serverSelectReturnPage = 'home';
+        function openServerSelect(idx, groups = HOME_GAME_GROUPS) {
+            const group = groups[idx];
             if (!group) return;
+            serverSelectReturnPage = window.currentStorePage === 'voucher' ? 'voucher' : 'home';
             document.getElementById('server-select-title').innerText = group.name;
             const grid = document.getElementById('server-select-grid');
             grid.innerHTML = group.ids.map((id, i) => {
@@ -5978,7 +6017,7 @@
         window.openServerSelect = openServerSelect;
 
         function closeServerSelect() {
-            showPage('home');
+            showPage(serverSelectReturnPage);
         }
         window.closeServerSelect = closeServerSelect;
 
@@ -6140,6 +6179,58 @@
             revealCardsIn(grid);
         }
 
+        // ---------- Voucher tab: same card grid / purchase flow as Home,
+        // pre-filtered to games whose packages are fulfilled via G2Bulk's
+        // Giftcards & Vouchers catalogue (fulfillProvider === 'g2bulk_voucher',
+        // set from the "Vouchers" tab in the admin game editor). Kept as its
+        // own group/index array (VOUCHER_GAME_GROUPS) so opening a card here
+        // never collides with Home's HOME_GAME_GROUPS indices.
+        let VOUCHER_GAME_GROUPS = [];
+        function openVoucherGameEntry(idx) {
+            const group = VOUCHER_GAME_GROUPS[idx];
+            if (!group) return;
+            gameDetailReturnPage = 'voucher';
+            if (group.ids.length <= 1) {
+                openGameDetail(group.ids[0]);
+            } else {
+                openServerSelect(idx, VOUCHER_GAME_GROUPS);
+            }
+        }
+        window.openVoucherGameEntry = openVoucherGameEntry;
+
+        function renderVoucherGames() {
+            const grid = document.getElementById('voucher-games-grid');
+            if (!grid) return;
+            const ids = Object.keys(GAMES)
+                .filter(id => GAMES[id].fulfillProvider === 'g2bulk_voucher')
+                .sort((a, b) => {
+                    const ga = GAMES[a], gb = GAMES[b];
+                    const oa = typeof ga.order === 'number' ? ga.order : Infinity;
+                    const ob = typeof gb.order === 'number' ? gb.order : Infinity;
+                    if (oa !== ob) return oa - ob;
+                    return (ga.name || '').localeCompare(gb.name || '');
+                });
+            if (ids.length === 0) {
+                grid.innerHTML = emptyStateHTML('icon-gift', 'No vouchers yet', 'Gift cards & vouchers will show up here once added.');
+                return;
+            }
+            const groups = groupGamesByName(ids);
+            VOUCHER_GAME_GROUPS = groups;
+            grid.innerHTML = groups.map((gr, i) => {
+                const g = GAMES[gr.repId];
+                return `
+                    <div class="game-card game-card-anim" style="animation-delay:${Math.min(i * 25, 200)}ms" onclick="openVoucherGameEntry(${i})">
+                        <div class="game-card-img-wrap">
+                            <img src="${g.image}" alt="${g.name}" loading="lazy" decoding="async">
+                            ${categoryBadgeHtml(g.category)}
+                        </div>
+                        <div class="game-card-name">${g.name}</div>
+                    </div>
+                `;
+            }).join('');
+            revealCardsIn(grid);
+        }
+        window.renderVoucherGames = renderVoucherGames;
 
         // Games are managed entirely from the admin panel now — nothing here ever
         // auto-recreates a game, so deleting one in admin removes it for good.
@@ -6150,6 +6241,7 @@
                 GAMES = newGames;
                 window.GAMES = GAMES;
                 renderHomeGames();
+                if (window.currentStorePage === 'voucher') renderVoucherGames();
                 if (historyUnsubscribe) renderHistoryOrders(HISTORY_ORDERS);
             }, (error) => {
                 console.error("Games listener error:", error);
