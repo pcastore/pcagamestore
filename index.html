@@ -5926,28 +5926,36 @@
         // Keeps History live: once attached, order status changes (Pending -> Processing
         // -> Success/Fail) made from the admin panel appear here automatically, with no
         // need to leave and reopen the History tab.
+        //
+        // Scoped by the device's guestId (the account identifier every order is
+        // stamped with), NOT by playerId. playerId is just "the last in-game ID
+        // typed into any game's order form" (see saveContact) - it gets overwritten
+        // every time the customer orders for a different game or a different
+        // account, so querying by it silently dropped older orders from History
+        // the moment a newer, different in-game ID was used. guestId is stable
+        // per device/account, so it doesn't have that problem.
         let historyUnsubscribe = null;
-        let historyListenerPlayerId = null;
+        let historyListenerGuestId = null;
 
         function loadHistory() {
             const container = document.getElementById('history-container');
-            const saved = getSavedContact();
+            const guestId = window.getGuestId ? window.getGuestId() : '';
 
-            if (!saved.playerId) {
-                if (historyUnsubscribe) { historyUnsubscribe(); historyUnsubscribe = null; historyListenerPlayerId = null; }
+            if (!guestId) {
+                if (historyUnsubscribe) { historyUnsubscribe(); historyUnsubscribe = null; historyListenerGuestId = null; }
                 container.innerHTML = emptyStateHTML('icon-history', 'No orders yet', 'Place a top up and your order history will show up here.');
                 return;
             }
 
-            // Already listening for this exact player - nothing to do, it's live.
-            if (historyUnsubscribe && historyListenerPlayerId === saved.playerId) return;
+            // Already listening for this exact account - nothing to do, it's live.
+            if (historyUnsubscribe && historyListenerGuestId === guestId) return;
 
             if (historyUnsubscribe) { historyUnsubscribe(); historyUnsubscribe = null; }
-            historyListenerPlayerId = saved.playerId;
+            historyListenerGuestId = guestId;
             HISTORY_FILTER_DATE = null;
             container.innerHTML = historySkeletonHTML();
 
-            const q = query(collection(db, "orders"), where("playerId", "==", saved.playerId));
+            const q = query(collection(db, "orders"), where("userId", "==", guestId));
             historyUnsubscribe = onSnapshot(q, (snap) => {
                 const orders = [];
                 snap.forEach(docSnap => orders.push({ id: docSnap.id, ...docSnap.data() }));
@@ -6211,7 +6219,10 @@
             // Explicit `order` field (set from the admin's manual Reorder
             // screen) wins, ascending; games that don't have one yet fall to
             // the end, alphabetically - so nothing reshuffles on its own.
-            const ids = Object.keys(GAMES).sort((a, b) => {
+            // Vouchers/gift cards (fulfillProvider === 'g2bulk_voucher') have their
+            // own dedicated Voucher tab (see renderVoucherGames below) and should
+            // not also appear mixed into the Home / direct top-up list.
+            const ids = Object.keys(GAMES).filter(id => GAMES[id].fulfillProvider !== 'g2bulk_voucher').sort((a, b) => {
                 const ga = GAMES[a], gb = GAMES[b];
                 const oa = typeof ga.order === 'number' ? ga.order : Infinity;
                 const ob = typeof gb.order === 'number' ? gb.order : Infinity;
