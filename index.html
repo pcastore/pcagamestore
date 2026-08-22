@@ -692,6 +692,15 @@
         }
         .pc-selected-check .ui-icon { width: 12px; height: 12px; stroke-width: 3; }
         .package-card.selected .pc-selected-check { opacity: 1; transform: scale(1); }
+        /* "X ကျန်" (X left) live-stock badge for voucher packages, opposite
+           corner from the selected-checkmark badge above. */
+        .pc-stock-badge {
+            position: absolute; top: 6px; left: 6px; padding: 2px 6px;
+            border-radius: 8px; background: rgba(255,255,255,0.92);
+            font-size: 9.5px; font-weight: 500; color: #1877F2;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.18);
+        }
+        html[data-theme="dark"] .pc-stock-badge { background: rgba(30,32,38,0.85); color: #6FA8FF; }
         .package-card.type-currency .pc-info { padding: 6px 6px 0; text-align: center; }
         .package-card.type-currency .pc-label { font-size: 11px; line-height: 1.2; }
         .package-card.type-currency .pc-price-bar { margin-top: 5px; padding: 5px 6px; }
@@ -2584,6 +2593,16 @@
             window.currentGamePackages = game.packages;
             currentGameTabLabels = game.packageTabLabels || {};
 
+            // Voucher/giftcard games (fulfillProvider === 'g2bulk_voucher') show a
+            // small "X left" badge on each package card, sourced live from G2Bulk's
+            // public per-category product list (which includes per-product stock)
+            // - see startVoucherStockRefresh below.
+            if (game.fulfillProvider === 'g2bulk_voucher' && game.g2bulkVoucherCategory) {
+                startVoucherStockRefresh(game.g2bulkVoucherCategory);
+            } else {
+                stopVoucherStockRefresh();
+            }
+
             document.getElementById('detail-game-name').innerText = game.name;
             document.getElementById('detail-game-banner').src = game.banner || game.image;
             document.getElementById('detail-game-banner').alt = game.name;
@@ -2645,6 +2664,44 @@
         }
         window.switchPackageTab = switchPackageTab;
 
+        // ---------- Voucher live stock ("X left") badge ----------
+        // productId (G2Bulk product id, matches each voucher package's
+        // pkg.voucherId) -> remaining stock count, for whichever voucher
+        // game is currently open. Same public endpoint the admin panel's
+        // Import Products uses (GET /v1/category/:id), so no API key needed.
+        let voucherStockMap = {};
+        let voucherStockInterval = null;
+        const VOUCHER_STOCK_REFRESH_MS = 15000;
+
+        async function fetchVoucherStock(categoryId) {
+            try {
+                const res = await fetch(`https://api.g2bulk.com/v1/category/${encodeURIComponent(categoryId)}`);
+                const data = await res.json();
+                if (!data.success) return;
+                const products = data.products || (data.category ? data.category.products : []) || [];
+                const map = {};
+                products.forEach(p => { map[String(p.id)] = Number(p.stock ?? 0); });
+                voucherStockMap = map;
+                // Only re-render if the customer is still looking at this same
+                // voucher game's package list (stops a stale/slow response from
+                // a game they've already navigated away from overwriting the UI).
+                if (window.currentStorePage === 'game-detail') renderDetailPackageList();
+            } catch (error) {
+                console.error("Voucher stock fetch error:", error);
+            }
+        }
+
+        function startVoucherStockRefresh(categoryId) {
+            stopVoucherStockRefresh();
+            fetchVoucherStock(categoryId);
+            voucherStockInterval = setInterval(() => fetchVoucherStock(categoryId), VOUCHER_STOCK_REFRESH_MS);
+        }
+
+        function stopVoucherStockRefresh() {
+            if (voucherStockInterval) { clearInterval(voucherStockInterval); voucherStockInterval = null; }
+            voucherStockMap = {};
+        }
+
         function renderDetailPackageList() {
             const list = document.getElementById('detail-package-list');
             const packages = window.currentGamePackages || [];
@@ -2665,9 +2722,14 @@
             list.innerHTML = entries.map(({ pkg, i }, pos) => {
                 const img = pkg.image || DEFAULT_PACKAGE_ICON;
                 const imgTag = `<img class="pc-img" src="${img}" alt="" loading="lazy" onerror="this.src='${DEFAULT_PACKAGE_ICON}'">`;
+                // Small blue "X left" corner badge, live from G2Bulk stock -
+                // only shown for voucher packages we actually have a stock
+                // number for (voucherStockMap is empty for non-voucher games).
+                const stock = pkg.voucherId ? voucherStockMap[String(pkg.voucherId)] : undefined;
+                const stockBadge = stock !== undefined ? `<span class="pc-stock-badge">${stock} ကျန်</span>` : '';
                 return `
                 <div class="package-card type-currency game-card-anim" style="animation-delay:${Math.min(pos * 25, 200)}ms" data-index="${i}" onclick="selectPackageOption(${i})">
-                    <div class="pc-img-wrap">${imgTag}<span class="pc-selected-check"><svg class="ui-icon"><use href="#icon-check"></use></svg></span></div>
+                    <div class="pc-img-wrap">${imgTag}${stockBadge}<span class="pc-selected-check"><svg class="ui-icon"><use href="#icon-check"></use></svg></span></div>
                     <div class="pc-info"><span class="pc-label">${pkg.amount}</span></div>
                     <div class="pc-price-bar"><span class="pc-price">${pkg.price.toLocaleString()} MMK</span></div>
                 </div>`;
@@ -2985,7 +3047,25 @@
         // every order's detail HTML unconditionally.
         function voucherCodeBlockHTML(data) {
             const codes = Array.isArray(data.deliveredCodes) ? data.deliveredCodes.filter(c => c !== null && c !== undefined && String(c).trim()) : [];
-            if (data.status !== 'Success' || codes.length === 0) return '';
+            if (data.status !== 'Success') return '';
+            if (codes.length === 0) {
+                // Guards against a past bug where a voucher order's Telegram
+                // Confirm could mark it "Success" without ever actually
+                // purchasing/delivering a code from G2Bulk - so instead of
+                // silently showing nothing (looking like the details are
+                // just missing), tell the customer to reach out. Only shown
+                // for orders that were actually voucher-linked in the first
+                // place, never for a normal top-up order.
+                if (!data.g2bulkVoucherProductId) return '';
+                return `
+                    <div class="voucher-code-highlight">
+                        <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
+                            <svg class="ui-icon" style="width:20px;height:20px;color:#B8860B;"><use href="#icon-gift"></use></svg>
+                            <span class="vch-label" style="font-size:13px;font-weight:700;color:#7A5B00;text-transform:uppercase;letter-spacing:0.3px;">Voucher Code Unavailable</span>
+                        </div>
+                        <p style="font-size:13px;color:#7A5B00;margin:0;">Your order is marked Success but no code was found. Please contact support with this order's ID and we'll sort it out.</p>
+                    </div>`;
+            }
             const jsSafe = s => String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
             const rows = codes.map((c, i) => `
                 <div class="vch-row" style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.65);border-radius:10px;padding:10px 12px;${i > 0 ? 'margin-top:8px;' : ''}">
@@ -3038,6 +3118,7 @@
             selectedPaymentType = null;
             editingReceiptFile = null;
             receiptOcrPromise = null;
+            stopVoucherStockRefresh();
             showPage(gameDetailReturnPage);
         }
 
