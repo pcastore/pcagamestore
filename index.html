@@ -2230,12 +2230,16 @@
         // the same way into window.PAYMENT_METHODS.
         let selectedPackage = null;
         let activePackageTab = 'currency';
-        // Label shown on a tab button/chip. Admin's two built-in tabs get
-        // friendly names; any custom tab (e.g. "Wow") just uses its own name
-        // as saved by the admin panel, matching pkgTabLabel() in index.html.
+        // Label shown on a tab button/chip. The two built-ins ('package' /
+        // 'currency') can be renamed per game from the admin panel (e.g.
+        // "Diamond", "UC") - currentGameTabLabels holds whatever the
+        // currently-open game saved, falling back to the generic default
+        // name if that game never renamed them. Any custom tab (e.g. "Wow")
+        // just uses its own name as saved by the admin panel.
+        let currentGameTabLabels = {};
         function pkgTabLabel(tabId) {
-            if (tabId === 'package') return 'Package';
-            if (tabId === 'currency') return 'Currency';
+            if (tabId === 'package') return currentGameTabLabels.package || 'Package';
+            if (tabId === 'currency') return currentGameTabLabels.currency || 'Currency';
             return tabId;
         }
         // A package's organizational tab is its `tab` field. Older saved
@@ -2505,6 +2509,7 @@
             editingReceiptFile = null;
             receiptOcrPromise = null;
             window.currentGamePackages = game.packages;
+            currentGameTabLabels = game.packageTabLabels || {};
 
             document.getElementById('detail-game-name').innerText = game.name;
             document.getElementById('detail-game-banner').src = game.banner || game.image;
@@ -2522,9 +2527,10 @@
                 const t = pkgTabOf(pkg);
                 if (!seenTabs.includes(t)) seenTabs.push(t);
             });
-            // Keep a stable, familiar order: built-ins first, then custom
-            // tabs in the order the admin created them.
-            const orderedTabs = ['package', 'currency', ...seenTabs.filter(t => t !== 'package' && t !== 'currency')]
+            // Keep a stable, familiar order: built-ins first (Currency before
+            // Package, matching the admin panel's tab bar), then custom tabs
+            // in the order the admin created them.
+            const orderedTabs = ['currency', 'package', ...seenTabs.filter(t => t !== 'package' && t !== 'currency')]
                 .filter(t => seenTabs.includes(t));
             if (orderedTabs.length > 1) {
                 tabsEl.style.display = 'flex';
