@@ -581,7 +581,7 @@
         .modal-header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 12px; border-bottom: 1px solid var(--border); margin-bottom: 14px; flex-shrink: 0; }
         .modal-header h3 { font-size: 17px; font-weight: 600; color: var(--text); }
         .modal-close { width: 32px; height: 32px; border-radius: 50%; background: var(--border); display: flex; align-items: center; justify-content: center; cursor: pointer; flex-shrink: 0; }
-        .modal-body { overflow-y: auto; -webkit-overflow-scrolling: touch; display: flex; flex-direction: column; gap: 10px; flex: 1 1 auto; min-height: 0; }
+        .modal-body { overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 10px; flex: 1 1 auto; min-height: 0; }
         /* Package/Currency tab switcher */
         .pkg-type-tabs { display: flex; background: var(--bg); border-radius: 10px; padding: 4px; gap: 4px; margin-bottom: 14px; }
         .pkg-type-tab { flex: 1; text-align: center; padding: 9px 0; border: none; background: transparent; border-radius: 8px; font-size: 14px; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: 0.15s; }
@@ -605,7 +605,7 @@
            whole page — with many packages, the customer used to have to scroll
            all the way past every tile just to reach payment/confirm below. */
         .package-grid-scroll {
-            max-height: 48vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+            max-height: 48vh; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
             padding: 10px 2px; margin: 0 -2px;
             border: 1px solid var(--border); border-radius: 16px; background: var(--surface-alt);
         }
@@ -617,7 +617,7 @@
            scrolls inside its own box instead of dragging the whole page down,
            while the date-filter chips above it stay put. */
         .order-list-scroll {
-            max-height: 66vh; overflow-y: auto; -webkit-overflow-scrolling: touch;
+            max-height: 66vh; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
             border: 1px solid var(--border); border-radius: 16px; background: var(--surface-alt);
             padding: 10px; margin-top: 4px;
         }
@@ -643,8 +643,19 @@
         /* Both Currency and Package types now share this same grid-card look:
            tall card, square image on top, price in its own bottom bar. */
         .package-card.type-currency { border-radius: 11px; }
-        .package-card.type-currency .pc-img-wrap { width: 100%; aspect-ratio: 1 / 1; background: var(--bg); overflow: hidden; }
+        .package-card.type-currency .pc-img-wrap { width: 100%; aspect-ratio: 1 / 1; background: var(--bg); overflow: hidden; position: relative; }
         .package-card.type-currency .pc-img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        /* Checkmark badge shown on the currently-selected currency package */
+        .pc-selected-check {
+            position: absolute; top: 6px; right: 6px; width: 20px; height: 20px;
+            border-radius: 50%; background: var(--accent); color: #fff;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.25);
+            opacity: 0; transform: scale(0.5); transition: opacity 0.15s ease, transform 0.15s ease;
+            pointer-events: none;
+        }
+        .pc-selected-check .ui-icon { width: 12px; height: 12px; stroke-width: 3; }
+        .package-card.selected .pc-selected-check { opacity: 1; transform: scale(1); }
         .package-card.type-currency .pc-info { padding: 6px 6px 0; text-align: center; }
         .package-card.type-currency .pc-label { font-size: 11px; line-height: 1.2; }
         .package-card.type-currency .pc-price-bar { margin-top: 5px; padding: 5px 6px; }
@@ -947,6 +958,10 @@
         }
         .profile-hero-name { font-size: 18px; font-weight: 700; color: var(--text); margin-top: 4px; }
         .profile-hero-id { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
+        .profile-hero-id-row { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 3px; }
+        .profile-hero-id-row .profile-hero-id { margin-top: 0; }
+        .profile-id-copy-btn { width: 22px; height: 22px; border-radius: 6px; }
+        .profile-id-copy-btn svg { width: 12px; height: 12px; }
         .profile-hero-tier { display: flex; justify-content: center; margin-top: 10px; }
         .profile-hero-edit-btn {
             margin-top: 14px; display: inline-flex; align-items: center; gap: 6px;
@@ -1339,7 +1354,7 @@
 
         /* ===================== LIQUID GLASS RESKIN ===================== */
         /* Header, bottom nav, notif dot ring */
-        .header { background: var(--glass-bg-strong); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); border-bottom: 1px solid var(--glass-border); box-shadow: var(--glass-shadow-sm); }
+        .header { background: var(--glass-bg-strong); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); border-bottom: 1px solid var(--glass-border); box-shadow: var(--glass-shadow-sm); transform: translateZ(0); will-change: transform; }
 
         /* Bottom nav = a floating 3D glass dock, detached from the screen edge */
         .bottom-nav {
@@ -1352,6 +1367,8 @@
             padding: 8px 6px calc(8px + env(safe-area-inset-bottom, 0px));
             box-shadow: 0 16px 40px -10px rgba(20,30,60,0.35), inset 0 1px 1px rgba(255,255,255,0.5), inset 0 -1px 8px rgba(0,0,0,0.04);
             position: fixed;
+            transform: translateZ(0);
+            will-change: transform;
         }
         html[data-theme="dark"] .bottom-nav { box-shadow: 0 16px 40px -10px rgba(0,0,10,0.6), inset 0 1px 1px rgba(255,255,255,0.06), inset 0 -1px 8px rgba(0,0,0,0.3); }
         .nav-item { border-radius: 16px; padding: 5px 0 4px; transition: color 0.2s ease; position: relative; }
@@ -1511,7 +1528,7 @@
                     <svg class="svg-icon" id="theme-toggle-icon" style="stroke:currentColor;"><use href="#icon-sun"></use></svg>
                 </span>
             </div>
-            <div class="header-icon" onclick="openNotificationsModal()"><svg class="ui-icon" style="width: 20px;"><use href="#icon-bell"></use></svg><span class="notif-dot" id="notif-dot"></span></div>
+            <div class="header-icon" onclick="openNotificationsPage()"><svg class="ui-icon" style="width: 20px;"><use href="#icon-bell"></use></svg><span class="notif-dot" id="notif-dot"></span></div>
         </div>
     </header>
 
@@ -1739,7 +1756,12 @@
                     <input type="file" id="profile-photo-file" class="avatar-upload-input" accept="image/*" onchange="previewProfilePhoto(event)">
 
                     <div class="profile-hero-name" id="profile-hero-name">Guest</div>
-                    <div class="profile-hero-id" id="profile-hero-id"></div>
+                    <div class="profile-hero-id-row">
+                        <span class="profile-hero-id" id="profile-hero-id"></span>
+                        <button type="button" class="pm-copy-btn profile-id-copy-btn" id="profile-id-copy-btn" onclick="copyProfileId(this)" title="Copy ID">
+                            <svg class="ui-icon"><use href="#icon-copy"></use></svg>
+                        </button>
+                    </div>
                     <div class="profile-hero-tier" id="vip-tier-badge-hero"></div>
 
                     <button type="button" class="profile-hero-edit-btn" id="profile-edit-toggle-btn" onclick="toggleProfileEditCard()">
@@ -2052,6 +2074,31 @@
             </div>
         </div>
 
+        <!-- NOTIFICATIONS LIST PAGE -->
+        <div id="notif-page" class="page-section">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+                <div class="header-icon" style="width:36px;height:36px;" onclick="closeNotificationsPage()">
+                    <svg class="ui-icon" style="width:18px;"><use href="#icon-chevron-left"></use></svg>
+                </div>
+                <h2 style="font-size:18px; font-weight: 600; color:var(--text);">Notifications</h2>
+            </div>
+            <div id="notif-page-list"></div>
+        </div>
+
+        <!-- NOTIFICATION DETAIL PAGE -->
+        <div id="notif-detail" class="page-section">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+                <div class="header-icon" style="width:36px;height:36px;" onclick="closeNotificationDetail()">
+                    <svg class="ui-icon" style="width:18px;"><use href="#icon-chevron-left"></use></svg>
+                </div>
+                <h2 style="font-size:18px; font-weight: 600; color:var(--text); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" id="notif-detail-title">Notification</h2>
+            </div>
+            <div class="notif-item">
+                <span id="notif-detail-date"></span>
+                <p id="notif-detail-body" style="white-space:pre-wrap; margin-top:8px;"></p>
+            </div>
+        </div>
+
     </main>
 
     <!-- Order Success Screen -->
@@ -2064,19 +2111,6 @@
             <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px;" id="success-subtext">We've received your order and receipt. Our team will confirm it shortly.</p>
             <div id="success-timeline" style="text-align:left;"></div>
             <button class="btn btn-primary" onclick="goHomeFromSuccess()">Back to Home</button>
-        </div>
-    </div>
-
-    <!-- Notifications Modal -->
-    <div class="modal-overlay" id="notif-modal-overlay" onclick="if(event.target===this) closeNotificationsModal()">
-        <div class="modal-box">
-            <div class="modal-header">
-                <h3>Notifications</h3>
-                <div class="modal-close" onclick="closeNotificationsModal()">
-                    <svg class="ui-icon" style="width:18px;height:18px;"><use href="#icon-close"></use></svg>
-                </div>
-            </div>
-            <div class="modal-body" id="notif-modal-list"></div>
         </div>
     </div>
 
@@ -2554,7 +2588,7 @@
                 const imgTag = `<img class="pc-img" src="${img}" alt="" loading="lazy" onerror="this.src='${DEFAULT_PACKAGE_ICON}'">`;
                 return `
                 <div class="package-card type-currency game-card-anim" style="animation-delay:${Math.min(pos * 25, 200)}ms" data-index="${i}" onclick="selectPackageOption(${i})">
-                    <div class="pc-img-wrap">${imgTag}</div>
+                    <div class="pc-img-wrap">${imgTag}<span class="pc-selected-check"><svg class="ui-icon"><use href="#icon-check"></use></svg></span></div>
                     <div class="pc-info"><span class="pc-label">${pkg.amount}</span></div>
                     <div class="pc-price-bar"><span class="pc-price">${pkg.price.toLocaleString()} MMK</span></div>
                 </div>`;
@@ -2653,7 +2687,13 @@
         function renderPaymentMethods() {
             const container = document.getElementById('detail-payment-methods');
             const methods = window.PAYMENT_METHODS || {};
-            const ids = Object.keys(methods);
+            const ids = Object.keys(methods).sort((a, b) => {
+                const oa = methods[a].order, ob = methods[b].order;
+                if (typeof oa === 'number' && typeof ob === 'number') return oa - ob;
+                if (typeof oa === 'number') return -1;
+                if (typeof ob === 'number') return 1;
+                return (methods[a].name || '').localeCompare(methods[b].name || '');
+            });
             if (ids.length === 0) {
                 container.innerHTML = '<p class="empty-msg">No payment methods available yet. Please contact the store.</p>';
                 return;
@@ -2827,6 +2867,35 @@
                 onFailed();
             }
         }
+
+        // Copies just the user's ID itself (e.g. "PCA-1234"), not the "ID: "
+        // label shown next to it in the profile hero card.
+        function copyProfileId(btnEl) {
+            const text = getGuestId();
+            if (!text) return;
+
+            const onCopied = () => {
+                window.showToast('ID copied!');
+                const original = btnEl.innerHTML;
+                btnEl.innerHTML = '<svg class="ui-icon"><use href="#icon-check"></use></svg>';
+                setTimeout(() => { btnEl.innerHTML = original; }, 1200);
+            };
+            const onFailed = () => {
+                if (legacyCopyText(text)) onCopied();
+                else window.showToast('Could not copy. Please copy manually.', 'fail');
+            };
+
+            try {
+                if (navigator.clipboard && navigator.clipboard.writeText && window.isSecureContext) {
+                    navigator.clipboard.writeText(text).then(onCopied).catch(onFailed);
+                } else {
+                    onFailed();
+                }
+            } catch (e) {
+                onFailed();
+            }
+        }
+        window.copyProfileId = copyProfileId;
 
         function closeGameDetail() {
             selectedPackage = null;
@@ -3468,7 +3537,13 @@
         function renderWalletPaymentMethods() {
             const container = document.getElementById('wallet-topup-payment-methods');
             const methods = window.PAYMENT_METHODS || {};
-            const ids = Object.keys(methods);
+            const ids = Object.keys(methods).sort((a, b) => {
+                const oa = methods[a].order, ob = methods[b].order;
+                if (typeof oa === 'number' && typeof ob === 'number') return oa - ob;
+                if (typeof oa === 'number') return -1;
+                if (typeof ob === 'number') return 1;
+                return (methods[a].name || '').localeCompare(methods[b].name || '');
+            });
             if (ids.length === 0) {
                 container.innerHTML = '<p class="empty-msg">No payment methods available yet. Please contact the store.</p>';
                 return;
@@ -4316,15 +4391,28 @@
         window.loadLeaderboard = loadLeaderboard;
 
         // ---------- Social Links (Facebook / Telegram / TikTok, managed from the admin panel) ----------
+        // Each platform can optionally have a custom icon image uploaded from
+        // the admin panel (data.<platform>Image). Falls back to the built-in
+        // colored SVG glyph whenever no custom image is set — that original
+        // icon markup is captured once, on first render, so it can always be
+        // restored later (e.g. if the admin removes a previously-uploaded image).
+        const socialDefaultIconHTML = {};
         function renderSocialLinks(data) {
             const links = [
-                { id: 'social-link-facebook', url: data.facebook },
-                { id: 'social-link-telegram', url: data.telegram },
-                { id: 'social-link-tiktok', url: data.tiktok }
+                { id: 'social-link-facebook', url: data.facebook, image: data.facebookImage, platform: 'facebook' },
+                { id: 'social-link-telegram', url: data.telegram, image: data.telegramImage, platform: 'telegram' },
+                { id: 'social-link-tiktok', url: data.tiktok, image: data.tiktokImage, platform: 'tiktok' }
             ];
             let anyVisible = false;
-            links.forEach(({ id, url }) => {
+            links.forEach(({ id, url, image, platform }) => {
                 const el = document.getElementById(id);
+                const iconEl = el.querySelector('.social-link-icon');
+                if (!(platform in socialDefaultIconHTML)) socialDefaultIconHTML[platform] = iconEl.innerHTML;
+                if (image) {
+                    iconEl.innerHTML = `<img src="${image}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+                } else {
+                    iconEl.innerHTML = socialDefaultIconHTML[platform];
+                }
                 if (url) {
                     el.href = url;
                     el.style.display = 'flex';
@@ -4682,6 +4770,14 @@
                 const methods = {};
                 snap.forEach(docSnap => { methods[docSnap.id] = docSnap.data(); });
                 window.PAYMENT_METHODS = methods;
+                // Re-draw whichever payment-method list is on screen right now,
+                // so an admin re-ordering payment methods shows up immediately
+                // here too — instead of only on the next time the customer
+                // closes and reopens the payment section (or reloads the page).
+                const detailWrap = document.getElementById('detail-payment-methods-wrap');
+                if (detailWrap && detailWrap.style.display !== 'none') renderPaymentMethods();
+                const walletOverlay = document.getElementById('wallet-topup-overlay');
+                if (walletOverlay && walletOverlay.classList.contains('show')) renderWalletPaymentMethods();
             }, (error) => {
                 console.error("Payment methods listener error:", error);
             });
@@ -5909,17 +6005,31 @@
 
         // Popular Games row: slow automatic left-right-left scrolling.
         // Pauses while the user is touching/scrolling it themselves, then
-        // resumes a couple seconds after they let go.
+        // resumes a couple seconds after they let go. Also fully skips its
+        // work whenever Home isn't the active page or the row is off-screen —
+        // previously this rAF loop ran forever in the background even while
+        // the user was scrolling History/Notifications/etc, competing for
+        // main-thread time and making those lists feel stuck.
         (function initPopularAutoScroll() {
             const el = document.getElementById('popular-games-scroll');
             if (!el) return;
             let dir = 1;          // 1 = scrolling right, -1 = scrolling left
             let paused = false;
             let resumeTimer = null;
+            let rowVisible = false;
             const SPEED = 0.4;    // px per frame (~24px/sec) — slow drift
 
+            const visibilityObserver = ('IntersectionObserver' in window)
+                ? new IntersectionObserver((entries) => {
+                    entries.forEach(entry => { rowVisible = entry.isIntersecting; });
+                }, { threshold: 0.01 })
+                : null;
+            if (visibilityObserver) visibilityObserver.observe(el);
+            else rowVisible = true; // no IntersectionObserver support — fall back to always-on
+
             function step() {
-                if (!paused) {
+                const onHome = window.currentStorePage === 'home' || !window.currentStorePage;
+                if (!paused && onHome && rowVisible) {
                     const max = el.scrollWidth - el.clientWidth;
                     if (max > 0) {
                         el.scrollLeft += dir * SPEED;
@@ -6046,6 +6156,7 @@
         // ---------- Notifications (broadcast messages from admin) ----------
         let NOTIFICATIONS = [];
         let notifListenerAttached = false;
+        let notifReturnPage = 'home';
 
         function getLastSeenNotifTime() {
             try { return Number(localStorage.getItem('gz_last_seen_notif')) || 0; }
@@ -6127,15 +6238,22 @@
         window.togglePushNotifications = togglePushNotifications;
         window.renderPushToggleUI = renderPushToggleUI;
 
+        // A notification only has a full-detail page if the admin actually
+        // wrote details (or, for older entries, the old single "message"
+        // field). Without that there's nothing to show, so it isn't tappable.
+        function notifHasDetails(n) {
+            return !!((n.details && n.details.trim()) || (n.message && n.message.trim()));
+        }
+
         function fireOsNotification(n) {
             if (!pushEnabled()) return;
             try {
                 const notif = new Notification(n.title || 'PCA Store', {
-                    body: n.message || '',
+                    body: n.intro || n.message || '',
                     icon: APP_LOGO_URL || undefined,
                     tag: 'gz-notif-' + (n.timestamp?.toMillis() || Date.now()) // avoid duplicate stacking
                 });
-                notif.onclick = () => { window.focus(); openNotificationsModal(); notif.close(); };
+                notif.onclick = () => { window.focus(); if (notifHasDetails(n)) openNotificationDetail(n.id); else openNotificationsPage(); notif.close(); };
             } catch (e) { console.error('Notification display error:', e); }
         }
 
@@ -6145,14 +6263,15 @@
             const q = query(collection(db, "notifications"), orderBy("timestamp", "desc"));
             let initialLoad = true;
             onSnapshot(q, (snap) => {
-                NOTIFICATIONS = snap.docs.map(d => d.data());
+                NOTIFICATIONS = snap.docs.map(d => ({ id: d.id, ...d.data() }));
                 updateNotifDot();
+                if (window.currentStorePage === 'notif-page') renderNotificationList();
                 // Only the *first* snapshot is existing history — skip firing OS
                 // notifications for it. Every "added" change after that is a
                 // genuinely new admin broadcast that just came in live.
                 if (!initialLoad) {
                     snap.docChanges().forEach(change => {
-                        if (change.type === 'added') fireOsNotification(change.doc.data());
+                        if (change.type === 'added') fireOsNotification({ id: change.doc.id, ...change.doc.data() });
                     });
                 }
                 initialLoad = false;
@@ -6161,34 +6280,66 @@
             });
         }
 
-        function renderNotificationsModal() {
-            const list = document.getElementById('notif-modal-list');
+        // Notification list: only title + a short intro. Tap a card to open
+        // the full details as its own page (see openNotificationDetail) — but
+        // only if the admin wrote details; otherwise the card isn't tappable.
+        function renderNotificationList() {
+            const list = document.getElementById('notif-page-list');
+            if (!list) return;
             if (NOTIFICATIONS.length === 0) {
-                list.innerHTML = '<p class="empty-msg">No notifications yet.</p>';
+                list.innerHTML = emptyStateHTML('icon-bell', 'No notifications yet', 'Announcements from the team will show up here.');
                 return;
             }
             list.innerHTML = NOTIFICATIONS.map(n => {
                 const dateStr = n.timestamp ? n.timestamp.toDate().toLocaleString() : 'Just now';
+                const preview = n.intro || n.message || '';
+                const openable = notifHasDetails(n);
+                const clickAttrs = openable
+                    ? `onclick="openNotificationDetail('${n.id}')" style="cursor:pointer;"`
+                    : `style="cursor:default;"`;
                 return `
-                    <div class="notif-item">
-                        <h5>${n.title}</h5>
-                        <p>${n.message}</p>
+                    <div class="notif-item" ${clickAttrs}>
+                        <h5>${n.title || ''}</h5>
+                        <p>${preview}</p>
                         <span>${dateStr}</span>
                     </div>
                 `;
             }).join('');
         }
 
-        function openNotificationsModal() {
-            renderNotificationsModal();
-            document.getElementById('notif-modal-overlay').classList.add('show');
+        // Opens the notifications list as a real page (not a bottom sheet).
+        // Remembers whichever page the user was on so the back arrow returns
+        // them there instead of always going Home.
+        function openNotificationsPage() {
+            if (window.currentStorePage && window.currentStorePage !== 'notif-page' && window.currentStorePage !== 'notif-detail') {
+                notifReturnPage = window.currentStorePage;
+            }
+            renderNotificationList();
+            showPage('notif-page');
             const latest = NOTIFICATIONS.reduce((max, n) => Math.max(max, n.timestamp?.toMillis() || 0), 0);
             if (latest > 0) setLastSeenNotifTime(latest);
             document.getElementById('notif-dot').classList.remove('show');
         }
 
-        function closeNotificationsModal() {
-            document.getElementById('notif-modal-overlay').classList.remove('show');
+        function closeNotificationsPage() {
+            showPage(notifReturnPage || 'home');
+        }
+
+        // Full-detail page for a single notification: title, intro, and the
+        // complete details text, reached by tapping a card in the list.
+        // Guarded again here in case something (e.g. an OS notification click)
+        // tries to open one that has no details.
+        function openNotificationDetail(id) {
+            const n = NOTIFICATIONS.find(x => x.id === id);
+            if (!n || !notifHasDetails(n)) return;
+            document.getElementById('notif-detail-title').textContent = n.title || 'Notification';
+            document.getElementById('notif-detail-date').textContent = n.timestamp ? n.timestamp.toDate().toLocaleString() : 'Just now';
+            document.getElementById('notif-detail-body').textContent = n.details || n.message || n.intro || '';
+            showPage('notif-detail');
+        }
+
+        function closeNotificationDetail() {
+            showPage('notif-page');
         }
 
         // ---------- Dark / Light theme toggle ----------
@@ -6281,8 +6432,10 @@
         renderTierPreviewGrid();
         renderPushToggleUI();
 
-        window.openNotificationsModal = openNotificationsModal;
-        window.closeNotificationsModal = closeNotificationsModal;
+        window.openNotificationsPage = openNotificationsPage;
+        window.closeNotificationsPage = closeNotificationsPage;
+        window.openNotificationDetail = openNotificationDetail;
+        window.closeNotificationDetail = closeNotificationDetail;
         window.getSavedContact = getSavedContact;
         window.submitOrder = submitOrder;
         window.loadHistory = loadHistory;
