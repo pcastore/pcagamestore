@@ -337,6 +337,56 @@
         .popular-card { flex: 0 0 108px; scroll-snap-align: start; }
         .popular-card .game-card-img-wrap { width: 108px; height: 108px; }
         .popular-card .game-card-name { font-size: 12px; padding: 6px 5px; }
+
+        /* Voucher tab cards — styled like a purple "gift card" promo tile
+           (fanned card stack over a violet gradient + faint circuit pattern)
+           instead of the plain square product-photo cards used on Home. */
+        .voucher-card {
+            cursor: pointer; position: relative; isolation: isolate; overflow: hidden;
+            border-radius: 18px; aspect-ratio: 1 / 1.18;
+            padding: 14px 10px 10px;
+            display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
+            background:
+                repeating-linear-gradient(45deg, rgba(255,255,255,0.045) 0 1px, transparent 1px 13px),
+                linear-gradient(150deg, #2A0F55 0%, #4C1794 48%, #8B2FE0 100%);
+            box-shadow: 0 8px 20px -8px rgba(123,42,224,0.55);
+            transition: transform 0.1s;
+            will-change: transform;
+        }
+        .voucher-card:active { transform: scale(0.97); }
+        .voucher-card::after {
+            content: ''; position: absolute; top: -30%; right: -25%; width: 70%; height: 70%;
+            background: radial-gradient(circle, rgba(255,255,255,0.22) 0%, transparent 70%);
+            pointer-events: none; z-index: 0;
+        }
+        .voucher-card-stack {
+            position: relative; width: 62%; aspect-ratio: 0.66 / 1;
+            margin: 4px 0 10px;
+        }
+        .voucher-card-stack::before, .voucher-card-stack::after {
+            content: ''; position: absolute; inset: 0; border-radius: 9px;
+            background: rgba(255,255,255,0.14); border: 1px solid rgba(255,255,255,0.28);
+        }
+        .voucher-card-stack::before { transform: rotate(-10deg) translate(-8%, 5%); z-index: 1; }
+        .voucher-card-stack::after { transform: rotate(8deg) translate(8%, 3%); z-index: 1; }
+        .voucher-card-stack img {
+            position: relative; z-index: 2; width: 100%; height: 100%; object-fit: contain;
+            background: rgba(255,255,255,0.92); border-radius: 9px; display: block;
+            transform: rotate(-3deg); padding: 5px; box-sizing: border-box;
+            border: 1.5px solid rgba(255,255,255,0.55);
+            box-shadow: 0 10px 22px -8px rgba(0,0,0,0.55);
+        }
+        .voucher-card-name {
+            position: relative; z-index: 2; color: #fff; font-size: 12.5px; font-weight: 700;
+            text-align: center; line-height: 1.25; text-shadow: 0 1px 3px rgba(0,0,0,0.4);
+        }
+        .voucher-card-tag {
+            position: absolute; top: 8px; left: 8px; z-index: 2;
+            padding: 3px 8px; border-radius: 8px; font-size: 8.5px; font-weight: 700;
+            letter-spacing: 0.4px; text-transform: uppercase; color: #fff;
+            background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.3);
+            -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+        }
         .card-body { padding: 15px; }
         .card-body h4 { font-size: 16px; font-weight: 500; margin-bottom: 10px; color: var(--text); }
         
@@ -661,6 +711,17 @@
         .order-list-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
         .order-list-scroll .history-date-header:first-of-type { margin-top: 2px; }
 
+        /* Same idea for the Home "All Games" and Voucher grids: browsing a
+           long game list shouldn't drag the whole page down — the search bar
+           / category chips (Home) and intro text (Voucher) stay put while
+           just the grid scrolls inside its own box. */
+        .games-grid-scroll {
+            max-height: 62vh; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
+            margin: 0 -2px; padding: 2px;
+        }
+        .games-grid-scroll::-webkit-scrollbar { width: 4px; }
+        .games-grid-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
+
         /* Order/detail page on wider screens: banner shrinks and sits in its
            own sidebar column instead of stretching full-width, account info +
            packages + payment move beside it, and the package tiles fall back
@@ -692,15 +753,31 @@
         }
         .pc-selected-check .ui-icon { width: 12px; height: 12px; stroke-width: 3; }
         .package-card.selected .pc-selected-check { opacity: 1; transform: scale(1); }
-        /* "X ကျန်" (X left) live-stock badge for voucher packages, opposite
-           corner from the selected-checkmark badge above. */
+        /* Live-stock badge for voucher packages, opposite corner from the
+           selected-checkmark badge above. Number-only (no unit text); color
+           tiers signal stock level at a glance: green = plenty, blue = some
+           left, red = running low, and a distinct "outStock" red label when
+           a package has sold out entirely (its card is also disabled). */
         .pc-stock-badge {
             position: absolute; top: 6px; left: 6px; padding: 2px 6px;
             border-radius: 8px; background: rgba(255,255,255,0.92);
-            font-size: 9.5px; font-weight: 500; color: #1877F2;
+            font-size: 9.5px; font-weight: 600; color: #1877F2;
             box-shadow: 0 1px 4px rgba(0,0,0,0.18);
         }
         html[data-theme="dark"] .pc-stock-badge { background: rgba(30,32,38,0.85); color: #6FA8FF; }
+        .pc-stock-badge.stock-high { color: #15A24A; }
+        html[data-theme="dark"] .pc-stock-badge.stock-high { color: #4ADE80; }
+        .pc-stock-badge.stock-mid { color: #1877F2; }
+        html[data-theme="dark"] .pc-stock-badge.stock-mid { color: #6FA8FF; }
+        .pc-stock-badge.stock-low { color: #E11D2E; }
+        html[data-theme="dark"] .pc-stock-badge.stock-low { color: #FF6B6B; }
+        .pc-stock-badge.stock-out {
+            color: #E11D2E; font-weight: 700; text-transform: uppercase;
+            font-size: 8.5px; letter-spacing: 0.2px;
+        }
+        html[data-theme="dark"] .pc-stock-badge.stock-out { color: #FF6B6B; }
+        /* Sold-out package card: dimmed and no longer tappable */
+        .package-card.out-of-stock { opacity: 0.5; filter: grayscale(0.4); pointer-events: none; }
         .package-card.type-currency .pc-info { padding: 6px 6px 0; text-align: center; }
         .package-card.type-currency .pc-label { font-size: 11px; line-height: 1.2; }
         .package-card.type-currency .pc-price-bar { margin-top: 5px; padding: 5px 6px; }
@@ -1623,13 +1700,15 @@
                 <svg class="ui-icon game-search-clear" id="game-search-clear" style="display:none;" onclick="clearGameSearch()"><use href="#icon-close"></use></svg>
             </div>
             <div class="cat-filter-scroll" id="cat-filter-scroll"></div>
-            <div class="cards-grid" id="all-games-grid">
-                <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
-                <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
-                <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
-                <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
-                <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
-                <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
+            <div class="games-grid-scroll">
+                <div class="cards-grid" id="all-games-grid">
+                    <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
+                    <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
+                    <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
+                    <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
+                    <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
+                    <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
+                </div>
             </div>
         </div>
 
@@ -1640,10 +1719,12 @@
         <div id="voucher" class="page-section">
             <h2 class="title-header">Vouchers & Gift Cards</h2>
             <p class="empty-msg" style="text-align:left;padding:0 2px 12px;">Instant-delivery gift cards & top-up vouchers.</p>
-            <div class="cards-grid" id="voucher-games-grid">
-                <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
-                <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
-                <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
+            <div class="games-grid-scroll">
+                <div class="cards-grid" id="voucher-games-grid">
+                    <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
+                    <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
+                    <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
+                </div>
             </div>
         </div>
 
@@ -2325,12 +2406,12 @@
         let selectedGameServerName = '';
 
         // Shown for any package that doesn't have an admin-uploaded image, so the
-        // grid never has a broken-image icon or an empty gap.
+        // grid never has a broken-image icon or an empty gap. Just a small "P"
+        // letter mark rather than a full diamond icon.
         const DEFAULT_PACKAGE_ICON = 'data:image/svg+xml;utf8,' + encodeURIComponent(
             '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">' +
-            '<path d="M3 8L12 2L21 8L12 22L3 8Z" fill="#1877F2" opacity="0.12"/>' +
-            '<path d="M3 8L12 2L21 8L12 22L3 8Z" fill="none" stroke="#1877F2" stroke-width="1.4" stroke-linejoin="round"/>' +
-            '<path d="M3 8H21M8 8L12 2L16 8M8 8L12 22M16 8L12 22" fill="none" stroke="#1877F2" stroke-width="1.1" stroke-linejoin="round"/>' +
+            '<circle cx="12" cy="12" r="11" fill="#1877F2" opacity="0.12"/>' +
+            '<text x="12" y="15.8" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="10.5" font-weight="700" fill="#1877F2">P</text>' +
             '</svg>'
         );
         let selectedGameId = null;
@@ -2672,11 +2753,44 @@
         let voucherStockMap = {};
         let voucherStockInterval = null;
         const VOUCHER_STOCK_REFRESH_MS = 15000;
+        // Stock-badge color tiers: >HIGH = green (plenty), >LOW = blue (some
+        // left), 1..LOW = red (running low), 0 = "outStock" + disabled card.
+        const VOUCHER_STOCK_HIGH = 100;
+        const VOUCHER_STOCK_LOW = 15;
+
+        // Short-lived cache + in-flight dedupe for GET /v1/category/:id, keyed
+        // by categoryId. Guards against firing an overlapping request for the
+        // same category - e.g. rapid start/stop while switching between two
+        // voucher games that happen to share a category, or a slow response
+        // still pending when the next poll tick fires - without needing any
+        // server-side cache. TTL is well under the 15s poll interval, so it
+        // only ever collapses genuinely-overlapping calls, never staleness.
+        const g2bulkCategoryCache = new Map(); // categoryId -> { data, ts, promise }
+        const G2BULK_CATEGORY_CACHE_TTL_MS = 8000;
+
+        async function fetchG2BulkCategoryLive(categoryId) {
+            const cached = g2bulkCategoryCache.get(categoryId);
+            if (cached) {
+                if (cached.promise) return cached.promise;
+                if (Date.now() - cached.ts < G2BULK_CATEGORY_CACHE_TTL_MS) return cached.data;
+            }
+            const promise = fetch(`https://api.g2bulk.com/v1/category/${encodeURIComponent(categoryId)}`)
+                .then(res => res.json())
+                .then(data => {
+                    g2bulkCategoryCache.set(categoryId, { data, ts: Date.now() });
+                    return data;
+                })
+                .catch(error => {
+                    g2bulkCategoryCache.delete(categoryId);
+                    throw error;
+                });
+            g2bulkCategoryCache.set(categoryId, { promise });
+            return promise;
+        }
 
         async function fetchVoucherStock(categoryId) {
             try {
-                const res = await fetch(`https://api.g2bulk.com/v1/category/${encodeURIComponent(categoryId)}`);
-                const data = await res.json();
+                const data = await fetchG2BulkCategoryLive(categoryId);
                 if (!data.success) return;
                 const products = data.products || (data.category ? data.category.products : []) || [];
                 const map = {};
@@ -2722,13 +2836,20 @@
             list.innerHTML = entries.map(({ pkg, i }, pos) => {
                 const img = pkg.image || DEFAULT_PACKAGE_ICON;
                 const imgTag = `<img class="pc-img" src="${img}" alt="" loading="lazy" onerror="this.src='${DEFAULT_PACKAGE_ICON}'">`;
-                // Small blue "X left" corner badge, live from G2Bulk stock -
-                // only shown for voucher packages we actually have a stock
-                // number for (voucherStockMap is empty for non-voucher games).
+                // Small corner stock badge, live from G2Bulk stock - only
+                // shown for voucher packages we actually have a stock number
+                // for (voucherStockMap is empty for non-voucher games).
+                // Number-only display, color-tiered by remaining quantity;
+                // a sold-out package shows "outStock" and can't be tapped.
                 const stock = pkg.voucherId ? voucherStockMap[String(pkg.voucherId)] : undefined;
-                const stockBadge = stock !== undefined ? `<span class="pc-stock-badge">${stock} ကျန်</span>` : '';
+                const outOfStock = stock !== undefined && stock <= 0;
+                let stockBadge = '';
+                if (stock !== undefined) {
+                    const tier = outOfStock ? 'stock-out' : stock > VOUCHER_STOCK_HIGH ? 'stock-high' : stock > VOUCHER_STOCK_LOW ? 'stock-mid' : 'stock-low';
+                    stockBadge = `<span class="pc-stock-badge ${tier}">${outOfStock ? 'outStock' : stock}</span>`;
+                }
                 return `
-                <div class="package-card type-currency game-card-anim" style="animation-delay:${Math.min(pos * 25, 200)}ms" data-index="${i}" onclick="selectPackageOption(${i})">
+                <div class="package-card type-currency game-card-anim${outOfStock ? ' out-of-stock' : ''}" style="animation-delay:${Math.min(pos * 25, 200)}ms" data-index="${i}" onclick="${outOfStock ? '' : `selectPackageOption(${i})`}">
                     <div class="pc-img-wrap">${imgTag}${stockBadge}<span class="pc-selected-check"><svg class="ui-icon"><use href="#icon-check"></use></svg></span></div>
                     <div class="pc-info"><span class="pc-label">${pkg.amount}</span></div>
                     <div class="pc-price-bar"><span class="pc-price">${pkg.price.toLocaleString()} MMK</span></div>
@@ -2738,7 +2859,12 @@
         }
 
         function selectPackageOption(index) {
-            selectedPackage = window.currentGamePackages[index];
+            const pkgToSelect = window.currentGamePackages[index];
+            // Guard against sold-out packages being selected by any path
+            // other than the disabled card's own onclick (which is already
+            // stripped out for out-of-stock cards - see renderDetailPackageList).
+            if (pkgToSelect && pkgToSelect.voucherId && voucherStockMap[String(pkgToSelect.voucherId)] === 0) return;
+            selectedPackage = pkgToSelect;
             document.querySelectorAll('#detail-package-list .package-card').forEach(el => el.classList.remove('selected'));
             document.querySelector(`#detail-package-list .package-card[data-index="${index}"]`).classList.add('selected');
 
@@ -5346,6 +5472,29 @@
             return card.repeat(count);
         }
 
+        // Marks a scrollable container as "being touched" between touchstart and
+        // touchend/cancel, so a live re-render (Firestore onSnapshot) can wait
+        // until the customer's finger lifts instead of rebuilding the list mid-
+        // drag — rebuilding while dragging is what makes a grid/list visibly
+        // jump or catch under the finger, since the total scroll height can
+        // shift the instant the DOM is replaced.
+        function attachScrollTouchGuard(el) {
+            if (!el || el._touchGuardAttached) return;
+            el._touchGuardAttached = true;
+            el._isTouching = false;
+            el.addEventListener('touchstart', () => { el._isTouching = true; }, { passive: true });
+            el.addEventListener('touchend', () => { el._isTouching = false; }, { passive: true });
+            el.addEventListener('touchcancel', () => { el._isTouching = false; }, { passive: true });
+        }
+        function runWhenNotTouching(el, fn, retryDelay = 150) {
+            if (el) attachScrollTouchGuard(el);
+            const attempt = () => {
+                if (el && el._isTouching) { setTimeout(attempt, retryDelay); return; }
+                fn();
+            };
+            attempt();
+        }
+
         function renderHistoryOrders(orders) {
             const container = document.getElementById('history-container');
             HISTORY_ORDERS = orders;
@@ -6040,7 +6189,7 @@
             historyUnsubscribe = onSnapshot(q, (snap) => {
                 const orders = [];
                 snap.forEach(docSnap => orders.push({ id: docSnap.id, ...docSnap.data() }));
-                renderHistoryOrders(orders);
+                runWhenNotTouching(document.querySelector('#history-container .order-list-scroll') || container, () => renderHistoryOrders(orders));
             }, (error) => {
                 console.error("History fetch error: ", error);
                 container.innerHTML = emptyStateHTML('icon-refresh', 'Could not load history', 'Check your connection and try again.');
@@ -6419,12 +6568,12 @@
             grid.innerHTML = groups.map((gr, i) => {
                 const g = GAMES[gr.repId];
                 return `
-                    <div class="game-card game-card-anim" style="animation-delay:${Math.min(i * 25, 200)}ms" onclick="openVoucherGameEntry(${i})">
-                        <div class="game-card-img-wrap">
+                    <div class="voucher-card game-card-anim" style="animation-delay:${Math.min(i * 25, 200)}ms" onclick="openVoucherGameEntry(${i})">
+                        <span class="voucher-card-tag">Gift Card</span>
+                        <div class="voucher-card-stack">
                             <img src="${g.image}" alt="${g.name}" loading="lazy" decoding="async">
-                            ${categoryBadgeHtml(g.category)}
                         </div>
-                        <div class="game-card-name">${g.name}</div>
+                        <div class="voucher-card-name">${g.name}</div>
                     </div>
                 `;
             }).join('');
@@ -6440,9 +6589,13 @@
                 snap.forEach(docSnap => { newGames[docSnap.id] = docSnap.data(); });
                 GAMES = newGames;
                 window.GAMES = GAMES;
-                renderHomeGames();
-                if (window.currentStorePage === 'voucher') renderVoucherGames();
-                if (historyUnsubscribe) renderHistoryOrders(HISTORY_ORDERS);
+                runWhenNotTouching(document.querySelector('#all-games-grid')?.closest('.games-grid-scroll'), renderHomeGames);
+                if (window.currentStorePage === 'voucher') {
+                    runWhenNotTouching(document.querySelector('#voucher-games-grid')?.closest('.games-grid-scroll'), renderVoucherGames);
+                }
+                if (historyUnsubscribe) {
+                    runWhenNotTouching(document.querySelector('#history-container .order-list-scroll'), () => renderHistoryOrders(HISTORY_ORDERS));
+                }
             }, (error) => {
                 console.error("Games listener error:", error);
                 document.getElementById('all-games-grid').innerHTML = '<p class="empty-msg" style="color:red;">Could not load games. Check connection.</p>';
