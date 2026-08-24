@@ -332,6 +332,7 @@
 
         /* Popular Games: horizontal scroll row (separate from the All Games grid) */
         .section-title-spaced { margin-top: 20px; }
+        .games-count-badge { font-size: 12.5px; font-weight: 500; color: var(--text-muted); }
         .popular-scroll-wrap { display: flex; gap: 12px; overflow-x: auto; padding: 2px 2px 10px; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
         .popular-scroll-wrap::-webkit-scrollbar { display: none; }
         .popular-card { flex: 0 0 108px; scroll-snap-align: start; }
@@ -372,7 +373,7 @@
         .voucher-card-stack img {
             position: relative; z-index: 2; width: 100%; height: 100%; object-fit: contain;
             background: rgba(255,255,255,0.92); border-radius: 9px; display: block;
-            transform: rotate(-3deg); padding: 5px; box-sizing: border-box;
+            padding: 5px; box-sizing: border-box;
             border: 1.5px solid rgba(255,255,255,0.55);
             box-shadow: 0 10px 22px -8px rgba(0,0,0,0.55);
         }
@@ -1693,7 +1694,7 @@
                 <h2 class="title-header">Popular Games</h2>
                 <div class="popular-scroll-wrap" id="popular-games-scroll"></div>
             </div>
-            <h2 class="title-header section-title-spaced">All Games</h2>
+            <h2 class="title-header section-title-spaced">All Games <span id="all-games-count" class="games-count-badge"></span></h2>
             <div class="game-search-wrap">
                 <svg class="ui-icon game-search-icon"><use href="#icon-search"></use></svg>
                 <input type="text" id="game-search-input" class="game-search-input" placeholder="Search games..." oninput="filterGamesBySearch(this.value)">
@@ -2768,22 +2769,50 @@
         const g2bulkCategoryCache = new Map(); // categoryId -> { data, ts, promise }
         const G2BULK_CATEGORY_CACHE_TTL_MS = 8000;
 
+        // Second layer, shared across sessions via Firestore: the admin panel
+        // polls this same endpoint too, so if a customer and the admin panel
+        // are both open at once, each was hitting G2Bulk on its own schedule
+        // for the same category. Before calling G2Bulk directly, check a
+        // small Firestore doc first - if another session (admin or store)
+        // already fetched this category recently, reuse that instead.
+        // Best-effort only: any Firestore read/write failure here just falls
+        // through to the normal direct fetch below.
+        const G2BULK_SHARED_CACHE_TTL_MS = 12000;
+        async function readSharedG2BulkCache(categoryId) {
+            try {
+                const snap = await getDoc(doc(db, 'g2bulk_cache', 'cat_' + categoryId));
+                if (!snap.exists()) return null;
+                const { data, fetchedAt } = snap.data();
+                if (!data || !fetchedAt || Date.now() - fetchedAt >= G2BULK_SHARED_CACHE_TTL_MS) return null;
+                return data;
+            } catch (e) { return null; }
+        }
+        function writeSharedG2BulkCache(categoryId, data) {
+            setDoc(doc(db, 'g2bulk_cache', 'cat_' + categoryId), { data, fetchedAt: Date.now() }).catch(() => {});
+        }
+
         async function fetchG2BulkCategoryLive(categoryId) {
             const cached = g2bulkCategoryCache.get(categoryId);
             if (cached) {
                 if (cached.promise) return cached.promise;
                 if (Date.now() - cached.ts < G2BULK_CATEGORY_CACHE_TTL_MS) return cached.data;
             }
-            const promise = fetch(`https://api.g2bulk.com/v1/category/${encodeURIComponent(categoryId)}`)
-                .then(res => res.json())
-                .then(data => {
-                    g2bulkCategoryCache.set(categoryId, { data, ts: Date.now() });
-                    return data;
-                })
-                .catch(error => {
-                    g2bulkCategoryCache.delete(categoryId);
-                    throw error;
-                });
+            const promise = readSharedG2BulkCache(categoryId).then(sharedData => {
+                if (sharedData) {
+                    g2bulkCategoryCache.set(categoryId, { data: sharedData, ts: Date.now() });
+                    return sharedData;
+                }
+                return fetch(`https://api.g2bulk.com/v1/category/${encodeURIComponent(categoryId)}`)
+                    .then(res => res.json())
+                    .then(data => {
+                        g2bulkCategoryCache.set(categoryId, { data, ts: Date.now() });
+                        writeSharedG2BulkCache(categoryId, data);
+                        return data;
+                    });
+            }).catch(error => {
+                g2bulkCategoryCache.delete(categoryId);
+                throw error;
+            });
             g2bulkCategoryCache.set(categoryId, { promise });
             return promise;
         }
@@ -6460,10 +6489,12 @@
                 return (ga.name || '').localeCompare(gb.name || '');
             });
             renderCategoryFilterChips();
+            const countEl = document.getElementById('all-games-count');
             if (ids.length === 0) {
                 grid.innerHTML = '<p class="empty-msg">No games available yet.</p>';
                 popularSection.style.display = 'none';
                 popularScroll.innerHTML = '';
+                if (countEl) countEl.textContent = '';
                 return;
             }
 
@@ -6472,6 +6503,10 @@
             const groups = groupGamesByName(ids);
             HOME_GAME_GROUPS = groups;
             const indexedGroups = groups.map((gr, idx) => ({ ...gr, idx }));
+            // Total game count shown next to the "All Games" heading - the full
+            // store count regardless of the active category chip or search box,
+            // so it always reads as "how many games does the store carry".
+            if (countEl) countEl.textContent = `(${indexedGroups.length})`;
 
             // Popular Games: only groups where at least one variant is flagged
             // "popular" from the admin panel, shown as a horizontal scroll row.
