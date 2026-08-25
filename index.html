@@ -254,7 +254,7 @@
         }
         .game-card-img-wrap { position: relative; aspect-ratio: 1 / 1; background: var(--border); }
         .game-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .game-card-name { margin: 0; padding: 7px 6px; background: transparent; border: none; border-top: 1px solid var(--border); box-shadow: none; color: var(--text); font-size: 13px; font-weight: 600; text-align: center; line-height: 1.25; }
+        .game-card-name { margin: 0; padding: 7px 6px; background: transparent; border: none; border-top: 1px solid var(--border); box-shadow: none; color: var(--text); font-size: 13px; font-weight: 400; text-align: center; line-height: 1.25; }
 
         /* Entrance motion for game/order cards: each card fades + rises + settles
            into place with a slight overshoot, staggered card-by-card so the whole
@@ -333,9 +333,9 @@
         /* Popular Games: horizontal scroll row (separate from the All Games grid) */
         .section-title-spaced { margin-top: 20px; }
         .games-count-badge { font-size: 12.5px; font-weight: 500; color: var(--text-muted); }
-        .popular-scroll-wrap { display: flex; gap: 12px; overflow-x: auto; padding: 2px 2px 10px; scroll-snap-type: x proximity; -webkit-overflow-scrolling: touch; }
+        .popular-scroll-wrap { display: flex; gap: 12px; overflow-x: auto; padding: 2px 2px 10px; -webkit-overflow-scrolling: touch; }
         .popular-scroll-wrap::-webkit-scrollbar { display: none; }
-        .popular-card { flex: 0 0 108px; scroll-snap-align: start; }
+        .popular-card { flex: 0 0 108px; }
         .popular-card .game-card-img-wrap { width: 108px; height: 108px; }
         .popular-card .game-card-name { font-size: 12px; padding: 6px 5px; }
 
@@ -745,15 +745,15 @@
         .package-card.type-currency {
             border-radius: 14px; border: none; position: relative;
             background: linear-gradient(160deg, var(--accent) 0%, var(--accent-dark) 100%);
-            padding-top: 30px;
+            padding-top: 10px;
         }
         .package-card.type-currency .pc-amount-badge {
-            position: absolute; top: 8px; left: 50%; transform: translateX(-50%);
-            max-width: calc(100% - 16px); padding: 3px 10px; border-radius: 20px;
+            display: block; width: fit-content; max-width: calc(100% - 56px); margin: 2px auto 8px;
+            padding: 3px 10px; border-radius: 12px;
             background: rgba(255,255,255,0.22); border: 1px solid rgba(255,255,255,0.4);
-            color: #fff; font-size: 11px; font-weight: 700; letter-spacing: 0.2px;
-            white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
-            text-shadow: 0 1px 2px rgba(0,0,0,0.15); z-index: 2;
+            color: #fff; font-size: 11px; font-weight: 500; letter-spacing: 0.2px;
+            white-space: normal; word-break: break-word; text-align: center; line-height: 1.3;
+            text-shadow: 0 1px 2px rgba(0,0,0,0.15);
         }
         .package-card.type-currency .pc-img-wrap {
             width: 60%; aspect-ratio: 1 / 1; margin: 0 auto 10px; position: relative;
@@ -782,12 +782,16 @@
             display: flex; align-items: center; justify-content: center; overflow: hidden;
         }
         .package-card.type-topup .pc-img { width: 66%; height: 66%; object-fit: contain; display: block; }
-        .package-card.type-topup .pc-label {
-            padding: 8px 8px 0; font-size: 12.5px; font-weight: 600; color: var(--text);
-            text-align: center; line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        .package-card.type-topup .pc-label-wrap {
+            padding: 7px 6px; text-align: center; border-top: 1px solid var(--border); background: var(--surface);
         }
-        .package-card.type-topup .pc-price-bar { margin-top: 2px; padding: 4px 6px 10px; background: transparent; border-top: none; text-align: center; }
-        .package-card.type-topup .pc-price { font-size: 13px; font-weight: 700; color: var(--accent); }
+        .package-card.type-topup .pc-label {
+            font-size: 13.5px; font-weight: 500; color: var(--text);
+            line-height: 1.3; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
+        .package-card.type-topup.selected .pc-label { color: var(--accent); }
+        .package-card.type-topup .pc-price-bar { margin-top: 0; padding: 7px 6px; background: var(--surface-alt); border-top: 1px solid var(--border); text-align: center; }
+        .package-card.type-topup .pc-price { font-size: 14px; font-weight: 700; color: var(--accent); }
         .package-card.type-topup.selected { border-color: var(--accent); box-shadow: 0 0 0 2.5px rgba(var(--accent-rgb),0.35); }
         .package-card.type-topup .pc-selected-check { background: var(--accent); color: #fff; box-shadow: 0 2px 6px rgba(0,0,0,0.2); }
         /* Checkmark badge shown on the currently-selected currency package */
@@ -2935,7 +2939,7 @@
                     <div class="pc-img-wrap">${imgTag}</div>
                     <div class="pc-price-bar"><span class="pc-price">${pkg.price.toLocaleString()} MMK</span></div>`
                     : `<div class="pc-img-wrap">${imgTag}</div>
-                    <div class="pc-label">${pkg.amount}</div>
+                    <div class="pc-label-wrap"><span class="pc-label">${pkg.amount}</span></div>
                     <div class="pc-price-bar"><span class="pc-price">${pkg.price.toLocaleString()} MMK</span></div>`;
                 return `
                 <div class="package-card ${cardTypeClass} game-card-anim${outOfStock ? ' out-of-stock' : ''}" style="animation-delay:${Math.min(pos * 25, 200)}ms" data-index="${i}" onclick="${outOfStock ? '' : `selectPackageOption(${i})`}">
@@ -6489,6 +6493,13 @@
         // previously this rAF loop ran forever in the background even while
         // the user was scrolling History/Notifications/etc, competing for
         // main-thread time and making those lists feel stuck.
+        //
+        // NOTE: the row's CSS used to have scroll-snap-type: x proximity /
+        // scroll-snap-align: start on its cards. That fought this rAF loop —
+        // browsers re-snap the container back to the nearest card on every
+        // tiny scrollLeft change that isn't a real user gesture, so the drift
+        // never visibly moved even though scrollLeft was being updated every
+        // frame. Removed the snap CSS so the auto-scroll actually shows.
         (function initPopularAutoScroll() {
             const el = document.getElementById('popular-games-scroll');
             if (!el) return;
@@ -6496,7 +6507,7 @@
             let paused = false;
             let resumeTimer = null;
             let rowVisible = false;
-            const SPEED = 0.4;    // px per frame (~24px/sec) — slow drift
+            const SPEED = 0.7;    // px per frame (~42px/sec) — slow but clearly visible drift
 
             const visibilityObserver = ('IntersectionObserver' in window)
                 ? new IntersectionObserver((entries) => {
