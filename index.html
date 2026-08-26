@@ -2451,6 +2451,12 @@
             return pkg.tab || pkg.type || 'currency';
         }
         let selectedGameName = null;
+        // The store never calls FazerCards directly (see the comment on
+        // selectedGameFazerCardCategory below) — this Worker holds the
+        // FazerCards API key server-side and only ever returns back the
+        // { valid, playerName, region } result. See fazercards-functions
+        // worker.js.
+        const FAZERCARD_VALIDATE_URL = 'https://fazercards-functions.pca-game-store.workers.dev/fazercard-validate';
         let selectedGameServerName = '';
 
         // Shown for any package that doesn't have an admin-uploaded image, so the
@@ -2466,6 +2472,19 @@
         let selectedGameG2BulkCode = null;
         let selectedGameNeedsPlayerId = true;
         let selectedGameJCPlaysProduct = null;
+        // Category id for the currently-open game's FazerCards game top-up
+        // link, if any. Unlike G2Bulk/JCPlays, the store never calls
+        // FazerCards directly (every FazerCards route needs the reseller's
+        // X-API-Key, so doing that from a public customer page would leak
+        // it) - this is only carried along so submitOrder can write it onto
+        // the order doc; the actual authenticated call happens admin-side
+        // (see placeFazerCardOrder in admin.html).
+        let selectedGameFazerCardCategory = null;
+        // The `fields` keys FazerCards expects at order/validate time for this
+        // category (almost always ['player_id'], sometimes also a zone/server
+        // key) — saved onto the game doc at import time (importFazerCardCatalogue
+        // in admin.html), same source placeFazerCardOrder reads admin-side.
+        let selectedGameFazerCardFields = ['player_id'];
         let selectedPaymentMethod = null;
         let editingReceiptFile = null;
         let receiptOcrPromise = null; // resolves once auto-detection of the Transaction ID from the uploaded receipt finishes
@@ -2511,7 +2530,7 @@
             verifiedPlayerName = null;
             clearTimeout(playerIdCheckTimer);
 
-            if (!selectedGameG2BulkCode) { statusEl.style.display = 'none'; confirmBtn.style.display = 'none'; return; }
+            if (!selectedGameG2BulkCode && !selectedGameFazerCardCategory) { statusEl.style.display = 'none'; confirmBtn.style.display = 'none'; return; }
 
             const playerId = document.getElementById('detail-ingame-id').value.trim();
             if (!playerId) { statusEl.style.display = 'none'; confirmBtn.style.display = 'none'; return; }
@@ -2612,7 +2631,14 @@
             const playerId = document.getElementById('detail-ingame-id').value.trim();
             const serverId = document.getElementById('detail-server-id').value.trim();
 
-            if (!selectedGameG2BulkCode || !playerId) return;
+            if ((!selectedGameG2BulkCode && !selectedGameFazerCardCategory) || !playerId) return;
+
+            // FazerCards categories that need a zone/server field can't be
+            // checked until that field is filled in too — an incomplete
+            // fields object would just come back as a FazerCards-side
+            // "missing field" error, not a real invalid-ID result.
+            const fazerNeedsServerField = selectedGameFazerCardCategory && selectedGameFazerCardFields.some(k => /server|zone/i.test(k));
+            if (fazerNeedsServerField && !serverId) { statusEl.style.display = 'none'; confirmBtn.style.display = 'none'; return; }
 
             renderIdCheckingText();
             confirmBtn.disabled = true;
@@ -2621,17 +2647,39 @@
             btnText.innerText = 'Checking...';
 
             try {
-                const res = await fetch('https://api.g2bulk.com/v1/games/checkPlayerId', {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ game: selectedGameG2BulkCode, user_id: playerId, server_id: serverId || undefined })
-                });
-                const data = await res.json();
-                if (res.ok && data.valid === 'valid') {
+                let valid, resolvedName;
+                if (selectedGameG2BulkCode) {
+                    const res = await fetch('https://api.g2bulk.com/v1/games/checkPlayerId', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ game: selectedGameG2BulkCode, user_id: playerId, server_id: serverId || undefined })
+                    });
+                    const data = await res.json();
+                    valid = res.ok && data.valid === 'valid';
+                    resolvedName = data.name || null;
+                } else {
+                    // fields keys mirror placeFazerCardOrder's mapping in
+                    // admin.html: a server/zone-looking key gets the Server ID
+                    // input, everything else gets the in-game ID input.
+                    const fields = {};
+                    selectedGameFazerCardFields.forEach(key => {
+                        fields[key] = /server|zone/i.test(key) ? serverId : playerId;
+                    });
+                    const res = await fetch(FAZERCARD_VALIDATE_URL, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ categoryId: selectedGameFazerCardCategory, fields })
+                    });
+                    const data = await res.json();
+                    valid = res.ok && data.ok && data.valid === true;
+                    resolvedName = (data.ok && data.playerName) || null;
+                }
+
+                if (valid) {
                     playerIdVerified = true;
-                    verifiedPlayerName = data.name || null;
+                    verifiedPlayerName = resolvedName;
                     const verifiedLabel = selectedGameServerName ? `${selectedGameName} - ${selectedGameServerName}` : selectedGameName;
-                    renderIdConfirmedCard(data.name, verifiedLabel);
+                    renderIdConfirmedCard(resolvedName, verifiedLabel);
                     confirmBtn.classList.remove('checking');
                     confirmBtn.classList.add('confirmed');
                     btnText.innerText = 'Confirmed ✓';
@@ -2691,6 +2739,8 @@
             selectedGameServerName = game.serverName || '';
             selectedGameG2BulkCode = game.g2bulkCode || null;
             selectedGameJCPlaysProduct = game.jcplaysProduct || null;
+            selectedGameFazerCardCategory = game.fazercardCategoryId || null;
+            selectedGameFazerCardFields = (Array.isArray(game.fazercardFields) && game.fazercardFields.length) ? game.fazercardFields : ['player_id'];
             selectedPackage = null;
 
             // Voucher/coupon-style games deliver a code rather than crediting a
@@ -3595,7 +3645,9 @@
                 // Voucher/giftcard packages carry their own G2Bulk product ID
                 // directly on the package (no game-level link needed) - see
                 // pkg-voucher-id in the admin game editor.
-                g2bulkVoucherProductId: selectedPackage.voucherId || null
+                g2bulkVoucherProductId: selectedPackage.voucherId || null,
+                fazercardCategoryId: selectedGameFazerCardCategory,
+                fazercardOfferId: selectedPackage.fazercardOfferId || null
             }, btnElement);
         }
 
@@ -3612,7 +3664,9 @@
                 g2bulkCatalogueName: selectedPackage.g2bulk || null,
                 jcplaysProduct: selectedGameJCPlaysProduct,
                 jcplaysProductId: selectedPackage.jcplays || null,
-                g2bulkVoucherProductId: selectedPackage.voucherId || null
+                g2bulkVoucherProductId: selectedPackage.voucherId || null,
+                fazercardCategoryId: selectedGameFazerCardCategory,
+                fazercardOfferId: selectedPackage.fazercardOfferId || null
             }, btnElement);
         }
 
@@ -5049,7 +5103,7 @@
         }
 
         async function submitOrder(orderData, btnElement) {
-            const { gameName, serverRegion, amount, price, inGameId, inGameName, serverId, paymentMethodName, receiptFile, transactionId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId } = orderData;
+            const { gameName, serverRegion, amount, price, inGameId, inGameName, serverId, paymentMethodName, receiptFile, transactionId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId, fazercardCategoryId, fazercardOfferId } = orderData;
 
             const originalText = btnElement.innerText;
             btnElement.innerText = "Processing...";
@@ -5111,7 +5165,15 @@
                     // order through the G2Bulk purchase/delivery flow instead of
                     // the game top-up order flow (see g2bulkVoucherProductId
                     // handling in the admin panel's fulfillment code).
-                    ...(g2bulkVoucherProductId ? { g2bulkVoucherProductId } : {})
+                    ...(g2bulkVoucherProductId ? { g2bulkVoucherProductId } : {}),
+                    // Same idea again for FazerCards - lets the admin panel
+                    // route this order through FazerCards' /topups/order
+                    // (see placeFazerCardOrder in the admin panel). The
+                    // store never calls FazerCards itself (see the comment
+                    // on selectedGameFazerCardCategory above) - it only
+                    // carries these two ids so the admin-side authenticated
+                    // call knows what to order.
+                    ...(fazercardCategoryId && fazercardOfferId ? { fazercardCategoryId, fazercardOfferId } : {})
                 });
 
                 saveContact(inGameId, selectedGameId, serverId);
@@ -5137,7 +5199,7 @@
         // rendered) so two rapid orders can never both slip through on a
         // balance that only actually covers one of them.
         async function submitWalletOrder(orderData, btnElement) {
-            const { gameName, serverRegion, amount, price, inGameId, serverId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId } = orderData;
+            const { gameName, serverRegion, amount, price, inGameId, serverId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId, fazercardCategoryId, fazercardOfferId } = orderData;
 
             const originalText = btnElement.innerText;
             btnElement.innerText = "Processing...";
@@ -5188,7 +5250,8 @@
                     ...(location ? { location } : {}),
                     ...(g2bulkGameCode && g2bulkCatalogueName ? { g2bulkGameCode, g2bulkCatalogueName } : {}),
                     ...(jcplaysProduct && jcplaysProductId ? { jcplaysProduct, jcplaysProductId } : {}),
-                    ...(g2bulkVoucherProductId ? { g2bulkVoucherProductId } : {})
+                    ...(g2bulkVoucherProductId ? { g2bulkVoucherProductId } : {}),
+                    ...(fazercardCategoryId && fazercardOfferId ? { fazercardCategoryId, fazercardOfferId } : {})
                 });
 
                 saveContact(inGameId, selectedGameId, serverId);
@@ -5516,7 +5579,7 @@
             // The real Order ID (from G2Bulk/JCPlays) only exists — and is only
             // shown — once the order has actually succeeded. Nothing is shown
             // while Pending/Processing, since there's no confirmed ID to give yet.
-            const providerOrderId = data.g2bulkOrderId || data.jcplaysOrderId;
+            const providerOrderId = data.g2bulkOrderId || data.jcplaysOrderId || data.fazercardOrderId;
             const orderIdLine = (data.status === 'Success' && providerOrderId)
                 ? `<p class="hc-order-id">Order ID: ${providerOrderId}</p>`
                 : '';
@@ -5642,7 +5705,7 @@
                 : '';
             // Same rule as the history card: the real provider Order ID only
             // shows up once the order is actually Success — never before.
-            const providerOrderId = data.g2bulkOrderId || data.jcplaysOrderId;
+            const providerOrderId = data.g2bulkOrderId || data.jcplaysOrderId || data.fazercardOrderId;
             const orderIdRow = (data.status === 'Success' && providerOrderId)
                 ? `<div class="od-row"><span>Order ID</span><b style="font-family:monospace;">${providerOrderId}</b></div>`
                 : '';
@@ -5936,7 +5999,7 @@
             const canvas = document.createElement('canvas');
             canvas.width = W;
 
-            const providerOrderId = data.g2bulkOrderId || data.jcplaysOrderId || data.id || null;
+            const providerOrderId = data.g2bulkOrderId || data.jcplaysOrderId || data.fazercardOrderId || data.id || null;
 
             const customerRows = [
                 ['User', data.userName || '-', receiptTier],
