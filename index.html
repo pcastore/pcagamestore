@@ -2647,7 +2647,17 @@
             btnText.innerText = 'Checking...';
 
             try {
-                let valid, resolvedName;
+                // Three possible outcomes, not two: 'valid', 'invalid' (a
+                // real "this ID doesn't exist" answer), or 'unknown' (the
+                // check itself couldn't run — bad config, FazerCards down,
+                // a non-2xx status, etc.). 'unknown' must NOT be treated
+                // the same as 'invalid': after the earlier fix that makes
+                // confirmPackagePurchase block checkout on playerIdVerified
+                // === false, collapsing a config/outage error into "ID not
+                // found" would wrongly block every FazerCards customer
+                // whenever the service side has a hiccup, not just the ones
+                // who actually typed a bad ID.
+                let outcome, resolvedName = null;
                 if (selectedGameG2BulkCode) {
                     const res = await fetch('https://api.g2bulk.com/v1/games/checkPlayerId', {
                         method: 'POST',
@@ -2655,8 +2665,9 @@
                         body: JSON.stringify({ game: selectedGameG2BulkCode, user_id: playerId, server_id: serverId || undefined })
                     });
                     const data = await res.json();
-                    valid = res.ok && data.valid === 'valid';
-                    resolvedName = data.name || null;
+                    if (!res.ok) outcome = 'unknown';
+                    else if (data.valid === 'valid') { outcome = 'valid'; resolvedName = data.name || null; }
+                    else outcome = 'invalid';
                 } else {
                     // fields keys mirror placeFazerCardOrder's mapping in
                     // admin.html: a server/zone-looking key gets the Server ID
@@ -2671,11 +2682,16 @@
                         body: JSON.stringify({ categoryId: selectedGameFazerCardCategory, fields })
                     });
                     const data = await res.json();
-                    valid = res.ok && data.ok && data.valid === true;
-                    resolvedName = (data.ok && data.playerName) || null;
+                    // data.ok reflects whether fazercard-validate could run the
+                    // check at all (Worker/Firestore/upstream error otherwise) -
+                    // that's separate from data.valid, which is the actual
+                    // found-or-not answer once the check did run.
+                    if (!res.ok || !data.ok) outcome = 'unknown';
+                    else if (data.valid === true) { outcome = 'valid'; resolvedName = data.playerName || null; }
+                    else outcome = 'invalid';
                 }
 
-                if (valid) {
+                if (outcome === 'valid') {
                     playerIdVerified = true;
                     verifiedPlayerName = resolvedName;
                     const verifiedLabel = selectedGameServerName ? `${selectedGameName} - ${selectedGameServerName}` : selectedGameName;
@@ -2684,10 +2700,19 @@
                     confirmBtn.classList.add('confirmed');
                     btnText.innerText = 'Confirmed ✓';
                     confirmBtn.disabled = true;
-                } else {
+                } else if (outcome === 'invalid') {
                     playerIdVerified = false;
                     verifiedPlayerName = null;
                     renderIdFailCard();
+                    confirmBtn.classList.remove('checking', 'confirmed');
+                    btnText.innerText = 'Confirm ID';
+                    confirmBtn.disabled = false;
+                } else {
+                    // unknown - same as a network hiccup below: don't tell the
+                    // customer their ID is wrong when we simply couldn't check.
+                    playerIdVerified = null;
+                    verifiedPlayerName = null;
+                    statusEl.style.display = 'none';
                     confirmBtn.classList.remove('checking', 'confirmed');
                     btnText.innerText = 'Confirm ID';
                     confirmBtn.disabled = false;
@@ -3467,7 +3492,11 @@
             if (selectedGameNeedsPlayerId && !inGameId) { window.showToast('Please enter your In-Game ID', 'fail'); if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb(); return; }
             if (!selectedPaymentType) { window.showToast('Please choose how you want to pay', 'fail'); if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb(); return; }
 
-            if (selectedGameG2BulkCode && playerIdVerified === false) {
+            // Same "ID not found, continue anyway?" guard as G2Bulk - without
+            // this, runPlayerIdCheck's FazerCards branch (see renderIdFailCard)
+            // would show the customer a red "ID not found" card but do nothing
+            // to actually stop them from paying against a bad ID.
+            if ((selectedGameG2BulkCode || selectedGameFazerCardCategory) && playerIdVerified === false) {
                 if (!confirm('We could not find this In-Game ID on the server. Continue with this order anyway?')) {
                     if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb();
                     return;
