@@ -3372,23 +3372,25 @@
 
         // Builds the highlighted "Your Voucher Code(s)" card shown at the top
         // of both the post-purchase Success screen and the Order Detail
-        // modal, once a voucher/giftcard order has actually delivered its
-        // code(s) (data.deliveredCodes, written by the admin panel/G2Bulk
-        // fulfillment - see g2bulkVoucherProductId flow). Returns '' for any
-        // order that isn't a delivered voucher, so it's safe to splice into
-        // every order's detail HTML unconditionally.
+        // modal, once a voucher/giftcard/redeem-code order has actually
+        // delivered its code(s) (data.deliveredCodes, written by the admin
+        // panel/G2Bulk voucher flow, or JCPlays' auto-fulfillment — see
+        // g2bulkVoucherProductId / jcplaysProductId). Returns '' for any
+        // order that isn't a delivered code order, so it's safe to splice
+        // into every order's detail HTML unconditionally.
         function voucherCodeBlockHTML(data) {
             const codes = Array.isArray(data.deliveredCodes) ? data.deliveredCodes.filter(c => c !== null && c !== undefined && String(c).trim()) : [];
             if (data.status !== 'Success') return '';
             if (codes.length === 0) {
-                // Guards against a past bug where a voucher order's Telegram
-                // Confirm could mark it "Success" without ever actually
-                // purchasing/delivering a code from G2Bulk - so instead of
-                // silently showing nothing (looking like the details are
-                // just missing), tell the customer to reach out. Only shown
-                // for orders that were actually voucher-linked in the first
-                // place, never for a normal top-up order.
-                if (!data.g2bulkVoucherProductId) return '';
+                // Guards against a past bug where a voucher/redeem-code order's
+                // Telegram Confirm could mark it "Success" without ever
+                // actually purchasing/delivering a code from G2Bulk or
+                // JCPlays - so instead of silently showing nothing (looking
+                // like the details are just missing), tell the customer to
+                // reach out. Only shown for orders that were actually
+                // code-linked in the first place, never for a normal top-up
+                // order.
+                if (!data.g2bulkVoucherProductId && !data.jcplaysProductId) return '';
                 return `
                     <div class="voucher-code-highlight">
                         <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
