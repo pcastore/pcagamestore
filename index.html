@@ -2485,6 +2485,14 @@
         // key) — saved onto the game doc at import time (importFazerCardCatalogue
         // in admin.html), same source placeFazerCardOrder reads admin-side.
         let selectedGameFazerCardFields = ['player_id'];
+        // Optional fallback (Game editor → G2Bulk ID-Check Code) - only
+        // meaningful when selectedGameFazerCardCategory is set. Not every
+        // FazerCards category supports validate-id, and the Worker that
+        // proxies it can itself be down - when the FazerCards check can't
+        // produce a result, this lets runPlayerIdCheck try the same game via
+        // G2Bulk's public checkPlayerId purely to show the player's name.
+        // The order still fulfills through FazerCards either way.
+        let selectedGameG2BulkIdCheckCode = null;
         let selectedPaymentMethod = null;
         let editingReceiptFile = null;
         let receiptOcrPromise = null; // resolves once auto-detection of the Transaction ID from the uploaded receipt finishes
@@ -2689,6 +2697,29 @@
                     if (!res.ok || !data.ok) outcome = 'unknown';
                     else if (data.valid === true) { outcome = 'valid'; resolvedName = data.playerName || null; }
                     else outcome = 'invalid';
+
+                    // Fallback: same game, checked via G2Bulk's public
+                    // checkPlayerId instead — only kicks in when the FazerCards
+                    // check itself couldn't run (Worker down, category not
+                    // supported, etc.), not when it ran and said "not found".
+                    // Set up per-game in the admin panel (Game editor →
+                    // G2Bulk ID-Check Code). This is purely informational —
+                    // the order still gets placed with FazerCards regardless
+                    // of which provider resolved the name.
+                    if (outcome === 'unknown' && selectedGameG2BulkIdCheckCode) {
+                        try {
+                            const fbRes = await fetch('https://api.g2bulk.com/v1/games/checkPlayerId', {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ game: selectedGameG2BulkIdCheckCode, user_id: playerId, server_id: serverId || undefined })
+                            });
+                            const fbData = await fbRes.json();
+                            if (fbRes.ok && fbData.valid === 'valid') { outcome = 'valid'; resolvedName = fbData.name || null; }
+                        } catch (fbError) {
+                            console.error("G2Bulk fallback checkPlayerId error:", fbError);
+                            // stays 'unknown' — handled the same as below
+                        }
+                    }
                 }
 
                 if (outcome === 'valid') {
@@ -2766,6 +2797,7 @@
             selectedGameJCPlaysProduct = game.jcplaysProduct || null;
             selectedGameFazerCardCategory = game.fazercardCategoryId || null;
             selectedGameFazerCardFields = (Array.isArray(game.fazercardFields) && game.fazercardFields.length) ? game.fazercardFields : ['player_id'];
+            selectedGameG2BulkIdCheckCode = game.g2bulkIdCheckCode || null;
             selectedPackage = null;
 
             // Voucher/coupon-style games deliver a code rather than crediting a
