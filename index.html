@@ -515,6 +515,11 @@
             transition: transform 0.12s ease;
         }
         .voucher-copy-btn:active { transform: scale(0.92); }
+        .voucher-copy-btn.copy-maxed, .voucher-copy-btn:disabled {
+            opacity: 0.4; cursor: not-allowed; background: #D8CBA0; color: #8a7a4a;
+        }
+        .voucher-copy-btn.copy-maxed:active, .voucher-copy-btn:disabled:active { transform: none; }
+        .vch-row-num { font-variant-numeric: tabular-nums; }
         .stat-box { background: var(--surface); padding: 20px; border-radius: 10px; text-align: center; border: 1px solid var(--border); border-left: 5px solid var(--accent); box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-bottom: 15px;}
         .stat-box p { font-size: 28px; font-weight: 600; color: var(--text); margin: 8px 0 15px 0; }
 
@@ -896,6 +901,20 @@
         .pc-price { font-size: 14px; font-weight: 600; color: var(--accent); }
         .modal-footer { padding-top: 16px; }
         .modal-footer .btn:disabled { background: var(--text-faint); cursor: not-allowed; }
+
+        /* Voucher quantity stepper */
+        .qty-stepper { display: flex; align-items: center; gap: 14px; margin-top: 6px; }
+        .qty-btn {
+            width: 36px; height: 36px; border-radius: 10px; border: 1.5px solid var(--border);
+            background: var(--surface-alt); color: var(--text); font-size: 18px; font-weight: 600;
+            display: flex; align-items: center; justify-content: center; cursor: pointer;
+            transition: 0.15s; -webkit-user-select: none; user-select: none; flex-shrink: 0;
+        }
+        .qty-btn:active { transform: scale(0.92); background: var(--accent-soft); }
+        .qty-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; background: var(--surface-alt); }
+        .qty-value { font-size: 17px; font-weight: 700; color: var(--text); min-width: 24px; text-align: center; }
+        .qty-total { margin-left: auto; font-size: 13px; font-weight: 600; color: var(--accent); }
+        .qty-hint { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
 
         /* Game Description card — sits below the detail banner, explains
            the game to the customer. Admin-editable free text, shown with
@@ -2313,6 +2332,22 @@
             <div class="pkg-type-tabs" id="pkg-type-tabs" style="display:none;"></div>
             <div class="package-grid-scroll"><div id="detail-package-list" class="package-grid"></div></div>
 
+            <!-- Voucher quantity stepper — only shown for voucher/gift-card
+                 packages with a live stock number, so a customer can buy
+                 several codes of the same package in one order instead of
+                 repeating checkout one at a time. Capped at whatever stock
+                 is currently available (see getSelectedPackageMaxQty). -->
+            <div id="voucher-qty-card" class="detail-form-card" style="display:none; margin-top:12px;">
+                <label style="align-self:flex-start;">Quantity</label>
+                <div class="qty-stepper">
+                    <button type="button" class="qty-btn" id="qty-btn-minus" onclick="changePackageQty(-1)" aria-label="Decrease quantity">−</button>
+                    <span class="qty-value" id="qty-value">1</span>
+                    <button type="button" class="qty-btn" id="qty-btn-plus" onclick="changePackageQty(1)" aria-label="Increase quantity">+</button>
+                    <span class="qty-total" id="qty-total"></span>
+                </div>
+                <p class="qty-hint" id="qty-hint"></p>
+            </div>
+
             <div id="detail-payment-section" style="display:none;">
                 <h3 class="detail-section-title">How do you want to pay?</h3>
                 <div class="pay-type-tabs" id="detail-pay-type-tabs">
@@ -2611,6 +2646,10 @@
         // Payment methods live in Firestore's "paymentMethods" collection, synced
         // the same way into window.PAYMENT_METHODS.
         let selectedPackage = null;
+        // Quantity chosen for the selected voucher package (see the
+        // Quantity stepper) — always 1 for non-voucher/topup packages,
+        // which don't show the stepper at all.
+        let selectedPackageQty = 1;
         // Which bottom-nav page a game's detail modal was opened from (Home
         // or Voucher) - so closing it returns the customer to the right tab
         // instead of always dropping back to Home.
@@ -2665,6 +2704,14 @@
         // the order doc; the actual authenticated call happens admin-side
         // (see placeFazerCardOrder in admin.html).
         let selectedGameFazerCardCategory = null;
+        // Same idea for FazerCards Gift Cards (fulfillProvider ===
+        // 'fazercard_giftcard') - the category id for the currently-open
+        // game's gift-card link, if any. The card_id itself lives per
+        // package (selectedPackage.fazercardGiftCardId), same as
+        // selectedPackage.voucherId for G2Bulk vouchers - only carried
+        // along so submitOrder can write both onto the order doc for the
+        // admin panel's placeFazerCardGiftCardOrder to read.
+        let selectedGameFazerCardGiftCategory = null;
         // The `fields` keys FazerCards expects at order/validate time for this
         // category (almost always ['player_id'], sometimes also a zone/server
         // key) — saved onto the game doc at import time (importFazerCardCatalogue
@@ -3012,6 +3059,7 @@
             selectedGameG2BulkCode = game.g2bulkCode || null;
             selectedGameJCPlaysProduct = game.jcplaysProduct || null;
             selectedGameFazerCardCategory = game.fazercardCategoryId || null;
+            selectedGameFazerCardGiftCategory = game.fazercardGiftCategoryId || null;
             selectedGameFazerCardFields = (Array.isArray(game.fazercardFields) && game.fazercardFields.length) ? game.fazercardFields : ['player_id'];
             selectedGameG2BulkIdCheckCode = game.g2bulkIdCheckCode || null;
             selectedPackage = null;
@@ -3046,7 +3094,7 @@
             // Drives which price-card layout renderDetailPackageList uses:
             // voucher/giftcard games keep the gift-card style; every other
             // (direct top-up) game uses the plain product-card layout.
-            window.currentGameIsVoucher = game.fulfillProvider === 'g2bulk_voucher';
+            window.currentGameIsVoucher = game.fulfillProvider === 'g2bulk_voucher' || game.fulfillProvider === 'fazercard_giftcard';
             currentGameTabLabels = game.packageTabLabels || {};
 
             // Voucher/giftcard games (fulfillProvider === 'g2bulk_voucher') show a
@@ -3291,8 +3339,11 @@
             // stripped out for out-of-stock cards - see renderDetailPackageList).
             if (pkgToSelect && pkgToSelect.voucherId && voucherStockMap[String(pkgToSelect.voucherId)] === 0) return;
             selectedPackage = pkgToSelect;
+            selectedPackageQty = 1;
             document.querySelectorAll('#detail-package-list .package-card').forEach(el => el.classList.remove('selected'));
             document.querySelector(`#detail-package-list .package-card[data-index="${index}"]`).classList.add('selected');
+
+            renderQtyStepper();
 
             // Picking a new package invalidates whatever "how do I pay" choice
             // was made for the previous one — price may have changed, so the
@@ -3313,6 +3364,48 @@
 
             document.getElementById('detail-payment-section').style.display = 'block';
         }
+
+        // Highest quantity the customer is allowed to pick for the currently
+        // selected package — bounded by live G2Bulk stock for voucher
+        // packages, always 1 for everything else (direct top-up packages
+        // don't have a meaningful "buy several" concept).
+        function getSelectedPackageMaxQty() {
+            if (!window.currentGameIsVoucher || !selectedPackage || !selectedPackage.voucherId) return 1;
+            const stock = voucherStockMap[String(selectedPackage.voucherId)];
+            if (typeof stock !== 'number' || stock <= 0) return 1;
+            return stock;
+        }
+
+        // Builds/refreshes the Quantity card: hidden entirely unless the
+        // selected package is a voucher with room to buy more than one.
+        function renderQtyStepper() {
+            const card = document.getElementById('voucher-qty-card');
+            const maxQty = getSelectedPackageMaxQty();
+            if (!selectedPackage || maxQty <= 1) {
+                card.style.display = 'none';
+                return;
+            }
+            card.style.display = 'flex';
+            document.getElementById('qty-value').innerText = selectedPackageQty;
+            document.getElementById('qty-btn-minus').disabled = selectedPackageQty <= 1;
+            document.getElementById('qty-btn-plus').disabled = selectedPackageQty >= maxQty;
+            document.getElementById('qty-total').innerText = `= ${(selectedPackage.price * selectedPackageQty).toLocaleString()} MMK`;
+            document.getElementById('qty-hint').innerText = `${maxQty} in stock`;
+        }
+
+        function changePackageQty(delta) {
+            if (!selectedPackage) return;
+            const maxQty = getSelectedPackageMaxQty();
+            const next = Math.min(maxQty, Math.max(1, selectedPackageQty + delta));
+            if (next === selectedPackageQty) return;
+            selectedPackageQty = next;
+            renderQtyStepper();
+            // Quantity changes the total, so anything already showing a
+            // price (wallet balance box, confirm button) needs refreshing.
+            if (selectedPaymentType === 'wallet') renderWalletPayBox();
+            else if (selectedPaymentType) updateConfirmButtonForPaymentType();
+        }
+        window.changePackageQty = changePackageQty;
 
         // ---------- Pay with Wallet vs Pay with Kpay/Wave/etc. ----------
         function choosePaymentType(type) {
@@ -3345,7 +3438,7 @@
         function renderWalletPayBox() {
             const box = document.getElementById('detail-wallet-pay-box');
             if (!selectedPackage) { box.innerHTML = ''; return; }
-            const price = selectedPackage.price;
+            const price = selectedPackage.price * selectedPackageQty;
             const bal = currentWalletBalance;
             const enough = bal >= price;
             box.innerHTML = enough ? `
@@ -3365,15 +3458,17 @@
         function updateConfirmButtonForPaymentType() {
             if (!selectedPackage) return;
             const confirmBtn = document.getElementById('detail-confirm-btn');
+            const total = selectedPackage.price * selectedPackageQty;
+            const qtySuffix = selectedPackageQty > 1 ? ` ×${selectedPackageQty}` : '';
             if (selectedPaymentType === 'wallet') {
-                const enough = currentWalletBalance >= selectedPackage.price;
+                const enough = currentWalletBalance >= total;
                 confirmBtn.disabled = !enough;
                 confirmBtn.innerText = enough
-                    ? `Buy ${selectedPackage.amount} - ${selectedPackage.price.toLocaleString()} MMK (Wallet)`
+                    ? `Buy ${selectedPackage.amount}${qtySuffix} - ${total.toLocaleString()} MMK (Wallet)`
                     : 'Insufficient Wallet Balance';
             } else if (selectedPaymentType === 'payment') {
                 confirmBtn.disabled = false;
-                confirmBtn.innerText = `Buy ${selectedPackage.amount} - ${selectedPackage.price.toLocaleString()} MMK`;
+                confirmBtn.innerText = `Buy ${selectedPackage.amount}${qtySuffix} - ${total.toLocaleString()} MMK`;
             }
         }
 
@@ -3601,7 +3696,16 @@
         // g2bulkVoucherProductId / jcplaysProductId). Returns '' for any
         // order that isn't a delivered code order, so it's safe to splice
         // into every order's detail HTML unconditionally.
-        function voucherCodeBlockHTML(data) {
+        // Tracks how many times each delivered code's individual copy button
+        // has been used — keyed by orderId+index+code so it survives the
+        // live listener re-rendering this block, but resets naturally for a
+        // fresh page load (that's fine; the limit is about accidental repeat
+        // taps in one sitting, not a hard lifetime cap). Once a code hits the
+        // limit its button fades and disables instead of copying again.
+        const voucherCodeCopyCounts = {};
+        const VOUCHER_CODE_COPY_LIMIT = 3;
+
+        function voucherCodeBlockHTML(data, orderId) {
             const codes = Array.isArray(data.deliveredCodes) ? data.deliveredCodes.filter(c => c !== null && c !== undefined && String(c).trim()) : [];
             if (data.status !== 'Success') return '';
             if (codes.length === 0) {
@@ -3613,7 +3717,7 @@
                 // reach out. Only shown for orders that were actually
                 // code-linked in the first place, never for a normal top-up
                 // order.
-                if (!data.g2bulkVoucherProductId && !data.jcplaysProductId) return '';
+                if (!data.g2bulkVoucherProductId && !data.jcplaysProductId && !data.fazercardGiftCardId) return '';
                 return `
                     <div class="voucher-code-highlight">
                         <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
@@ -3624,33 +3728,53 @@
                     </div>`;
             }
             const jsSafe = s => String(s).replace(/\\/g, '\\\\').replace(/'/g, "\\'");
-            const rows = codes.map((c, i) => `
+            const rows = codes.map((c, i) => {
+                const copyKey = `${orderId || 'x'}::${i}::${c}`;
+                const maxed = (voucherCodeCopyCounts[copyKey] || 0) >= VOUCHER_CODE_COPY_LIMIT;
+                return `
                 <div class="vch-row" style="display:flex;align-items:center;gap:8px;background:rgba(255,255,255,0.65);border-radius:10px;padding:10px 12px;${i > 0 ? 'margin-top:8px;' : ''}">
+                    <span class="vch-row-num" style="font-size:12px;font-weight:700;color:#B8860B;flex-shrink:0;min-width:16px;">${i + 1}.</span>
                     <span class="mono vch-code" style="flex:1;min-width:0;font-size:15px;font-weight:700;color:#7A5B00;word-break:break-all;">${escapeHtml(String(c))}</span>
-                    <button type="button" class="voucher-copy-btn" onclick="copyVoucherCode('${jsSafe(c)}', this)" aria-label="Copy code">
+                    <button type="button" class="voucher-copy-btn${maxed ? ' copy-maxed' : ''}" ${maxed ? 'disabled' : ''} onclick="copyVoucherCode('${jsSafe(c)}', this, '${jsSafe(copyKey)}')" aria-label="Copy code" title="${maxed ? 'Copy limit reached' : 'Copy code'}">
                         <svg class="ui-icon" style="width:16px;height:16px;"><use href="#icon-copy"></use></svg>
                     </button>
-                </div>`).join('');
+                </div>`;
+            }).join('');
             const copyAllBtn = codes.length > 1 ? `
                 <button type="button" class="btn btn-outline" style="width:100%;margin-top:10px;" onclick="copyVoucherCode('${jsSafe(codes.join('\n'))}', this)">Copy All Codes</button>` : '';
             return `
                 <div class="voucher-code-highlight">
                     <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;">
                         <svg class="ui-icon" style="width:20px;height:20px;color:#B8860B;"><use href="#icon-gift"></use></svg>
-                        <span class="vch-label" style="font-size:13px;font-weight:700;color:#7A5B00;text-transform:uppercase;letter-spacing:0.3px;">Your Voucher Code${codes.length > 1 ? 's' : ''}</span>
+                        <span class="vch-label" style="font-size:13px;font-weight:700;color:#7A5B00;text-transform:uppercase;letter-spacing:0.3px;">Redeem Code List</span>
                     </div>
                     ${rows}
                     ${copyAllBtn}
                 </div>`;
         }
 
-        function copyVoucherCode(text, btnEl) {
+        function copyVoucherCode(text, btnEl, copyKey) {
+            // Belt-and-braces: a maxed-out button is already `disabled` (so a
+            // real click can't reach here), but guard anyway in case this is
+            // ever invoked programmatically.
+            if (copyKey && (voucherCodeCopyCounts[copyKey] || 0) >= VOUCHER_CODE_COPY_LIMIT) return;
             const onCopied = () => {
                 window.showToast('Voucher code copied!');
-                if (btnEl.tagName === 'BUTTON' && btnEl.classList.contains('voucher-copy-btn')) {
-                    const original = btnEl.innerHTML;
+                let limitReached = false;
+                if (copyKey) {
+                    voucherCodeCopyCounts[copyKey] = (voucherCodeCopyCounts[copyKey] || 0) + 1;
+                    limitReached = voucherCodeCopyCounts[copyKey] >= VOUCHER_CODE_COPY_LIMIT;
+                }
+                if (btnEl && btnEl.tagName === 'BUTTON' && btnEl.classList.contains('voucher-copy-btn')) {
                     btnEl.innerHTML = '<svg class="ui-icon" style="width:16px;height:16px;"><use href="#icon-check"></use></svg>';
-                    setTimeout(() => { btnEl.innerHTML = original; }, 1200);
+                    setTimeout(() => {
+                        btnEl.innerHTML = '<svg class="ui-icon" style="width:16px;height:16px;"><use href="#icon-copy"></use></svg>';
+                        if (limitReached) {
+                            btnEl.classList.add('copy-maxed');
+                            btnEl.disabled = true;
+                            btnEl.title = 'Copy limit reached';
+                        }
+                    }, 1200);
                 }
             };
             const onFailed = () => {
@@ -3697,13 +3821,13 @@
             // then swap in live data the moment Firestore confirms the write
             // and on every status change after that.
             timelineEl.innerHTML = orderTimelineHTML(initialData || { status: 'Pending' });
-            document.getElementById('success-voucher-code-block').innerHTML = voucherCodeBlockHTML(initialData || {});
+            document.getElementById('success-voucher-code-block').innerHTML = voucherCodeBlockHTML(initialData || {}, orderId);
 
             successOrderUnsubscribe = window.onSnapshot(window.doc(window.db, "orders", orderId), (snap) => {
                 if (!snap.exists()) return;
                 const data = snap.data();
                 timelineEl.innerHTML = orderTimelineHTML(data);
-                document.getElementById('success-voucher-code-block').innerHTML = voucherCodeBlockHTML(data);
+                document.getElementById('success-voucher-code-block').innerHTML = voucherCodeBlockHTML(data, orderId);
                 updateSuccessOverlayText(data.status);
             }, (error) => {
                 console.error("Success screen order tracking error:", error);
@@ -3750,6 +3874,26 @@
         async function confirmPackagePurchase(btnElement) {
             if (!selectedPackage) return;
 
+            // Stock can move between selecting the package and hitting
+            // confirm (another customer buying the same voucher, etc.) - re-clamp
+            // the quantity against the live max right before submitting so an
+            // order is never placed for more codes than are actually left.
+            if (window.currentGameIsVoucher && selectedPackage.voucherId) {
+                const liveMax = getSelectedPackageMaxQty();
+                if (liveMax < 1) {
+                    window.showToast('This package just sold out. Please pick another.', 'fail');
+                    if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb();
+                    return;
+                }
+                if (selectedPackageQty > liveMax) {
+                    selectedPackageQty = liveMax;
+                    renderQtyStepper();
+                    window.showToast(`Only ${liveMax} left in stock — quantity adjusted.`, 'warning');
+                    if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb();
+                    return;
+                }
+            }
+
             const inGameId = document.getElementById('detail-ingame-id').value.trim();
             const serverId = document.getElementById('detail-server-id').value.trim();
 
@@ -3768,7 +3912,7 @@
             }
 
             if (selectedPaymentType === 'wallet') {
-                if (currentWalletBalance < selectedPackage.price) {
+                if (currentWalletBalance < selectedPackage.price * selectedPackageQty) {
                     window.showToast('Not enough wallet balance. Please top up.', 'fail');
                     if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb();
                     return;
@@ -3916,11 +4060,13 @@
         window.initSlideConfirm = initSlideConfirm;
 
         async function doSubmitOrder(inGameId, serverId, btnElement, transactionId) {
+            const qty = selectedPackageQty || 1;
             await window.submitOrder({
                 gameName: selectedGameName,
                 serverRegion: selectedGameServerName,
-                amount: selectedPackage.amount,
-                price: selectedPackage.price,
+                amount: qty > 1 ? `${selectedPackage.amount} × ${qty}` : selectedPackage.amount,
+                price: selectedPackage.price * qty,
+                quantity: qty,
                 inGameId,
                 serverId,
                 // Only trust this when the ID that got verified is the exact
@@ -3940,16 +4086,20 @@
                 // pkg-voucher-id in the admin game editor.
                 g2bulkVoucherProductId: selectedPackage.voucherId || null,
                 fazercardCategoryId: selectedGameFazerCardCategory,
-                fazercardOfferId: selectedPackage.fazercardOfferId || null
+                fazercardOfferId: selectedPackage.fazercardOfferId || null,
+                fazercardGiftCategoryId: selectedGameFazerCardGiftCategory,
+                fazercardGiftCardId: selectedPackage.fazercardGiftCardId || null
             }, btnElement);
         }
 
         async function doSubmitWalletOrder(inGameId, serverId, btnElement) {
+            const qty = selectedPackageQty || 1;
             await window.submitWalletOrder({
                 gameName: selectedGameName,
                 serverRegion: selectedGameServerName,
-                amount: selectedPackage.amount,
-                price: selectedPackage.price,
+                amount: qty > 1 ? `${selectedPackage.amount} × ${qty}` : selectedPackage.amount,
+                price: selectedPackage.price * qty,
+                quantity: qty,
                 inGameId,
                 serverId,
                 inGameName: playerIdVerified === true ? verifiedPlayerName : null,
@@ -3959,7 +4109,9 @@
                 jcplaysProductId: selectedPackage.jcplays || null,
                 g2bulkVoucherProductId: selectedPackage.voucherId || null,
                 fazercardCategoryId: selectedGameFazerCardCategory,
-                fazercardOfferId: selectedPackage.fazercardOfferId || null
+                fazercardOfferId: selectedPackage.fazercardOfferId || null,
+                fazercardGiftCategoryId: selectedGameFazerCardGiftCategory,
+                fazercardGiftCardId: selectedPackage.fazercardGiftCardId || null
             }, btnElement);
         }
 
@@ -5399,7 +5551,7 @@
         }
 
         async function submitOrder(orderData, btnElement) {
-            const { gameName, serverRegion, amount, price, inGameId, inGameName, serverId, paymentMethodName, receiptFile, transactionId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId, fazercardCategoryId, fazercardOfferId } = orderData;
+            const { gameName, serverRegion, amount, price, quantity, inGameId, inGameName, serverId, paymentMethodName, receiptFile, transactionId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId, fazercardCategoryId, fazercardOfferId, fazercardGiftCategoryId, fazercardGiftCardId } = orderData;
 
             const originalText = btnElement.innerText;
             btnElement.innerText = "Processing...";
@@ -5440,6 +5592,12 @@
                     game: gameName,
                     itemAmount: amount,
                     price: price,
+                    // How many of this voucher/package are bundled into this
+                    // single order (always 1 for a normal top-up order). The
+                    // admin-side fulfillment flow reads this to know how many
+                    // codes to purchase/deliver for a g2bulkVoucherProductId
+                    // order — see the Quantity stepper on the package screen.
+                    quantity: quantity || 1,
                     paymentMethod: paymentMethodName,
                     receiptUrl: receiptUrl,
                     transactionId: transactionId || '',
@@ -5469,7 +5627,13 @@
                     // on selectedGameFazerCardCategory above) - it only
                     // carries these two ids so the admin-side authenticated
                     // call knows what to order.
-                    ...(fazercardCategoryId && fazercardOfferId ? { fazercardCategoryId, fazercardOfferId } : {})
+                    ...(fazercardCategoryId && fazercardOfferId ? { fazercardCategoryId, fazercardOfferId } : {}),
+                    // Same idea again for FazerCards Gift Cards - a separate
+                    // catalog/order endpoint from the top-up flow above (see
+                    // placeFazerCardGiftCardOrder in the admin panel). Also
+                    // store-never-calls-FazerCards-directly, same reasoning
+                    // as fazercardCategoryId above.
+                    ...(fazercardGiftCategoryId && fazercardGiftCardId ? { fazercardGiftCategoryId, fazercardGiftCardId } : {})
                 });
 
                 saveContact(inGameId, selectedGameId, serverId);
@@ -5495,7 +5659,7 @@
         // rendered) so two rapid orders can never both slip through on a
         // balance that only actually covers one of them.
         async function submitWalletOrder(orderData, btnElement) {
-            const { gameName, serverRegion, amount, price, inGameId, serverId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId, fazercardCategoryId, fazercardOfferId } = orderData;
+            const { gameName, serverRegion, amount, price, quantity, inGameId, serverId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId, fazercardCategoryId, fazercardOfferId, fazercardGiftCategoryId, fazercardGiftCardId } = orderData;
 
             const originalText = btnElement.innerText;
             btnElement.innerText = "Processing...";
@@ -5536,6 +5700,7 @@
                     game: gameName,
                     itemAmount: amount,
                     price: price,
+                    quantity: quantity || 1,
                     paymentMethod: 'Wallet Balance',
                     paidFromWallet: true,
                     status: "Pending",
@@ -5547,7 +5712,8 @@
                     ...(g2bulkGameCode && g2bulkCatalogueName ? { g2bulkGameCode, g2bulkCatalogueName } : {}),
                     ...(jcplaysProduct && jcplaysProductId ? { jcplaysProduct, jcplaysProductId } : {}),
                     ...(g2bulkVoucherProductId ? { g2bulkVoucherProductId } : {}),
-                    ...(fazercardCategoryId && fazercardOfferId ? { fazercardCategoryId, fazercardOfferId } : {})
+                    ...(fazercardCategoryId && fazercardOfferId ? { fazercardCategoryId, fazercardOfferId } : {}),
+                    ...(fazercardGiftCategoryId && fazercardGiftCardId ? { fazercardGiftCategoryId, fazercardGiftCardId } : {})
                 });
 
                 saveContact(inGameId, selectedGameId, serverId);
@@ -6015,7 +6181,7 @@
                 ? `<div class="od-row"><span>Server</span><b>${data.serverRegion}</b></div>`
                 : '';
             document.getElementById('order-detail-body').innerHTML = `
-                ${voucherCodeBlockHTML(data)}
+                ${voucherCodeBlockHTML(data, data.id)}
                 <div style="display:flex;align-items:center;gap:12px;">
                     <div class="hc-thumb" style="width:52px;height:52px;">${gameImg ? `<img src="${gameImg}" alt="" onerror="this.style.display='none'">` : ''}</div>
                     <div style="flex:1;min-width:0;">
@@ -6910,7 +7076,7 @@
             // Vouchers/gift cards (fulfillProvider === 'g2bulk_voucher') have their
             // own dedicated Voucher tab (see renderVoucherGames below) and should
             // not also appear mixed into the Home / direct top-up list.
-            const ids = Object.keys(GAMES).filter(id => GAMES[id].fulfillProvider !== 'g2bulk_voucher').sort((a, b) => {
+            const ids = Object.keys(GAMES).filter(id => GAMES[id].fulfillProvider !== 'g2bulk_voucher' && GAMES[id].fulfillProvider !== 'fazercard_giftcard').sort((a, b) => {
                 const ga = GAMES[a], gb = GAMES[b];
                 const oa = typeof ga.order === 'number' ? ga.order : Infinity;
                 const ob = typeof gb.order === 'number' ? gb.order : Infinity;
@@ -7017,7 +7183,7 @@
             const popularScroll = document.getElementById('popular-vouchers-scroll');
             if (!grid) return;
             const ids = Object.keys(GAMES)
-                .filter(id => GAMES[id].fulfillProvider === 'g2bulk_voucher')
+                .filter(id => GAMES[id].fulfillProvider === 'g2bulk_voucher' || GAMES[id].fulfillProvider === 'fazercard_giftcard')
                 .sort((a, b) => {
                     const ga = GAMES[a], gb = GAMES[b];
                     const oa = typeof ga.order === 'number' ? ga.order : Infinity;
