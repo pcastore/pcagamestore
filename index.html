@@ -961,6 +961,25 @@
         .pm-copy-btn { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); cursor: pointer; flex-shrink: 0; transition: 0.15s; border: none; }
         .pm-copy-btn:active { background: var(--accent); color: var(--on-color); transform: scale(0.92); }
         .pm-copy-btn svg { width: 15px; height: 15px; }
+        /* Small "No. / Name" grid boxes for the selected payment method's
+           transfer details — two compact cards side by side instead of the
+           old full-width stacked rows, so both fields are scannable at a
+           glance and each keeps its own copy button. */
+        .pm-info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 8px 0 4px; }
+        .pm-info-box { min-width: 0; background: var(--surface-alt); border: 1px solid var(--border); border-radius: 10px; padding: 8px 9px; }
+        .pm-info-box-label { display: block; font-size: 10.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.4px; color: var(--text-secondary); margin-bottom: 4px; }
+        .pm-info-box-row { display: flex; align-items: center; justify-content: space-between; gap: 6px; }
+        .pm-info-box-row p { font-size: 14px; font-weight: 600; color: var(--text); margin: 0; overflow-wrap: anywhere; line-height: 1.25; }
+        .pm-info-box .pm-copy-btn { width: 26px; height: 26px; }
+        .pm-info-box .pm-copy-btn svg { width: 13px; height: 13px; }
+        /* Same grid, recolored for the Wallet Top Up card's dark/branded
+           background (see .wallet-pay-info-card below) instead of the
+           light --surface-alt tile used in the game-detail flow. */
+        .wallet-pay-info-card .pm-info-box { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.16); }
+        .wallet-pay-info-card .pm-info-box-label { color: rgba(255,255,255,0.7); }
+        .wallet-pay-info-card .pm-info-box-row p { color: #fff; }
+        .wallet-pay-info-card .pm-info-box .pm-copy-btn { background: rgba(255,255,255,0.14); color: #fff; }
+        .wallet-pay-info-card .pm-info-box .pm-copy-btn:active { background: rgba(255,255,255,0.3); transform: scale(0.92); }
 
         .upload-shot-input { display: none; }
         .upload-shot-box { position: relative; border: 2px dashed var(--text-faint); border-radius: 12px; background: var(--surface-alt); padding: 18px 12px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 6px; cursor: pointer; transition: 0.15s; text-align: center; }
@@ -1866,17 +1885,25 @@
                         <img id="wallet-pm-qr" src="" alt="QR code" style="display:none; width:100%; max-width:240px; aspect-ratio:1/1; margin:0 auto 12px; border-radius:14px; object-fit:contain; background:#fff; padding:10px; border:1px solid rgba(255,255,255,0.4);">
                         <div class="wallet-pay-info-card">
                             <p class="wallet-pay-info-label">Transfer the exact amount to</p>
-                            <div class="pm-copy-row" style="margin-top:6px;">
-                                <p style="font-size:18px;font-weight: 700;letter-spacing:0.3px;" id="wallet-pm-number"></p>
-                                <button type="button" class="pm-copy-btn" onclick="copyPaymentField('wallet-pm-number', this)" title="Copy phone number">
-                                    <svg class="ui-icon"><use href="#icon-copy"></use></svg>
-                                </button>
-                            </div>
-                            <div class="pm-copy-row">
-                                <p style="font-size:13.5px;opacity:0.85;" id="wallet-pm-name"></p>
-                                <button type="button" class="pm-copy-btn" onclick="copyPaymentField('wallet-pm-name', this)" title="Copy name">
-                                    <svg class="ui-icon"><use href="#icon-copy"></use></svg>
-                                </button>
+                            <div class="pm-info-grid">
+                                <div class="pm-info-box">
+                                    <span class="pm-info-box-label">No.</span>
+                                    <div class="pm-info-box-row">
+                                        <p id="wallet-pm-number"></p>
+                                        <button type="button" class="pm-copy-btn" onclick="copyPaymentField('wallet-pm-number', this)" title="Copy phone number">
+                                            <svg class="ui-icon"><use href="#icon-copy"></use></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="pm-info-box">
+                                    <span class="pm-info-box-label">Name</span>
+                                    <div class="pm-info-box-row">
+                                        <p id="wallet-pm-name"></p>
+                                        <button type="button" class="pm-copy-btn" onclick="copyPaymentField('wallet-pm-name', this)" title="Copy name">
+                                            <svg class="ui-icon"><use href="#icon-copy"></use></svg>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
@@ -2237,17 +2264,25 @@
                         <img id="pm-qr" src="" alt="QR code" style="display:none; width:100%; max-width:240px; aspect-ratio:1/1; margin:0 auto 12px; border-radius:14px; object-fit:contain; background:#fff; padding:10px; border:1px solid var(--border-glass);">
                         <div>
                             <p style="font-size:12px;color:var(--text-secondary);">Transfer the exact amount to:</p>
-                            <div class="pm-copy-row" style="margin-top:2px;">
-                                <p style="font-size:17px;font-weight: 600;color:#1877F2;" id="pm-number"></p>
-                                <button type="button" class="pm-copy-btn" onclick="copyPaymentField('pm-number', this)" title="Copy phone number">
-                                    <svg class="ui-icon"><use href="#icon-copy"></use></svg>
-                                </button>
-                            </div>
-                            <div class="pm-copy-row" style="margin-bottom:4px;">
-                                <p style="font-size:14px;color:var(--text);" id="pm-name"></p>
-                                <button type="button" class="pm-copy-btn" onclick="copyPaymentField('pm-name', this)" title="Copy name">
-                                    <svg class="ui-icon"><use href="#icon-copy"></use></svg>
-                                </button>
+                            <div class="pm-info-grid">
+                                <div class="pm-info-box">
+                                    <span class="pm-info-box-label">No.</span>
+                                    <div class="pm-info-box-row">
+                                        <p id="pm-number"></p>
+                                        <button type="button" class="pm-copy-btn" onclick="copyPaymentField('pm-number', this)" title="Copy phone number">
+                                            <svg class="ui-icon"><use href="#icon-copy"></use></svg>
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="pm-info-box">
+                                    <span class="pm-info-box-label">Name</span>
+                                    <div class="pm-info-box-row">
+                                        <p id="pm-name"></p>
+                                        <button type="button" class="pm-copy-btn" onclick="copyPaymentField('pm-name', this)" title="Copy name">
+                                            <svg class="ui-icon"><use href="#icon-copy"></use></svg>
+                                        </button>
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
