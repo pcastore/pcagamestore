@@ -2026,6 +2026,71 @@
             </div>
         </div>
 
+        <!-- CRYPTO WALLET TOP UP MODAL: FazerCards-powered, auto-credited invoice.
+             Separate from the manual modal above on purpose - the manual flow
+             is receipt-upload + admin approval, this one is API-verified and
+             never touches receiptUrl/paymentMethod-picker state. -->
+        <div class="modal-overlay" id="wallet-crypto-overlay" onclick="if(event.target===this) closeCryptoTopupModal()">
+            <div class="modal-box">
+                <div class="modal-header">
+                    <h3>Top Up with Crypto</h3>
+                    <div class="modal-close" onclick="closeCryptoTopupModal()">
+                        <svg class="ui-icon" style="width:18px;height:18px;"><use href="#icon-close"></use></svg>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <!-- Stage A: pick a network -->
+                    <div id="crypto-topup-stage-methods">
+                        <p style="font-size:13px;color:var(--text-secondary);margin:0 0 12px;">Amount: <strong id="crypto-topup-amount-display">0 MMK</strong></p>
+                        <div id="crypto-topup-methods-list" style="display:flex; flex-direction:column; gap:10px;">
+                            <p class="empty-msg">Loading payment methods…</p>
+                        </div>
+                        <button type="button" class="btn btn-primary" id="crypto-topup-create-btn" style="width:100%;margin-top:16px;" disabled onclick="createCryptoPayment()">Select a Network</button>
+                    </div>
+
+                    <!-- Stage B: invoice details + live status -->
+                    <div id="crypto-topup-stage-invoice" style="display:none;">
+                        <div class="wallet-pay-info-card">
+                            <p class="wallet-pay-info-label">Send exactly</p>
+                            <div class="pm-info-box-row">
+                                <p id="crypto-pm-amount" style="font-weight:700;font-size:17px;"></p>
+                                <button type="button" class="pm-copy-btn" onclick="copyPaymentField('crypto-pm-amount', this)" title="Copy amount">
+                                    <svg class="ui-icon"><use href="#icon-copy"></use></svg>
+                                </button>
+                            </div>
+                            <p class="wallet-pay-info-label" style="margin-top:10px;">To this address</p>
+                            <div class="pm-info-box-row">
+                                <p id="crypto-pm-address" style="word-break:break-all;font-size:13px;"></p>
+                                <button type="button" class="pm-copy-btn" onclick="copyPaymentField('crypto-pm-address', this)" title="Copy address">
+                                    <svg class="ui-icon"><use href="#icon-copy"></use></svg>
+                                </button>
+                            </div>
+                            <p id="crypto-pm-memo-row" style="display:none;margin-top:10px;">
+                                <span class="wallet-pay-info-label">Memo / Tag</span>
+                                <span class="pm-info-box-row"><span id="crypto-pm-memo"></span></span>
+                            </p>
+                            <p id="crypto-pm-network-line" style="font-size:12.5px;color:var(--text-secondary);margin-top:10px;"></p>
+                            <p id="crypto-pm-expires-line" style="font-size:12.5px;color:var(--text-secondary);margin-top:4px;"></p>
+                        </div>
+
+                        <!-- Only shown for network === binancepay -->
+                        <div id="crypto-binance-verify-box" style="display:none;margin-top:14px;">
+                            <label style="display:block;font-size:13px;font-weight:600;color:var(--text);margin-bottom:6px;">Binance Order ID</label>
+                            <input type="text" id="crypto-binance-order-id" class="wallet-topup-amount-input" style="font-size:14px;" placeholder="Paste your Binance Pay order ID">
+                            <button type="button" class="btn" style="width:100%;margin-top:8px;" onclick="verifyBinancePayment()">Submit for Verification</button>
+                        </div>
+
+                        <div id="crypto-status-box" style="margin-top:16px;text-align:center;font-size:13.5px;color:var(--text-secondary);">
+                            <span id="crypto-status-spinner" style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.25);border-top-color:var(--primary,#8b5cf6);border-radius:50%;animation:spin 0.8s linear infinite;vertical-align:-2px;margin-right:6px;"></span>
+                            <span id="crypto-status-text">Waiting for payment…</span>
+                        </div>
+                        <button type="button" class="btn" style="width:100%;margin-top:14px;" onclick="cancelCryptoInvoiceUI()">Choose a different network</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
+
         <!-- WALLET TOP UP DETAIL MODAL: tap a history row to see its full status -->
         <div class="modal-overlay" id="wallet-topup-detail-overlay" onclick="if(event.target===this) closeWalletTopupDetail()">
             <div class="modal-box">
@@ -4457,6 +4522,7 @@
 
         function closeWalletTopupModal() {
             document.getElementById('wallet-topup-overlay').classList.remove('show');
+            if (window.stopCryptoPolling) window.stopCryptoPolling();
         }
         window.closeWalletTopupModal = closeWalletTopupModal;
 
@@ -4485,8 +4551,14 @@
                 if (typeof ob === 'number') return 1;
                 return (methods[a].name || '').localeCompare(methods[b].name || '');
             });
+            const cryptoCard = `
+                <div class="payment-option" data-wallet-payment-id="__crypto__" onclick="openCryptoTopupModal()">
+                    <div class="payment-option-icon"><svg class="ui-icon" style="width:20px;"><use href="#icon-wallet"></use></svg></div>
+                    <span class="payment-option-name">Pay with Crypto (auto top-up)</span>
+                </div>
+            `;
             if (ids.length === 0) {
-                container.innerHTML = '<p class="empty-msg">No payment methods available yet. Please contact the store.</p>';
+                container.innerHTML = cryptoCard + '<p class="empty-msg">No manual payment methods configured yet.</p>';
                 return;
             }
             container.innerHTML = ids.map(id => {
@@ -4497,7 +4569,7 @@
                         <span class="payment-option-name">${p.name}</span>
                     </div>
                 `;
-            }).join('');
+            }).join('') + cryptoCard;
         }
 
         function selectWalletPaymentMethod(id) {
@@ -4517,6 +4589,222 @@
             btn.innerText = 'Submit Top Up Request';
         }
         window.selectWalletPaymentMethod = selectWalletPaymentMethod;
+
+        // ---------- Crypto top-up (FazerCards-powered, auto-credited) ----------
+        // Mirrors FAZERCARD_VALIDATE_URL's pattern: same Worker, key never
+        // reaches the browser. See fazercards-worker.js for what each does.
+        const FAZERCARD_PAYMENT_METHODS_URL = 'https://fazercards-functions.pca-game-store.workers.dev/fazercard-payment-methods';
+        const FAZERCARD_PAYMENT_CREATE_URL = 'https://fazercards-functions.pca-game-store.workers.dev/fazercard-payment-create';
+        const FAZERCARD_PAYMENT_STATUS_URL = 'https://fazercards-functions.pca-game-store.workers.dev/fazercard-payment-status';
+        const FAZERCARD_PAYMENT_VERIFY_URL = 'https://fazercards-functions.pca-game-store.workers.dev/fazercard-payment-verify';
+
+        let cryptoMethodsCache = [];
+        let selectedCryptoMethod = null;
+        let cryptoPollTimer = null;
+        let cryptoActiveTopupId = null;
+
+        function openCryptoTopupModal() {
+            const amount = Number(document.getElementById('wallet-topup-amount').value);
+            if (!amount || amount <= 0) { window.showToast('Please enter an amount first.', 'fail'); return; }
+            document.getElementById('crypto-topup-amount-display').innerText = `${amount.toLocaleString()} MMK`;
+            document.getElementById('crypto-topup-stage-methods').style.display = 'block';
+            document.getElementById('crypto-topup-stage-invoice').style.display = 'none';
+            selectedCryptoMethod = null;
+            const btn = document.getElementById('crypto-topup-create-btn');
+            btn.disabled = true;
+            btn.innerText = 'Select a Network';
+            document.getElementById('wallet-crypto-overlay').classList.add('show');
+            loadCryptoPaymentMethods(amount);
+        }
+        window.openCryptoTopupModal = openCryptoTopupModal;
+
+        function closeCryptoTopupModal() {
+            document.getElementById('wallet-crypto-overlay').classList.remove('show');
+            stopCryptoPolling();
+        }
+        window.closeCryptoTopupModal = closeCryptoTopupModal;
+
+        // Back from the invoice screen to picking a network again (e.g. the
+        // invoice expired, or the customer picked the wrong network).
+        function cancelCryptoInvoiceUI() {
+            stopCryptoPolling();
+            document.getElementById('crypto-topup-stage-methods').style.display = 'block';
+            document.getElementById('crypto-topup-stage-invoice').style.display = 'none';
+        }
+        window.cancelCryptoInvoiceUI = cancelCryptoInvoiceUI;
+
+        async function loadCryptoPaymentMethods(amount) {
+            const list = document.getElementById('crypto-topup-methods-list');
+            list.innerHTML = '<p class="empty-msg">Loading payment methods…</p>';
+            try {
+                const res = await fetch(FAZERCARD_PAYMENT_METHODS_URL);
+                const data = await res.json();
+                if (!data.ok) throw new Error(data.error || 'Could not load payment methods.');
+                cryptoMethodsCache = data.items || [];
+                // Methods' min/maxAmountUsd are in USD; the amount typed in
+                // the store is MMK. Convert using the same admin-configured
+                // rate (settings/fazercard.usdRate) the Worker will use when
+                // it actually creates the invoice, so this preview matches.
+                const usdRate = Number(data.usdRate) > 0 ? Number(data.usdRate) : 4500;
+                const amountUsd = amount / usdRate;
+                if (cryptoMethodsCache.length === 0) {
+                    list.innerHTML = '<p class="empty-msg">No crypto methods available right now.</p>';
+                    return;
+                }
+                list.innerHTML = cryptoMethodsCache.map(m => {
+                    const outOfRange = (typeof m.minAmountUsd === 'number' && amountUsd < m.minAmountUsd) ||
+                                        (typeof m.maxAmountUsd === 'number' && amountUsd > m.maxAmountUsd);
+                    const rangeHint = (typeof m.minAmountUsd === 'number' || typeof m.maxAmountUsd === 'number')
+                        ? `<span class="payment-option-name" style="display:block;font-size:11px;color:var(--text-secondary);font-weight:400;">
+                             ${Math.round((m.minAmountUsd || 0) * usdRate).toLocaleString()}–${m.maxAmountUsd ? Math.round(m.maxAmountUsd * usdRate).toLocaleString() : '∞'} MMK</span>`
+                        : '';
+                    return `
+                        <div class="payment-option ${outOfRange ? 'disabled' : ''}" data-crypto-method="${m.code}"
+                             style="${outOfRange ? 'opacity:0.45;pointer-events:none;' : ''}"
+                             onclick="selectCryptoMethod('${m.code}')">
+                            <div class="payment-option-icon"><svg class="ui-icon" style="width:20px;"><use href="#icon-wallet"></use></svg></div>
+                            <span class="payment-option-name">${m.label || m.code}${rangeHint}</span>
+                        </div>
+                    `;
+                }).join('');
+            } catch (error) {
+                console.error('loadCryptoPaymentMethods error:', error);
+                list.innerHTML = `<p class="empty-msg">${error.message || 'Could not load payment methods.'}</p>`;
+            }
+        }
+
+        function selectCryptoMethod(code) {
+            selectedCryptoMethod = code;
+            document.querySelectorAll('#crypto-topup-methods-list .payment-option').forEach(el => el.classList.remove('selected'));
+            const el = document.querySelector(`#crypto-topup-methods-list .payment-option[data-crypto-method="${code}"]`);
+            if (el) el.classList.add('selected');
+            const btn = document.getElementById('crypto-topup-create-btn');
+            btn.disabled = false;
+            btn.innerText = 'Create Invoice';
+        }
+        window.selectCryptoMethod = selectCryptoMethod;
+
+        async function createCryptoPayment() {
+            if (!selectedCryptoMethod) return;
+            const amount = Number(document.getElementById('wallet-topup-amount').value);
+            const guestId = window.getGuestId ? window.getGuestId() : null;
+            if (!guestId) { window.showToast('Could not identify your account. Please reload.', 'fail'); return; }
+
+            const btn = document.getElementById('crypto-topup-create-btn');
+            btn.disabled = true;
+            btn.innerText = 'Creating invoice…';
+            try {
+                const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
+                const res = await fetch(FAZERCARD_PAYMENT_CREATE_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: guestId,
+                        userName: (savedProfile.name && savedProfile.name.trim()) || guestId,
+                        userPhone: (savedProfile.phone && savedProfile.phone.trim()) || '',
+                        amount,
+                        method: selectedCryptoMethod
+                    })
+                });
+                const data = await res.json();
+                if (!data.ok) throw new Error(data.error || 'Could not create payment.');
+                showCryptoInvoice(data.topupId, data.payment);
+            } catch (error) {
+                console.error('createCryptoPayment error:', error);
+                window.showToast(error.message || 'Could not create payment.', 'fail');
+                btn.disabled = false;
+                btn.innerText = 'Create Invoice';
+            }
+        }
+        window.createCryptoPayment = createCryptoPayment;
+
+        function showCryptoInvoice(topupId, payment) {
+            cryptoActiveTopupId = topupId;
+            document.getElementById('crypto-topup-stage-methods').style.display = 'none';
+            document.getElementById('crypto-topup-stage-invoice').style.display = 'block';
+
+            // uniqueAmount (when FazerCards sets one) is the exact figure to
+            // send so they can tell this payment apart from others on the
+            // same address - always prefer it over the plain amount.
+            document.getElementById('crypto-pm-amount').innerText = payment.uniqueAmount || payment.amount || '';
+            document.getElementById('crypto-pm-address').innerText = payment.address || payment.binanceId || '';
+
+            const memoRow = document.getElementById('crypto-pm-memo-row');
+            if (payment.memo) {
+                document.getElementById('crypto-pm-memo').innerText = payment.memo;
+                memoRow.style.display = 'block';
+            } else {
+                memoRow.style.display = 'none';
+            }
+
+            document.getElementById('crypto-pm-network-line').innerText = `Network: ${payment.network || selectedCryptoMethod}`;
+            document.getElementById('crypto-pm-expires-line').innerText = payment.expiresAt
+                ? `Expires: ${new Date(payment.expiresAt).toLocaleString()}` : '';
+
+            document.getElementById('crypto-binance-verify-box').style.display =
+                (payment.network === 'binancepay' || selectedCryptoMethod === 'binancepay') ? 'block' : 'none';
+
+            setCryptoStatus('Waiting for payment…', true);
+            startCryptoPolling(topupId);
+        }
+
+        function setCryptoStatus(text, spinning) {
+            document.getElementById('crypto-status-text').innerText = text;
+            document.getElementById('crypto-status-spinner').style.display = spinning ? 'inline-block' : 'none';
+        }
+
+        function startCryptoPolling(topupId) {
+            stopCryptoPolling();
+            const poll = async () => {
+                try {
+                    const res = await fetch(`${FAZERCARD_PAYMENT_STATUS_URL}?topupId=${encodeURIComponent(topupId)}`);
+                    const data = await res.json();
+                    if (!data.ok) { setCryptoStatus(data.error || 'Checking…', true); return; }
+                    if (data.status === 'Completed') {
+                        stopCryptoPolling();
+                        setCryptoStatus(`Wallet credited ${Number(data.amount || 0).toLocaleString()} MMK ✓`, false);
+                        window.showToast('Top up complete! Wallet credited.', 'success');
+                        setTimeout(() => { closeCryptoTopupModal(); if (window.closeWalletTopupModal) window.closeWalletTopupModal(); }, 1500);
+                    } else if (['Expired', 'Cancelled', 'Rejected'].includes(data.status)) {
+                        stopCryptoPolling();
+                        setCryptoStatus(`Payment ${data.status.toLowerCase()}. Choose a different network to try again.`, false);
+                    } else {
+                        setCryptoStatus('Waiting for payment…', true);
+                    }
+                } catch (error) {
+                    console.error('crypto status poll error:', error);
+                    setCryptoStatus('Connection issue — retrying…', true);
+                }
+            };
+            poll();
+            cryptoPollTimer = setInterval(poll, 5000);
+        }
+
+        function stopCryptoPolling() {
+            if (cryptoPollTimer) { clearInterval(cryptoPollTimer); cryptoPollTimer = null; }
+        }
+        window.stopCryptoPolling = stopCryptoPolling;
+
+        async function verifyBinancePayment() {
+            const binanceOrderId = document.getElementById('crypto-binance-order-id').value.trim();
+            if (!binanceOrderId || !cryptoActiveTopupId) { window.showToast('Enter your Binance order ID first.', 'fail'); return; }
+            setCryptoStatus('Verifying with Binance Pay…', true);
+            try {
+                const res = await fetch(FAZERCARD_PAYMENT_VERIFY_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topupId: cryptoActiveTopupId, binanceOrderId })
+                });
+                const data = await res.json();
+                if (!data.ok) throw new Error(data.error || 'Verification failed.');
+                setCryptoStatus('Submitted — waiting for confirmation…', true);
+            } catch (error) {
+                console.error('verifyBinancePayment error:', error);
+                window.showToast(error.message || 'Verification failed.', 'fail');
+                setCryptoStatus('Waiting for payment…', true);
+            }
+        }
+        window.verifyBinancePayment = verifyBinancePayment;
 
         function previewWalletReceiptImage(e) {
             const file = e.target.files[0];
