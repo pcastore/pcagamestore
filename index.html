@@ -2798,6 +2798,11 @@
         // { valid, playerName, region } result. See fazercards-functions
         // worker.js.
         const FAZERCARD_VALIDATE_URL = 'https://fazercards-functions.pca-game-store.workers.dev/fazercard-validate';
+        // Aluu.in Player ID check, same key-never-reaches-the-browser pattern
+        // as FAZERCARD_VALIDATE_URL above - the real Aluu.in API key stays
+        // server-side as the aluu-functions Worker's ALUU_API_KEY secret.
+        // See the /aluu-id-check route in aluu-worker.js.
+        const ALUU_ID_CHECK_URL = 'https://aluu-functions.pca-game-store.workers.dev/aluu-id-check';
         let selectedGameServerName = '';
 
         // Shown for any package that doesn't have an admin-uploaded image, so the
@@ -2842,6 +2847,13 @@
         // G2Bulk's public checkPlayerId purely to show the player's name.
         // The order still fulfills through FazerCards either way.
         let selectedGameG2BulkIdCheckCode = null;
+        // Aluu.in game code for the currently-open game, if it's linked as an
+        // Aluu.in-fulfilled game (see game.aluuCode in admin.html). Drives the
+        // Confirm ID button the same way selectedGameG2BulkCode /
+        // selectedGameFazerCardCategory do below - the actual check runs
+        // through ALUU_ID_CHECK_URL so the real Aluu.in API key never reaches
+        // this page.
+        let selectedGameAluuCode = null;
         let selectedPaymentMethod = null;
         let editingReceiptFile = null;
         let receiptOcrPromise = null; // resolves once auto-detection of the Transaction ID from the uploaded receipt finishes
@@ -2887,7 +2899,7 @@
             verifiedPlayerName = null;
             clearTimeout(playerIdCheckTimer);
 
-            if (!selectedGameG2BulkCode && !selectedGameFazerCardCategory) { statusEl.style.display = 'none'; confirmBtn.style.display = 'none'; return; }
+            if (!selectedGameG2BulkCode && !selectedGameFazerCardCategory && !selectedGameAluuCode) { statusEl.style.display = 'none'; confirmBtn.style.display = 'none'; return; }
 
             const playerId = document.getElementById('detail-ingame-id').value.trim();
             if (!playerId) { statusEl.style.display = 'none'; confirmBtn.style.display = 'none'; return; }
@@ -2988,7 +3000,7 @@
             const playerId = document.getElementById('detail-ingame-id').value.trim();
             const serverId = document.getElementById('detail-server-id').value.trim();
 
-            if ((!selectedGameG2BulkCode && !selectedGameFazerCardCategory) || !playerId) return;
+            if ((!selectedGameG2BulkCode && !selectedGameFazerCardCategory && !selectedGameAluuCode) || !playerId) return;
 
             // FazerCards categories that need a zone/server field can't be
             // checked until that field is filled in too — an incomplete
@@ -3025,7 +3037,7 @@
                     if (!res.ok) outcome = 'unknown';
                     else if (data.valid === 'valid') { outcome = 'valid'; resolvedName = data.name || null; }
                     else outcome = 'invalid';
-                } else {
+                } else if (selectedGameFazerCardCategory) {
                     // fields keys mirror placeFazerCardOrder's mapping in
                     // admin.html: a server/zone-looking key gets the Server ID
                     // input, everything else gets the in-game ID input.
@@ -3069,6 +3081,19 @@
                             // stays 'unknown' — handled the same as below
                         }
                     }
+                } else {
+                    // Aluu.in check, proxied through ALUU_ID_CHECK_URL so the
+                    // real Aluu.in API key stays server-side (see
+                    // /aluu-id-check in aluu-worker.js) - this page only ever
+                    // sees back { valid, name }, never the raw Aluu.in
+                    // response or the key itself.
+                    const res = await fetch(
+                        `${ALUU_ID_CHECK_URL}?gameCode=${encodeURIComponent(selectedGameAluuCode)}&playerId=${encodeURIComponent(playerId)}&serverId=${encodeURIComponent(serverId || '')}`
+                    );
+                    const data = await res.json();
+                    if (!res.ok) outcome = 'unknown';
+                    else if (data.valid === true) { outcome = 'valid'; resolvedName = data.name || null; }
+                    else outcome = 'invalid';
                 }
 
                 if (outcome === 'valid') {
@@ -3179,6 +3204,7 @@
             selectedGameFazerCardGiftCategory = game.fazercardGiftCategoryId || null;
             selectedGameFazerCardFields = (Array.isArray(game.fazercardFields) && game.fazercardFields.length) ? game.fazercardFields : ['player_id'];
             selectedGameG2BulkIdCheckCode = game.g2bulkIdCheckCode || null;
+            selectedGameAluuCode = game.aluuCode || null;
             selectedPackage = null;
 
             // Voucher/coupon-style games deliver a code rather than crediting a
