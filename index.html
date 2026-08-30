@@ -2091,6 +2091,58 @@
         </div>
         <style>@keyframes spin { to { transform: rotate(360deg); } }</style>
 
+        <!-- ALUU.IN CRYPTO WALLET TOP UP MODAL: independent lane from the
+             FazerCards crypto modal above — separate state, separate
+             Worker, separate everything. Only one network (USDT/BEP20), so
+             there's no method-picker stage: opening it creates the order
+             immediately and jumps straight to the invoice. -->
+        <div class="modal-overlay" id="wallet-aluu-overlay" onclick="if(event.target===this) closeAluuTopupModal()">
+            <div class="modal-box">
+                <div class="modal-header">
+                    <h3>Top Up with USDT</h3>
+                    <div class="modal-close" onclick="closeAluuTopupModal()">
+                        <svg class="ui-icon" style="width:18px;height:18px;"><use href="#icon-close"></use></svg>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <div id="aluu-topup-stage-loading">
+                        <p class="empty-msg">Creating your payment address…</p>
+                    </div>
+
+                    <div id="aluu-topup-stage-invoice" style="display:none;">
+                        <div class="wallet-pay-info-card">
+                            <p class="wallet-pay-info-label">Send exactly</p>
+                            <div class="pm-info-box-row">
+                                <p id="aluu-pm-amount" style="font-weight:700;font-size:17px;"></p>
+                                <button type="button" class="pm-copy-btn" onclick="copyPaymentField('aluu-pm-amount', this)" title="Copy amount">
+                                    <svg class="ui-icon"><use href="#icon-copy"></use></svg>
+                                </button>
+                            </div>
+                            <p class="wallet-pay-info-label" style="margin-top:10px;">To this address</p>
+                            <div class="pm-info-box-row">
+                                <p id="aluu-pm-address" style="word-break:break-all;font-size:13px;"></p>
+                                <button type="button" class="pm-copy-btn" onclick="copyPaymentField('aluu-pm-address', this)" title="Copy address">
+                                    <svg class="ui-icon"><use href="#icon-copy"></use></svg>
+                                </button>
+                            </div>
+                            <p id="aluu-pm-network-line" style="font-size:12.5px;color:var(--text-secondary);margin-top:10px;"></p>
+                            <p id="aluu-pm-expires-line" style="font-size:12.5px;color:var(--text-secondary);margin-top:4px;"></p>
+                        </div>
+
+                        <label style="display:block;font-size:13px;font-weight:600;color:var(--text);margin:14px 0 6px;">Transaction Hash</label>
+                        <input type="text" id="aluu-tx-hash-input" class="wallet-topup-amount-input" style="font-size:13.5px;" placeholder="Paste the tx hash after sending">
+                        <button type="button" class="btn btn-primary" style="width:100%;margin-top:8px;" id="aluu-submit-tx-btn" onclick="submitAluuTxHash()">Submit for Verification</button>
+
+                        <div id="aluu-status-box" style="display:none;margin-top:16px;text-align:center;font-size:13.5px;color:var(--text-secondary);">
+                            <span id="aluu-status-spinner" style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.25);border-top-color:var(--primary,#8b5cf6);border-radius:50%;animation:spin 0.8s linear infinite;vertical-align:-2px;margin-right:6px;"></span>
+                            <span id="aluu-status-text">Waiting for payment…</span>
+                        </div>
+                        <button type="button" class="btn" style="width:100%;margin-top:14px;" onclick="closeAluuTopupModal()">Cancel</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+
         <!-- WALLET TOP UP DETAIL MODAL: tap a history row to see its full status -->
         <div class="modal-overlay" id="wallet-topup-detail-overlay" onclick="if(event.target===this) closeWalletTopupDetail()">
             <div class="modal-box">
@@ -4523,6 +4575,7 @@
         function closeWalletTopupModal() {
             document.getElementById('wallet-topup-overlay').classList.remove('show');
             if (window.stopCryptoPolling) window.stopCryptoPolling();
+            if (window.stopAluuPolling) window.stopAluuPolling();
         }
         window.closeWalletTopupModal = closeWalletTopupModal;
 
@@ -4557,8 +4610,16 @@
                     <span class="payment-option-name">Pay with Crypto (auto top-up)</span>
                 </div>
             `;
+            // Independent from the FazerCards crypto card above - its own
+            // button, its own modal, its own Worker. See aluu-crypto-worker.js.
+            const aluuCard = `
+                <div class="payment-option" data-wallet-payment-id="__aluu_usdt__" onclick="openAluuTopupModal()">
+                    <div class="payment-option-icon"><svg class="ui-icon" style="width:20px;"><use href="#icon-wallet"></use></svg></div>
+                    <span class="payment-option-name">Pay with USDT (Aluu.in, auto top-up)</span>
+                </div>
+            `;
             if (ids.length === 0) {
-                container.innerHTML = cryptoCard + '<p class="empty-msg">No manual payment methods configured yet.</p>';
+                container.innerHTML = cryptoCard + aluuCard + '<p class="empty-msg">No manual payment methods configured yet.</p>';
                 return;
             }
             container.innerHTML = ids.map(id => {
@@ -4569,7 +4630,7 @@
                         <span class="payment-option-name">${p.name}</span>
                     </div>
                 `;
-            }).join('') + cryptoCard;
+            }).join('') + cryptoCard + aluuCard;
         }
 
         function selectWalletPaymentMethod(id) {
@@ -4805,6 +4866,124 @@
             }
         }
         window.verifyBinancePayment = verifyBinancePayment;
+
+        // ---------- Crypto top-up (Aluu.in-powered, auto-credited) ----------
+        // Deliberately independent from the FazerCards crypto block above:
+        // own Worker, own endpoints, own state variables, own modal. See
+        // aluu-crypto-worker.js for what each route does.
+        const ALUU_CRYPTO_CREATE_URL = 'https://aluu-crypto-worker.pca-game-store.workers.dev/create-order';
+        const ALUU_CRYPTO_VERIFY_URL = 'https://aluu-crypto-worker.pca-game-store.workers.dev/verify-tx';
+
+        let aluuActiveTopupId = null;
+        let aluuPollTimer = null;
+
+        async function openAluuTopupModal() {
+            const amount = Number(document.getElementById('wallet-topup-amount').value);
+            if (!amount || amount <= 0) { window.showToast('Please enter an amount first.', 'fail'); return; }
+            const guestId = window.getGuestId ? window.getGuestId() : null;
+            if (!guestId) { window.showToast('Could not identify your account. Please reload.', 'fail'); return; }
+
+            document.getElementById('aluu-topup-stage-loading').style.display = 'block';
+            document.getElementById('aluu-topup-stage-invoice').style.display = 'none';
+            document.getElementById('aluu-status-box').style.display = 'none';
+            document.getElementById('aluu-tx-hash-input').value = '';
+            document.getElementById('wallet-aluu-overlay').classList.add('show');
+
+            try {
+                const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
+                const res = await fetch(ALUU_CRYPTO_CREATE_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        userId: guestId,
+                        userName: (savedProfile.name && savedProfile.name.trim()) || guestId,
+                        amountMMK: amount
+                    })
+                });
+                const data = await res.json();
+                if (!data.ok) throw new Error(data.error || 'Could not create payment.');
+                showAluuInvoice(data.topupId, data.payment);
+            } catch (error) {
+                console.error('openAluuTopupModal error:', error);
+                window.showToast(error.message || 'Could not create payment.', 'fail');
+                closeAluuTopupModal();
+            }
+        }
+        window.openAluuTopupModal = openAluuTopupModal;
+
+        function closeAluuTopupModal() {
+            document.getElementById('wallet-aluu-overlay').classList.remove('show');
+            stopAluuPolling();
+            aluuActiveTopupId = null;
+        }
+        window.closeAluuTopupModal = closeAluuTopupModal;
+
+        function showAluuInvoice(topupId, payment) {
+            aluuActiveTopupId = topupId;
+            document.getElementById('aluu-topup-stage-loading').style.display = 'none';
+            document.getElementById('aluu-topup-stage-invoice').style.display = 'block';
+            document.getElementById('aluu-pm-amount').innerText = `${payment.amountUsdt} USDT`;
+            document.getElementById('aluu-pm-address').innerText = payment.address || '';
+            document.getElementById('aluu-pm-network-line').innerText = `Network: ${payment.currency || 'USDT'} (${payment.network || 'BEP20'}) — send the EXACT amount`;
+            document.getElementById('aluu-pm-expires-line').innerText = payment.expiresAt
+                ? `Expires: ${new Date(payment.expiresAt).toLocaleString()}` : '';
+        }
+
+        function setAluuStatus(text, spinning) {
+            document.getElementById('aluu-status-box').style.display = 'block';
+            document.getElementById('aluu-status-text').innerText = text;
+            document.getElementById('aluu-status-spinner').style.display = spinning ? 'inline-block' : 'none';
+        }
+
+        async function submitAluuTxHash() {
+            const txHash = document.getElementById('aluu-tx-hash-input').value.trim();
+            if (!txHash || !aluuActiveTopupId) { window.showToast('Paste your transaction hash first.', 'fail'); return; }
+            const btn = document.getElementById('aluu-submit-tx-btn');
+            btn.disabled = true;
+            setAluuStatus('Verifying with Aluu.in…', true);
+            try {
+                await pollAluuVerify(txHash);
+                aluuPollTimer = setInterval(() => pollAluuVerify(txHash), 6000);
+            } finally {
+                btn.disabled = false;
+            }
+        }
+        window.submitAluuTxHash = submitAluuTxHash;
+
+        async function pollAluuVerify(txHash) {
+            if (!aluuActiveTopupId) return;
+            try {
+                const res = await fetch(ALUU_CRYPTO_VERIFY_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ topupId: aluuActiveTopupId, txHash })
+                });
+                const data = await res.json();
+                if (!data.ok) { setAluuStatus(data.error || 'Checking…', true); return; }
+                if (data.status === 'Completed') {
+                    stopAluuPolling();
+                    setAluuStatus(`Wallet credited ${Number(data.amount || 0).toLocaleString()} MMK ✓`, false);
+                    window.showToast('Top up complete! Wallet credited.', 'success');
+                    setTimeout(() => { closeAluuTopupModal(); if (window.closeWalletTopupModal) window.closeWalletTopupModal(); }, 1500);
+                } else if (data.status === 'Rejected') {
+                    stopAluuPolling();
+                    setAluuStatus(data.error || 'Payment could not be verified.', false);
+                } else if (data.status === 'Confirming') {
+                    const req = data.required ? `/${data.required}` : '';
+                    setAluuStatus(`Waiting for confirmations… (${data.confirmations || 0}${req})`, true);
+                } else {
+                    setAluuStatus('Waiting for payment…', true);
+                }
+            } catch (error) {
+                console.error('aluu verify poll error:', error);
+                setAluuStatus('Connection issue — retrying…', true);
+            }
+        }
+
+        function stopAluuPolling() {
+            if (aluuPollTimer) { clearInterval(aluuPollTimer); aluuPollTimer = null; }
+        }
+        window.stopAluuPolling = stopAluuPolling;
 
         function previewWalletReceiptImage(e) {
             const file = e.target.files[0];
