@@ -160,8 +160,15 @@
         
         /* Header */
         .header { background-color: var(--surface); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .logo { color: var(--accent); font-size: 19px; font-weight: 600; display: flex; align-items: center; gap: 8px; }
-        .logo-icon-wrap { width: 28px; height: 28px; flex-shrink: 0; display: flex; align-items: center; justify-content: center; }
+        .logo { color: var(--accent); font-size: 19px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .logo-icon-wrap {
+            width: 28px; height: 28px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+            border-radius: 7px; background-color: #FF5A4E;
+            background-image:
+                linear-gradient(rgba(255,255,255,0.16) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.16) 1px, transparent 1px);
+            background-size: 7px 7px;
+        }
         .logo-icon-wrap img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; display: block; }
         .header-icon {
             position: relative; width: 40px; height: 40px; border-radius: 50%;
@@ -355,14 +362,14 @@
         .popular-card .game-card-name { font-size: 12px; padding: 6px 5px; }
         /* Same horizontal-scroll "Popular" row, sized for the gift-card
            style voucher tiles instead of the square game-card tiles. */
-        .popular-voucher-card { flex: 0 0 118px; aspect-ratio: 1 / 1.18; }
+        .popular-voucher-card { flex: 0 0 118px; aspect-ratio: 1 / 1.32; }
 
         /* Voucher tab cards — styled like a purple "gift card" promo tile
            (fanned card stack over a violet gradient + faint circuit pattern)
            instead of the plain square product-photo cards used on Home. */
         .voucher-card {
             cursor: pointer; position: relative; isolation: isolate; overflow: hidden;
-            border-radius: 18px; aspect-ratio: 1 / 1.18;
+            border-radius: 18px; aspect-ratio: 1 / 1.32;
             padding: 14px 10px 10px;
             display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
             background:
@@ -379,8 +386,8 @@
             pointer-events: none; z-index: 0;
         }
         .voucher-card-stack {
-            position: relative; width: 62%; aspect-ratio: 0.66 / 1;
-            margin: 4px 0 10px;
+            position: relative; width: 56%; aspect-ratio: 1 / 1;
+            margin: 2px 0 8px;
         }
         .voucher-card-stack::before, .voucher-card-stack::after {
             content: ''; position: absolute; inset: 0; border-radius: 13px;
@@ -396,11 +403,12 @@
             box-shadow: 0 10px 22px -8px rgba(0,0,0,0.55);
         }
         .voucher-card-name {
-            position: relative; z-index: 2; color: #fff; font-size: 12px; font-weight: 400;
-            text-align: center; line-height: 1.3;
+            position: relative; z-index: 2; color: #fff; font-size: 11.5px; font-weight: 400;
+            text-align: center; line-height: 1.25;
             padding: 4px 9px; border-radius: 10px;
             background: rgba(0,0,0,0.22); border: 1px solid rgba(255,255,255,0.14);
             -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
         }
         .voucher-card-tag {
             position: absolute; top: 8px; left: 8px; z-index: 2;
@@ -1816,6 +1824,7 @@
         <symbol id="icon-info" viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="11"></line><line x1="12" y1="7" x2="12.01" y2="7"></line></symbol>
         <symbol id="icon-gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4"></rect><path d="M12 8v13"></path><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"></path><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"></path></symbol>
         <symbol id="icon-external-link" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></symbol>
+        <symbol id="icon-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></symbol>
     </svg>
 
     <!-- Toast Notification -->
@@ -1823,9 +1832,9 @@
 
     <!-- Header -->
     <header class="header">
-        <div class="logo">
+        <div class="logo" onclick="showPage('home')" role="button" aria-label="Go to home page">
             <span class="logo-icon-wrap">
-                <svg class="ui-icon" id="header-logo-default-icon"><use href="#icon-gamepad"></use></svg>
+                <svg class="ui-icon" id="header-logo-default-icon" style="color:#fff;"><use href="#icon-gamepad"></use></svg>
                 <img id="header-logo-img" src="" alt="PCA Store" style="display:none;">
             </span>
             PCA Store
@@ -2358,6 +2367,26 @@
                 </div>
                 <p class="empty-msg" id="social-links-empty" style="display:none;padding:6px 0 0;">No social links added yet.</p>
             </div>
+
+            <div class="detail-form-card" id="support-entry-card" style="margin-top:14px;cursor:pointer;" onclick="contactAdmin()" role="button" aria-label="Contact admin for support">
+                <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+                    <span class="prefs-row-label">
+                        <span class="prefs-row-icon"><svg class="ui-icon" style="width:18px;height:18px;"><use href="#icon-help"></use></svg></span>
+                        <span>Support</span>
+                    </span>
+                    <svg class="ui-icon" style="width:16px;height:16px;color:var(--text-muted);"><use href="#icon-chevron-right"></use></svg>
+                </div>
+            </div>
+
+            <div class="detail-form-card" id="terms-entry-card" style="margin-top:14px;cursor:pointer;" onclick="showPage('terms')" role="button" aria-label="Open Terms and Policy">
+                <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+                    <span class="prefs-row-label">
+                        <span class="prefs-row-icon"><svg class="ui-icon" style="width:18px;height:18px;"><use href="#icon-shield"></use></svg></span>
+                        <span>Terms & Policy</span>
+                    </span>
+                    <svg class="ui-icon" style="width:16px;height:16px;color:var(--text-muted);"><use href="#icon-chevron-right"></use></svg>
+                </div>
+            </div>
         </div>
 
         <!-- EDIT PROFILE MODAL: pops up over the page instead of expanding
@@ -2419,6 +2448,42 @@
             </div>
             <div class="frame-collection-grid" id="frame-collection-grid">
                 <p class="empty-msg">Loading frames...</p>
+            </div>
+        </div>
+
+        <!-- TERMS AND POLICY PAGE -->
+        <div id="terms" class="page-section">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
+                <div class="header-icon" style="width:36px;height:36px;" onclick="closeTermsPage()">
+                    <svg class="ui-icon" style="width:18px;"><use href="#icon-chevron-left"></use></svg>
+                </div>
+                <h2 style="font-size:18px; font-weight: 600; color:var(--text);">Terms & Policy</h2>
+            </div>
+            <div class="detail-form-card" style="gap:14px;">
+                <div>
+                    <label style="margin-top:0;">Orders & Delivery</label>
+                    <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">Orders are processed automatically once payment is confirmed. Delivery time depends on the game/voucher provider and is usually instant to a few minutes; some orders may need manual admin review.</p>
+                </div>
+                <div>
+                    <label>Payments</label>
+                    <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">Payments made through the listed manual methods, wallet balance, or auto top-up (crypto/USDT) must use accurate details. Orders placed with incorrect In-Game ID, Server ID, or payment proof may be delayed or rejected.</p>
+                </div>
+                <div>
+                    <label>Refunds & Cancellations</label>
+                    <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">Successful/delivered orders are final and non-refundable. Failed orders are refunded to your Wallet balance or resolved directly by the admin. Contact Support with your Order ID for any issue.</p>
+                </div>
+                <div>
+                    <label>Account & Wallet</label>
+                    <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">You're responsible for keeping your account details accurate. Wallet balance is non-transferable between accounts and can only be used for purchases on this store.</p>
+                </div>
+                <div>
+                    <label>Fair Use</label>
+                    <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">Abuse of promotions, chargebacks, or fraudulent payment proof may lead to an account being restricted.</p>
+                </div>
+                <div>
+                    <label>Contact</label>
+                    <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">Questions about these terms? Reach the admin any time via the Support button on your Profile page.</p>
+                </div>
             </div>
         </div>
 
@@ -4713,7 +4778,8 @@
                 if (typeof ob === 'number') return 1;
                 return (methods[a].name || '').localeCompare(methods[b].name || '');
             });
-            const cryptoCard = `
+            // FazerCards-powered - hidden the moment admin turns FazerCards off.
+            const cryptoCard = PROVIDER_ENABLED.fazercard === false ? '' : `
                 <div class="payment-option" data-wallet-payment-id="__crypto__" onclick="openCryptoTopupModal()">
                     <div class="payment-option-icon"><svg class="ui-icon" style="width:20px;"><use href="#icon-wallet"></use></svg></div>
                     <span class="payment-option-name">Pay with Crypto (auto top-up)</span>
@@ -4721,7 +4787,8 @@
             `;
             // Independent from the FazerCards crypto card above - its own
             // button, its own modal, its own Worker. See aluu-crypto-worker.js.
-            const aluuCard = `
+            // Hidden the moment admin turns Aluu.in off.
+            const aluuCard = PROVIDER_ENABLED.aluu === false ? '' : `
                 <div class="payment-option" data-wallet-payment-id="__aluu_usdt__" onclick="openAluuTopupModal()">
                     <div class="payment-option-icon"><svg class="ui-icon" style="width:20px;"><use href="#icon-wallet"></use></svg></div>
                     <span class="payment-option-name">Pay with USDT (Aluu.in, auto top-up)</span>
@@ -5689,6 +5756,11 @@
         }
         window.closeFrameCollection = closeFrameCollection;
 
+        function closeTermsPage() {
+            showPage('profile');
+        }
+        window.closeTermsPage = closeTermsPage;
+
         function renderFrameCollection() {
             const grid = document.getElementById('frame-collection-grid');
             if (!grid) return;
@@ -5918,6 +5990,7 @@
         // restored later (e.g. if the admin removes a previously-uploaded image).
         const socialDefaultIconHTML = {};
         function renderSocialLinks(data) {
+            window.SOCIAL_LINKS = data || {};
             const links = [
                 { id: 'social-link-facebook', url: data.facebook, image: data.facebookImage, platform: 'facebook' },
                 { id: 'social-link-telegram', url: data.telegram, image: data.telegramImage, platform: 'telegram' },
@@ -5943,6 +6016,21 @@
             });
             document.getElementById('social-links-empty').style.display = anyVisible ? 'none' : 'block';
         }
+
+        // Opens the admin's Telegram (or Facebook, whichever is configured in
+        // Dashboard → Social Links) in a new tab. Used by the Profile page's
+        // "Support" row - the same admin-configured contact channel as
+        // "Follow Us", just surfaced as a direct support action.
+        function contactAdmin() {
+            const links = window.SOCIAL_LINKS || {};
+            const url = links.telegram || links.facebook;
+            if (url) {
+                window.open(url, '_blank', 'noopener');
+            } else {
+                showToast('Admin contact link is not set up yet.', 'warning');
+            }
+        }
+        window.contactAdmin = contactAdmin;
 
         onSnapshot(doc(db, "settings", "social"), (docSnap) => {
             renderSocialLinks(docSnap.exists() ? docSnap.data() : {});
@@ -7393,7 +7481,60 @@
         }
 
         // ---------- Game Catalogue (live from Firestore "games" collection) ----------
-        let GAMES = {};          // { docId: { name, image, packages: [{amount, price}] } }
+        let GAMES = {};          // { docId: { name, image, packages: [{amount, price}] } } — filtered, see below
+        let RAW_GAMES = {};      // unfiltered snapshot straight from Firestore
+
+        // Whether each import source is currently turned on in the admin panel
+        // (Dashboard → that provider's Settings → "Enabled" toggle). Mirrors
+        // admin.html's own G2BULK_SETTINGS.enabled / FAZERCARD_SETTINGS.enabled /
+        // etc. defaults (missing doc or missing field = enabled), kept live via
+        // onSnapshot below so a toggle flip in admin reflects here immediately,
+        // with no store reload needed.
+        let PROVIDER_ENABLED = { g2bulk: true, fazercard: true, aluu: true, jcplays: true };
+
+        // Maps a game's fulfillProvider to the toggle family that controls it.
+        // 'manual' (or no provider at all) is never hidden by these toggles.
+        function gameProviderFamily(g) {
+            const fp = g && g.fulfillProvider;
+            if (fp === 'g2bulk' || fp === 'g2bulk_voucher') return 'g2bulk';
+            if (fp === 'fazercard' || fp === 'fazercard_giftcard') return 'fazercard';
+            if (fp === 'aluu') return 'aluu';
+            if (fp === 'jcplays') return 'jcplays';
+            return null;
+        }
+
+        // Re-derives GAMES from RAW_GAMES, dropping any game whose import
+        // source is currently disabled in admin, then re-renders every place
+        // games are shown so the change appears instantly (and reverses just
+        // as instantly once admin re-enables the source).
+        function applyProviderFilterAndRerender() {
+            const filtered = {};
+            Object.keys(RAW_GAMES).forEach(id => {
+                const g = RAW_GAMES[id];
+                const family = gameProviderFamily(g);
+                if (family && PROVIDER_ENABLED[family] === false) return; // hidden: source turned off
+                filtered[id] = g;
+            });
+            GAMES = filtered;
+            window.GAMES = GAMES;
+            runWhenNotTouching(document.querySelector('#all-games-grid')?.closest('.games-grid-scroll'), renderHomeGames);
+            if (window.currentStorePage === 'voucher') {
+                runWhenNotTouching(document.querySelector('#voucher-games-grid')?.closest('.games-grid-scroll'), renderVoucherGames);
+            }
+            if (typeof renderWalletPaymentMethods === 'function' && document.getElementById('wallet-topup-payment-methods')) {
+                renderWalletPaymentMethods();
+            }
+        }
+
+        ['g2bulk', 'fazercard', 'aluu', 'jcplays'].forEach(provider => {
+            onSnapshot(doc(db, "settings", provider), (docSnap) => {
+                const data = docSnap.exists() ? docSnap.data() : {};
+                PROVIDER_ENABLED[provider] = data.enabled !== false;
+                applyProviderFilterAndRerender();
+            }, (error) => {
+                console.error(provider + " settings fetch error:", error);
+            });
+        });
 
         // Order documents only store the game's name (not its id), so order cards
         // look the image up by matching name against the loaded games catalogue.
@@ -7829,12 +7970,8 @@
             onSnapshot(collection(db, "games"), (snap) => {
                 const newGames = {};
                 snap.forEach(docSnap => { newGames[docSnap.id] = docSnap.data(); });
-                GAMES = newGames;
-                window.GAMES = GAMES;
-                runWhenNotTouching(document.querySelector('#all-games-grid')?.closest('.games-grid-scroll'), renderHomeGames);
-                if (window.currentStorePage === 'voucher') {
-                    runWhenNotTouching(document.querySelector('#voucher-games-grid')?.closest('.games-grid-scroll'), renderVoucherGames);
-                }
+                RAW_GAMES = newGames;
+                applyProviderFilterAndRerender();
                 if (historyUnsubscribe) {
                     runWhenNotTouching(document.querySelector('#history-container .order-list-scroll'), () => renderHistoryOrders(HISTORY_ORDERS));
                 }
