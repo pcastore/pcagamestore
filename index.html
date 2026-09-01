@@ -260,7 +260,7 @@
         /* Cards render on their own compositor layer so scroll-drag doesn't
            repaint/reflow the grid every frame, and the tap-scale only fires
            on a real tap (not a finger dragging across the card while scrolling). */
-        .game-card { cursor: pointer; transition: transform 0.1s; will-change: transform; border-radius: 12px; overflow: hidden; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .game-card { cursor: pointer; transition: transform 0.1s; will-change: transform; border-radius: 12px; overflow: hidden; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.05); transform: translateZ(0); contain: content; }
         .game-card:active { transform: scale(0.97); }
         @media (hover: none) and (pointer: coarse) {
             .game-card:active { transition-delay: 80ms; }
@@ -280,9 +280,9 @@
            on render. Cards already on-screen at render time reveal almost
            immediately (staggered by the existing per-card animation-delay). */
         .game-card-anim { opacity: 0; }
-        .game-card-anim.in-view { animation: gameCardIn 0.32s cubic-bezier(.22,1.12,.36,1) both; }
+        .game-card-anim.in-view { animation: gameCardIn 0.26s cubic-bezier(.22,1.12,.36,1) both; }
         @keyframes gameCardIn {
-            0%   { opacity: 0; transform: translateY(12px) scale(0.95); }
+            0%   { opacity: 0; transform: translateY(14px) scale(0.94); }
             60%  { opacity: 1; transform: translateY(-1px) scale(1.01); }
             100% { opacity: 1; transform: translateY(0) scale(1); }
         }
@@ -318,9 +318,12 @@
         .skel-history-card .skel-line3 { height: 14px; width: 70px; border-radius: 6px; }
         .skel-history-card .skel-line4 { height: 18px; width: 60px; border-radius: 20px; }
 
-        /* Small colored category pill overlaid on the game's cover image */
-        .game-cat-badge { position: absolute; top: 6px; left: 6px; display: flex; align-items: center; gap: 3px; padding: 3px 8px 3px 6px; border-radius: 9px; font-size: 9.5px; font-weight: 600; color: var(--on-color); box-shadow: 0 2px 6px rgba(0,0,0,0.25); }
-        .game-cat-badge svg { width: 10px; height: 10px; }
+        /* Small colored category pill overlaid on the game's cover image.
+           Kept compact on purpose - on a 3-across mobile grid the card image
+           itself is only ~100px wide, so a bigger pill or icon would crowd
+           the cover art and read as clutter. */
+        .game-cat-badge { position: absolute; top: 5px; left: 5px; display: flex; align-items: center; gap: 2px; padding: 2px 6px 2px 5px; border-radius: 7px; font-size: 8px; font-weight: 600; color: var(--on-color); box-shadow: 0 1px 3px rgba(0,0,0,0.22); }
+        .game-cat-badge svg { width: 8px; height: 8px; }
 
         /* Category filter chips row, above the All Games grid */
         .cat-filter-scroll { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 12px; -webkit-overflow-scrolling: touch; }
@@ -787,7 +790,7 @@
            just the grid scrolls inside its own box. */
         .games-grid-scroll {
             max-height: 62vh; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
-            margin: 0 -2px; padding: 2px;
+            margin: 0 -2px; padding: 2px; transform: translateZ(0);
         }
         .games-grid-scroll::-webkit-scrollbar { width: 4px; }
         .games-grid-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
@@ -3615,7 +3618,7 @@
                     <div class="pc-label-wrap"><span class="pc-label${pcLabelSizeClass(String(pkg.amount))}">${pkg.amount}</span></div>
                     <div class="pc-price-bar"><span class="pc-price">${pkg.price.toLocaleString()} MMK</span></div>`;
                 return `
-                <div class="package-card ${cardTypeClass} game-card-anim${outOfStock ? ' out-of-stock' : ''}" style="animation-delay:${Math.min(pos * 25, 200)}ms" data-index="${i}" onclick="${outOfStock ? '' : `selectPackageOption(${i})`}">
+                <div class="package-card ${cardTypeClass} game-card-anim${outOfStock ? ' out-of-stock' : ''}" style="animation-delay:${Math.min(pos * 18, 120)}ms" data-index="${i}" onclick="${outOfStock ? '' : `selectPackageOption(${i})`}">
                     ${stockBadge}<span class="pc-selected-check"><svg class="ui-icon"><use href="#icon-check"></use></svg></span>
                     ${bodyHTML}
                 </div>`;
@@ -7687,7 +7690,7 @@
                 const g = GAMES[id];
                 const label = g.serverName || g.name;
                 return `
-                    <div class="game-card game-card-anim" style="animation-delay:${Math.min(i * 25, 200)}ms" onclick="openGameDetail('${id}')">
+                    <div class="game-card game-card-anim" style="animation-delay:${Math.min(i * 18, 120)}ms" onclick="openGameDetail('${id}')">
                         <div class="game-card-img-wrap">
                             <img src="${g.image}" alt="${label}" loading="lazy" decoding="async">
                         </div>
@@ -7717,7 +7720,7 @@
                         cardRevealObserver.unobserve(entry.target);
                     }
                 });
-            }, { root: null, rootMargin: '0px 0px 15% 0px', threshold: 0.01 })
+            }, { root: null, rootMargin: '0px', threshold: 0.15 })
             : null;
 
         function revealCardsIn(container) {
@@ -7834,7 +7837,7 @@
                 popularScroll.innerHTML = popularGroups.map((gr, i) => {
                     const g = GAMES[gr.repId];
                     return `
-                        <div class="game-card popular-card game-card-anim" style="animation-delay:${Math.min(i * 25, 200)}ms" onclick="openGameEntry(${gr.idx})">
+                        <div class="game-card popular-card game-card-anim" style="animation-delay:${Math.min(i * 18, 120)}ms" onclick="openGameEntry(${gr.idx})">
                             <div class="game-card-img-wrap">
                                 <img src="${g.image}" alt="${g.name}" loading="lazy" decoding="async">
                                 ${categoryBadgeHtml(g.category)}
@@ -7867,7 +7870,7 @@
             grid.innerHTML = visibleGroups.map((gr, i) => {
                 const g = GAMES[gr.repId];
                 return `
-                    <div class="game-card game-card-anim" style="animation-delay:${Math.min(i * 25, 200)}ms" onclick="openGameEntry(${gr.idx})">
+                    <div class="game-card game-card-anim" style="animation-delay:${Math.min(i * 18, 120)}ms" onclick="openGameEntry(${gr.idx})">
                         <div class="game-card-img-wrap">
                             <img src="${g.image}" alt="${g.name}" loading="lazy" decoding="async">
                             ${categoryBadgeHtml(g.category)}
@@ -7932,7 +7935,7 @@
                     popularScroll.innerHTML = popularGroups.map((gr, i) => {
                         const g = GAMES[gr.repId];
                         return `
-                            <div class="voucher-card popular-voucher-card game-card-anim" style="animation-delay:${Math.min(i * 25, 200)}ms" onclick="openVoucherGameEntry(${gr.idx})">
+                            <div class="voucher-card popular-voucher-card game-card-anim" style="animation-delay:${Math.min(i * 18, 120)}ms" onclick="openVoucherGameEntry(${gr.idx})">
                                 <span class="voucher-card-tag">Gift Card</span>
                                 <div class="voucher-card-stack">
                                     <img src="${g.image}" alt="${g.name}" loading="lazy" decoding="async">
@@ -7951,7 +7954,7 @@
             grid.innerHTML = groups.map((gr, i) => {
                 const g = GAMES[gr.repId];
                 return `
-                    <div class="voucher-card game-card-anim" style="animation-delay:${Math.min(i * 25, 200)}ms" onclick="openVoucherGameEntry(${i})">
+                    <div class="voucher-card game-card-anim" style="animation-delay:${Math.min(i * 18, 120)}ms" onclick="openVoucherGameEntry(${i})">
                         <span class="voucher-card-tag">Gift Card</span>
                         <div class="voucher-card-stack">
                             <img src="${g.image}" alt="${g.name}" loading="lazy" decoding="async">
