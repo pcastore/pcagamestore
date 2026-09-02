@@ -160,7 +160,7 @@
         
         /* Header */
         .header { background-color: var(--surface); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .logo { color: var(--accent); font-size: 19px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .logo { color: var(--accent); font-size: 19px; font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer; }
         .logo-icon-wrap {
             width: 28px; height: 28px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
             border-radius: 7px; background-color: #FF5A4E;
@@ -1116,7 +1116,7 @@
 
         /* ===================== WALLET PAGE — PREMIUM REDESIGN ===================== */
         .wallet-balance-card {
-            position: relative; overflow: hidden; border-radius: 28px; padding: 26px 24px 24px;
+            position: relative; overflow: hidden; border-radius: 22px; padding: 19px 18px 17px;
             background: linear-gradient(150deg, #0A1330 0%, #172352 40%, #2C1E5C 72%, #3E2A6E 100%);
             box-shadow: 0 22px 46px -14px rgba(15,15,50,0.5), 0 1px 0 rgba(255,255,255,0.06) inset;
             isolation: isolate;
@@ -1151,7 +1151,7 @@
         }
         .wallet-balance-top { position: relative; z-index: 2; display: flex; align-items: center; justify-content: space-between; }
         .wallet-balance-icon {
-            width: 44px; height: 44px; border-radius: 14px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+            width: 36px; height: 36px; border-radius: 11px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
             background: rgba(255,255,255,0.13); border: 1px solid rgba(255,255,255,0.3); color: #fff;
             box-shadow: 0 6px 16px rgba(0,0,0,0.22), inset 0 1px 0 rgba(255,255,255,0.22);
             -webkit-backdrop-filter: blur(6px); backdrop-filter: blur(6px);
@@ -1159,16 +1159,16 @@
         .wallet-balance-icon svg { width: 20px; height: 20px; }
         .wallet-balance-tag {
             display: inline-flex; align-items: center; gap: 6px;
-            font-size: 11px; font-weight: 600; letter-spacing: 0.3px; color: rgba(255,255,255,0.85);
+            font-size: 11px; font-weight: 500; letter-spacing: 0.3px; color: rgba(255,255,255,0.85);
             background: rgba(255,255,255,0.12); border: 1px solid rgba(255,255,255,0.22); padding: 6px 12px 6px 10px; border-radius: 20px;
             box-shadow: inset 0 1px 0 rgba(255,255,255,0.15);
         }
         .wallet-balance-tag::before { content: ''; width: 6px; height: 6px; border-radius: 50%; background: #4ADE80; box-shadow: 0 0 6px #4ADE80; flex-shrink: 0; }
-        .wallet-balance-label { position: relative; z-index: 2; display: block; font-size: 12px; font-weight: 500; color: rgba(255,255,255,0.6); letter-spacing: 0.6px; text-transform: uppercase; margin-top: 22px; }
-        .wallet-balance-amount { position: relative; z-index: 2; font-size: 37px; font-weight: 700; color: #fff; margin: 7px 0 24px; letter-spacing: -0.4px; font-variant-numeric: tabular-nums; text-shadow: 0 2px 18px rgba(0,0,0,0.25); }
+        .wallet-balance-label { position: relative; z-index: 2; display: block; font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.6); letter-spacing: 0.6px; text-transform: uppercase; margin-top: 15px; }
+        .wallet-balance-amount { position: relative; z-index: 2; font-size: 29px; font-weight: 600; color: #fff; margin: 5px 0 17px; letter-spacing: -0.4px; font-variant-numeric: tabular-nums; text-shadow: 0 2px 18px rgba(0,0,0,0.25); }
         .wallet-topup-btn {
             position: relative; z-index: 2; width: 100%; display: flex; align-items: center; justify-content: center; gap: 9px;
-            background: linear-gradient(180deg, #ffffff 0%, #F4F6FB 100%); color: #16234A; padding: 14.5px 22px; border-radius: 16px; font-size: 14.5px; font-weight: 600;
+            background: linear-gradient(180deg, #ffffff 0%, #F4F6FB 100%); color: #16234A; padding: 12px 20px; border-radius: 14px; font-size: 13.5px; font-weight: 500;
             box-shadow: 0 12px 26px rgba(0,0,0,0.28), inset 0 1px 0 #fff;
         }
         .wallet-topup-btn:active { transform: scale(0.97); }
@@ -1179,27 +1179,27 @@
         .wallet-topup-btn-icon svg { width: 13px; height: 13px; }
 
         .wallet-section-title {
-            display: flex; align-items: center; gap: 8px; font-size: 14px; font-weight: 600; color: var(--text-secondary);
-            margin: 22px 2px 12px;
+            display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 500; color: var(--text-secondary);
+            margin: 17px 2px 10px;
         }
         .wallet-section-title svg { width: 15px; height: 15px; color: var(--text-muted); }
 
         /* Amount entry */
         .wallet-amount-input-wrap { position: relative; }
         .wallet-topup-amount-input {
-            width: 100%; padding: 16px 68px 16px 16px; font-size: 21px; font-weight: 700; border: 1.5px solid var(--border);
+            width: 100%; padding: 16px 68px 16px 16px; font-size: 21px; font-weight: 600; border: 1.5px solid var(--border);
             border-radius: 14px; margin-bottom: 0; background: var(--surface); color: var(--text); box-sizing: border-box;
             transition: 0.15s;
         }
         .wallet-topup-amount-input:focus { outline: none; border-color: var(--accent); background: #F8FBFF; }
         .wallet-amount-currency {
             position: absolute; right: 12px; top: 50%; transform: translateY(-50%); pointer-events: none;
-            font-size: 12.5px; font-weight: 600; color: var(--text-muted); background: var(--bg);
+            font-size: 12.5px; font-weight: 500; color: var(--text-muted); background: var(--bg);
             padding: 6px 10px; border-radius: 8px; letter-spacing: 0.3px;
         }
         .wallet-amount-presets { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin: 12px 0 2px; }
         .wallet-preset-chip {
-            padding: 13px 6px; border-radius: 13px; text-align: center; font-size: 14px; font-weight: 600;
+            padding: 13px 6px; border-radius: 13px; text-align: center; font-size: 14px; font-weight: 500;
             background: var(--surface-alt); border: 1.5px solid var(--border); color: var(--text); cursor: pointer; transition: 0.15s;
         }
         .wallet-preset-chip:active { transform: scale(0.94); }
@@ -1219,9 +1219,9 @@
         /* Top up history rows */
         .wallet-topup-row {
             position: relative; overflow: hidden;
-            display: flex; align-items: center; gap: 13px;
-            background: var(--surface); border: 1px solid var(--border); border-radius: 18px; padding: 14px 16px 14px 19px;
-            margin-bottom: 10px; box-shadow: 0 2px 10px rgba(15,23,42,0.05); cursor: pointer;
+            display: flex; align-items: center; gap: 11px;
+            background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 11px 13px 11px 15px;
+            margin-bottom: 8px; box-shadow: 0 2px 10px rgba(15,23,42,0.05); cursor: pointer;
             transition: transform 0.15s ease, box-shadow 0.15s ease;
         }
         .wallet-topup-row::before {
@@ -1233,20 +1233,20 @@
         .wallet-topup-row.st-rejected { --row-accent: #C0392B; }
         .wallet-topup-row.st-completed { --row-accent: #1E8E4F; }
         .wallet-topup-row-icon {
-            width: 42px; height: 42px; border-radius: 13px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+            width: 34px; height: 34px; border-radius: 10px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
             background: var(--accent-soft); color: var(--accent);
         }
-        .wallet-topup-row-icon svg { width: 18px; height: 18px; }
+        .wallet-topup-row-icon svg { width: 15px; height: 15px; }
         .wallet-topup-row-icon.st-pending { background: #FFF3CD; color: #856404; }
         .wallet-topup-row-icon.st-processing { background: var(--border); color: #405DE6; }
         .wallet-topup-row-icon.st-rejected { background: #FDE8E8; color: #C0392B; }
         .wallet-topup-row-icon.st-completed { background: #E7F8EE; color: #1E8E4F; }
         .wallet-topup-row-body { flex: 1; min-width: 0; }
         .wallet-topup-row-top { display: flex; justify-content: space-between; align-items: center; gap: 8px; }
-        .wallet-topup-amount { font-size: 16px; font-weight: 700; color: var(--text); letter-spacing: -0.2px; font-variant-numeric: tabular-nums; }
-        .wallet-topup-meta { font-size: 12px; color: var(--text-muted); margin-top: 3.5px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .wallet-topup-amount { font-size: 14.5px; font-weight: 600; color: var(--text); letter-spacing: -0.2px; font-variant-numeric: tabular-nums; }
+        .wallet-topup-meta { font-size: 11px; color: var(--text-muted); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         #wallet .badge, #wallet-topup-detail-body .badge {
-            padding: 5px 12px 5px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 600; letter-spacing: 0.2px;
+            padding: 5px 12px 5px 10px; border-radius: 20px; font-size: 11.5px; font-weight: 500; letter-spacing: 0.2px;
             display: inline-flex; align-items: center; gap: 5px;
         }
         #wallet .badge::before, #wallet-topup-detail-body .badge::before {
@@ -4382,7 +4382,13 @@
                 fazercardCategoryId: selectedGameFazerCardCategory,
                 fazercardOfferId: selectedPackage.fazercardOfferId || null,
                 fazercardGiftCategoryId: selectedGameFazerCardGiftCategory,
-                fazercardGiftCardId: selectedPackage.fazercardGiftCardId || null
+                fazercardGiftCardId: selectedPackage.fazercardGiftCardId || null,
+                // Bay2Game auto-fulfillment - carried directly on the package
+                // (see pkg-bay2game in the admin game editor), same
+                // single-field pattern as g2bulkVoucherProductId above; no
+                // game-level code needed here since placeBay2gameOrder only
+                // ever reads order.bay2gameProductId + playerId/serverId.
+                bay2gameProductId: selectedPackage.bay2gameProductId || null
             }, btnElement);
         }
 
@@ -4405,7 +4411,8 @@
                 fazercardCategoryId: selectedGameFazerCardCategory,
                 fazercardOfferId: selectedPackage.fazercardOfferId || null,
                 fazercardGiftCategoryId: selectedGameFazerCardGiftCategory,
-                fazercardGiftCardId: selectedPackage.fazercardGiftCardId || null
+                fazercardGiftCardId: selectedPackage.fazercardGiftCardId || null,
+                bay2gameProductId: selectedPackage.bay2gameProductId || null
             }, btnElement);
         }
 
@@ -6221,7 +6228,7 @@
         }
 
         async function submitOrder(orderData, btnElement) {
-            const { gameName, serverRegion, amount, price, quantity, inGameId, inGameName, serverId, paymentMethodName, receiptFile, transactionId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId, fazercardCategoryId, fazercardOfferId, fazercardGiftCategoryId, fazercardGiftCardId } = orderData;
+            const { gameName, serverRegion, amount, price, quantity, inGameId, inGameName, serverId, paymentMethodName, receiptFile, transactionId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId, fazercardCategoryId, fazercardOfferId, fazercardGiftCategoryId, fazercardGiftCardId, bay2gameProductId } = orderData;
 
             const originalText = btnElement.innerText;
             btnElement.innerText = "Processing...";
@@ -6303,7 +6310,12 @@
                     // placeFazerCardGiftCardOrder in the admin panel). Also
                     // store-never-calls-FazerCards-directly, same reasoning
                     // as fazercardCategoryId above.
-                    ...(fazercardGiftCategoryId && fazercardGiftCardId ? { fazercardGiftCategoryId, fazercardGiftCardId } : {})
+                    ...(fazercardGiftCategoryId && fazercardGiftCardId ? { fazercardGiftCategoryId, fazercardGiftCardId } : {}),
+                    // Bay2Game auto-fulfillment - lets the admin panel route
+                    // this order through Bay2Game's /create_order (see
+                    // placeBay2gameOrder in the admin panel), same
+                    // single-field pattern as g2bulkVoucherProductId above.
+                    ...(bay2gameProductId ? { bay2gameProductId } : {})
                 });
 
                 saveContact(inGameId, selectedGameId, serverId);
@@ -6329,7 +6341,7 @@
         // rendered) so two rapid orders can never both slip through on a
         // balance that only actually covers one of them.
         async function submitWalletOrder(orderData, btnElement) {
-            const { gameName, serverRegion, amount, price, quantity, inGameId, serverId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId, fazercardCategoryId, fazercardOfferId, fazercardGiftCategoryId, fazercardGiftCardId } = orderData;
+            const { gameName, serverRegion, amount, price, quantity, inGameId, serverId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId, fazercardCategoryId, fazercardOfferId, fazercardGiftCategoryId, fazercardGiftCardId, bay2gameProductId } = orderData;
 
             const originalText = btnElement.innerText;
             btnElement.innerText = "Processing...";
@@ -6383,7 +6395,8 @@
                     ...(jcplaysProduct && jcplaysProductId ? { jcplaysProduct, jcplaysProductId } : {}),
                     ...(g2bulkVoucherProductId ? { g2bulkVoucherProductId } : {}),
                     ...(fazercardCategoryId && fazercardOfferId ? { fazercardCategoryId, fazercardOfferId } : {}),
-                    ...(fazercardGiftCategoryId && fazercardGiftCardId ? { fazercardGiftCategoryId, fazercardGiftCardId } : {})
+                    ...(fazercardGiftCategoryId && fazercardGiftCardId ? { fazercardGiftCategoryId, fazercardGiftCardId } : {}),
+                    ...(bay2gameProductId ? { bay2gameProductId } : {})
                 });
 
                 saveContact(inGameId, selectedGameId, serverId);
