@@ -103,6 +103,17 @@
         html[data-theme="dark"] .profile-edit-field input[type="text"]:focus,
         html[data-theme="dark"] .wallet-topup-amount-input:focus { background: rgba(76,147,255,0.1); }
         html, body { transition: background-color 0.35s ease, color 0.35s ease; }
+        /* While the theme swap's background-color transition is running, every
+           backdrop-filter layer (header, bottom nav, modals, toast, the toggle
+           itself) would otherwise re-blur on every frame because the pixels
+           behind them are animating — that's the stutter on tap. Drop the blur
+           for just that window; it's back before the color fade even finishes. */
+        html.theme-switching .header, html.theme-switching .bottom-nav,
+        html.theme-switching .theme-toggle, html.theme-switching .modal-box,
+        html.theme-switching .modal-overlay, html.theme-switching .success-overlay,
+        html.theme-switching #toast, html.theme-switching .glass-panel {
+            backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
+        }
         body { background-color: var(--bg); background-image: var(--bg-gradient); background-attachment: fixed; color: var(--text); padding-bottom: 96px; }
 
         /* ===================== LIQUID GLASS PANEL ===================== */
@@ -423,22 +434,24 @@
         .card-body { padding: 15px; }
         .card-body h4 { font-size: 16px; font-weight: 500; margin-bottom: 10px; color: var(--text); }
         
-        .list-card { background: var(--surface); padding: 15px; border-radius: 10px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
-        .history-card { cursor: pointer; transition: 0.12s; }
+        .list-card { background: var(--surface); padding: 11px 12px; border-radius: 10px; margin-bottom: 8px; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .history-card { cursor: pointer; transition: 0.12s; animation: historyCardIn 0.26s cubic-bezier(.22,1.12,.36,1) both; }
         .history-card:active { transform: scale(0.98); background: #F8FBFF; border-color: #BFDBFE; }
-        .hc-left { display: flex; align-items: center; gap: 12px; min-width: 0; }
-        .hc-thumb { width: 44px; height: 44px; border-radius: 10px; overflow: hidden; background: var(--bg); border: 1px solid var(--border); flex-shrink: 0; }
+        @keyframes historyCardIn { from { opacity: 0; transform: translateY(7px); } to { opacity: 1; transform: translateY(0); } }
+        @media (prefers-reduced-motion: reduce) { .history-card { animation: none; } }
+        .hc-left { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        .hc-thumb { width: 36px; height: 36px; border-radius: 9px; overflow: hidden; background: var(--bg); border: 1px solid var(--border); flex-shrink: 0; }
         .hc-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .hc-right { display: flex; align-items: center; gap: 10px; }
-        .hc-chevron { color: var(--text-faint); flex-shrink: 0; width: 18px; height: 18px; }
+        .hc-right { display: flex; align-items: center; gap: 8px; }
+        .hc-chevron { color: var(--text-faint); flex-shrink: 0; width: 16px; height: 16px; }
         .list-info { min-width: 0; }
-        .list-info h5 { font-size: 15px; color: var(--text); margin-bottom: 4px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .list-info p { font-size: 13px; color: var(--text-secondary); }
-        .hc-success-time { display: flex; align-items: center; gap: 3px; font-size: 11.5px !important; color: #1E8E4F !important; font-weight: 500; margin-top: 2px; }
-        .hc-success-time svg { width: 11px; height: 11px; stroke: #1E8E4F; }
-        .hc-order-id { font-size: 11px !important; color: var(--text-muted) !important; font-family: monospace; margin-top: 1px; }
+        .list-info h5 { font-size: 13.5px; color: var(--text); margin-bottom: 2px; font-weight: 500; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .list-info p { font-size: 11.5px; color: var(--text-secondary); }
+        .hc-success-time { display: flex; align-items: center; gap: 3px; font-size: 10.5px !important; color: #1E8E4F !important; font-weight: 500; margin-top: 1px; }
+        .hc-success-time svg { width: 10px; height: 10px; stroke: #1E8E4F; }
+        .hc-order-id { font-size: 10px !important; color: var(--text-muted) !important; font-family: monospace; margin-top: 1px; }
         .list-amount { text-align: right; }
-        .list-amount h5 { font-size: 15px; color: var(--text); margin-bottom: 4px; font-weight: 500; }
+        .list-amount h5 { font-size: 13.5px; color: var(--text); margin-bottom: 2px; font-weight: 500; }
         
         /* Order History: date filter chips + day-group headers (Yangon time) */
         .history-date-filter-wrap { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 12px; -webkit-overflow-scrolling: touch; }
@@ -488,12 +501,12 @@
 
         /* Compact version: same steps but tiny dots-and-lines only, no labels,
            sitting under the game name on each History list card. */
-        .order-timeline-mini { display: flex; align-items: center; gap: 3px; margin-top: 5px; }
-        .otm-dot { width: 6px; height: 6px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
+        .order-timeline-mini { display: flex; align-items: center; gap: 3px; margin-top: 4px; }
+        .otm-dot { width: 5px; height: 5px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
         .otm-dot.done { background: #1E8E4F; }
         .otm-dot.active { background: var(--accent); animation: statusPulse 1.1s ease-in-out infinite; }
         .otm-dot.fail { background: #D93025; }
-        .otm-line { width: 12px; height: 2px; background: var(--border); flex-shrink: 0; }
+        .otm-line { width: 10px; height: 2px; background: var(--border); flex-shrink: 0; }
         .otm-line.done { background: #1E8E4F; }
         .otm-line.fail { background: #D93025; }
 
@@ -984,6 +997,21 @@
         }
         .game-desc-redeem-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
         .game-desc-redeem-btn:active { transform: scale(0.97); box-shadow: 0 2px 8px -2px rgba(124,58,237,0.5); }
+        /* "Open Game" button — shown wherever the admin has configured an app
+           link for the game (Android package / iOS scheme, see appAndroidPackage
+           / appIosScheme etc. on the game doc), so customers can jump straight
+           into the installed game app (or its store page as a fallback) — used
+           both in the Description card and on the post-purchase Success screen. */
+        .game-open-app-btn {
+            position: relative; display: flex; align-items: center; justify-content: center; gap: 6px;
+            width: 100%; margin-top: 12px; padding: 11px 14px; border: none; border-radius: 11px;
+            background: linear-gradient(135deg, #22C55E, #16A34A); color: #fff;
+            font-size: 13.5px; font-weight: 700; cursor: pointer;
+            box-shadow: 0 4px 14px -4px rgba(22,163,74,0.55);
+            transition: transform 0.15s ease, box-shadow 0.15s ease;
+        }
+        .game-open-app-btn svg { width: 15px; height: 15px; flex-shrink: 0; }
+        .game-open-app-btn:active { transform: scale(0.97); box-shadow: 0 2px 8px -2px rgba(22,163,74,0.5); }
 
         /* Checkout: account info, payment methods, success screen */
         .detail-section-title { font-size: 14px; font-weight: 600; color: var(--text-secondary); margin: 18px 0 10px; }
@@ -2513,6 +2541,10 @@
                     <svg class="ui-icon"><use href="#icon-external-link"></use></svg>
                     <span>Redeem Now</span>
                 </button>
+                <button type="button" class="game-open-app-btn" id="detail-game-desc-open-btn" onclick="openGameApp(selectedGameId)" style="display:none;">
+                    <svg class="ui-icon"><use href="#icon-gamepad"></use></svg>
+                    <span>Game ဖွင့်မယ်</span>
+                </button>
             </div>
             </div>
             <div class="detail-main-col">
@@ -2679,6 +2711,10 @@
             <h3 style="font-size:18px;font-weight: 600;color:var(--text);margin-bottom:8px;" id="success-title">Order Confirmed</h3>
             <p style="font-size:14px;color:var(--text-secondary);margin-bottom:16px;" id="success-subtext">We've received your order and receipt. Our team will confirm it shortly.</p>
             <div id="success-timeline" style="text-align:left;"></div>
+            <button type="button" class="game-open-app-btn" id="success-open-game-btn" onclick="openGameApp(selectedGameId)" style="display:none;margin-top:0;margin-bottom:10px;">
+                <svg class="ui-icon"><use href="#icon-gamepad"></use></svg>
+                <span>Game ဖွင့်မယ်</span>
+            </button>
             <button class="btn btn-primary" onclick="goHomeFromSuccess()">Back to Home</button>
         </div>
     </div>
@@ -3254,18 +3290,93 @@
         // game's description or a Voucher-tab gift card's.
         let currentGameRedeemLink = '';
 
-        function renderGameDescCard(description, redeemLink = '') {
+        // Whether a game has an "Open Game" app link configured. A game doc
+        // can carry any mix of these (set by admin.html's Edit Game modal —
+        // not built yet as of this pass, so these fields are set manually in
+        // Firestore for now):
+        //   appAndroidPackage  - Android package name, e.g. "com.mobile.legends"
+        //   appAndroidScheme   - optional custom scheme used in the Android
+        //                        intent:// launch (falls back to a dummy
+        //                        scheme if omitted - package match is what
+        //                        actually matters for Android app resolution)
+        //   appAndroidStoreUrl - optional Play Store URL override; otherwise
+        //                        built from appAndroidPackage
+        //   appIosScheme       - iOS custom URL scheme (without "://")
+        //   appIosStoreUrl     - App Store URL, used as the iOS fallback
+        function hasGameAppLink(game) {
+            return !!(game && (game.appAndroidPackage || game.appAndroidStoreUrl || game.appIosScheme || game.appIosStoreUrl));
+        }
+        window.hasGameAppLink = hasGameAppLink;
+
+        // Tries to launch the game's own app directly; falls back to the
+        // Play Store / App Store listing if the app isn't installed (or on
+        // desktop/other platforms where a direct launch isn't possible).
+        function openGameApp(gameId) {
+            const game = window.GAMES ? window.GAMES[gameId] : null;
+            if (!hasGameAppLink(game)) {
+                window.showToast('ဒီဂိမ်းအတွက် App Link မသတ်မှတ်ရသေးပါ', 'info');
+                return;
+            }
+            const ua = navigator.userAgent || '';
+            const isAndroid = /android/i.test(ua);
+            const isIos = /iphone|ipad|ipod/i.test(ua);
+
+            if (isAndroid && game.appAndroidPackage) {
+                const storeUrl = game.appAndroidStoreUrl || `https://play.google.com/store/apps/details?id=${encodeURIComponent(game.appAndroidPackage)}`;
+                const scheme = game.appAndroidScheme || 'openapp';
+                // Chrome-style intent URL: if the app (matching `package`) is
+                // installed it launches directly; otherwise Chrome follows
+                // browser_fallback_url to the Play Store listing on its own.
+                const intentUrl = `intent://launch#Intent;scheme=${scheme};package=${encodeURIComponent(game.appAndroidPackage)};S.browser_fallback_url=${encodeURIComponent(storeUrl)};end`;
+                window.location.href = intentUrl;
+                return;
+            }
+
+            if (isIos && (game.appIosScheme || game.appIosStoreUrl)) {
+                const storeUrl = game.appIosStoreUrl || '';
+                if (game.appIosScheme) {
+                    // iOS has no equivalent of Android's fallback_url, so we
+                    // race a visibility change against a timeout: if the tab
+                    // is still visible after ~1.2s, the scheme didn't open
+                    // anything (app not installed) and we send the customer
+                    // to the App Store instead.
+                    let handed = false;
+                    const onHide = () => { handed = true; };
+                    document.addEventListener('visibilitychange', onHide, { once: true });
+                    window.location.href = `${game.appIosScheme}://`;
+                    setTimeout(() => {
+                        document.removeEventListener('visibilitychange', onHide);
+                        if (!handed && storeUrl) window.location.href = storeUrl;
+                    }, 1200);
+                } else if (storeUrl) {
+                    window.location.href = storeUrl;
+                }
+                return;
+            }
+
+            // Desktop or a platform without a matching app link - just open
+            // whichever store URL is available.
+            const fallbackStoreUrl = game.appAndroidStoreUrl || game.appIosStoreUrl || (game.appAndroidPackage ? `https://play.google.com/store/apps/details?id=${encodeURIComponent(game.appAndroidPackage)}` : '');
+            if (fallbackStoreUrl) window.open(fallbackStoreUrl, '_blank', 'noopener');
+            else window.showToast('ဒီဂိမ်းအတွက် App Link မသတ်မှတ်ရသေးပါ', 'info');
+        }
+        window.openGameApp = openGameApp;
+
+        function renderGameDescCard(description, redeemLink = '', appLinkGame = null) {
             const wrap = document.getElementById('detail-game-desc-wrap');
             const textEl = document.getElementById('detail-game-desc-text');
             const toggleBtn = document.getElementById('detail-game-desc-toggle');
             const redeemBtn = document.getElementById('detail-game-desc-redeem-btn');
+            const openAppBtn = document.getElementById('detail-game-desc-open-btn');
             currentGameRedeemLink = redeemLink || '';
             redeemBtn.style.display = currentGameRedeemLink ? 'flex' : 'none';
+            const showOpenApp = hasGameAppLink(appLinkGame);
+            openAppBtn.style.display = showOpenApp ? 'flex' : 'none';
             if (!description) {
                 // Even with no free-text description, still show the card if
-                // there's a Redeem Link to surface - otherwise the button
-                // would have nowhere to live and the link would go unseen.
-                wrap.style.display = currentGameRedeemLink ? 'block' : 'none';
+                // there's a Redeem Link or an app link to surface - otherwise
+                // the button(s) would have nowhere to live and go unseen.
+                wrap.style.display = (currentGameRedeemLink || showOpenApp) ? 'block' : 'none';
                 textEl.innerText = '';
                 toggleBtn.style.display = 'none';
                 return;
@@ -3404,7 +3515,7 @@
             document.getElementById('detail-game-name').innerText = game.name;
             document.getElementById('detail-game-banner').src = game.banner || game.image;
             document.getElementById('detail-game-banner').alt = game.name;
-            renderGameDescCard(game.description || '', game.redeemLink || '');
+            renderGameDescCard(game.description || '', game.redeemLink || '', game);
             loadSavedContactIntoForm();
 
             // Build the tab list from whatever tabs the admin actually put
@@ -4105,6 +4216,12 @@
 
         function openSuccessOverlay(orderId, initialData) {
             document.getElementById('success-overlay').classList.add('show');
+
+            // Show the "Game ဖွင့်မယ်" button on the success screen only when
+            // the just-purchased game has an app link configured.
+            const openGameBtn = document.getElementById('success-open-game-btn');
+            const purchasedGame = window.GAMES ? window.GAMES[selectedGameId] : null;
+            openGameBtn.style.display = hasGameAppLink(purchasedGame) ? 'flex' : 'none';
 
             if (successOrderUnsubscribe) { successOrderUnsubscribe(); successOrderUnsubscribe = null; }
 
@@ -5935,7 +6052,7 @@
                                 <div class="lb-podium-slot rank-${rank}">
                                     <div class="lb-podium-medal">${rank}</div>
                                     <div class="lb-podium-avatar">${initial}</div>
-                                    <div class="lb-podium-name">${r.name}${isYou ? ' (You)' : ''}</div>
+                                    <div class="lb-podium-name">${escapeHtml(r.name)}${isYou ? ' (You)' : ''}</div>
                                     ${tierBadgeHTML(tier)}
                                     <div class="lb-podium-amount">${formatMMK(r.total)}</div>
                                 </div>
@@ -5956,7 +6073,7 @@
                                 <div class="lb-rank">${rank}</div>
                                 <div class="lb-avatar">${initial}</div>
                                 <div class="lb-info">
-                                    <div class="lb-name">${r.name}${isYou ? ' (You)' : ''}</div>
+                                    <div class="lb-name">${escapeHtml(r.name)}${isYou ? ' (You)' : ''}</div>
                                     ${tierBadgeHTML(tier)}
                                 </div>
                                 <div class="lb-amount">${formatMMK(r.total)}</div>
@@ -5977,7 +6094,7 @@
                                 <div class="lb-rank">#${myRankIndex + 1}</div>
                                 <div class="lb-avatar">${(me.name || '?').trim().charAt(0).toUpperCase()}</div>
                                 <div class="lb-info">
-                                    <div class="lb-name">${me.name} (You)</div>
+                                    <div class="lb-name">${escapeHtml(me.name)} (You)</div>
                                     ${tierBadgeHTML(tier)}
                                 </div>
                                 <div class="lb-amount">${formatMMK(me.total)}</div>
@@ -6712,7 +6829,7 @@
             `;
         }
 
-        function historyOrderCardHTML(data, index) {
+        function historyOrderCardHTML(data, index, pos = 0) {
             const dateStr = data.timestamp ? historyDateTimeFmt.format(data.timestamp.toDate()) : 'Just now';
             const badgeClass = historyBadgeClassFor(data.status);
             const gameImg = findGameImage(data.game, data.serverRegion);
@@ -6729,7 +6846,7 @@
                 ? `<p class="hc-order-id">Order ID: ${providerOrderId}</p>`
                 : '';
             return `
-                <div class="list-card history-card" onclick="openOrderDetail(${index})">
+                <div class="list-card history-card" style="animation-delay:${Math.min(pos, 8) * 0.03}s" onclick="openOrderDetail(${index})">
                     <div class="hc-left">
                         <div class="hc-thumb">${gameImg ? `<img src="${gameImg}" alt="" onerror="this.style.display='none'">` : ''}</div>
                         <div class="list-info">
@@ -6821,13 +6938,14 @@
 
             let listHTML = '';
             let lastKey = null;
+            let pos = 0;
             entries.forEach(({ index, data }) => {
                 const key = yangonDateKey(data.timestamp?.toMillis() || Date.now());
                 if (key !== lastKey) {
                     listHTML += `<div class="history-date-header">${yangonDateLabel(key)}</div>`;
                     lastKey = key;
                 }
-                listHTML += historyOrderCardHTML(data, index);
+                listHTML += historyOrderCardHTML(data, index, pos++);
             });
 
             container.innerHTML = chipsHTML + `<div class="order-list-scroll">${listHTML}</div>`;
@@ -6880,12 +6998,12 @@
                     <div class="od-row"><span>Package</span><b>${data.itemAmount || '-'}</b></div>
                     <div class="od-row"><span>Amount Paid</span><b style="color:var(--accent);font-size:15px;">${Number(data.price).toLocaleString()} MMK</b></div>
                     <div class="od-row"><span>Payment Method</span><b>${data.paymentMethod || '-'}</b></div>
-                    ${data.transactionId ? `<div class="od-row"><span>Transaction ID</span><b style="font-family:monospace;">${data.transactionId}</b></div>` : ''}
+                    ${data.transactionId ? `<div class="od-row"><span>Transaction ID</span><b style="font-family:monospace;">${escapeHtml(data.transactionId)}</b></div>` : ''}
                 </div>
 
                 <p class="detail-section-title" style="margin:16px 0 8px;">Order Info</p>
                 <div class="detail-form-card" style="gap:0;">
-                    <div class="od-row"><span>In-Game ID</span><b>${data.playerId || '-'}</b></div>
+                    <div class="od-row"><span>In-Game ID</span><b>${escapeHtml(data.playerId || '-')}</b></div>
                     ${inGameNameRow}
                     ${serverIdRow}
                     ${serverRegionRow}
@@ -8189,6 +8307,18 @@
         }
 
         // ---------- Dark / Light theme toggle ----------
+        // Drops backdrop-filter blur on header/nav/modals for the duration of
+        // the background-color fade, then restores it — see the .theme-switching
+        // rule above for why. Every place that changes data-theme should route
+        // through this instead of setting the attribute directly.
+        function setThemeSmooth(theme) {
+            const root = document.documentElement;
+            root.classList.add('theme-switching');
+            root.setAttribute('data-theme', theme);
+            applyThemeIcon(theme);
+            clearTimeout(setThemeSmooth._t);
+            setThemeSmooth._t = setTimeout(() => root.classList.remove('theme-switching'), 380);
+        }
         function applyThemeIcon(theme) {
             const href = theme === 'dark' ? '#icon-moon' : '#icon-sun';
             // Header toggle + Profile page toggle (kept in sync so either one
@@ -8218,8 +8348,7 @@
             if (hasManualTheme()) return; // user has an explicit preference — automation stays out of the way
             const auto = getAutoTheme();
             if (document.documentElement.getAttribute('data-theme') !== auto) {
-                document.documentElement.setAttribute('data-theme', auto);
-                applyThemeIcon(auto);
+                setThemeSmooth(auto);
             }
         }
         // Re-check every minute so the theme flips live at 7:00 AM / 7:00 PM
@@ -8228,9 +8357,7 @@
 
         function resetThemeToAuto() {
             try { localStorage.removeItem('gz_theme'); } catch (e) { /* private browsing */ }
-            const auto = getAutoTheme();
-            document.documentElement.setAttribute('data-theme', auto);
-            applyThemeIcon(auto);
+            setThemeSmooth(getAutoTheme());
             updateThemeAutoNote();
         }
         window.resetThemeToAuto = resetThemeToAuto;
@@ -8263,9 +8390,8 @@
         function toggleTheme() {
             const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
             const next = current === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', next);
+            setThemeSmooth(next);
             try { localStorage.setItem('gz_theme', next); } catch (e) { /* private browsing */ }
-            applyThemeIcon(next);
             updateThemeAutoNote();
         }
         applyThemeIcon(document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
