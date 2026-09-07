@@ -174,6 +174,19 @@
         html[data-theme="dark"] .theme-toggle-thumb { transform: translateX(22px); background: linear-gradient(160deg,#25335A,#0D1830); color: #9FB3D9; }
         .theme-toggle-thumb svg { width: 14px; height: 14px; }
 
+        /* Sun/moon icon spin+pop whenever the theme actually switches — the
+           thumb sliding across the pill was motion, but the icon itself just
+           snapped to the new glyph with no transition of its own. Re-added
+           by toggling this class (with a reflow in between so re-tapping
+           quickly restarts it) instead of a page-wide View Transitions
+           reveal, which stuttered on phones (see toggleTheme comment). */
+        @keyframes theme-icon-cycle {
+            0%   { transform: rotate(0deg) scale(0.4); opacity: 0.2; }
+            55%  { transform: rotate(200deg) scale(1.2); opacity: 1; }
+            100% { transform: rotate(360deg) scale(1); opacity: 1; }
+        }
+        .theme-icon-cycling { animation: theme-icon-cycle 0.38s cubic-bezier(.4,1.6,.4,1); }
+
         /* Push notification toggle (Profile > Preferences) — same pill-switch
            look as the theme toggle, kept as its own class since it tracks a
            different state (Notification.permission, not a light/dark flag). */
@@ -4886,6 +4899,24 @@
             return { cls: 'st-pending', icon: '#icon-history' }; // Pending
         }
 
+        // Display-only relabeling of order/top-up status badges (internal
+        // status values like "Pending"/"Success"/"Fail" stay as-is — only the
+        // badge text shown to the customer changes). Same mapping as admin.html:
+        // Pending→Draft, Processing→In-progress, success-class
+        // (Success/Completed)→In-review, danger-class (Fail/Rejected)→Completed.
+        const ORDER_STATUS_DISPLAY_LABELS = {
+            Pending: 'Draft',
+            Processing: 'In-progress',
+            Success: 'In-review',
+            Completed: 'In-review',
+            Fail: 'Completed',
+            Rejected: 'Completed'
+        };
+        function orderStatusLabel(status) {
+            return ORDER_STATUS_DISPLAY_LABELS[status] || status;
+        }
+        window.orderStatusLabel = orderStatusLabel;
+
         // ---------- Balance (live) ----------
         let walletBalanceListenerAttached = false;
         function listenWalletBalance() {
@@ -5420,7 +5451,7 @@
                     <div class="wallet-topup-row-body">
                         <div class="wallet-topup-row-top">
                             <span class="wallet-topup-amount">+${(t.amount || 0).toLocaleString()} MMK</span>
-                            <span class="badge ${walletStatusBadgeClass(t.status)}">${t.status}</span>
+                            <span class="badge ${walletStatusBadgeClass(t.status)}">${orderStatusLabel(t.status)}</span>
                         </div>
                         <div class="wallet-topup-meta">${t.paymentMethod || '-'} • ${t.timestamp && t.timestamp.toDate ? t.timestamp.toDate().toLocaleString() : 'Just now'}</div>
                     </div>
@@ -5452,7 +5483,7 @@
             body.innerHTML = `
                 <div class="detail-grid">
                     <div class="detail-grid-item"><span>Amount</span><b>+${(t.amount || 0).toLocaleString()} MMK</b></div>
-                    <div class="detail-grid-item"><span>Status</span><b><span class="badge ${walletStatusBadgeClass(t.status)}">${t.status}</span></b></div>
+                    <div class="detail-grid-item"><span>Status</span><b><span class="badge ${walletStatusBadgeClass(t.status)}">${orderStatusLabel(t.status)}</span></b></div>
                     <div class="detail-grid-item"><span>Payment Method</span><b>${t.paymentMethod || '-'}</b></div>
                     <div class="detail-grid-item"><span>Date</span><b>${t.timestamp && t.timestamp.toDate ? t.timestamp.toDate().toLocaleString() : '-'}</b></div>
                     ${t.receiptUrl ? `<div class="detail-grid-item full"><span>Receipt</span><img src="${t.receiptUrl}" style="width:100%;border-radius:10px;margin-top:6px;"></div>` : ''}
@@ -6915,7 +6946,7 @@
                     <div class="hc-right">
                         <div class="list-amount">
                             <h5>${Number(data.price).toLocaleString()} MMK</h5>
-                            <span class="badge ${badgeClass}">${historyStatusIconHTML(data.status)}${data.status}</span>
+                            <span class="badge ${badgeClass}">${historyStatusIconHTML(data.status)}${orderStatusLabel(data.status)}</span>
                         </div>
                         <svg class="hc-chevron"><use href="#icon-chevron-right"></use></svg>
                     </div>
@@ -7044,7 +7075,7 @@
                         <h4 style="font-size:17px;font-weight: 600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${data.game}</h4>
                         <p style="font-size:12px;color:var(--text-muted);margin-top:2px;">${dateStr}</p>
                     </div>
-                    <span class="badge ${badgeClass}">${historyStatusIconHTML(data.status)}${data.status}</span>
+                    <span class="badge ${badgeClass}">${historyStatusIconHTML(data.status)}${orderStatusLabel(data.status)}</span>
                 </div>
 
                 ${orderTimelineHTML(data)}
@@ -8379,8 +8410,16 @@
             // Header toggle + Profile page toggle (kept in sync so either one
             // reflects the current theme no matter which was used to switch it).
             ['theme-toggle-icon', 'theme-toggle-icon-profile'].forEach(id => {
-                const use = document.getElementById(id)?.querySelector('use');
+                const el = document.getElementById(id);
+                const use = el?.querySelector('use');
                 if (use) use.setAttribute('href', href);
+                if (el) {
+                    // Restart the spin even on back-to-back taps: drop the
+                    // class, force a reflow, then re-add it.
+                    el.classList.remove('theme-icon-cycling');
+                    void el.offsetWidth;
+                    el.classList.add('theme-icon-cycling');
+                }
             });
         }
 
