@@ -831,16 +831,15 @@
         .order-list-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
         .order-list-scroll .history-date-header:first-of-type { margin-top: 2px; }
 
-        /* Same idea for the Home "All Games" and Voucher grids: browsing a
-           long game list shouldn't drag the whole page down — the search bar
-           / category chips (Home) and intro text (Voucher) stay put while
-           just the grid scrolls inside its own box. */
+        /* The Home "All Games" and Voucher grids used to scroll inside their
+           own boxed area (max-height + overflow-y), separate from the page.
+           That made dragging on a card only move the grid, stopping short of
+           the "Popular" header above and the rest of the page below. Now the
+           grid is just part of the normal page flow, so one drag scrolls the
+           whole screen together. */
         .games-grid-scroll {
-            max-height: 62vh; overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain;
-            margin: 0 -2px; padding: 2px; transform: translateZ(0);
+            margin: 0 -2px; padding: 2px;
         }
-        .games-grid-scroll::-webkit-scrollbar { width: 4px; }
-        .games-grid-scroll::-webkit-scrollbar-thumb { background: var(--border); border-radius: 4px; }
 
         /* Order/detail page on wider screens: banner shrinks and sits in its
            own sidebar column instead of stretching full-width, account info +
@@ -1913,7 +1912,7 @@
             PCA Store
         </div>
         <div style="display:flex; align-items:center; gap:10px;">
-            <div class="theme-toggle" id="theme-toggle" onclick="toggleTheme()" role="button" aria-label="Toggle dark mode">
+            <div class="theme-toggle" id="theme-toggle" onclick="toggleTheme(event)" role="button" aria-label="Toggle dark mode">
                 <span class="theme-toggle-thumb" id="theme-toggle-thumb">
                     <svg class="svg-icon" id="theme-toggle-icon" style="stroke:currentColor;"><use href="#icon-sun"></use></svg>
                 </span>
@@ -2329,7 +2328,7 @@
                         <span class="prefs-row-icon"><svg class="ui-icon" id="theme-toggle-icon-profile-static"><use href="#icon-moon"></use></svg></span>
                         Dark Mode
                     </span>
-                    <div class="theme-toggle" id="theme-toggle-profile" onclick="toggleTheme()" role="button" aria-label="Toggle dark mode">
+                    <div class="theme-toggle" id="theme-toggle-profile" onclick="toggleTheme(event)" role="button" aria-label="Toggle dark mode">
                         <span class="theme-toggle-thumb" id="theme-toggle-thumb-profile">
                             <svg class="svg-icon" id="theme-toggle-icon-profile" style="stroke:currentColor;"><use href="#icon-sun"></use></svg>
                         </span>
@@ -8443,11 +8442,18 @@
         }
         window.toggleTierPreviewGrid = toggleTierPreviewGrid;
 
-        function toggleTheme() {
+        // Tapping the toggle plays the smooth color-fade (setThemeSmooth).
+        // We tried a circular "reveal" via the View Transitions API here,
+        // but it forces the browser to rasterize two full-page snapshots
+        // (blur layers, gradients, the falling-stars animation, the whole
+        // long DOM) on every tap, which visibly stuttered on phones. The
+        // plain fade plus the toggle thumb's own slide animation gives
+        // motion without that cost.
+        function toggleTheme(e) {
             const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
             const next = current === 'dark' ? 'light' : 'dark';
             setThemeSmooth(next);
-            try { localStorage.setItem('gz_theme', next); } catch (e) { /* private browsing */ }
+            try { localStorage.setItem('gz_theme', next); } catch (err) { /* private browsing */ }
             updateThemeAutoNote();
         }
         applyThemeIcon(document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light');
