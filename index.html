@@ -1883,6 +1883,18 @@
         .support-fab:active { cursor: grabbing; transform: scale(0.94); }
         .support-fab-icon { fill: url(#fabBubbleGradient); stroke: #CFE6FF; stroke-width: 1.2; filter: drop-shadow(0 0 5px rgba(76,147,255,0.9)); }
         .support-fab-dot { position: absolute; top: 1px; right: 1px; width: 13px; height: 13px; border-radius: 50%; background: #FF3B30; border: 2px solid var(--surface); display: none; }
+        /* Light theme: swap the FAB from its default deep-blue "space"
+           look to a purple tone that matches the widget's own purple
+           accent (--accent: #8B5CF6 inside #support-widget-overlay). */
+        html:not([data-theme="dark"]) .support-fab {
+            background: radial-gradient(circle at 30% 22%, #6D28D9 0%, #2E1065 72%);
+            box-shadow: 0 0 0 1px rgba(139,92,246,0.55), 0 0 16px 2px rgba(139,92,246,0.55), 0 0 30px 4px rgba(139,92,246,0.28), 0 8px 20px rgba(0,0,0,0.28), inset 0 1px 2px rgba(255,255,255,0.06);
+        }
+        html:not([data-theme="dark"]) .support-fab-icon {
+            fill: url(#fabBubbleGradientLight);
+            stroke: #EAD9FB;
+            filter: drop-shadow(0 0 5px rgba(139,92,246,0.9));
+        }
         .support-guide-item { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
         .support-guide-q { display: flex; align-items: center; justify-content: space-between; padding: 13px 14px; font-size: 14px; font-weight: 500; color: var(--text); cursor: pointer; gap: 10px; }
         .support-guide-q svg { width: 16px; height: 16px; color: var(--text-secondary); transition: transform 0.2s ease; flex-shrink: 0; }
@@ -1955,6 +1967,43 @@
         #support-widget-overlay .support-chat-bubble.theirs .support-chat-bubble-time { color: rgba(255,255,255,0.85); }
         #support-widget-overlay .support-chat-bubble.mine { background: #fff; color: #1B1023; border: 1.5px solid var(--accent-soft); }
         #support-widget-overlay .support-chat-bubble.mine.seen { color: #2563EB; }
+        /* Smaller, tighter tab row + close button so the 3 tabs
+           (လမ်းညွှန် / တိုင်ကြားရန် / Support Chat) fit comfortably
+           instead of looking oversized/cramped on narrow screens. */
+        #support-widget-overlay .pkg-type-tabs { padding: 3px; gap: 3px; }
+        #support-widget-overlay .pkg-type-tab { font-size: 12px; padding: 7px 2px; }
+        #support-widget-overlay .modal-close { width: 28px; height: 28px; }
+        #support-widget-overlay .modal-close svg { width: 15px; height: 15px; }
+
+        /* Dark theme: the widget was hardcoded to a solid white+purple card
+           regardless of html[data-theme]. This re-points its local palette
+           to a dark navy+purple surface when the site is in dark mode, so
+           the chat/guide/complaint card follows the site theme instead of
+           always staying white. */
+        html[data-theme="dark"] #support-widget-overlay {
+            background: rgba(4,7,16,0.7);
+            --accent: #8B5CF6;
+            --accent-dark: #A78BFA;
+            --accent-soft: rgba(139,92,246,0.18);
+            --accent-rgb: 139,92,246;
+            --surface: #150F28;
+            --surface-alt: #1C1435;
+            --bg: #100A22;
+            --border: rgba(255,255,255,0.1);
+            --on-color: #FFFFFF;
+            --text: #EDE6FB;
+            --text-secondary: #A79BC9;
+            --text-faint: #574875;
+            --glass-bg: #150F28;
+            --glass-bg-strong: #150F28;
+            --glass-border: rgba(255,255,255,0.12);
+        }
+        html[data-theme="dark"] #support-widget-overlay .support-chat-bubble.mine {
+            background: var(--surface-alt);
+            color: var(--text);
+            border: 1.5px solid var(--border);
+        }
+        html[data-theme="dark"] #support-widget-overlay .support-chat-bubble.mine.seen { color: #7CA8FF; }
     </style>
 </head>
 <body>
@@ -1973,6 +2022,11 @@
                 <stop offset="0%" stop-color="#BFE3FF"></stop>
                 <stop offset="45%" stop-color="#3B8CFF"></stop>
                 <stop offset="100%" stop-color="#0B3D91"></stop>
+            </radialGradient>
+            <radialGradient id="fabBubbleGradientLight" cx="35%" cy="24%" r="80%">
+                <stop offset="0%" stop-color="#E9D5FF"></stop>
+                <stop offset="45%" stop-color="#A78BFA"></stop>
+                <stop offset="100%" stop-color="#5B21B6"></stop>
             </radialGradient>
         </defs>
         <symbol id="icon-gamepad" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2" ry="2"></rect><path d="M6 12h4"></path><path d="M8 10v4"></path></symbol>
@@ -2649,6 +2703,14 @@
                     <svg class="ui-icon" style="width:16px;height:16px;color:var(--text-muted);"><use href="#icon-chevron-right"></use></svg>
                 </div>
             </div>
+
+            <!-- App version + credit line: plain centered text under Terms &
+                 Policy, no card/grid needed. APP_VERSION is defined once
+                 near the top of the script so it only needs updating in
+                 one place for future releases. -->
+            <p id="app-version-footer" style="text-align:center;font-size:11px;color:var(--text-faint);margin-top:16px;letter-spacing:0.02em;">
+                Version <span id="app-version-number">1.0.0</span> · Powered by Kusanagi
+            </p>
         </div>
 
         <!-- EDIT PROFILE MODAL: pops up over the page instead of expanding
@@ -5959,7 +6021,9 @@
         window.renderTierPreviewGrid = renderTierPreviewGrid;
 
         // Sums lifetime successful-order spend for one customer, straight from
-        // Firestore (not cached), so tier/rank are always accurate.
+        // Firestore (not cached), so tier/rank are always accurate. Also
+        // includes completed wallet top-ups, so VIP progress reflects money
+        // the user has put in, not just what's been spent on orders.
         async function computeUserStats(guestId) {
             if (!guestId) return { total: 0, count: 0, games: 0 };
             try {
@@ -5973,6 +6037,17 @@
                     count++;
                     if (data.game) gameSet.add(data.game);
                 });
+
+                let topupTotal = 0;
+                try {
+                    const tq = query(collection(db, "walletTopups"), where("userId", "==", guestId), where("status", "==", "Completed"));
+                    const tsnap = await getDocs(tq);
+                    tsnap.forEach(d => { topupTotal += Number(d.data().amount) || 0; });
+                } catch (topupError) {
+                    console.error("computeUserStats topup error:", topupError);
+                }
+                total += topupTotal;
+
                 return { total, count, games: gameSet.size };
             } catch (error) {
                 console.error("computeUserStats error:", error);
@@ -8823,7 +8898,14 @@
         window.switchSupportTab = switchSupportTab;
 
         function toggleGuideItem(el) {
-            if (el) el.classList.toggle('open');
+            if (!el) return;
+            const willOpen = !el.classList.contains('open');
+            // Accordion behaviour: opening one guide item auto-closes any
+            // other item that was already open.
+            document.querySelectorAll('.support-guide-item.open').forEach(item => {
+                if (item !== el) item.classList.remove('open');
+            });
+            el.classList.toggle('open', willOpen);
         }
         window.toggleGuideItem = toggleGuideItem;
 
@@ -8918,11 +9000,33 @@
             }, (error) => console.error("Support chat summary listen error:", error));
         }
 
+        // Show the just-sent message instantly in the sender's own chat
+        // view. Needed because the message is written with
+        // timestamp: serverTimestamp(), and the messages query is ordered
+        // by that same field — until the server resolves the timestamp,
+        // Firestore's realtime listener can momentarily fail to include
+        // the pending message, so without this the sender wouldn't see
+        // their own text appear until the reply/sync caught up.
+        function appendOptimisticSupportChatMessage(text) {
+            const box = document.getElementById('support-chat-messages');
+            if (!box) return;
+            const empty = box.querySelector('.support-chat-empty');
+            if (empty) empty.remove();
+            const time = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            const safe = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
+            const bubble = document.createElement('div');
+            bubble.className = 'support-chat-bubble mine';
+            bubble.innerHTML = `${safe}<span class="support-chat-bubble-time">${time}</span>`;
+            box.appendChild(bubble);
+            box.scrollTop = box.scrollHeight;
+        }
+
         async function sendSupportChatMessage() {
             const input = document.getElementById('support-chat-input');
             const text = input.value.trim();
             if (!text) return;
             input.value = '';
+            appendOptimisticSupportChatMessage(text);
             try {
                 const guestId = window.getGuestId ? window.getGuestId() : '';
                 const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
