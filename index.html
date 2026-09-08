@@ -975,6 +975,23 @@
         /* Sold-out package card: dimmed and no longer tappable */
         .package-card.out-of-stock { opacity: 0.5; filter: grayscale(0.4); pointer-events: none; }
 
+        /* TOP / HOT promo tags — small star pill, admin-assigned per package
+           (pkg.badge = 'top' | 'hot' | ''). Sits inline next to the label
+           on plain top-up cards, and pinned to the card's top-right corner
+           on gift-card style currency cards (where there's no label row). */
+        .pc-tag {
+            display: inline-flex; align-items: center; gap: 2px; flex-shrink: 0;
+            padding: 2px 7px 2px 5px; border-radius: 10px;
+            font-size: 9.5px; font-weight: 700; letter-spacing: 0.2px; color: #fff;
+            white-space: nowrap; box-shadow: 0 1px 4px rgba(0,0,0,0.25);
+        }
+        .pc-tag-icon { width: 9px; height: 9px; flex-shrink: 0; }
+        .pc-tag-top { background: linear-gradient(135deg, #FFC93C, #FF9800); }
+        .pc-tag-hot { background: linear-gradient(135deg, #FF8A65, #FF3D57); }
+        .package-card.type-topup .pc-label-wrap.has-tag { justify-content: space-between; text-align: left; padding-left: 8px; padding-right: 6px; }
+        .package-card.type-topup .pc-label-wrap.has-tag .pc-label { flex: 1; min-width: 0; text-align: left; }
+        .package-card.type-currency .pc-tag { position: absolute; top: 6px; right: 6px; z-index: 3; }
+
         .pc-info { min-width: 0; }
         .pc-label { font-size: 14px; font-weight: 500; color: var(--text); line-height: 1.3; display: block; }
         .pc-price-bar { margin-top: 8px; padding: 8px 10px; border-top: 1px solid var(--border); background: var(--surface-alt); text-align: center; }
@@ -1437,7 +1454,9 @@
         .google-account-signedin { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .google-account-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background: var(--accent-soft); }
         .google-account-details { flex: 1; min-width: 0; }
-        .google-account-details span { display: block; font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .google-account-details .google-account-name-row { display: flex; align-items: center; gap: 5px; min-width: 0; }
+        .google-account-details span#google-account-name { display: block; font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .verified-badge { flex-shrink: 0; width: 15px; height: 15px; display: inline-block; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.15)); }
         .google-account-details small { font-size: 11.5px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
         .google-signout-btn { flex-shrink: 0; background: var(--bg); color: #C0392B; border: none; padding: 7px 12px; border-radius: 8px; font-size: 12.5px; font-weight: 500; cursor: pointer; }
         .google-signout-btn:active { background: var(--border); }
@@ -1860,8 +1879,9 @@
         .recent-id-chip { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; }
         .modal-overlay, .success-overlay { background: rgba(0,0,10,0.45); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
         /* Support Widget - draggable help/contact bubble (Guide / Complaint / Support Chat) */
-        .support-fab { position: fixed; width: 54px; height: 54px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 18px rgba(0,0,0,0.28); z-index: 150; cursor: grab; touch-action: none; right: 16px; bottom: 92px; transition: transform 0.15s ease; }
+        .support-fab { position: fixed; width: 56px; height: 56px; border-radius: 18px; background: radial-gradient(circle at 30% 22%, #0B1730 0%, #01030A 72%); color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 1px rgba(76,147,255,0.55), 0 0 16px 2px rgba(59,130,255,0.55), 0 0 30px 4px rgba(59,130,255,0.28), 0 8px 20px rgba(0,0,0,0.45), inset 0 1px 2px rgba(255,255,255,0.06); z-index: 150; cursor: grab; touch-action: none; right: 16px; bottom: 92px; transition: transform 0.15s ease; }
         .support-fab:active { cursor: grabbing; transform: scale(0.94); }
+        .support-fab-icon { fill: url(#fabBubbleGradient); stroke: #CFE6FF; stroke-width: 1.2; filter: drop-shadow(0 0 5px rgba(76,147,255,0.9)); }
         .support-fab-dot { position: absolute; top: 1px; right: 1px; width: 13px; height: 13px; border-radius: 50%; background: #FF3B30; border: 2px solid var(--surface); display: none; }
         .support-guide-item { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
         .support-guide-q { display: flex; align-items: center; justify-content: space-between; padding: 13px 14px; font-size: 14px; font-weight: 500; color: var(--text); cursor: pointer; gap: 10px; }
@@ -1884,6 +1904,57 @@
         .support-chat-send { width: 42px; height: 42px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; flex-shrink: 0; }
         .support-chat-empty { text-align: center; color: var(--text-secondary); font-size: 13px; padding: 30px 10px; }
         .support-chat-badge { display: none; width: 8px; height: 8px; border-radius: 50%; background: #FF3B30; margin-left: 5px; vertical-align: middle; }
+
+        /* ===== Support Widget: centered white+purple modal card =====
+           Scoped entirely to #support-widget-overlay so no other modal in
+           the app is affected. Opens as a centered fade+scale card (like
+           the Profile Edit / Order Detail modals) instead of the default
+           bottom-sheet slide-up, and swaps the translucent "liquid glass"
+           look for a solid white surface with a vivid purple accent —
+           this reuses the same --accent/--surface/--glass-* variables the
+           rest of the app already reads, just re-pointed locally. */
+        #support-widget-overlay {
+            align-items: center;
+            background: rgba(45,18,82,0.5);
+            -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+            --accent: #8B5CF6;
+            --accent-dark: #7C3AED;
+            --accent-soft: #F3E8FF;
+            --accent-rgb: 139,92,246;
+            --surface: #FFFFFF;
+            --surface-alt: #FAF5FF;
+            --bg: #F6F1FE;
+            --border: #E9D8FD;
+            --on-color: #FFFFFF;
+            --text: #201033;
+            --text-secondary: #8577A3;
+            --text-faint: #D3C2F0;
+            --glass-bg: #FFFFFF;
+            --glass-bg-strong: #FFFFFF;
+            --glass-border: #EAD9FB;
+            --blur: none;
+            --glass-shadow: 0 24px 50px -12px rgba(124,58,237,0.32);
+            --glass-shadow-sm: 0 8px 20px -6px rgba(124,58,237,0.18);
+        }
+        #support-widget-overlay .modal-box {
+            border-radius: 22px;
+            transform: translateY(10px) scale(0.94);
+            opacity: 0;
+            transition: transform 0.28s cubic-bezier(.22,1,.36,1), opacity 0.22s ease;
+            box-shadow: var(--glass-shadow);
+        }
+        #support-widget-overlay.show .modal-box { transform: translateY(0) scale(1); opacity: 1; }
+        #support-widget-overlay .pkg-type-tabs { background: var(--bg); }
+        #support-widget-overlay .modal-close { background: var(--accent-soft); border: 1px solid var(--border); color: var(--accent-dark); }
+        #support-widget-overlay .modal-header h3 { color: var(--accent-dark); }
+        #support-widget-overlay .support-chat-send { background: var(--accent); }
+        /* Chat bubbles: admin replies come in solid purple; my own sent
+           messages stay white with black text until the admin has seen
+           them, then the text turns blue as a read-receipt cue. */
+        #support-widget-overlay .support-chat-bubble.theirs { background: var(--accent); color: #fff; border: none; }
+        #support-widget-overlay .support-chat-bubble.theirs .support-chat-bubble-time { color: rgba(255,255,255,0.85); }
+        #support-widget-overlay .support-chat-bubble.mine { background: #fff; color: #1B1023; border: 1.5px solid var(--accent-soft); }
+        #support-widget-overlay .support-chat-bubble.mine.seen { color: #2563EB; }
     </style>
 </head>
 <body>
@@ -1897,6 +1968,13 @@
 
     <!-- SVGs -->
     <svg style="display: none;">
+        <defs>
+            <radialGradient id="fabBubbleGradient" cx="35%" cy="24%" r="80%">
+                <stop offset="0%" stop-color="#BFE3FF"></stop>
+                <stop offset="45%" stop-color="#3B8CFF"></stop>
+                <stop offset="100%" stop-color="#0B3D91"></stop>
+            </radialGradient>
+        </defs>
         <symbol id="icon-gamepad" viewBox="0 0 24 24"><rect x="2" y="6" width="20" height="12" rx="2" ry="2"></rect><path d="M6 12h4"></path><path d="M8 10v4"></path></symbol>
         <symbol id="icon-home" viewBox="0 0 24 24"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path><polyline points="9 22 9 12 15 12 15 22"></polyline></symbol>
         <symbol id="icon-history" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><line x1="12" y1="3" x2="12" y2="4.5"></line><line x1="12" y1="19.5" x2="12" y2="21"></line><line x1="3" y1="12" x2="4.5" y2="12"></line><line x1="19.5" y1="12" x2="21" y2="12"></line><polyline points="12 7 12 12.5 16 15"></polyline></symbol>
@@ -1946,7 +2024,7 @@
 
     <!-- Support Widget: draggable FAB, opens a panel with Guide / Complaint / Support Chat tabs -->
     <div class="support-fab" id="support-fab" aria-label="Help &amp; Support">
-        <svg class="ui-icon" style="width:24px;height:24px;"><use href="#icon-message-circle"></use></svg>
+        <svg class="ui-icon support-fab-icon" style="width:27px;height:27px;"><use href="#icon-message-circle"></use></svg>
         <span class="support-fab-dot" id="support-fab-dot"></span>
     </div>
 
@@ -2484,7 +2562,13 @@
             <div class="google-account-card google-account-signedin" id="google-account-signedin" style="display:none;">
                 <img id="google-account-avatar" src="" alt="" class="google-account-avatar">
                 <div class="google-account-details">
-                    <span id="google-account-name">—</span>
+                    <div class="google-account-name-row">
+                        <span id="google-account-name">—</span>
+                        <svg class="verified-badge" viewBox="0 0 24 24" aria-label="Verified">
+                            <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" fill="#22C55E" stroke="none"></path>
+                            <path d="m9 12 2 2 4-4" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </div>
                     <small id="google-account-email">—</small>
                 </div>
                 <button type="button" class="google-signout-btn" id="google-signout-btn" onclick="handleGoogleSignOut()">Sign Out</button>
@@ -3882,12 +3966,17 @@
                 // amount/currency name as a normal label, then price.
                 const isVoucher = !!window.currentGameIsVoucher;
                 const cardTypeClass = isVoucher ? 'type-currency' : 'type-topup';
+                // Admin-assigned promo star pill — 'top' or 'hot' (see admin
+                // package editor). Same star icon for both, colored differently.
+                const tagHtml = (pkg.badge === 'top' || pkg.badge === 'hot')
+                    ? `<span class="pc-tag pc-tag-${pkg.badge}"><svg class="pc-tag-icon" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2l2.9 6.26L22 9.27l-5 4.87L18.18 21 12 17.27 5.82 21 7 14.14l-5-4.87 7.1-1.01L12 2z"/></svg>${pkg.badge === 'top' ? 'TOP' : 'HOT'}</span>`
+                    : '';
                 const bodyHTML = isVoucher
                     ? `<div class="pc-amount-badge">${pkg.amount}</div>
                     <div class="pc-img-wrap">${imgTag}</div>
-                    <div class="pc-price-bar"><span class="pc-price">${pkg.price.toLocaleString()} MMK</span></div>`
+                    <div class="pc-price-bar"><span class="pc-price">${pkg.price.toLocaleString()} MMK</span></div>${tagHtml}`
                     : `<div class="pc-img-wrap">${imgTag}</div>
-                    <div class="pc-label-wrap"><span class="pc-label${pcLabelSizeClass(String(pkg.amount))}">${pkg.amount}</span></div>
+                    <div class="pc-label-wrap${tagHtml ? ' has-tag' : ''}"><span class="pc-label${pcLabelSizeClass(String(pkg.amount))}">${pkg.amount}</span>${tagHtml}</div>
                     <div class="pc-price-bar"><span class="pc-price">${pkg.price.toLocaleString()} MMK</span></div>`;
                 return `
                 <div class="package-card ${cardTypeClass} game-card-anim${outOfStock ? ' out-of-stock' : ''}" style="animation-delay:${Math.min(pos * 18, 120)}ms" data-index="${i}" onclick="${outOfStock ? '' : `selectPackageOption(${i})`}">
@@ -8784,9 +8873,13 @@
             }
             box.innerHTML = msgs.map(m => {
                 const mine = m.sender !== 'admin';
+                // Read-receipt: once the admin panel marks this message doc as
+                // seen (seenByAdmin: true, or seen: true), the sent bubble's
+                // text switches from black to blue.
+                const seen = mine && (m.seenByAdmin === true || m.seen === true);
                 const time = (m.timestamp && m.timestamp.toDate) ? m.timestamp.toDate().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '';
                 const safe = (m.text || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                return `<div class="support-chat-bubble ${mine ? 'mine' : 'theirs'}">${safe}<span class="support-chat-bubble-time">${time}</span></div>`;
+                return `<div class="support-chat-bubble ${mine ? 'mine' : 'theirs'}${seen ? ' seen' : ''}">${safe}<span class="support-chat-bubble-time">${time}</span></div>`;
             }).join('');
             box.scrollTop = box.scrollHeight;
         }
@@ -8834,7 +8927,7 @@
                 const guestId = window.getGuestId ? window.getGuestId() : '';
                 const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
                 await addDoc(collection(db, "supportChats", guestId, "messages"), {
-                    sender: 'user', text, timestamp: serverTimestamp(), sentToTelegram: false
+                    sender: 'user', text, timestamp: serverTimestamp(), sentToTelegram: false, seenByAdmin: false
                 });
                 await setDoc(doc(db, "supportChats", guestId), {
                     userId: guestId,
