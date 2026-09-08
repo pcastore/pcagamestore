@@ -4,6 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PCA Store</title>
+    <link rel="icon" id="favicon-link" href="">
     <script>
         // Apply saved theme immediately (before CSS paints) to avoid a light-mode flash.
         // Priority: an explicit manual choice (gz_theme) always wins. Otherwise the
@@ -1858,6 +1859,31 @@
         .pay-type-tab.active { background: var(--glass-bg-strong); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); border-radius: 12px; }
         .recent-id-chip { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; }
         .modal-overlay, .success-overlay { background: rgba(0,0,10,0.45); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
+        /* Support Widget - draggable help/contact bubble (Guide / Complaint / Support Chat) */
+        .support-fab { position: fixed; width: 54px; height: 54px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 6px 18px rgba(0,0,0,0.28); z-index: 150; cursor: grab; touch-action: none; right: 16px; bottom: 92px; transition: transform 0.15s ease; }
+        .support-fab:active { cursor: grabbing; transform: scale(0.94); }
+        .support-fab-dot { position: absolute; top: 1px; right: 1px; width: 13px; height: 13px; border-radius: 50%; background: #FF3B30; border: 2px solid var(--surface); display: none; }
+        .support-guide-item { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
+        .support-guide-q { display: flex; align-items: center; justify-content: space-between; padding: 13px 14px; font-size: 14px; font-weight: 500; color: var(--text); cursor: pointer; gap: 10px; }
+        .support-guide-q svg { width: 16px; height: 16px; color: var(--text-secondary); transition: transform 0.2s ease; flex-shrink: 0; }
+        .support-guide-item.open .support-guide-q svg { transform: rotate(90deg); }
+        .support-guide-a { display: none; padding: 0 14px 14px; font-size: 13px; color: var(--text-secondary); line-height: 1.55; }
+        .support-guide-item.open .support-guide-a { display: block; }
+        .support-complaint-field { margin-bottom: 12px; }
+        .support-complaint-field label { display: block; font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
+        .support-complaint-field input, .support-complaint-field textarea { width: 100%; padding: 11px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 14px; font-family: inherit; box-sizing: border-box; }
+        .support-complaint-field textarea { min-height: 100px; resize: vertical; }
+        .support-chat-wrap { display: flex; flex-direction: column; height: 48vh; }
+        .support-chat-messages { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 4px 2px; display: flex; flex-direction: column; gap: 8px; }
+        .support-chat-bubble { position: relative; max-width: 78%; padding: 9px 13px 16px; border-radius: 14px; font-size: 13.5px; line-height: 1.45; word-break: break-word; }
+        .support-chat-bubble.mine { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
+        .support-chat-bubble.theirs { align-self: flex-start; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+        .support-chat-bubble-time { position: absolute; right: 12px; bottom: 4px; font-size: 9.5px; opacity: 0.7; }
+        .support-chat-inputrow { display: flex; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border); margin-top: 8px; flex-shrink: 0; }
+        .support-chat-inputrow input { flex: 1; padding: 11px 14px; border-radius: 22px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 14px; min-width: 0; }
+        .support-chat-send { width: 42px; height: 42px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; flex-shrink: 0; }
+        .support-chat-empty { text-align: center; color: var(--text-secondary); font-size: 13px; padding: 30px 10px; }
+        .support-chat-badge { display: none; width: 8px; height: 8px; border-radius: 50%; background: #FF3B30; margin-left: 5px; vertical-align: middle; }
     </style>
 </head>
 <body>
@@ -1910,10 +1936,77 @@
         <symbol id="icon-gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4"></rect><path d="M12 8v13"></path><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"></path><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"></path></symbol>
         <symbol id="icon-external-link" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></symbol>
         <symbol id="icon-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></symbol>
+        <symbol id="icon-message-circle" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></symbol>
+        <symbol id="icon-flag" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></symbol>
+        <symbol id="icon-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></symbol>
     </svg>
 
     <!-- Toast Notification -->
     <div id="toast"><span class="toast-icon-circle" id="toast-icon-circle"><svg class="ui-icon" id="toast-icon" style="color:#fff;"><use id="toast-icon-use" href="#icon-check"></use></svg></span> <span id="toast-msg">Success!</span> <svg class="ui-icon toast-close" onclick="window.hideToast && window.hideToast()"><use href="#icon-close"></use></svg></div>
+
+    <!-- Support Widget: draggable FAB, opens a panel with Guide / Complaint / Support Chat tabs -->
+    <div class="support-fab" id="support-fab" aria-label="Help &amp; Support">
+        <svg class="ui-icon" style="width:24px;height:24px;"><use href="#icon-message-circle"></use></svg>
+        <span class="support-fab-dot" id="support-fab-dot"></span>
+    </div>
+
+    <div class="modal-overlay" id="support-widget-overlay" onclick="if(event.target===this) window.closeSupportWidget()">
+        <div class="modal-box" style="max-height:86vh;">
+            <div class="modal-header">
+                <h3>အကူအညီ</h3>
+                <div class="modal-close" onclick="window.closeSupportWidget()"><svg class="ui-icon" style="width:16px;"><use href="#icon-close"></use></svg></div>
+            </div>
+            <div class="pkg-type-tabs">
+                <button class="pkg-type-tab active" id="support-tab-guide" onclick="window.switchSupportTab('guide')">လမ်းညွှန်</button>
+                <button class="pkg-type-tab" id="support-tab-complaint" onclick="window.switchSupportTab('complaint')">တိုင်ကြားရန်</button>
+                <button class="pkg-type-tab" id="support-tab-chat" onclick="window.switchSupportTab('chat')">Support Chat<span class="support-chat-badge" id="support-chat-badge"></span></button>
+            </div>
+
+            <!-- User Guide tab -->
+            <div class="modal-body" id="support-panel-guide">
+                <div class="support-guide-item" id="guide-item-1">
+                    <div class="support-guide-q" onclick="window.toggleGuideItem(this.parentElement)">အော်ဒါ ဘယ်လိုတင်ရမလဲ<svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></div>
+                    <div class="support-guide-a">Home စာမျက်နှာမှ ဂိမ်းကို ရွေးပါ။ Package/Currency ကို ရွေးပြီး In-Game ID (နှင့် Server ID လိုအပ်ပါက) ရိုက်ထည့်ပါ။ "Confirm ID" ကို နှိပ်ပြီး ID မှန်ကန်ကြောင်း စစ်ဆေးပါ။ နောက်ဆုံးတွင် ငွေပေးချေမှုအမျိုးအစား ရွေးချယ်ပြီး အတည်ပြုလိုက်ရုံပါပဲ။</div>
+                </div>
+                <div class="support-guide-item" id="guide-item-2">
+                    <div class="support-guide-q" onclick="window.toggleGuideItem(this.parentElement)">ငွေပေးချေနည်း<svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></div>
+                    <div class="support-guide-a">Wallet ထဲက လက်ကျန်ငွေဖြင့် တိုက်ရိုက်ပေးချေနိုင်သလို၊ Payment Method တစ်ခုကို ရွေးပြီး ငွေလွှဲပြေစာ (Receipt) တင်၍လည်း ပေးချေနိုင်ပါသည်။ Wallet ထဲသို့ ငွေဖြည့်ရန် Wallet စာမျက်နှာမှ "Top Up" ကို သုံးပါ။</div>
+                </div>
+                <div class="support-guide-item" id="guide-item-3">
+                    <div class="support-guide-q" onclick="window.toggleGuideItem(this.parentElement)">အော်ဒါ Status ကို ဘယ်လိုစစ်ရမလဲ<svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></div>
+                    <div class="support-guide-a">History စာမျက်နှာတွင် အော်ဒါတစ်ခုချင်းစီကို Pending → Processing → Success/Fail အဆင့်ဆင့် အချိန်နှင့်တပြေးညီ ကြည့်ရှုနိုင်ပါသည်။ Processing တွင် ကြာမြင့်နေပါက "တိုင်ကြားရန်" tab ကနေ ပြန်လည်အကြောင်းကြားနိုင်ပါသည်။</div>
+                </div>
+                <div class="support-guide-item" id="guide-item-4">
+                    <div class="support-guide-q" onclick="window.toggleGuideItem(this.parentElement)">ပြဿနာရှိရင် ဘယ်လိုဆက်သွယ်ရမလဲ<svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></div>
+                    <div class="support-guide-a">အသေးစိတ် ရေးရန်ဆိုရင် "တိုင်ကြားရန်" tab ကို သုံးပါ (Ticket အနေနှင့် မှတ်တမ်းတင်ပေးပါမည်)။ တိုက်ရိုက် စကားပြောချင်ရင် "Support Chat" tab ကို သုံးနိုင်ပါသည်။</div>
+                </div>
+            </div>
+
+            <!-- Complaint tab -->
+            <div class="modal-body" id="support-panel-complaint" style="display:none;">
+                <div class="support-complaint-field">
+                    <label>ခေါင်းစဉ်</label>
+                    <input type="text" id="complaint-title" placeholder="ဥပမာ - အော်ဒါ Processing မှာ ကပ်နေသည်">
+                </div>
+                <div class="support-complaint-field">
+                    <label>အကြောင်းအရာ</label>
+                    <textarea id="complaint-text" placeholder="ပြဿနာအား အသေးစိတ် ရေးပေးပါ..."></textarea>
+                </div>
+                <button type="button" class="btn btn-primary" style="width:100%;" onclick="window.submitComplaint(this)">
+                    <svg class="ui-icon" style="width:16px;margin-right:6px;vertical-align:-3px;"><use href="#icon-flag"></use></svg>တိုင်ကြားစာ ပို့မည်
+                </button>
+            </div>
+
+            <!-- Support Chat tab -->
+            <div class="modal-body support-chat-wrap" id="support-panel-chat" style="display:none;">
+                <div class="support-chat-messages" id="support-chat-messages"></div>
+                <div class="support-chat-inputrow">
+                    <input type="text" id="support-chat-input" placeholder="မက်ဆေ့ချ် ရိုက်ပါ..." onkeydown="if(event.key==='Enter'){event.preventDefault();window.sendSupportChatMessage();}">
+                    <button type="button" class="support-chat-send" onclick="window.sendSupportChatMessage()"><svg class="ui-icon" style="width:18px;height:18px;"><use href="#icon-send"></use></svg></button>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <!-- Header -->
     <header class="header">
@@ -4903,14 +4996,14 @@
         // status values like "Pending"/"Success"/"Fail" stay as-is — only the
         // badge text shown to the customer changes). Same mapping as admin.html:
         // Pending→Draft, Processing→In-progress, success-class
-        // (Success/Completed)→In-review, danger-class (Fail/Rejected)→Completed.
+        // (Success/Completed)→Completed, danger-class (Fail/Rejected)→Failed.
         const ORDER_STATUS_DISPLAY_LABELS = {
             Pending: 'Draft',
             Processing: 'In-progress',
-            Success: 'In-review',
-            Completed: 'In-review',
-            Fail: 'Completed',
-            Rejected: 'Completed'
+            Success: 'Completed',
+            Completed: 'Completed',
+            Fail: 'Failed',
+            Rejected: 'Failed'
         };
         function orderStatusLabel(status) {
             return ORDER_STATUS_DISPLAY_LABELS[status] || status;
@@ -6256,11 +6349,13 @@
         function renderHeaderLogo(data) {
             const img = document.getElementById('header-logo-img');
             const defaultIcon = document.getElementById('header-logo-default-icon');
+            const favicon = document.getElementById('favicon-link');
             if (data && data.logoUrl) {
                 APP_LOGO_URL = data.logoUrl;
                 img.src = data.logoUrl;
                 img.style.display = 'block';
                 defaultIcon.style.display = 'none';
+                if (favicon) favicon.href = data.logoUrl;
             } else {
                 APP_LOGO_URL = '';
                 img.style.display = 'none';
@@ -8543,6 +8638,221 @@
         window.getSavedContact = getSavedContact;
         window.submitOrder = submitOrder;
         window.loadHistory = loadHistory;
+
+        // ---------- Support Widget: draggable FAB + Guide / Complaint / Support Chat panel ----------
+        // Complaint tab writes one-off tickets to `supportTickets`. Chat tab is a
+        // per-guest thread: `supportChats/{guestId}` (summary doc - lastMessage,
+        // lastSender, unreadByAdmin, used for admin-side inbox sorting) plus its
+        // `messages` subcollection (sender: 'user' | 'admin'). Getting these to
+        // actually reach Telegram / an admin.html inbox needs matching worker-side
+        // and admin-side code that isn't part of this pass - see chat notes.
+        let supportChatMsgUnsub = null;
+        let supportFabDragged = false;
+
+        function loadSupportFabPos() {
+            try {
+                const saved = JSON.parse(localStorage.getItem('gz_support_fab_pos') || 'null');
+                const fab = document.getElementById('support-fab');
+                if (!fab || !saved || typeof saved.right !== 'number' || typeof saved.bottom !== 'number') return;
+                fab.style.right = saved.right + 'px';
+                fab.style.bottom = saved.bottom + 'px';
+            } catch (e) { /* private browsing - ignore */ }
+        }
+
+        function initSupportWidget() {
+            const fab = document.getElementById('support-fab');
+            if (!fab) return;
+            loadSupportFabPos();
+
+            let startX, startY, startRight, startBottom, moved;
+            const onMove = (e) => {
+                const dx = startX - e.clientX;
+                const dy = startY - e.clientY;
+                if (Math.abs(dx) > 4 || Math.abs(dy) > 4) moved = true;
+                const maxRight = window.innerWidth - fab.offsetWidth - 4;
+                const maxBottom = window.innerHeight - fab.offsetHeight - 4;
+                fab.style.right = Math.min(Math.max(startRight + dx, 4), maxRight) + 'px';
+                fab.style.bottom = Math.min(Math.max(startBottom + dy, 4), maxBottom) + 'px';
+            };
+            const onUp = () => {
+                document.removeEventListener('pointermove', onMove);
+                document.removeEventListener('pointerup', onUp);
+                supportFabDragged = moved;
+                if (moved) {
+                    try {
+                        localStorage.setItem('gz_support_fab_pos', JSON.stringify({
+                            right: parseFloat(fab.style.right) || 16,
+                            bottom: parseFloat(fab.style.bottom) || 92
+                        }));
+                    } catch (e) { /* private browsing - ignore */ }
+                }
+            };
+            fab.addEventListener('pointerdown', (e) => {
+                startX = e.clientX; startY = e.clientY; moved = false;
+                const rect = fab.getBoundingClientRect();
+                startRight = window.innerWidth - rect.right;
+                startBottom = window.innerHeight - rect.bottom;
+                document.addEventListener('pointermove', onMove);
+                document.addEventListener('pointerup', onUp);
+            });
+            // The click that follows a drag is suppressed so dragging the bubble
+            // never also opens the panel - only a genuine tap opens it.
+            fab.addEventListener('click', () => {
+                if (supportFabDragged) { supportFabDragged = false; return; }
+                openSupportWidget();
+            });
+
+            listenSupportChatSummary();
+        }
+
+        function openSupportWidget() {
+            const overlay = document.getElementById('support-widget-overlay');
+            if (overlay) overlay.classList.add('show');
+            const dot = document.getElementById('support-fab-dot');
+            if (dot) dot.style.display = 'none';
+        }
+        function closeSupportWidget() {
+            const overlay = document.getElementById('support-widget-overlay');
+            if (overlay) overlay.classList.remove('show');
+        }
+        window.openSupportWidget = openSupportWidget;
+        window.closeSupportWidget = closeSupportWidget;
+
+        function switchSupportTab(tab) {
+            ['guide', 'complaint', 'chat'].forEach(t => {
+                const tabBtn = document.getElementById(`support-tab-${t}`);
+                const panel = document.getElementById(`support-panel-${t}`);
+                if (tabBtn) tabBtn.classList.toggle('active', t === tab);
+                if (panel) panel.style.display = t === tab ? '' : 'none';
+            });
+            if (tab === 'chat') {
+                const badge = document.getElementById('support-chat-badge');
+                if (badge) badge.style.display = 'none';
+                listenSupportChatMessages();
+            }
+        }
+        window.switchSupportTab = switchSupportTab;
+
+        function toggleGuideItem(el) {
+            if (el) el.classList.toggle('open');
+        }
+        window.toggleGuideItem = toggleGuideItem;
+
+        async function submitComplaint(btnEl) {
+            const titleEl = document.getElementById('complaint-title');
+            const textEl = document.getElementById('complaint-text');
+            const title = titleEl.value.trim();
+            const text = textEl.value.trim();
+            if (!title || !text) {
+                window.showToast('ခေါင်းစဉ်နှင့် အကြောင်းအရာ ဖြည့်ပေးပါ', 'fail');
+                return;
+            }
+            const originalHtml = btnEl.innerHTML;
+            btnEl.innerText = 'ပို့နေသည်...';
+            btnEl.disabled = true;
+            try {
+                const guestId = window.getGuestId ? window.getGuestId() : '';
+                const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
+                await addDoc(collection(db, "supportTickets"), {
+                    userId: guestId,
+                    userName: (savedProfile.name && savedProfile.name.trim()) ? savedProfile.name.trim() : guestId,
+                    userPhone: (savedProfile.phone && savedProfile.phone.trim()) ? savedProfile.phone.trim() : '',
+                    title,
+                    message: text,
+                    status: 'Open',
+                    timestamp: serverTimestamp()
+                });
+                titleEl.value = '';
+                textEl.value = '';
+                window.showToast('တိုင်ကြားစာ ပို့ပြီးပါပြီ', 'success');
+            } catch (error) {
+                console.error("Complaint submit error:", error);
+                window.showToast(error.message || 'ပို့၍မရပါ', 'fail');
+            } finally {
+                btnEl.innerHTML = originalHtml;
+                btnEl.disabled = false;
+            }
+        }
+        window.submitComplaint = submitComplaint;
+
+        function renderSupportChatMessages(msgs) {
+            const box = document.getElementById('support-chat-messages');
+            if (!box) return;
+            if (msgs.length === 0) {
+                box.innerHTML = '<div class="support-chat-empty">မက်ဆေ့ချ် မရှိသေးပါ။ အောက်မှာ စာရိုက်ပြီး ပို့လိုက်ပါ။</div>';
+                return;
+            }
+            box.innerHTML = msgs.map(m => {
+                const mine = m.sender !== 'admin';
+                const time = (m.timestamp && m.timestamp.toDate) ? m.timestamp.toDate().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '';
+                const safe = (m.text || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+                return `<div class="support-chat-bubble ${mine ? 'mine' : 'theirs'}">${safe}<span class="support-chat-bubble-time">${time}</span></div>`;
+            }).join('');
+            box.scrollTop = box.scrollHeight;
+        }
+
+        // Lazily attached the first time the Support Chat tab is opened, then
+        // left running so replies still render live if the user switches tabs.
+        function listenSupportChatMessages() {
+            if (supportChatMsgUnsub) return;
+            const guestId = window.getGuestId ? window.getGuestId() : '';
+            if (!guestId) return;
+            const q = query(collection(db, "supportChats", guestId, "messages"), orderBy("timestamp", "asc"));
+            supportChatMsgUnsub = onSnapshot(q, (snap) => {
+                renderSupportChatMessages(snap.docs.map(d => d.data()));
+            }, (error) => console.error("Support chat listen error:", error));
+        }
+
+        // Runs from app start (not just once the Chat tab is opened) purely to
+        // light up the FAB dot / tab badge the moment an admin reply lands while
+        // the widget is closed or on a different tab.
+        function listenSupportChatSummary() {
+            const guestId = window.getGuestId ? window.getGuestId() : '';
+            if (!guestId) return;
+            onSnapshot(doc(db, "supportChats", guestId), (snap) => {
+                if (!snap.exists()) return;
+                const data = snap.data();
+                const overlay = document.getElementById('support-widget-overlay');
+                const chatTabBtn = document.getElementById('support-tab-chat');
+                const panelOpen = overlay && overlay.classList.contains('show');
+                const chatTabActive = chatTabBtn && chatTabBtn.classList.contains('active');
+                if (data.lastSender === 'admin' && !(panelOpen && chatTabActive)) {
+                    const dot = document.getElementById('support-fab-dot');
+                    const badge = document.getElementById('support-chat-badge');
+                    if (dot) dot.style.display = 'block';
+                    if (badge) badge.style.display = 'inline-block';
+                }
+            }, (error) => console.error("Support chat summary listen error:", error));
+        }
+
+        async function sendSupportChatMessage() {
+            const input = document.getElementById('support-chat-input');
+            const text = input.value.trim();
+            if (!text) return;
+            input.value = '';
+            try {
+                const guestId = window.getGuestId ? window.getGuestId() : '';
+                const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
+                await addDoc(collection(db, "supportChats", guestId, "messages"), {
+                    sender: 'user', text, timestamp: serverTimestamp(), sentToTelegram: false
+                });
+                await setDoc(doc(db, "supportChats", guestId), {
+                    userId: guestId,
+                    userName: (savedProfile.name && savedProfile.name.trim()) ? savedProfile.name.trim() : guestId,
+                    lastMessage: text,
+                    lastMessageAt: serverTimestamp(),
+                    lastSender: 'user',
+                    unreadByAdmin: true
+                }, { merge: true });
+            } catch (error) {
+                console.error("Support chat send error:", error);
+                window.showToast(error.message || 'ပို့၍မရပါ', 'fail');
+                input.value = text; // give the message back so it isn't lost
+            }
+        }
+        window.sendSupportChatMessage = sendSupportChatMessage;
+
+        initSupportWidget();
     </script>
 </body>
 </html>
