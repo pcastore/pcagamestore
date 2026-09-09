@@ -5082,6 +5082,28 @@
                 if (!gid) return;
                 const profile = window.getSavedProfile ? window.getSavedProfile() : {};
                 const userRef = doc(db, "users", gid);
+                // Only stamp createdAt the first time this guest is seen, so it works
+                // as a real "join date" in the admin panel instead of shifting on
+                // every visit like lastSeen does.
+                const existing = await getDoc(userRef);
+
+                // If this device already has profile data saved but Firestore has no
+                // record of this guestId at all, the admin deleted this account (see
+                // performUserCascadeDelete in admin.html). Without this check we'd
+                // just recreate the deleted doc from the old local cache below,
+                // making "delete" not actually stick. Instead, wipe the local cache
+                // and let this device start over as a brand-new guest.
+                if (!existing.exists() && (profile.name || profile.phone || profile.photo)) {
+                    try {
+                        localStorage.removeItem('gz_profile');
+                        localStorage.removeItem('gz_guest_id');
+                        localStorage.removeItem('gz_member_since');
+                    } catch (e) { /* private browsing */ }
+                    if (window.renderProfileFields) window.renderProfileFields();
+                    if (window.renderMiniProfile) window.renderMiniProfile();
+                    return; // the fresh guestId will sync itself on the next action
+                }
+
                 const payload = {
                     guestId: gid,
                     name: profile.name || '',
@@ -5090,10 +5112,6 @@
                     googleEmail: (auth.currentUser && auth.currentUser.email) || '',
                     lastSeen: serverTimestamp()
                 };
-                // Only stamp createdAt the first time this guest is seen, so it works
-                // as a real "join date" in the admin panel instead of shifting on
-                // every visit like lastSeen does.
-                const existing = await getDoc(userRef);
                 if (!existing.exists() || !existing.data().createdAt) {
                     payload.createdAt = serverTimestamp();
                 }
@@ -5807,6 +5825,19 @@
         }
 
         async function handleGoogleSignIn() {
+            // Home Screen "Add to Home Screen" apps run in a separate storage
+            // container from the regular browser (iOS Safari standalone mode,
+            // and the equivalent on Android). The redirect can still "succeed"
+            // visually, but the resulting session lives in the browser, not the
+            // standalone container, so it looks signed-out again next launch.
+            // Nothing in web code can bridge that - point the user at the
+            // browser instead of letting them hit the confusing dead end.
+            const isStandalone = window.navigator.standalone === true ||
+                (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+            if (isStandalone) {
+                if (window.showToast) window.showToast('Please open this site in Safari or Chrome (not the Home Screen icon) to sign in with Google.', 'fail');
+                return;
+            }
             const btn = document.getElementById('google-signin-btn');
             const originalHTML = btn.innerHTML;
             btn.disabled = true;
