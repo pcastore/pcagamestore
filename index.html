@@ -149,7 +149,7 @@
         /* Keep real app content above the decorative layer. */
         header, main.content-area, .bottom-nav, .modal-overlay, #toast { position: relative; z-index: 1; }
 
-        body { background-color: var(--bg); background-image: var(--bg-gradient); background-attachment: fixed; color: var(--text); padding-bottom: 96px; }
+        body { background-color: var(--bg); background-image: var(--bg-gradient); background-attachment: fixed; color: var(--text); padding-bottom: calc(15px + env(safe-area-inset-bottom, 0px)); }
 
         /* ===================== LIQUID GLASS PANEL ===================== */
         .glass-panel {
@@ -3221,34 +3221,6 @@
             <div class="modal-body" id="order-detail-body"></div>
         </div>
     </div>
-
-    <!-- Bottom Navigation -->
-    <nav class="bottom-nav">
-        <div class="nav-item active" id="btn-home" onclick="showPage('home')">
-            <span class="nav-icon-wrap"><svg class="ui-icon"><use href="#icon-home"></use></svg></span>
-            <span class="nav-label">Home</span>
-        </div>
-        <div class="nav-item" id="btn-voucher" onclick="showPage('voucher')">
-            <span class="nav-icon-wrap"><svg class="ui-icon"><use href="#icon-gift"></use></svg></span>
-            <span class="nav-label">Voucher</span>
-        </div>
-        <div class="nav-item" id="btn-history" onclick="showPage('history')">
-            <span class="nav-icon-wrap"><svg class="ui-icon"><use href="#icon-history"></use></svg></span>
-            <span class="nav-label">History</span>
-        </div>
-        <div class="nav-item" id="btn-leaderboard" onclick="showPage('leaderboard')">
-            <span class="nav-icon-wrap"><svg class="ui-icon"><use href="#icon-trophy"></use></svg></span>
-            <span class="nav-label">Top</span>
-        </div>
-        <div class="nav-item" id="btn-wallet" onclick="showPage('wallet')">
-            <span class="nav-icon-wrap"><svg class="ui-icon"><use href="#icon-wallet"></use></svg></span>
-            <span class="nav-label">Wallet</span>
-        </div>
-        <div class="nav-item" id="btn-profile" onclick="showPage('profile')">
-            <span class="nav-icon-wrap"><svg class="ui-icon"><use href="#icon-user"></use></svg></span>
-            <span class="nav-label">Profile</span>
-        </div>
-    </nav>
 
     <!-- Vanilla JS for Navigation & Toast -->
     <script>
