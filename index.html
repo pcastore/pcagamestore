@@ -246,6 +246,66 @@
         }
         .notif-dot.show { display: block; animation: notifPulse 1.8s ease-in-out infinite; }
         @keyframes notifPulse { 0%, 100% { box-shadow: 0 0 0 2px rgba(229,57,53,0.25); } 50% { box-shadow: 0 0 0 6px rgba(229,57,53,0); } }
+        /* ===================== SIDE DRAWER ===================== */
+        /* Overlay = dim backdrop that also hosts the sliding panel, so a
+           single .show class animates both at once. Panel width is capped
+           well under half the viewport (per spec) so most of the screen
+           still reads as backdrop, not menu. */
+        .drawer-overlay {
+            position: fixed; inset: 0; background: rgba(0,0,0,0.5);
+            -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px);
+            z-index: 260; opacity: 0; pointer-events: none;
+            transition: opacity 0.28s ease;
+        }
+        .drawer-overlay.show { opacity: 1; pointer-events: auto; }
+        .side-drawer {
+            position: fixed; top: 0; left: 0; height: 100%;
+            width: 40%; max-width: 210px; min-width: 175px;
+            background: var(--surface); display: flex; flex-direction: column;
+            transform: translateX(-100%);
+            transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+            box-shadow: 8px 0 28px rgba(0,0,0,0.2);
+            overflow-y: auto;
+        }
+        .drawer-overlay.show .side-drawer { transform: translateX(0); }
+        .drawer-header {
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 16px 12px 14px 16px; border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+        .drawer-close {
+            width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+            display: flex; align-items: center; justify-content: center;
+            background: var(--glass-bg-strong); border: 1px solid var(--glass-border);
+            color: var(--text-secondary); cursor: pointer; transition: transform 0.15s ease;
+        }
+        .drawer-close:active { transform: scale(0.9); }
+        .drawer-nav { padding: 8px; display: flex; flex-direction: column; gap: 2px; }
+        .drawer-nav-item {
+            display: flex; align-items: center; gap: 12px; padding: 11px 10px;
+            border-radius: 12px; color: var(--text-secondary);
+            font-size: 13.5px; font-weight: 500; cursor: pointer;
+            transition: background-color 0.15s ease, color 0.15s ease;
+        }
+        .drawer-nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
+        .drawer-nav-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .drawer-nav-item.active { background: var(--accent-soft); color: var(--accent); }
+        .drawer-nav-item:active { background: var(--surface-alt); }
+        .drawer-section-label {
+            padding: 14px 10px 4px; font-size: 10.5px; font-weight: 600;
+            letter-spacing: 0.4px; text-transform: uppercase; color: var(--text-faint);
+        }
+        .drawer-divider { height: 1px; background: var(--border); margin: 8px 10px 0; }
+        .drawer-footer {
+            margin-top: auto; padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+            border-top: 1px solid var(--border); font-size: 11px; color: var(--text-faint);
+            flex-shrink: 0;
+        }
+        /* While the drawer's slide/fade transition runs, suppress its own
+           backdrop-filter for the same reason the theme-switch blur is
+           dropped elsewhere - re-blurring every frame during the slide
+           animation is what causes jank on lower-end phones. */
+        .drawer-overlay:not(.show) { backdrop-filter: none; -webkit-backdrop-filter: none; }
         .admin-status-bar {
             display: inline-flex; align-items: center; gap: 6px;
             margin: 8px 15px 0; padding: 5px 12px;
@@ -305,6 +365,25 @@
         .page-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         .title-header { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+
+        /* Flash Sale banner: shown on Home while settings/flashsale is enabled
+           and hasn't expired (see listenFlashSale() / tickFlashSaleCountdown()). */
+        .flash-sale-banner {
+            display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding: 14px 16px;
+            border-radius: 16px; cursor: pointer; color: #fff;
+            background: linear-gradient(135deg, #FF5F6D 0%, #FF3D00 100%);
+            box-shadow: 0 8px 22px -8px rgba(255,61,0,0.5);
+        }
+        .flash-sale-icon { font-size: 26px; flex-shrink: 0; }
+        .flash-sale-body { flex: 1; min-width: 0; }
+        .flash-sale-title { font-weight: 700; font-size: 14.5px; }
+        .flash-sale-desc { font-size: 12.5px; opacity: 0.92; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .flash-sale-countdown {
+            flex-shrink: 0; font-variant-numeric: tabular-nums; font-weight: 700; font-size: 13.5px;
+            background: rgba(255,255,255,0.22); padding: 6px 10px; border-radius: 10px;
+            animation: flashSalePulse 1.4s ease-in-out infinite;
+        }
+        @keyframes flashSalePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
         
         /* Cards & Lists */
         .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
@@ -2042,6 +2121,7 @@
         <symbol id="icon-rocket" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2l.5-.5M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path></symbol>
         <symbol id="icon-megaphone" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></symbol>
         <symbol id="icon-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></symbol>
+        <symbol id="icon-menu" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></symbol>
         <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></symbol>
         <symbol id="icon-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></symbol>
         <symbol id="icon-chevron-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></symbol>
@@ -2142,12 +2222,17 @@
 
     <!-- Header -->
     <header class="header">
-        <div class="logo" onclick="showPage('home')" role="button" aria-label="Go to home page">
-            <span class="logo-icon-wrap">
-                <svg class="ui-icon" id="header-logo-default-icon" style="color:#fff;"><use href="#icon-gamepad"></use></svg>
-                <img id="header-logo-img" src="" alt="PCA Store" style="display:none;">
-            </span>
-            PCA Store
+        <div style="display:flex; align-items:center; gap:10px;">
+            <div class="header-icon" id="drawer-toggle-btn" onclick="openDrawer()" role="button" aria-label="Open menu">
+                <svg class="ui-icon" style="width: 20px;"><use href="#icon-menu"></use></svg>
+            </div>
+            <div class="logo" onclick="showPage('home')" role="button" aria-label="Go to home page">
+                <span class="logo-icon-wrap">
+                    <svg class="ui-icon" id="header-logo-default-icon" style="color:#fff;"><use href="#icon-gamepad"></use></svg>
+                    <img id="header-logo-img" src="" alt="PCA Store" style="display:none;">
+                </span>
+                PCA Store
+            </div>
         </div>
         <div style="display:flex; align-items:center; gap:10px;">
             <div class="theme-toggle" id="theme-toggle" onclick="toggleTheme(event)" role="button" aria-label="Toggle dark mode">
@@ -2158,6 +2243,64 @@
             <div class="header-icon" onclick="openNotificationsPage()"><svg class="ui-icon" style="width: 20px;"><use href="#icon-bell"></use></svg><span class="notif-dot" id="notif-dot"></span></div>
         </div>
     </header>
+
+    <!-- Side Drawer: hamburger-triggered slide-out nav. Overlay dims the
+         backdrop and closes the drawer on tap-outside; the panel itself
+         mirrors the bottom nav (so it works as a full app menu even on
+         pages where the bottom nav is out of reach) plus a few extra
+         links that don't have a bottom-nav slot. -->
+    <div class="drawer-overlay" id="drawer-overlay" onclick="if(event.target===this) closeDrawer()">
+        <aside class="side-drawer" id="side-drawer">
+            <div class="drawer-header">
+                <div class="logo" style="font-size:16px;">
+                    <span class="logo-icon-wrap" style="width:24px;height:24px;">
+                        <svg class="ui-icon" style="color:#fff;width:14px;"><use href="#icon-gamepad"></use></svg>
+                    </span>
+                    PCA Store
+                </div>
+                <div class="drawer-close" onclick="closeDrawer()" role="button" aria-label="Close menu">
+                    <svg class="ui-icon" style="width:15px;"><use href="#icon-close"></use></svg>
+                </div>
+            </div>
+            <nav class="drawer-nav" id="drawer-nav">
+                <div class="drawer-nav-item active" data-page="home" onclick="drawerNavigate('home')">
+                    <svg class="ui-icon"><use href="#icon-home"></use></svg><span>Home</span>
+                </div>
+                <div class="drawer-nav-item" data-page="voucher" onclick="drawerNavigate('voucher')">
+                    <svg class="ui-icon"><use href="#icon-gift"></use></svg><span>Voucher</span>
+                </div>
+                <div class="drawer-nav-item" data-page="history" onclick="drawerNavigate('history')">
+                    <svg class="ui-icon"><use href="#icon-history"></use></svg><span>History</span>
+                </div>
+                <div class="drawer-nav-item" data-page="leaderboard" onclick="drawerNavigate('leaderboard')">
+                    <svg class="ui-icon"><use href="#icon-trophy"></use></svg><span>Leaderboard</span>
+                </div>
+                <div class="drawer-nav-item" data-page="wallet" onclick="drawerNavigate('wallet')">
+                    <svg class="ui-icon"><use href="#icon-wallet"></use></svg><span>Wallet</span>
+                </div>
+                <div class="drawer-nav-item" data-page="profile" onclick="drawerNavigate('profile')">
+                    <svg class="ui-icon"><use href="#icon-user"></use></svg><span>Profile</span>
+                </div>
+
+                <div class="drawer-divider"></div>
+                <div class="drawer-section-label">More</div>
+
+                <div class="drawer-nav-item" onclick="closeDrawer(); openNotificationsPage();">
+                    <svg class="ui-icon"><use href="#icon-bell"></use></svg><span>Notifications</span>
+                </div>
+                <div class="drawer-nav-item" onclick="closeDrawer(); openFrameCollection();">
+                    <svg class="ui-icon"><use href="#icon-frame"></use></svg><span>Frame Collection</span>
+                </div>
+                <div class="drawer-nav-item" onclick="closeDrawer(); showPage('terms');">
+                    <svg class="ui-icon"><use href="#icon-book"></use></svg><span>Terms &amp; Policy</span>
+                </div>
+                <div class="drawer-nav-item" onclick="closeDrawer(); openSupportWidget();">
+                    <svg class="ui-icon"><use href="#icon-message-circle"></use></svg><span>Support</span>
+                </div>
+            </nav>
+            <div class="drawer-footer">PCA Store</div>
+        </aside>
+    </div>
 
     <!-- Admin online/offline status: reflects settings/presence, written every 60s
          by admin.html while an admin is signed in there. Hidden until the first
@@ -2193,6 +2336,14 @@
         
         <!-- HOME PAGE (Firebase Orders) -->
         <div id="home" class="page-section active">
+            <div class="flash-sale-banner" id="flash-sale-banner" style="display:none;" onclick="openFlashSaleGame()">
+                <div class="flash-sale-icon">⚡</div>
+                <div class="flash-sale-body">
+                    <div class="flash-sale-title" id="flash-sale-title">Flash Sale</div>
+                    <div class="flash-sale-desc" id="flash-sale-desc"></div>
+                </div>
+                <div class="flash-sale-countdown" id="flash-sale-countdown">--:--:--</div>
+            </div>
             <div id="popular-games-section">
                 <h2 class="title-header">Popular Games</h2>
                 <div class="popular-scroll-wrap" id="popular-games-scroll">
@@ -2541,7 +2692,13 @@
                     </label>
                     <input type="file" id="profile-photo-file" class="avatar-upload-input" accept="image/*" onchange="previewProfilePhoto(event)">
 
-                    <div class="profile-hero-name" id="profile-hero-name">Guest</div>
+                    <div class="profile-hero-name-row" style="display:flex;align-items:center;justify-content:center;gap:5px;">
+                        <div class="profile-hero-name" id="profile-hero-name">Guest</div>
+                        <svg class="verified-badge" id="profile-hero-verified-badge" viewBox="0 0 24 24" aria-label="Google verified" style="display:none;">
+                            <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" fill="#22C55E" stroke="none"></path>
+                            <path d="m9 12 2 2 4-4" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"></path>
+                        </svg>
+                    </div>
                     <div class="profile-hero-id-row">
                         <span class="profile-hero-id" id="profile-hero-id"></span>
                         <button type="button" class="pm-copy-btn profile-id-copy-btn" id="profile-id-copy-btn" onclick="copyProfileId(this)" title="Copy ID">
@@ -2595,6 +2752,40 @@
                         Auto-switches: Light 7 AM–7 PM, Dark 7 PM–7 AM.
                         <span id="theme-auto-reset-link" style="color:var(--accent);font-weight: 600;cursor:pointer;display:none;" onclick="resetThemeToAuto()">Switched off — tap to re-enable auto</span>
                     </p>
+                </div>
+            </div>
+
+            <!-- Referral / Invite Friends: code is just the guest's own ID (already
+                 unique, no new field needed). Redeem section only shows for guests
+                 who haven't already redeemed a code (referredBy unset), toggled live
+                 in listenWalletBalance()'s existing users/{gid} snapshot. -->
+            <div class="detail-form-card" id="referral-card">
+                <label style="align-self:flex-start;">Invite Friends</label>
+                <p style="font-size:12.5px;color:var(--text-muted);margin-top:2px;line-height:1.5;">Share your code — when a friend redeems it, you both get wallet credit.</p>
+                <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-top:10px;">
+                    <span id="referral-own-code" style="font-weight:700;font-size:15px;letter-spacing:0.5px;">PCA-0000</span>
+                    <div style="display:flex;gap:8px;flex-shrink:0;">
+                        <button type="button" class="pm-copy-btn" onclick="shareReferralCode()" title="Share" style="width:32px;height:32px;">
+                            <svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                                <path d="M4 12v7a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-7"></path>
+                                <path d="M16 6l-4-4-4 4"></path>
+                                <path d="M12 2v13"></path>
+                            </svg>
+                        </button>
+                        <button type="button" class="pm-copy-btn" onclick="copyReferralCode()" title="Copy code" style="width:32px;height:32px;">
+                            <svg class="ui-icon"><use href="#icon-copy"></use></svg>
+                        </button>
+                    </div>
+                </div>
+                <p id="referral-count-text" style="font-size:12px;color:var(--text-muted);margin-top:8px;">0 friends invited</p>
+                <p id="referral-commission-text" style="font-size:12px;color:var(--text-muted);margin-top:2px;"></p>
+
+                <div id="referral-redeem-section" style="margin-top:14px;display:none;">
+                    <label style="align-self:flex-start;font-size:12.5px;">Have a friend's code?</label>
+                    <div style="display:flex;gap:8px;margin-top:6px;">
+                        <input type="text" id="referral-code-input" placeholder="e.g. PCA-1234" style="flex:1;min-width:0;padding:11px 14px;border-radius:12px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;text-transform:uppercase;">
+                        <button type="button" class="btn" id="referral-redeem-btn" style="padding:11px 18px;font-size:13.5px;flex-shrink:0;width:auto;" onclick="redeemReferralCode()">Redeem</button>
+                    </div>
                 </div>
             </div>
 
@@ -2887,6 +3078,12 @@
                 <p class="qty-hint" id="qty-hint"></p>
             </div>
 
+            <!-- Coupon code — validated live against the coupons collection
+                 via the Worker's /validate-coupon (see COUPON_WORKER_URL);
+                 the real, must-not-lie check + usedCount increment happens
+                 at /redeem-coupon inside submitOrder/submitWalletOrder. -->
+            <div id="coupon-card" class="detail-form-card" style="display:none; margin-top:12px;"></div>
+
             <div id="detail-payment-section" style="display:none;">
                 <h3 class="detail-section-title">How do you want to pay?</h3>
                 <div class="pay-type-tabs" id="detail-pay-type-tabs">
@@ -3076,6 +3273,9 @@
             document.getElementById(pageId).classList.add('active');
             const navBtn = document.getElementById(`btn-${pageId}`);
             if (navBtn) navBtn.classList.add('active');
+            document.querySelectorAll('.drawer-nav-item[data-page]').forEach(el => {
+                el.classList.toggle('active', el.dataset.page === pageId);
+            });
             window.scrollTo(0,0);
             window.currentStorePage = pageId;
             if (pageId === 'history' && window.loadHistory) window.loadHistory();
@@ -3126,6 +3326,28 @@
         window.showPage = showPage;
         window.showToast = showToast;
         window.hideToast = hideToast;
+
+        // Side drawer: opened via the header hamburger. body scroll is
+        // locked while it's open so the page behind it can't scroll along
+        // with the drawer's own list.
+        function openDrawer() {
+            document.getElementById('drawer-overlay').classList.add('show');
+            document.body.style.overflow = 'hidden';
+        }
+        function closeDrawer() {
+            document.getElementById('drawer-overlay').classList.remove('show');
+            document.body.style.overflow = '';
+        }
+        function drawerNavigate(pageId) {
+            showPage(pageId);
+            closeDrawer();
+        }
+        window.openDrawer = openDrawer;
+        window.closeDrawer = closeDrawer;
+        window.drawerNavigate = drawerNavigate;
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'Escape') closeDrawer();
+        });
 
         // Swipe left/right on the main content to move between bottom-nav
         // tabs, same order as the nav bar (Home -> Voucher -> History ->
@@ -3193,6 +3415,17 @@
         // Quantity stepper) — always 1 for non-voucher/topup packages,
         // which don't show the stepper at all.
         let selectedPackageQty = 1;
+        // Coupon applied to the currently selected package, if any -
+        // { code, discountAmount, discountType, discountValue }. Reset
+        // whenever a new package is picked (see selectPackageOption) since
+        // a discount is only ever validated against one specific subtotal.
+        let appliedCoupon = null;
+        // Whether at least one coupon exists right now that is isActive AND
+        // inside its startsAt/expiresAt event window (see listenCouponAvailability
+        // below). The whole "Coupon Code" card is hidden from checkout unless
+        // this is true — so customers never see a coupon box during a period
+        // when nothing is actually redeemable.
+        let anyCouponAvailable = false;
         // Which bottom-nav page a game's detail modal was opened from (Home
         // or Voucher) - so closing it returns the customer to the right tab
         // instead of always dropping back to Home.
@@ -3229,6 +3462,10 @@
         // server-side as the aluu-functions Worker's ALUU_API_KEY secret.
         // See the /aluu-id-check route in aluu-worker.js.
         const ALUU_ID_CHECK_URL = 'https://aluu-functions.pca-game-store.workers.dev/aluu-id-check';
+        // Coupon validate/redeem — served by the same Worker as the Telegram
+        // approval bot (telegram-worker.js's /validate-coupon and
+        // /redeem-coupon routes). Fill in the actual deployed subdomain.
+        const COUPON_WORKER_URL = 'https://telegram-order.pca-game-store.workers.dev';
         let selectedGameServerName = '';
 
         // Shown for any package that doesn't have an admin-uploaded image, so the
@@ -3774,6 +4011,7 @@
             selectedGameG2BulkIdCheckCode = game.g2bulkIdCheckCode || null;
             selectedGameAluuCode = game.aluuCode || null;
             selectedPackage = null;
+            appliedCoupon = null;
 
             // Voucher/coupon-style games deliver a code rather than crediting a
             // player account, so the admin can turn off the In-Game ID prompt
@@ -4057,10 +4295,12 @@
             if (pkgToSelect && pkgToSelect.voucherId && voucherStockMap[String(pkgToSelect.voucherId)] === 0) return;
             selectedPackage = pkgToSelect;
             selectedPackageQty = 1;
+            appliedCoupon = null; // discount was validated against the previous package's subtotal - start clean
             document.querySelectorAll('#detail-package-list .package-card').forEach(el => el.classList.remove('selected'));
             document.querySelector(`#detail-package-list .package-card[data-index="${index}"]`).classList.add('selected');
 
             renderQtyStepper();
+            renderCouponCard();
 
             // Picking a new package invalidates whatever "how do I pay" choice
             // was made for the previous one — price may have changed, so the
@@ -4117,12 +4357,158 @@
             if (next === selectedPackageQty) return;
             selectedPackageQty = next;
             renderQtyStepper();
+            if (appliedCoupon) { revalidateCouponSilently(); return; } // it re-runs the price refresh below itself
             // Quantity changes the total, so anything already showing a
             // price (wallet balance box, confirm button) needs refreshing.
             if (selectedPaymentType === 'wallet') renderWalletPayBox();
             else if (selectedPaymentType) updateConfirmButtonForPaymentType();
         }
         window.changePackageQty = changePackageQty;
+
+        // ---------- Coupon codes ----------
+        function getOrderSubtotal() {
+            return selectedPackage ? selectedPackage.price * selectedPackageQty : 0;
+        }
+        function getOrderTotal() {
+            return Math.max(0, getOrderSubtotal() - (appliedCoupon ? appliedCoupon.discountAmount : 0));
+        }
+
+        function renderCouponCard() {
+            const card = document.getElementById('coupon-card');
+            if (!card) return;
+            // Hide the whole card — not just the input — whenever there's
+            // nothing to redeem right now: no package chosen yet, or no
+            // coupon is currently isActive + inside its event time window.
+            // A coupon the customer already applied still gets to show its
+            // "applied" row even if availability flips off mid-session; that
+            // case is cleaned up separately by listenCouponAvailability.
+            if (!selectedPackage || (!appliedCoupon && !anyCouponAvailable)) { card.style.display = 'none'; return; }
+            card.style.display = 'flex';
+            if (appliedCoupon) {
+                card.innerHTML = `
+                    <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
+                        <div>
+                            <span style="font-weight:600;font-size:14px;">${appliedCoupon.code}</span>
+                            <span style="color:#28a745;font-weight:600;font-size:13px;margin-left:8px;">-${appliedCoupon.discountAmount.toLocaleString()} MMK</span>
+                        </div>
+                        <button type="button" class="btn btn-outline" style="flex:unset;padding:6px 12px;font-size:12px;" onclick="removeCoupon()">Remove</button>
+                    </div>
+                `;
+            } else {
+                card.innerHTML = `
+                    <label style="align-self:flex-start;">Coupon Code</label>
+                    <div style="display:flex;gap:8px;width:100%;">
+                        <input type="text" id="coupon-code-input" placeholder="Enter coupon code" autocomplete="off" style="flex:1;text-transform:uppercase;padding:11px 14px;border-radius:12px;border:1px solid var(--border-glass);background:var(--fill-soft);color:var(--text);font-size:14px;">
+                        <button type="button" class="btn btn-outline" id="coupon-apply-btn" style="flex:unset;padding:0 16px;" onclick="applyCoupon()">Apply</button>
+                    </div>
+                `;
+            }
+        }
+        window.renderCouponCard = renderCouponCard;
+
+        function refreshPricesAfterCouponChange() {
+            renderCouponCard();
+            renderQtyStepper();
+            if (selectedPaymentType === 'wallet') renderWalletPayBox();
+            else if (selectedPaymentType) updateConfirmButtonForPaymentType();
+        }
+
+        // Caps a coupon's discount so the final price never dips below the
+        // package's own cost price (selectedPackage.cost, admin-set buy-in
+        // price × qty) — protects margin so a coupon can never eat into or
+        // go past what the package actually cost the store.
+        // NOTE: this is a client-side/UX guard only. The Worker's
+        // /redeem-coupon route is the authoritative, must-not-lie check at
+        // submit time (see COUPON_WORKER_URL comment above) and should
+        // enforce this same cost floor server-side too — that logic lives
+        // in telegram-worker.js, which wasn't part of this edit.
+        function capCouponDiscountToCost(discountAmount, subtotal) {
+            const costTotal = (Number(selectedPackage?.cost) || 0) * selectedPackageQty;
+            if (costTotal <= 0) return { discountAmount, blocked: false }; // no cost data - nothing to protect
+            const maxDiscount = Math.max(0, subtotal - costTotal);
+            if (maxDiscount <= 0) return { discountAmount: 0, blocked: true }; // already at/under cost - coupon can't apply at all
+            return { discountAmount: Math.min(discountAmount, maxDiscount), blocked: false };
+        }
+
+        async function applyCoupon() {
+            const input = document.getElementById('coupon-code-input');
+            const code = input ? input.value.trim().toUpperCase() : '';
+            if (!code) { window.showToast('Please enter a coupon code', 'fail'); return; }
+            const subtotal = getOrderSubtotal();
+            if (!subtotal) return;
+
+            const btn = document.getElementById('coupon-apply-btn');
+            const originalText = btn.innerText;
+            btn.disabled = true;
+            btn.innerText = 'Checking...';
+            try {
+                const guestId = window.getGuestId ? window.getGuestId() : '';
+                const costTotal = (Number(selectedPackage?.cost) || 0) * selectedPackageQty;
+                const res = await fetch(`${COUPON_WORKER_URL}/validate-coupon`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code, guestId, orderAmount: subtotal, costTotal })
+                });
+                const data = await res.json();
+                if (!data.ok) { window.showToast(data.error || 'Invalid coupon', 'fail'); return; }
+                // The Worker already enforces the cost floor authoritatively
+                // (costTotal above); this just mirrors it instantly client-side.
+                const capped = capCouponDiscountToCost(data.discountAmount, subtotal);
+                if (capped.blocked) { window.showToast('This coupon can\'t be applied to this package', 'fail'); return; }
+                appliedCoupon = { code, discountAmount: capped.discountAmount, discountType: data.discountType, discountValue: data.discountValue };
+                window.showToast(`Coupon applied: -${capped.discountAmount.toLocaleString()} MMK`, 'success');
+                refreshPricesAfterCouponChange();
+            } catch (error) {
+                console.error('Coupon validate error:', error);
+                window.showToast('Could not check coupon. Check connection.', 'fail');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = originalText;
+            }
+        }
+        window.applyCoupon = applyCoupon;
+
+        function removeCoupon() {
+            appliedCoupon = null;
+            refreshPricesAfterCouponChange();
+        }
+        window.removeCoupon = removeCoupon;
+
+        // Re-checks the already-applied coupon against a new subtotal (qty
+        // changed) without making the customer retype the code. Silently
+        // drops the coupon if it no longer qualifies (e.g. a max-uses cap
+        // hit in the meantime) rather than leaving a stale discount showing.
+        async function revalidateCouponSilently() {
+            if (!appliedCoupon) return;
+            const subtotal = getOrderSubtotal();
+            try {
+                const guestId = window.getGuestId ? window.getGuestId() : '';
+                const costTotal = (Number(selectedPackage?.cost) || 0) * selectedPackageQty;
+                const res = await fetch(`${COUPON_WORKER_URL}/validate-coupon`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ code: appliedCoupon.code, guestId, orderAmount: subtotal, costTotal })
+                });
+                const data = await res.json();
+                if (!data.ok) {
+                    appliedCoupon = null;
+                    window.showToast(data.error || 'Coupon no longer valid for this quantity', 'fail');
+                } else {
+                    const capped = capCouponDiscountToCost(data.discountAmount, subtotal);
+                    if (capped.blocked) {
+                        appliedCoupon = null;
+                        window.showToast('Coupon removed — no longer applicable at this quantity', 'fail');
+                    } else {
+                        appliedCoupon.discountAmount = capped.discountAmount;
+                    }
+                }
+            } catch (error) {
+                console.error('Coupon revalidate error:', error);
+                // Leave the coupon applied on a network hiccup - /redeem-coupon
+                // at submit time is the authoritative check either way.
+            }
+            refreshPricesAfterCouponChange();
+        }
 
         // ---------- Pay with Wallet vs Pay with Kpay/Wave/etc. ----------
         function choosePaymentType(type) {
@@ -4155,16 +4541,20 @@
         function renderWalletPayBox() {
             const box = document.getElementById('detail-wallet-pay-box');
             if (!selectedPackage) { box.innerHTML = ''; return; }
-            const price = selectedPackage.price * selectedPackageQty;
+            const subtotal = getOrderSubtotal();
+            const price = getOrderTotal();
+            const discountLine = appliedCoupon ? `<span class="wallet-pay-note ok" style="color:#28a745;">Coupon ${appliedCoupon.code}: -${appliedCoupon.discountAmount.toLocaleString()} MMK (was ${subtotal.toLocaleString()} MMK)</span>` : '';
             const bal = currentWalletBalance;
             const enough = bal >= price;
             box.innerHTML = enough ? `
                 <span class="wallet-pay-balance-label">Wallet Balance</span>
                 <span class="wallet-pay-balance-amount">${bal.toLocaleString()} MMK</span>
+                ${discountLine}
                 <span class="wallet-pay-note ok">✓ Enough balance — ${price.toLocaleString()} MMK will be deducted when you confirm.</span>
             ` : `
                 <span class="wallet-pay-balance-label">Wallet Balance</span>
                 <span class="wallet-pay-balance-amount">${bal.toLocaleString()} MMK</span>
+                ${discountLine}
                 <span class="wallet-pay-note low">Not enough balance — top up ${(price - bal).toLocaleString()} MMK more to pay from your wallet.</span>
                 <button type="button" class="btn btn-primary" style="margin-top:10px;width:100%;" onclick="openWalletTopupModal()">Top Up Wallet</button>
             `;
@@ -4175,7 +4565,7 @@
         function updateConfirmButtonForPaymentType() {
             if (!selectedPackage) return;
             const confirmBtn = document.getElementById('detail-confirm-btn');
-            const total = selectedPackage.price * selectedPackageQty;
+            const total = getOrderTotal();
             const qtySuffix = selectedPackageQty > 1 ? ` ×${selectedPackageQty}` : '';
             if (selectedPaymentType === 'wallet') {
                 const enough = currentWalletBalance >= total;
@@ -4514,6 +4904,7 @@
             selectedPackage = null;
             selectedPaymentMethod = null;
             selectedPaymentType = null;
+            appliedCoupon = null;
             editingReceiptFile = null;
             receiptOcrPromise = null;
             stopVoucherStockRefresh();
@@ -4635,7 +5026,7 @@
             }
 
             if (selectedPaymentType === 'wallet') {
-                if (currentWalletBalance < selectedPackage.price * selectedPackageQty) {
+                if (currentWalletBalance < getOrderTotal()) {
                     window.showToast('Not enough wallet balance. Please top up.', 'fail');
                     if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb();
                     return;
@@ -4788,7 +5179,11 @@
                 gameName: selectedGameName,
                 serverRegion: selectedGameServerName,
                 amount: qty > 1 ? `${selectedPackage.amount} × ${qty}` : selectedPackage.amount,
-                price: selectedPackage.price * qty,
+                price: getOrderTotal(),
+                cost: (Number(selectedPackage.cost) || 0) * qty,
+                couponCode: appliedCoupon ? appliedCoupon.code : null,
+                couponDiscount: appliedCoupon ? appliedCoupon.discountAmount : null,
+                couponSubtotal: appliedCoupon ? getOrderSubtotal() : null,
                 quantity: qty,
                 inGameId,
                 serverId,
@@ -4827,7 +5222,11 @@
                 gameName: selectedGameName,
                 serverRegion: selectedGameServerName,
                 amount: qty > 1 ? `${selectedPackage.amount} × ${qty}` : selectedPackage.amount,
-                price: selectedPackage.price * qty,
+                price: getOrderTotal(),
+                cost: (Number(selectedPackage.cost) || 0) * qty,
+                couponCode: appliedCoupon ? appliedCoupon.code : null,
+                couponDiscount: appliedCoupon ? appliedCoupon.discountAmount : null,
+                couponSubtotal: appliedCoupon ? getOrderSubtotal() : null,
                 quantity: qty,
                 inGameId,
                 serverId,
@@ -5187,7 +5586,8 @@
             const gid = window.getGuestId ? window.getGuestId() : null;
             if (!gid) return;
             onSnapshot(doc(db, "users", gid), (snap) => {
-                const bal = snap.exists() ? Number(snap.data().walletBalance || 0) : 0;
+                const data = snap.exists() ? snap.data() : {};
+                const bal = Number(data.walletBalance || 0);
                 currentWalletBalance = bal;
                 const el = document.getElementById('wallet-balance-amount');
                 if (el && window.formatMMK) el.innerText = window.formatMMK(bal);
@@ -5197,8 +5597,143 @@
                 if (selectedPaymentType === 'wallet' && document.getElementById('detail-wallet-pay-box').style.display !== 'none') {
                     renderWalletPayBox();
                 }
+                const redeemSection = document.getElementById('referral-redeem-section');
+                if (redeemSection) redeemSection.style.display = data.referredBy ? 'none' : 'block';
+                const countEl = document.getElementById('referral-count-text');
+                if (countEl) {
+                    const n = Number(data.referralCount || 0);
+                    countEl.innerText = n === 1 ? '1 friend invited' : n + ' friends invited';
+                }
             }, (error) => console.error('Wallet balance listener error:', error));
         }
+
+        // ---------- Referral / Invite Friends ----------
+        // The referral "code" is just the guest's own ID - already unique, no new
+        // field to generate or collide-check. Reward amounts are read from
+        // settings/referral (admin-configurable) with hardcoded fallbacks so this
+        // works even before that doc exists.
+        function renderReferralCard() {
+            const gid = window.getGuestId ? window.getGuestId() : '';
+            const el = document.getElementById('referral-own-code');
+            if (el) el.innerText = gid;
+        }
+        window.renderReferralCard = renderReferralCard;
+
+        // Beyond the one-time signup bonus above, referrers also earn ongoing
+        // commission (% of price) whenever a friend they referred completes a
+        // successful order — the % scales with the referrer's own VIP tier
+        // (credited server/admin-side). Mirrors DEFAULT_TIER_COMMISSION in
+        // admin.html; live-updated from the same settings/referral doc so an
+        // admin change reflects here without a reload.
+        const DEFAULT_TIER_COMMISSION = {
+            Bronze: 0, Gold: 1, Platinum: 2, Diamond: 3,
+            Legend: 4, Conqueror: 5, Mythical: 7, Immortal: 10
+        };
+        let TIER_COMMISSION = { ...DEFAULT_TIER_COMMISSION };
+        let referralCommissionListenerAttached = false;
+        function listenReferralCommissionSettings() {
+            if (referralCommissionListenerAttached) return;
+            referralCommissionListenerAttached = true;
+            onSnapshot(doc(db, "settings", "referral"), (docSnap) => {
+                const data = docSnap.exists() ? docSnap.data() : {};
+                TIER_COMMISSION = { ...DEFAULT_TIER_COMMISSION, ...(data.tierCommission || {}) };
+                if (window.currentStorePage === 'profile' && window.loadProfileStats) window.loadProfileStats();
+            }, (error) => console.error('Referral commission settings listener error:', error));
+        }
+        listenReferralCommissionSettings();
+
+        // Updates the "you currently earn X% commission" line on the referral
+        // card. Called from loadProfileStats() once that page's tier/spend is
+        // known, since the rate depends on the viewer's own VIP tier.
+        function renderReferralCommissionText(tier) {
+            const el = document.getElementById('referral-commission-text');
+            if (!el) return;
+            const rate = Number(TIER_COMMISSION[tier.name]) || 0;
+            el.innerText = rate > 0
+                ? `As a ${tier.name} member, you earn ${rate}% commission on every purchase your referred friends make.`
+                : `Reach a higher VIP tier to start earning ongoing commission on friends' purchases.`;
+        }
+        window.renderReferralCommissionText = renderReferralCommissionText;
+
+        function copyReferralCode() {
+            const gid = window.getGuestId ? window.getGuestId() : '';
+            if (!gid) return;
+            navigator.clipboard.writeText(gid).then(() => {
+                if (window.showToast) window.showToast('Referral code copied!');
+            }).catch(() => {
+                if (window.showToast) window.showToast('Could not copy code.', 'fail');
+            });
+        }
+        window.copyReferralCode = copyReferralCode;
+
+        function shareReferralCode() {
+            const gid = window.getGuestId ? window.getGuestId() : '';
+            if (!gid) return;
+            const shareText = `Join PCA Store using my code ${gid} and we both get free wallet credit!`;
+            if (navigator.share) {
+                navigator.share({ title: 'PCA Store', text: shareText, url: window.location.origin }).catch(() => { /* user cancelled - not an error */ });
+            } else {
+                // No native share sheet (desktop browsers) - copy instead so the
+                // customer still has something to paste into a chat.
+                navigator.clipboard.writeText(shareText + ' ' + window.location.origin).then(() => {
+                    if (window.showToast) window.showToast('Invite message copied!');
+                }).catch(() => {
+                    if (window.showToast) window.showToast('Could not share or copy.', 'fail');
+                });
+            }
+        }
+        window.shareReferralCode = shareReferralCode;
+
+        async function redeemReferralCode() {
+            const input = document.getElementById('referral-code-input');
+            const btn = document.getElementById('referral-redeem-btn');
+            const code = (input.value || '').trim().toUpperCase();
+            const myGid = window.getGuestId ? window.getGuestId() : null;
+            if (!myGid) return;
+            if (!code) { if (window.showToast) window.showToast('Please enter a referral code.', 'fail'); return; }
+            if (code === myGid) { if (window.showToast) window.showToast("You can't use your own referral code.", 'fail'); return; }
+
+            const originalText = btn.innerText;
+            btn.disabled = true;
+            btn.innerText = '...';
+            try {
+                const settingsSnap = await getDoc(doc(db, "settings", "referral"));
+                const cfg = settingsSnap.exists() ? settingsSnap.data() : {};
+                const newUserReward = Number(cfg.newUserReward) || 1000;
+                const referrerReward = Number(cfg.referrerReward) || 1000;
+
+                await runTransaction(db, async (tx) => {
+                    const myRef = doc(db, "users", myGid);
+                    const theirRef = doc(db, "users", code);
+                    const mySnap = await tx.get(myRef);
+                    const theirSnap = await tx.get(theirRef);
+                    if (!theirSnap.exists()) throw new Error("That referral code doesn't exist.");
+                    if (mySnap.exists() && mySnap.data().referredBy) throw new Error("You've already used a referral code.");
+
+                    tx.set(myRef, { referredBy: code, walletBalance: increment(newUserReward) }, { merge: true });
+                    tx.set(theirRef, { walletBalance: increment(referrerReward), referralCount: increment(1) }, { merge: true });
+
+                    tx.set(doc(collection(db, "walletTopups")), {
+                        amount: newUserReward, paymentMethod: 'Referral Bonus', status: 'Completed',
+                        timestamp: serverTimestamp(), userId: myGid, userName: myGid, userPhone: ''
+                    });
+                    tx.set(doc(collection(db, "walletTopups")), {
+                        amount: referrerReward, paymentMethod: 'Referral Bonus (friend joined)', status: 'Completed',
+                        timestamp: serverTimestamp(), userId: code, userName: code, userPhone: ''
+                    });
+                });
+
+                if (window.showToast) window.showToast(`Referral applied! +${newUserReward.toLocaleString()} MMK added.`);
+                input.value = '';
+            } catch (error) {
+                console.error('Referral redeem error:', error);
+                if (window.showToast) window.showToast(error.message || 'Could not apply that code.', 'fail');
+            } finally {
+                btn.disabled = false;
+                btn.innerText = originalText;
+            }
+        }
+        window.redeemReferralCode = redeemReferralCode;
 
         // ---------- Top Up Modal ----------
         function openWalletTopupModal() {
@@ -5778,6 +6313,7 @@
 
         listenWalletBalance();
         listenWalletTopups();
+        renderReferralCard();
         listenFrames();
         listenUserFrameState();
 
@@ -5793,6 +6329,8 @@
         function renderGoogleAccountUI(user) {
             const signedOutEl = document.getElementById('google-account-signedout');
             const signedInEl = document.getElementById('google-account-signedin');
+            const heroBadge = document.getElementById('profile-hero-verified-badge');
+            if (heroBadge) heroBadge.style.display = user ? 'inline-block' : 'none';
             if (!signedOutEl || !signedInEl) return;
             if (user) {
                 signedOutEl.style.display = 'none';
@@ -6099,6 +6637,7 @@
             window.__lastUserStats = { total, count, games };
             const tier = tierForSpend(total);
             const next = nextTierForSpend(total);
+            if (window.renderReferralCommissionText) window.renderReferralCommissionText(tier);
 
             const miniTierEl = document.getElementById('mini-profile-tier');
             const miniHintEl = document.getElementById('mini-profile-hint');
@@ -6724,7 +7263,7 @@
         }
 
         async function submitOrder(orderData, btnElement) {
-            const { gameName, serverRegion, amount, price, quantity, inGameId, inGameName, serverId, paymentMethodName, receiptFile, transactionId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId, fazercardCategoryId, fazercardOfferId, fazercardGiftCategoryId, fazercardGiftCardId, bay2gameProductId } = orderData;
+            const { gameName, serverRegion, amount, price, cost, quantity, inGameId, inGameName, serverId, paymentMethodName, receiptFile, transactionId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId, fazercardCategoryId, fazercardOfferId, fazercardGiftCategoryId, fazercardGiftCardId, bay2gameProductId, couponCode, couponDiscount, couponSubtotal } = orderData;
 
             const originalText = btnElement.innerText;
             btnElement.innerText = "Processing...";
@@ -6758,13 +7297,43 @@
                 // permission prompt or geolocation just isn't available.
                 const location = await getOrderLocation();
 
-                const orderRef = await addDoc(collection(db, "orders"), {
+                // Pre-generate the order's doc ref/id so it can be passed to
+                // /redeem-coupon BEFORE the order itself is written - if the
+                // coupon turns out to no longer be valid (someone else took
+                // the last slot in the meantime), nothing gets created at all.
+                const orderRef = doc(collection(db, "orders"));
+                if (couponCode) {
+                    // costTotal lets the Worker re-enforce the cost floor
+                    // server-side (authoritative — see capCouponDiscountToCost
+                    // in telegram-worker.js) since the client-side cap above
+                    // can be bypassed.
+                    const redeemRes = await fetch(`${COUPON_WORKER_URL}/redeem-coupon`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ code: couponCode, guestId, orderAmount: couponSubtotal, orderId: orderRef.id, costTotal: Number(cost) || 0 })
+                    }).then(r => r.json()).catch(() => ({ ok: false, error: 'Could not reach the store. Check connection.' }));
+                    if (!redeemRes.ok) {
+                        window.showToast(redeemRes.error || 'This coupon is no longer valid.', 'fail');
+                        if (window.removeCoupon) window.removeCoupon();
+                        btnElement.innerText = originalText;
+                        btnElement.disabled = false;
+                        if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb();
+                        return;
+                    }
+                }
+
+                await setDoc(orderRef, {
                     playerId: inGameId,
                     serverId: serverId || '',
                     serverRegion: serverRegion || '',
                     game: gameName,
                     itemAmount: amount,
                     price: price,
+                    // Provider cost snapshot at order time (used to cap referral
+                    // commission so a payout can never push this order below
+                    // break-even) - see creditReferralCommission in admin.html.
+                    cost: Number(cost) || 0,
+                    ...(couponCode ? { couponCode, couponDiscount, couponSubtotal } : {}),
                     // How many of this voucher/package are bundled into this
                     // single order (always 1 for a normal top-up order). The
                     // admin-side fulfillment flow reads this to know how many
@@ -6815,6 +7384,7 @@
                 });
 
                 saveContact(inGameId, selectedGameId, serverId);
+                appliedCoupon = null; // consumed by /redeem-coupon above
                 btnElement.innerText = "Order Sent";
                 btnElement.style.backgroundColor = "#28a745";
                 // Pass the new doc's id so the success screen can live-track this
@@ -6837,7 +7407,7 @@
         // rendered) so two rapid orders can never both slip through on a
         // balance that only actually covers one of them.
         async function submitWalletOrder(orderData, btnElement) {
-            const { gameName, serverRegion, amount, price, quantity, inGameId, serverId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId, fazercardCategoryId, fazercardOfferId, fazercardGiftCategoryId, fazercardGiftCardId, bay2gameProductId } = orderData;
+            const { gameName, serverRegion, amount, price, cost, quantity, inGameId, serverId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId, fazercardCategoryId, fazercardOfferId, fazercardGiftCategoryId, fazercardGiftCardId, bay2gameProductId, couponCode, couponDiscount, couponSubtotal } = orderData;
 
             const originalText = btnElement.innerText;
             btnElement.innerText = "Processing...";
@@ -6863,6 +7433,30 @@
                 const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
                 const location = await getOrderLocation();
 
+                // Pre-generate the order's doc ref/id so it can be passed to
+                // /redeem-coupon BEFORE any wallet money moves - if the coupon
+                // is no longer valid, nothing is deducted and nothing is created.
+                const orderRef = doc(collection(db, "orders"));
+                if (couponCode) {
+                    // costTotal lets the Worker re-enforce the cost floor
+                    // server-side (authoritative — see capCouponDiscountToCost
+                    // in telegram-worker.js) since the client-side cap above
+                    // can be bypassed.
+                    const redeemRes = await fetch(`${COUPON_WORKER_URL}/redeem-coupon`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ code: couponCode, guestId, orderAmount: couponSubtotal, orderId: orderRef.id, costTotal: Number(cost) || 0 })
+                    }).then(r => r.json()).catch(() => ({ ok: false, error: 'Could not reach the store. Check connection.' }));
+                    if (!redeemRes.ok) {
+                        window.showToast(redeemRes.error || 'This coupon is no longer valid.', 'fail');
+                        if (window.removeCoupon) window.removeCoupon();
+                        btnElement.innerText = originalText;
+                        btnElement.disabled = false;
+                        if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb();
+                        return;
+                    }
+                }
+
                 const userRef = doc(db, "users", guestId);
                 await runTransaction(db, async (tx) => {
                     const snap = await tx.get(userRef);
@@ -6871,13 +7465,15 @@
                     tx.set(userRef, { walletBalance: increment(-price) }, { merge: true });
                 });
 
-                const orderRef = await addDoc(collection(db, "orders"), {
+                await setDoc(orderRef, {
                     playerId: inGameId,
                     serverId: serverId || '',
                     serverRegion: serverRegion || '',
                     game: gameName,
                     itemAmount: amount,
                     price: price,
+                    cost: Number(cost) || 0,
+                    ...(couponCode ? { couponCode, couponDiscount, couponSubtotal } : {}),
                     quantity: quantity || 1,
                     paymentMethod: 'Wallet Balance',
                     paidFromWallet: true,
@@ -6896,6 +7492,7 @@
                 });
 
                 saveContact(inGameId, selectedGameId, serverId);
+                appliedCoupon = null; // consumed by /redeem-coupon above
                 btnElement.innerText = "Order Sent";
                 btnElement.style.backgroundColor = "#28a745";
                 window.openSuccessOverlay(orderRef.id, { status: 'Pending', timestamp: { toDate: () => new Date() } });
@@ -7020,6 +7617,100 @@
         }
         listenAnnouncements();
         listenTierSettings();
+
+        // ---------- Flash Sale Banner (Home page) ----------
+        // Firestore only tells us WHETHER a sale is on and WHEN it ends -
+        // ticking the actual countdown text every second is done locally so
+        // it doesn't need a write (or a read) once a second.
+        let flashSaleEndTime = null;
+        let flashSaleGameId = '';
+        let flashSaleTickInterval = null;
+
+        function tickFlashSaleCountdown() {
+            const banner = document.getElementById('flash-sale-banner');
+            const countdownEl = document.getElementById('flash-sale-countdown');
+            if (!banner || !flashSaleEndTime) return;
+            const remaining = flashSaleEndTime - Date.now();
+            if (remaining <= 0) {
+                banner.style.display = 'none';
+                if (flashSaleTickInterval) { clearInterval(flashSaleTickInterval); flashSaleTickInterval = null; }
+                return;
+            }
+            const h = Math.floor(remaining / 3600000);
+            const m = Math.floor((remaining % 3600000) / 60000);
+            const s = Math.floor((remaining % 60000) / 1000);
+            const pad = n => String(n).padStart(2, '0');
+            countdownEl.innerText = h > 0 ? `${h}h ${pad(m)}m left` : `${pad(m)}:${pad(s)}`;
+        }
+
+        function listenFlashSale() {
+            onSnapshot(doc(db, "settings", "flashsale"), (docSnap) => {
+                const data = docSnap.exists() ? docSnap.data() : {};
+                const banner = document.getElementById('flash-sale-banner');
+                if (!banner) return;
+                const endTime = Number(data.endTime) || 0;
+                const isLive = !!data.enabled && endTime > Date.now();
+                if (!isLive) {
+                    banner.style.display = 'none';
+                    if (flashSaleTickInterval) { clearInterval(flashSaleTickInterval); flashSaleTickInterval = null; }
+                    return;
+                }
+                document.getElementById('flash-sale-title').innerText = data.title || 'Flash Sale';
+                document.getElementById('flash-sale-desc').innerText = data.description || '';
+                flashSaleEndTime = endTime;
+                flashSaleGameId = data.gameId || '';
+                banner.style.display = 'flex';
+                tickFlashSaleCountdown();
+                if (!flashSaleTickInterval) flashSaleTickInterval = setInterval(tickFlashSaleCountdown, 1000);
+            }, (error) => {
+                console.error('Flash sale listener error:', error);
+            });
+        }
+        listenFlashSale();
+
+        // Live-tracks whether ANY coupon is currently redeemable (isActive,
+        // and — if set — now falls inside [startsAt, expiresAt]) so the
+        // Coupon Code card on the package detail page can hide itself
+        // completely outside of any coupon "event window" instead of always
+        // being visible with a code box that would just fail to validate.
+        // Doesn't reveal codes to the client - only a yes/no availability flag.
+        let couponAvailabilityUnsub = null;
+        function isCouponCurrentlyUsable(c) {
+            if (!c || !c.isActive) return false;
+            const now = Date.now();
+            if (c.startsAt && c.startsAt > now) return false;   // event hasn't opened yet
+            if (c.expiresAt && c.expiresAt <= now) return false; // event window closed
+            if (c.maxUses && (c.usedCount || 0) >= c.maxUses) return false;
+            return true;
+        }
+        function listenCouponAvailability() {
+            if (couponAvailabilityUnsub) return;
+            couponAvailabilityUnsub = onSnapshot(collection(db, "coupons"), (snap) => {
+                let usable = false;
+                let appliedStillUsable = !appliedCoupon;
+                snap.forEach(docSnap => {
+                    const c = docSnap.data();
+                    if (isCouponCurrentlyUsable(c)) usable = true;
+                    if (appliedCoupon && docSnap.id === appliedCoupon.code) appliedStillUsable = isCouponCurrentlyUsable(c);
+                });
+                anyCouponAvailable = usable;
+                if (appliedCoupon && !appliedStillUsable) {
+                    // The coupon the customer already applied just closed
+                    // (admin turned it off, or its event window ended) -
+                    // drop it immediately rather than let a stale discount
+                    // linger on screen.
+                    appliedCoupon = null;
+                    window.showToast('Coupon is no longer available', 'fail');
+                }
+                refreshPricesAfterCouponChange();
+            }, (error) => console.error('Coupon availability listener error:', error));
+        }
+        listenCouponAvailability();
+
+        function openFlashSaleGame() {
+            if (flashSaleGameId && window.openGameDetail) window.openGameDetail(flashSaleGameId);
+        }
+        window.openFlashSaleGame = openFlashSaleGame;
 
         // Watches this device's own orders for status changes and pops the
         // "Your Order Is Successfully" notification (or a Fail notice) the instant
