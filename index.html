@@ -934,6 +934,39 @@
             margin: 0 -2px; padding: 2px;
         }
 
+        /* Game Account Marketplace (Account tab) — game-folder grid reuses
+           .game-card; these are the extra bits specific to browsing/buying
+           pre-made accounts (availability badge, list rows, chips, gallery). */
+        .acct-count-badge {
+            position: absolute; left: 4px; bottom: 4px; padding: 2px 6px;
+            border-radius: 6px; font-size: 9px; font-weight: 600;
+            background: rgba(0,0,0,0.55); color: #fff; backdrop-filter: blur(2px);
+        }
+        .acct-list-card { cursor: pointer; align-items: stretch; gap: 12px; padding: 10px; }
+        .acct-list-card:active { transform: scale(0.98); }
+        .acct-list-thumb { width: 64px; height: 64px; flex-shrink: 0; border-radius: 10px; overflow: hidden; background: var(--border); }
+        .acct-list-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .acct-list-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; justify-content: center; }
+        .acct-list-title { font-size: 13.5px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .acct-list-chips { display: flex; flex-wrap: wrap; gap: 5px; }
+        .acct-list-price { font-size: 13px; font-weight: 700; color: var(--accent); }
+        .acct-chips-row { display: flex; flex-wrap: wrap; gap: 6px; margin: 6px 0 4px; }
+        .acct-chip {
+            display: inline-block; padding: 3px 9px; border-radius: 999px;
+            font-size: 11px; font-weight: 600; color: var(--accent);
+            background: var(--accent-soft); border: 1px solid var(--border);
+        }
+        .acct-price-row { font-size: 20px; font-weight: 700; color: var(--text); margin: 2px 0 4px; }
+        .acct-sold-banner {
+            padding: 10px 14px; border-radius: 12px; margin: 10px 0;
+            background: rgba(239,68,68,0.12); color: #C0392B; font-size: 13px; font-weight: 600;
+        }
+        html[data-theme="dark"] .acct-sold-banner { color: #FF9B9B; }
+        .acct-thumbs-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
+        .acct-thumb { width: 56px; height: 56px; flex-shrink: 0; border-radius: 8px; overflow: hidden; border: 2px solid transparent; cursor: pointer; }
+        .acct-thumb.active { border-color: var(--accent); }
+        .acct-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
         /* Order/detail page on wider screens: banner shrinks and sits in its
            own sidebar column instead of stretching full-width, account info +
            packages + payment move beside it, and the package tiles fall back
@@ -2269,6 +2302,9 @@
                 <div class="drawer-nav-item" data-page="voucher" onclick="drawerNavigate('voucher')">
                     <svg class="ui-icon"><use href="#icon-gift"></use></svg><span>Voucher</span>
                 </div>
+                <div class="drawer-nav-item" data-page="account" onclick="drawerNavigate('account')">
+                    <svg class="ui-icon"><use href="#icon-shield"></use></svg><span>Account</span>
+                </div>
                 <div class="drawer-nav-item" data-page="history" onclick="drawerNavigate('history')">
                     <svg class="ui-icon"><use href="#icon-history"></use></svg><span>History</span>
                 </div>
@@ -2392,6 +2428,136 @@
                     <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
                     <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
                     <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- GAME ACCOUNT MARKETPLACE — browse pre-made game accounts for
+             sale, grouped by game (data lives in Firestore's "gameAccounts"
+             collection, managed from the admin panel's Account tab). -->
+        <div id="account" class="page-section">
+            <h2 class="title-header">Game Accounts</h2>
+            <p class="empty-msg" style="text-align:left;padding:0 2px 12px;">Pre-made accounts ready to play — pick a game to browse.</p>
+            <div class="games-grid-scroll">
+                <div class="cards-grid" id="account-games-grid">
+                    <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
+                    <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
+                    <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ACCOUNT LIST — every available account for one game -->
+        <div id="account-list" class="page-section">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+                <div class="header-icon" style="width:36px;height:36px;" onclick="closeAccountList()">
+                    <svg class="ui-icon" style="width:18px;"><use href="#icon-chevron-left"></use></svg>
+                </div>
+                <h2 style="font-size:18px; font-weight: 600; color:var(--text);" id="account-list-title">Accounts</h2>
+            </div>
+            <div id="account-list-grid"></div>
+        </div>
+
+        <!-- ACCOUNT DETAIL — gallery, skins, rank/server, description, buy flow -->
+        <div id="account-detail" class="page-section">
+            <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
+                <div class="header-icon" style="width:36px;height:36px;" onclick="closeAccountDetail()">
+                    <svg class="ui-icon" style="width:18px;"><use href="#icon-chevron-left"></use></svg>
+                </div>
+                <h2 style="font-size:18px; font-weight: 600; color:var(--text);" id="acct-detail-game-name">Account</h2>
+            </div>
+            <div class="detail-layout">
+            <div class="detail-banner-col">
+                <img id="acct-detail-main-img" src="" alt="" style="width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:12px; margin-bottom:10px;">
+                <div class="acct-thumbs-row" id="acct-detail-thumbs"></div>
+            </div>
+            <div class="detail-main-col">
+                <h3 class="detail-section-title" style="margin-top:0;" id="acct-detail-title">Account</h3>
+                <div class="acct-price-row" id="acct-detail-price">0 MMK</div>
+                <div class="acct-chips-row" id="acct-detail-chips"></div>
+
+                <div id="acct-sold-banner" class="acct-sold-banner" style="display:none;">This account has already been sold.</div>
+
+                <div id="acct-detail-desc-wrap" style="display:none;">
+                    <h3 class="detail-section-title">Description</h3>
+                    <p class="game-desc-text" id="acct-detail-desc"></p>
+                </div>
+
+                <div id="acct-detail-skins-wrap" style="display:none;">
+                    <h3 class="detail-section-title">Skins Included</h3>
+                    <div class="acct-chips-row" id="acct-detail-skins"></div>
+                </div>
+
+                <div id="acct-detail-payment-section">
+                    <h3 class="detail-section-title">How do you want to pay?</h3>
+                    <div class="pay-type-tabs" id="acct-pay-type-tabs">
+                        <button type="button" class="pay-type-tab" data-type="wallet" onclick="acctChoosePaymentType('wallet')">Wallet Balance</button>
+                        <button type="button" class="pay-type-tab" data-type="payment" onclick="acctChoosePaymentType('payment')">Kpay / Wave / etc.</button>
+                    </div>
+
+                    <div id="acct-wallet-pay-box" class="wallet-pay-box detail-form-card" style="display:none; align-items:flex-start;"></div>
+
+                    <div id="acct-payment-methods-wrap" style="display:none;">
+                        <div id="acct-payment-methods" style="display:flex; flex-direction:column; gap:10px;"></div>
+
+                        <div id="acct-payment-info" class="detail-form-card" style="display:none; margin-top:10px;">
+                            <p style="font-size:12px;color:var(--text-secondary);">Transfer the exact amount to:</p>
+                            <div class="pm-qr-info-row">
+                                <img id="acct-pm-qr" src="" alt="QR code" class="pm-qr-img" style="display:none; border-radius:14px; object-fit:contain; background:#fff; padding:8px; border:1px solid var(--border-glass);">
+                                <div class="pm-info-grid">
+                                    <div class="pm-info-box">
+                                        <span class="pm-info-box-label">No.</span>
+                                        <div class="pm-info-box-row">
+                                            <p id="acct-pm-number"></p>
+                                            <button type="button" class="pm-copy-btn" onclick="copyPaymentField('acct-pm-number', this)" title="Copy phone number">
+                                                <svg class="ui-icon"><use href="#icon-copy"></use></svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                    <div class="pm-info-box">
+                                        <span class="pm-info-box-label">Name</span>
+                                        <div class="pm-info-box-row">
+                                            <p id="acct-pm-name"></p>
+                                            <button type="button" class="pm-copy-btn" onclick="copyPaymentField('acct-pm-name', this)" title="Copy name">
+                                                <svg class="ui-icon"><use href="#icon-copy"></use></svg>
+                                            </button>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <label>Upload Payment Receipt</label>
+                            <label class="upload-shot-box" id="acct-upload-shot-box" for="acct-receipt-file">
+                                <div class="upload-shot-icon"><svg class="ui-icon"><use href="#icon-camera"></use></svg></div>
+                                <span class="upload-shot-label">Upload Screenshot</span>
+                                <span class="upload-shot-hint">Tap to choose your payment screenshot</span>
+                                <img id="acct-receipt-preview" src="" style="display:none;">
+                                <span class="upload-shot-change" id="acct-upload-shot-change" style="display:none;">
+                                    <svg style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><use href="#icon-camera"></use></svg> Change
+                                </span>
+                            </label>
+                            <input type="file" id="acct-receipt-file" class="upload-shot-input" accept="image/*" onchange="acctPreviewReceiptImage(event)">
+                            <p id="acct-receipt-upload-status" style="font-size:12px;color:var(--text-secondary);display:none;"></p>
+
+                            <label style="display:block;margin-top:14px;">Transaction ID</label>
+                            <input type="text" id="acct-transaction-id" placeholder="Detected automatically after you upload your receipt" autocomplete="off" readonly style="width:100%;padding:11px 14px;border-radius:12px;border:1px solid var(--border-glass);background:var(--fill-soft);color:var(--text);font-size:14px;">
+                            <p style="font-size:11px;color:var(--text-secondary);margin-top:4px;">We read this automatically from your receipt screenshot. If it can't be found, it's set to "None".</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </div>
+
+            <div class="slide-confirm-wrap" id="acct-confirm-wrap" style="margin-top:20px;">
+                <button type="button" class="btn btn-primary" id="acct-confirm-btn" disabled>Select a payment method</button>
+                <div class="slide-confirm-fill" id="acct-confirm-fill" aria-hidden="true"></div>
+                <div class="slide-confirm-hint" id="acct-confirm-hint" aria-hidden="true">
+                    <svg class="ui-icon"><use href="#icon-chevron-right"></use></svg>
+                    <svg class="ui-icon"><use href="#icon-chevron-right"></use></svg>
+                    <svg class="ui-icon"><use href="#icon-chevron-right"></use></svg>
+                </div>
+                <div class="slide-confirm-thumb" id="acct-confirm-thumb" aria-hidden="true">
+                    <svg class="ui-icon"><use href="#icon-chevron-right"></use></svg>
                 </div>
             </div>
         </div>
@@ -3257,6 +3423,7 @@
             if (pageId === 'profile' && window.renderPushToggleUI) window.renderPushToggleUI();
             if (pageId === 'leaderboard' && window.loadLeaderboard) window.loadLeaderboard();
             if (pageId === 'voucher' && window.renderVoucherGames) window.renderVoucherGames();
+            if (pageId === 'account' && window.renderAccountGames) window.renderAccountGames();
         }
 
         let toastHideTimer = null;
@@ -3329,7 +3496,7 @@
         // horizontally-scrolling row under the finger (e.g. Popular Games)
         // instead of moving across the whole screen.
         (function initTabSwipe() {
-            const TAB_ORDER = ['home', 'voucher', 'history', 'leaderboard', 'wallet', 'profile'];
+            const TAB_ORDER = ['home', 'voucher', 'account', 'history', 'leaderboard', 'wallet', 'profile'];
             const content = document.querySelector('main.content-area');
             if (!content) return;
 
@@ -3822,29 +3989,51 @@
             const ua = navigator.userAgent || '';
             const isAndroid = /android/i.test(ua);
             const isIos = /iphone|ipad|ipod/i.test(ua);
+            // Chrome's intent:// syntax (the no-scheme fallback below) is
+            // Chromium-specific — Firefox for Android silently ignores it:
+            // no navigation, no error, the page just sits there, which is
+            // what made "Open Game" feel broken for anyone testing in
+            // Firefox. Detected so that path can be skipped there.
+            const isFirefoxAndroid = isAndroid && /firefox/i.test(ua);
 
             if (isAndroid && game.appAndroidPackage) {
                 const storeUrl = game.appAndroidStoreUrl || `https://play.google.com/store/apps/details?id=${encodeURIComponent(game.appAndroidPackage)}`;
-                let intentUrl;
                 if (game.appAndroidScheme) {
-                    // A real custom URI scheme for this game's app is known -
-                    // use it to trigger an actual deep link inside the app.
-                    intentUrl = `intent://launch#Intent;scheme=${game.appAndroidScheme};package=${encodeURIComponent(game.appAndroidPackage)};S.browser_fallback_url=${encodeURIComponent(storeUrl)};end`;
-                } else {
-                    // No custom scheme configured (the common case - admin.html
-                    // doesn't even expose a field for it yet). Falling back to
-                    // a made-up scheme like "openapp://launch" doesn't work:
-                    // the target app never declared an intent-filter for that
-                    // scheme, so Android can't resolve it and Chrome ALWAYS
-                    // fell through to browser_fallback_url (the Play Store),
-                    // even with the app installed - this was the bug.
-                    // Instead, ask Android to start the package's own normal
-                    // launcher activity (the same one tapping the app icon
-                    // uses) restricted to this package. Virtually every
-                    // installed app has one, no deep-link support needed.
-                    intentUrl = `intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=${encodeURIComponent(game.appAndroidPackage)};S.browser_fallback_url=${encodeURIComponent(storeUrl)};end`;
+                    // A real custom URI scheme for this game's app is known.
+                    // This is just an ordinary custom-scheme navigation (the
+                    // same mechanism as tel:/mailto: links), so every mobile
+                    // browser hands it to the OS the same way — not a
+                    // Chrome-only trick. Race a visibility check against a
+                    // timeout (same pattern as the iOS path below) and fall
+                    // back to the store if nothing intercepted it.
+                    let handed = false;
+                    const onHide = () => { handed = true; };
+                    document.addEventListener('visibilitychange', onHide, { once: true });
+                    window.location.href = `${game.appAndroidScheme}://`;
+                    setTimeout(() => {
+                        document.removeEventListener('visibilitychange', onHide);
+                        if (!handed) window.location.href = storeUrl;
+                    }, 1200);
+                    return;
                 }
-                window.location.href = intentUrl;
+                if (!isFirefoxAndroid) {
+                    // No custom scheme configured (the common case). Falling
+                    // back to a made-up scheme like "openapp://launch" doesn't
+                    // work: the target app never declared an intent-filter for
+                    // it, so Android can't resolve it. Instead, ask Android to
+                    // start the package's own normal launcher activity (the
+                    // same one tapping the app icon uses) restricted to this
+                    // package — works in Chrome/Chromium browsers, which is
+                    // all that understands this intent:// syntax.
+                    const intentUrl = `intent:#Intent;action=android.intent.action.MAIN;category=android.intent.category.LAUNCHER;package=${encodeURIComponent(game.appAndroidPackage)};S.browser_fallback_url=${encodeURIComponent(storeUrl)};end`;
+                    window.location.href = intentUrl;
+                    return;
+                }
+                // Firefox with no custom scheme known: there's no
+                // cross-browser way to launch a specific app by package name
+                // alone, so go straight to its Play Store page instead of
+                // silently doing nothing.
+                window.location.href = storeUrl;
                 return;
             }
 
@@ -5141,6 +5330,15 @@
                 fillId: 'wallet-topup-confirm-fill',
                 ariaLabel: 'Slide to submit top up request',
                 onConfirm: (track) => window.submitWalletTopup(track)
+            });
+
+            window.resetAccountSlideConfirmThumb = createSlideConfirm({
+                wrapId: 'acct-confirm-wrap',
+                thumbId: 'acct-confirm-thumb',
+                trackId: 'acct-confirm-btn',
+                fillId: 'acct-confirm-fill',
+                ariaLabel: 'Slide to confirm account purchase',
+                onConfirm: (track) => window.confirmAccountPurchase(track)
             });
         }
         window.initSlideConfirm = initSlideConfirm;
@@ -9158,6 +9356,463 @@
         }
 
         listenGames();
+
+        // ---------- Game Account Marketplace (browse & buy pre-made accounts) ----------
+        // Independent from the top-up "games" catalogue above — accounts live
+        // in their own "gameAccounts" collection (managed from the admin
+        // panel's Account tab) and are grouped client-side by their plain
+        // gameName text field rather than a game id. Each account is either
+        // "available" (missing status also counts as available) or "sold";
+        // the admin marks it sold by hand after confirming an order (see
+        // decision in the admin panel's Account tab), it isn't automatic.
+        let GAME_ACCOUNTS = {};
+        let ACCOUNT_GAME_GROUPS = [];
+        let currentAccountGameName = null;
+        let currentAccountId = null;
+        let acctSelectedPaymentType = null;
+        let acctSelectedPaymentMethod = null;
+        let acctEditingReceiptFile = null;
+        let acctReceiptOcrPromise = null;
+
+        function isAccountAvailable(a) {
+            return !!a && (a.status || 'available') === 'available';
+        }
+
+        function listenGameAccounts() {
+            onSnapshot(collection(db, "gameAccounts"), (snap) => {
+                const map = {};
+                snap.forEach(docSnap => { map[docSnap.id] = docSnap.data(); });
+                GAME_ACCOUNTS = map;
+                if (window.currentStorePage === 'account') renderAccountGames();
+                if (window.currentStorePage === 'account-list' && currentAccountGameName) renderAccountList(currentAccountGameName);
+                if (window.currentStorePage === 'account-detail' && currentAccountId) renderAccountDetail(currentAccountId);
+            }, (error) => {
+                console.error("Game accounts listener error:", error);
+            });
+        }
+        listenGameAccounts();
+
+        function renderAccountGames() {
+            const grid = document.getElementById('account-games-grid');
+            if (!grid) return;
+            const byGame = {};
+            Object.keys(GAME_ACCOUNTS).forEach(id => {
+                const a = GAME_ACCOUNTS[id];
+                if (!isAccountAvailable(a)) return;
+                const name = a.gameName || 'Other';
+                if (!byGame[name]) byGame[name] = { gameName: name, image: (Array.isArray(a.images) && a.images[0]) || '', count: 0 };
+                byGame[name].count++;
+            });
+            const groups = Object.values(byGame).sort((a, b) => a.gameName.localeCompare(b.gameName));
+            ACCOUNT_GAME_GROUPS = groups;
+            if (groups.length === 0) {
+                grid.innerHTML = emptyStateHTML('icon-shield', 'No accounts yet', 'Game accounts for sale will show up here once added.');
+                return;
+            }
+            grid.innerHTML = groups.map((g, i) => `
+                <div class="game-card game-card-anim" style="animation-delay:${Math.min(i * 18, 120)}ms" onclick="openAccountGame(${i})">
+                    <div class="game-card-img-wrap">
+                        <img src="${g.image}" alt="${g.gameName}" loading="lazy" decoding="async">
+                        <span class="acct-count-badge">${g.count} available</span>
+                    </div>
+                    <div class="game-card-name">${g.gameName}</div>
+                </div>
+            `).join('');
+            revealCardsIn(grid);
+        }
+        window.renderAccountGames = renderAccountGames;
+
+        function openAccountGame(idx) {
+            const g = ACCOUNT_GAME_GROUPS[idx];
+            if (!g) return;
+            currentAccountGameName = g.gameName;
+            document.getElementById('account-list-title').innerText = g.gameName;
+            showPage('account-list');
+            renderAccountList(g.gameName);
+        }
+        window.openAccountGame = openAccountGame;
+
+        function closeAccountList() {
+            showPage('account');
+        }
+        window.closeAccountList = closeAccountList;
+
+        function renderAccountList(gameName) {
+            const list = document.getElementById('account-list-grid');
+            if (!list) return;
+            const ids = Object.keys(GAME_ACCOUNTS).filter(id => {
+                const a = GAME_ACCOUNTS[id];
+                return a.gameName === gameName && isAccountAvailable(a);
+            });
+            if (ids.length === 0) {
+                list.innerHTML = emptyStateHTML('icon-shield', 'No accounts available', 'All accounts for this game have been sold. Check back later.');
+                return;
+            }
+            list.innerHTML = ids.map(id => {
+                const a = GAME_ACCOUNTS[id];
+                const cover = (Array.isArray(a.images) && a.images[0]) || '';
+                const chips = [a.rank, a.server].filter(Boolean).map(c => `<span class="acct-chip">${c}</span>`).join('');
+                return `
+                    <div class="list-card acct-list-card" onclick="openAccountDetail('${id}')">
+                        <div class="acct-list-thumb"><img src="${cover}" alt="${a.title || ''}" loading="lazy" decoding="async"></div>
+                        <div class="acct-list-info">
+                            <div class="acct-list-title">${a.title || 'Untitled Account'}</div>
+                            <div class="acct-list-chips">${chips}</div>
+                            <div class="acct-list-price">${Number(a.price || 0).toLocaleString()} MMK</div>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+        window.renderAccountList = renderAccountList;
+
+        function closeAccountDetail() {
+            showPage('account-list');
+        }
+        window.closeAccountDetail = closeAccountDetail;
+
+        function setAccountMainImage(url, thumbEl) {
+            document.getElementById('acct-detail-main-img').src = url;
+            document.querySelectorAll('#acct-detail-thumbs .acct-thumb').forEach(el => el.classList.remove('active'));
+            if (thumbEl) thumbEl.classList.add('active');
+        }
+        window.setAccountMainImage = setAccountMainImage;
+
+        function openAccountDetail(id) {
+            currentAccountId = id;
+            showPage('account-detail');
+            renderAccountDetail(id);
+        }
+        window.openAccountDetail = openAccountDetail;
+
+        function renderAccountDetail(id) {
+            const a = GAME_ACCOUNTS[id];
+            if (!a) {
+                document.getElementById('acct-detail-title').innerText = 'Account no longer available';
+                document.getElementById('acct-detail-payment-section').style.display = 'none';
+                document.getElementById('acct-confirm-wrap').style.display = 'none';
+                document.getElementById('acct-sold-banner').style.display = 'block';
+                return;
+            }
+            document.getElementById('acct-detail-game-name').innerText = a.gameName || '';
+            const images = (Array.isArray(a.images) && a.images.length) ? a.images : [''];
+            document.getElementById('acct-detail-main-img').src = images[0];
+            document.getElementById('acct-detail-thumbs').innerHTML = images.map((img, i) => `
+                <div class="acct-thumb ${i === 0 ? 'active' : ''}" onclick="setAccountMainImage('${img}', this)">
+                    <img src="${img}" alt="" loading="lazy" decoding="async">
+                </div>
+            `).join('');
+            document.getElementById('acct-detail-title').innerText = a.title || 'Untitled Account';
+            document.getElementById('acct-detail-price').innerText = `${Number(a.price || 0).toLocaleString()} MMK`;
+            const chips = [];
+            if (a.rank) chips.push(`<span class="acct-chip">Rank: ${a.rank}</span>`);
+            if (a.server) chips.push(`<span class="acct-chip">Server: ${a.server}</span>`);
+            document.getElementById('acct-detail-chips').innerHTML = chips.join('');
+            document.getElementById('acct-detail-desc-wrap').style.display = a.description ? 'block' : 'none';
+            document.getElementById('acct-detail-desc').innerText = a.description || '';
+            const skinList = (a.skins || '').split(/[\n,]/).map(s => s.trim()).filter(Boolean);
+            document.getElementById('acct-detail-skins-wrap').style.display = skinList.length ? 'block' : 'none';
+            document.getElementById('acct-detail-skins').innerHTML = skinList.map(s => `<span class="acct-chip">${s}</span>`).join('');
+
+            const available = isAccountAvailable(a);
+            document.getElementById('acct-detail-payment-section').style.display = available ? '' : 'none';
+            document.getElementById('acct-sold-banner').style.display = available ? 'none' : 'block';
+            document.getElementById('acct-confirm-wrap').style.display = available ? '' : 'none';
+
+            // Reset payment state each time a listing is (re)opened.
+            acctSelectedPaymentType = null;
+            acctSelectedPaymentMethod = null;
+            acctEditingReceiptFile = null;
+            acctReceiptOcrPromise = null;
+            document.querySelectorAll('#acct-pay-type-tabs .pay-type-tab').forEach(el => el.classList.remove('active'));
+            document.getElementById('acct-wallet-pay-box').style.display = 'none';
+            document.getElementById('acct-payment-methods-wrap').style.display = 'none';
+            document.getElementById('acct-payment-info').style.display = 'none';
+            const confirmBtn = document.getElementById('acct-confirm-btn');
+            confirmBtn.disabled = true;
+            confirmBtn.style.backgroundColor = '';
+            confirmBtn.innerText = 'Select a payment method';
+            if (window.resetAccountSlideConfirmThumb) window.resetAccountSlideConfirmThumb();
+        }
+        window.renderAccountDetail = renderAccountDetail;
+
+        function acctChoosePaymentType(type) {
+            acctSelectedPaymentType = type;
+            document.querySelectorAll('#acct-pay-type-tabs .pay-type-tab').forEach(el => el.classList.toggle('active', el.dataset.type === type));
+            if (type === 'wallet') {
+                acctSelectedPaymentMethod = null;
+                acctEditingReceiptFile = null;
+                acctReceiptOcrPromise = null;
+                document.getElementById('acct-transaction-id').value = '';
+                document.getElementById('acct-payment-methods-wrap').style.display = 'none';
+                document.getElementById('acct-payment-info').style.display = 'none';
+                document.getElementById('acct-wallet-pay-box').style.display = 'flex';
+                acctRenderWalletPayBox();
+            } else {
+                document.getElementById('acct-wallet-pay-box').style.display = 'none';
+                document.getElementById('acct-payment-methods-wrap').style.display = 'block';
+                acctRenderPaymentMethods();
+                acctUpdateConfirmButton();
+            }
+        }
+        window.acctChoosePaymentType = acctChoosePaymentType;
+
+        function acctRenderWalletPayBox() {
+            const box = document.getElementById('acct-wallet-pay-box');
+            const a = GAME_ACCOUNTS[currentAccountId];
+            if (!a) { box.innerHTML = ''; return; }
+            const price = Number(a.price || 0);
+            const bal = currentWalletBalance;
+            const enough = bal >= price;
+            box.innerHTML = enough ? `
+                <span class="wallet-pay-balance-label">Wallet Balance</span>
+                <span class="wallet-pay-balance-amount">${bal.toLocaleString()} MMK</span>
+                <span class="wallet-pay-note ok">✓ Enough balance — ${price.toLocaleString()} MMK will be deducted when you confirm.</span>
+            ` : `
+                <span class="wallet-pay-balance-label">Wallet Balance</span>
+                <span class="wallet-pay-balance-amount">${bal.toLocaleString()} MMK</span>
+                <span class="wallet-pay-note low">Not enough balance — top up ${(price - bal).toLocaleString()} MMK more to pay from your wallet.</span>
+                <button type="button" class="btn btn-primary" style="margin-top:10px;width:100%;" onclick="openWalletTopupModal()">Top Up Wallet</button>
+            `;
+            acctUpdateConfirmButton();
+        }
+        window.acctRenderWalletPayBox = acctRenderWalletPayBox;
+
+        function acctUpdateConfirmButton() {
+            const a = GAME_ACCOUNTS[currentAccountId];
+            if (!a) return;
+            const price = Number(a.price || 0);
+            const confirmBtn = document.getElementById('acct-confirm-btn');
+            if (acctSelectedPaymentType === 'wallet') {
+                const enough = currentWalletBalance >= price;
+                confirmBtn.disabled = !enough;
+                confirmBtn.innerText = enough ? `Buy Account - ${price.toLocaleString()} MMK (Wallet)` : 'Insufficient Wallet Balance';
+            } else if (acctSelectedPaymentType === 'payment') {
+                confirmBtn.disabled = !acctSelectedPaymentMethod;
+                confirmBtn.innerText = acctSelectedPaymentMethod ? `Buy Account - ${price.toLocaleString()} MMK` : 'Select a payment method';
+            } else {
+                confirmBtn.disabled = true;
+                confirmBtn.innerText = 'Select a payment method';
+            }
+        }
+        window.acctUpdateConfirmButton = acctUpdateConfirmButton;
+
+        function acctRenderPaymentMethods() {
+            const container = document.getElementById('acct-payment-methods');
+            const methods = window.PAYMENT_METHODS || {};
+            const ids = Object.keys(methods).sort((a, b) => {
+                const oa = methods[a].order, ob = methods[b].order;
+                if (typeof oa === 'number' && typeof ob === 'number') return oa - ob;
+                if (typeof oa === 'number') return -1;
+                if (typeof ob === 'number') return 1;
+                return (methods[a].name || '').localeCompare(methods[b].name || '');
+            });
+            if (ids.length === 0) {
+                container.innerHTML = '<p class="empty-msg">No payment methods available yet. Please contact the store.</p>';
+                return;
+            }
+            container.innerHTML = ids.map(id => {
+                const p = methods[id];
+                return `
+                    <div class="payment-option" data-payment-id="${id}" onclick="acctSelectPaymentMethod('${id}')">
+                        <div class="payment-option-icon">${p.image ? `<img src="${p.image}" alt="${p.name}">` : '<svg class="ui-icon" style="width:20px;"><use href="#icon-wallet"></use></svg>'}</div>
+                        <span class="payment-option-name">${p.name}</span>
+                    </div>
+                `;
+            }).join('');
+        }
+        window.acctRenderPaymentMethods = acctRenderPaymentMethods;
+
+        function acctSelectPaymentMethod(id) {
+            const p = (window.PAYMENT_METHODS || {})[id];
+            if (!p) return;
+            acctSelectedPaymentMethod = { id, name: p.name, number: p.number, accountName: p.accountName };
+            document.querySelectorAll('#acct-payment-methods .payment-option').forEach(el => el.classList.remove('selected'));
+            document.querySelector(`#acct-payment-methods .payment-option[data-payment-id="${id}"]`).classList.add('selected');
+            document.getElementById('acct-pm-number').innerText = p.number;
+            document.getElementById('acct-pm-name').innerText = p.accountName;
+            const qrEl = document.getElementById('acct-pm-qr');
+            if (p.qrImage) { qrEl.src = p.qrImage; qrEl.style.display = 'block'; }
+            else { qrEl.src = ''; qrEl.style.display = 'none'; }
+            document.getElementById('acct-payment-info').style.display = 'flex';
+            acctUpdateConfirmButton();
+        }
+        window.acctSelectPaymentMethod = acctSelectPaymentMethod;
+
+        function acctPreviewReceiptImage(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            acctEditingReceiptFile = file;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const img = document.getElementById('acct-receipt-preview');
+                img.src = ev.target.result;
+                img.style.display = 'block';
+                document.getElementById('acct-upload-shot-box').classList.add('has-image');
+                document.getElementById('acct-upload-shot-change').style.display = 'flex';
+            };
+            reader.readAsDataURL(file);
+            acctReceiptOcrPromise = detectTransactionId(file, 'acct-transaction-id', 'acct-receipt-upload-status');
+        }
+        window.acctPreviewReceiptImage = acctPreviewReceiptImage;
+
+        async function confirmAccountPurchase(btnElement) {
+            const a = GAME_ACCOUNTS[currentAccountId];
+            if (!a || !isAccountAvailable(a)) {
+                window.showToast('This account is no longer available.', 'fail');
+                if (window.resetAccountSlideConfirmThumb) window.resetAccountSlideConfirmThumb();
+                return;
+            }
+            if (acctSelectedPaymentType === 'wallet') {
+                await submitAccountWalletOrder(btnElement);
+            } else if (acctSelectedPaymentType === 'payment') {
+                if (!acctSelectedPaymentMethod) {
+                    window.showToast('Please select a payment method.', 'fail');
+                    if (window.resetAccountSlideConfirmThumb) window.resetAccountSlideConfirmThumb();
+                    return;
+                }
+                if (!acctEditingReceiptFile) {
+                    window.showToast('Please upload your payment receipt.', 'fail');
+                    if (window.resetAccountSlideConfirmThumb) window.resetAccountSlideConfirmThumb();
+                    return;
+                }
+                let transactionId = 'None';
+                if (acctReceiptOcrPromise) { try { transactionId = await acctReceiptOcrPromise; } catch (e) { transactionId = 'None'; } }
+                await submitAccountOrder(transactionId, btnElement);
+            } else {
+                window.showToast('Please choose how you want to pay.', 'fail');
+                if (window.resetAccountSlideConfirmThumb) window.resetAccountSlideConfirmThumb();
+            }
+        }
+        window.confirmAccountPurchase = confirmAccountPurchase;
+
+        // Payment-method + receipt path — creates a Pending order the same
+        // way submitOrder() does for top-ups, just without any of the
+        // package/provider fields those need. The account itself is left
+        // "available" here (admin marks it "sold" by hand — see the note
+        // above listenGameAccounts), so this never auto-hides the listing.
+        async function submitAccountOrder(transactionId, btnElement) {
+            const a = GAME_ACCOUNTS[currentAccountId];
+            const originalText = btnElement.innerText;
+            btnElement.innerText = "Processing...";
+            btnElement.disabled = true;
+            try {
+                const guestId = window.getGuestId ? window.getGuestId() : '';
+                if (guestId) {
+                    try {
+                        const userSnap = await getDoc(doc(db, "users", guestId));
+                        if (userSnap.exists() && userSnap.data().banned) {
+                            window.showToast('Your account has been restricted. Contact support.', 'fail');
+                            btnElement.innerText = originalText;
+                            btnElement.disabled = false;
+                            if (window.resetAccountSlideConfirmThumb) window.resetAccountSlideConfirmThumb();
+                            return;
+                        }
+                    } catch (banCheckError) { console.error("Ban check error:", banCheckError); }
+                }
+
+                const receiptUrl = await uploadReceiptToImgBB(acctEditingReceiptFile);
+                const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
+                const location = await getOrderLocation();
+                const orderRef = doc(collection(db, "orders"));
+                await setDoc(orderRef, {
+                    game: a.gameName || '',
+                    itemAmount: a.title || 'Game Account',
+                    price: Number(a.price || 0),
+                    cost: 0,
+                    quantity: 1,
+                    orderType: 'gameAccount',
+                    accountId: currentAccountId,
+                    paymentMethod: acctSelectedPaymentMethod.name,
+                    receiptUrl: receiptUrl,
+                    transactionId: transactionId || 'None',
+                    status: "Pending",
+                    timestamp: serverTimestamp(),
+                    userId: guestId,
+                    userName: (savedProfile.name && savedProfile.name.trim()) ? savedProfile.name.trim() : guestId,
+                    userPhone: (savedProfile.phone && savedProfile.phone.trim()) ? savedProfile.phone.trim() : '',
+                    ...(location ? { location } : {})
+                });
+                btnElement.innerText = "Order Sent";
+                btnElement.style.backgroundColor = "#28a745";
+                window.showToast("Order placed! We'll review it shortly — track it in History.", 'success');
+                setTimeout(() => { showPage('history'); }, 900);
+            } catch (error) {
+                console.error("Account order error:", error);
+                window.showToast(error.message || 'Failed to place order! Check connection.', 'fail');
+                btnElement.innerText = originalText;
+                btnElement.disabled = false;
+                if (window.resetAccountSlideConfirmThumb) window.resetAccountSlideConfirmThumb();
+            }
+        }
+        window.submitAccountOrder = submitAccountOrder;
+
+        // Wallet path — mirrors submitWalletOrder()'s atomic balance
+        // deduction, trimmed to what an account purchase needs.
+        async function submitAccountWalletOrder(btnElement) {
+            const a = GAME_ACCOUNTS[currentAccountId];
+            const originalText = btnElement.innerText;
+            btnElement.innerText = "Processing...";
+            btnElement.disabled = true;
+            try {
+                const guestId = window.getGuestId ? window.getGuestId() : '';
+                if (!guestId) throw new Error('Could not identify your account. Please reload and try again.');
+                try {
+                    const userSnap = await getDoc(doc(db, "users", guestId));
+                    if (userSnap.exists() && userSnap.data().banned) {
+                        window.showToast('Your account has been restricted. Contact support.', 'fail');
+                        btnElement.innerText = originalText;
+                        btnElement.disabled = false;
+                        if (window.resetAccountSlideConfirmThumb) window.resetAccountSlideConfirmThumb();
+                        return;
+                    }
+                } catch (banCheckError) { console.error("Ban check error:", banCheckError); }
+
+                const price = Number(a.price || 0);
+                const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
+                const location = await getOrderLocation();
+                const orderRef = doc(collection(db, "orders"));
+                const userRef = doc(db, "users", guestId);
+                await runTransaction(db, async (tx) => {
+                    const snap = await tx.get(userRef);
+                    const bal = snap.exists() ? Number(snap.data().walletBalance || 0) : 0;
+                    if (bal < price) throw new Error('INSUFFICIENT_BALANCE');
+                    tx.set(userRef, { walletBalance: increment(-price) }, { merge: true });
+                });
+                await setDoc(orderRef, {
+                    game: a.gameName || '',
+                    itemAmount: a.title || 'Game Account',
+                    price: price,
+                    cost: 0,
+                    quantity: 1,
+                    orderType: 'gameAccount',
+                    accountId: currentAccountId,
+                    paymentMethod: 'Wallet Balance',
+                    paidFromWallet: true,
+                    status: "Pending",
+                    timestamp: serverTimestamp(),
+                    userId: guestId,
+                    userName: (savedProfile.name && savedProfile.name.trim()) ? savedProfile.name.trim() : guestId,
+                    userPhone: (savedProfile.phone && savedProfile.phone.trim()) ? savedProfile.phone.trim() : '',
+                    ...(location ? { location } : {})
+                });
+                btnElement.innerText = "Order Sent";
+                btnElement.style.backgroundColor = "#28a745";
+                window.showToast("Order placed! We'll review it shortly — track it in History.", 'success');
+                setTimeout(() => { showPage('history'); }, 900);
+            } catch (error) {
+                console.error("Account wallet order error:", error);
+                const msg = error.message === 'INSUFFICIENT_BALANCE'
+                    ? 'Your wallet balance is no longer enough for this account. Please top up.'
+                    : (error.message || 'Failed to place order! Check connection.');
+                window.showToast(msg, 'fail');
+                btnElement.innerText = originalText;
+                btnElement.disabled = false;
+                if (window.resetAccountSlideConfirmThumb) window.resetAccountSlideConfirmThumb();
+                if (acctSelectedPaymentType === 'wallet') acctRenderWalletPayBox();
+            }
+        }
+        window.submitAccountWalletOrder = submitAccountWalletOrder;
 
         // ---------- Notifications (broadcast messages from admin) ----------
         let NOTIFICATIONS = [];
