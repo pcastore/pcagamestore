@@ -265,7 +265,7 @@
         .drawer-overlay.show { opacity: 1; pointer-events: auto; }
         .side-drawer {
             position: fixed; top: 0; left: 0; height: 100%;
-            width: 40%; max-width: 210px; min-width: 175px;
+            width: 46%; max-width: 240px; min-width: 190px;
             background: var(--surface); display: flex; flex-direction: column;
             transform: translateX(-100%);
             transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
@@ -285,22 +285,51 @@
             color: var(--text-secondary); cursor: pointer; transition: transform 0.15s ease;
         }
         .drawer-close:active { transform: scale(0.9); }
-        .drawer-nav { padding: 8px; display: flex; flex-direction: column; gap: 2px; }
+        .drawer-nav { padding: 10px 8px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
         .drawer-nav-item {
-            display: flex; align-items: center; gap: 12px; padding: 11px 10px;
-            border-radius: 12px; color: var(--text-secondary);
-            font-size: 13.5px; font-weight: 500; cursor: pointer;
-            transition: background-color 0.15s ease, color 0.15s ease;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            gap: 6px; padding: 14px 6px 11px; text-align: center;
+            border-radius: 14px; background: var(--surface-alt); border: 1px solid transparent;
+            color: var(--text-secondary);
+            font-size: 11.5px; font-weight: 500; cursor: pointer;
+            transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
+            /* Resting (pre-animation) state - the drawer itself is fully
+               off-screen while closed, so this never flashes; it's just
+               where each tab starts from the moment the drawer opens. */
+            opacity: 0; transform: translateX(-18px);
         }
-        .drawer-nav-item svg { width: 18px; height: 18px; flex-shrink: 0; }
-        .drawer-nav-item span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .drawer-nav-item.active { background: var(--accent-soft); color: var(--accent); }
-        .drawer-nav-item:active { background: var(--surface-alt); }
+        .drawer-nav-item svg { width: 20px; height: 20px; flex-shrink: 0; }
+        .drawer-nav-item span { overflow: hidden; text-overflow: ellipsis; white-space: normal; line-height: 1.25; max-width: 100%; }
+        .drawer-nav-item.active { background: var(--accent-soft); color: var(--accent); border-color: rgba(var(--accent-rgb),0.25); }
+        .drawer-nav-item:active { transform: scale(0.94); }
+        /* Subtle staggered "slide in from the side" entrance for each tab,
+           layered on top of the drawer panel's own slide-in. Tied to the
+           .show class (not a standalone keyframe on the item) so toggling
+           the class off resets the item back to its pre-animation state,
+           and the cascade replays cleanly every time the drawer opens. */
+        @keyframes drawerNavItemIn {
+            from { opacity: 0; transform: translateX(-18px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+        .drawer-overlay.show .drawer-nav-item {
+            animation: drawerNavItemIn 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
+        }
+        .drawer-overlay.show .drawer-nav-item:nth-child(1) { animation-delay: 0.04s; }
+        .drawer-overlay.show .drawer-nav-item:nth-child(2) { animation-delay: 0.08s; }
+        .drawer-overlay.show .drawer-nav-item:nth-child(3) { animation-delay: 0.12s; }
+        .drawer-overlay.show .drawer-nav-item:nth-child(4) { animation-delay: 0.16s; }
+        .drawer-overlay.show .drawer-nav-item:nth-child(5) { animation-delay: 0.2s; }
+        .drawer-overlay.show .drawer-nav-item:nth-child(6) { animation-delay: 0.24s; }
+        .drawer-overlay.show .drawer-nav-item:nth-child(7) { animation-delay: 0.28s; }
+        .drawer-overlay.show .drawer-nav-item:nth-child(10) { animation-delay: 0.32s; }
+        .drawer-overlay.show .drawer-nav-item:nth-child(11) { animation-delay: 0.36s; }
+        .drawer-overlay.show .drawer-nav-item:nth-child(12) { animation-delay: 0.4s; }
         .drawer-section-label {
+            grid-column: 1 / -1;
             padding: 14px 10px 4px; font-size: 10.5px; font-weight: 600;
             letter-spacing: 0.4px; text-transform: uppercase; color: var(--text-faint);
         }
-        .drawer-divider { height: 1px; background: var(--border); margin: 8px 10px 0; }
+        .drawer-divider { grid-column: 1 / -1; height: 1px; background: var(--border); margin: 8px 10px 0; }
         .drawer-footer {
             margin-top: auto; padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
             border-top: 1px solid var(--border); font-size: 11px; color: var(--text-faint);
@@ -1982,6 +2011,13 @@
         .support-chat-send { width: 42px; height: 42px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; flex-shrink: 0; }
         .support-chat-empty { text-align: center; color: var(--text-secondary); font-size: 13px; padding: 30px 10px; }
         .support-chat-badge { display: none; width: 8px; height: 8px; border-radius: 50%; background: #FF3B30; margin-left: 5px; vertical-align: middle; }
+        .support-chat-header { display: flex; align-items: center; gap: 10px; padding: 0 2px 10px; border-bottom: 1px solid var(--border); margin-bottom: 8px; flex-shrink: 0; }
+        .support-chat-header-avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 15px; flex-shrink: 0; }
+        .support-chat-header-info { display: flex; flex-direction: column; min-width: 0; gap: 1px; }
+        .support-chat-header-name { font-weight: 600; font-size: 14.5px; color: var(--text); }
+        .support-chat-header-status { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-secondary); }
+        .support-chat-header-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-faint); flex-shrink: 0; }
+        .support-chat-header-dot.online { background: #31A24C; box-shadow: 0 0 0 3px rgba(49,162,76,0.15); }
         .support-chat-typing { display: none; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); padding: 0 2px 6px; flex-shrink: 0; }
         .support-chat-typing.show { display: flex; }
         .support-chat-typing-dots { display: inline-flex; gap: 3px; }
@@ -2205,6 +2241,16 @@
 
             <!-- Support Chat tab -->
             <div class="modal-body support-chat-wrap" id="support-panel-chat" style="display:none;">
+                <div class="support-chat-header" id="support-chat-header">
+                    <div class="support-chat-header-avatar">A</div>
+                    <div class="support-chat-header-info">
+                        <div class="support-chat-header-name">Admin</div>
+                        <div class="support-chat-header-status">
+                            <span class="support-chat-header-dot" id="support-chat-header-dot"></span>
+                            <span id="support-chat-header-status-text">Checking...</span>
+                        </div>
+                    </div>
+                </div>
                 <div class="support-chat-messages" id="support-chat-messages"></div>
                 <div class="support-chat-typing" id="support-chat-typing-indicator">
                     <span class="support-chat-typing-dots"><span></span><span></span><span></span></span> Admin is typing...
@@ -2618,7 +2664,7 @@
                         Enter Amount
                     </h3>
                     <div class="wallet-amount-input-wrap">
-                        <input type="number" id="wallet-topup-amount" class="wallet-topup-amount-input" placeholder="0" inputmode="numeric" oninput="renderWalletTopupPresets()">
+                        <input type="text" id="wallet-topup-amount" class="wallet-topup-amount-input" placeholder="0" inputmode="numeric" maxlength="8" oninput="sanitizeWalletTopupAmountInput(this)" onblur="finalizeWalletTopupAmountInput(this)">
                         <span class="wallet-amount-currency">MMK</span>
                     </div>
                     <div class="wallet-amount-presets" id="wallet-amount-presets"></div>
@@ -3169,11 +3215,11 @@
                 <div style="display:flex; gap:10px;">
                     <div style="flex:1; min-width:0;">
                         <label>In-Game ID</label>
-                        <input type="text" id="detail-ingame-id" placeholder="Enter your ID" inputmode="numeric" maxlength="8" oninput="sanitizeIdDigitsInput(this); onPlayerIdFieldChange()">
+                        <input type="text" id="detail-ingame-id" placeholder="Enter your ID" oninput="sanitizeIdDigitsInput(this); onPlayerIdFieldChange()">
                     </div>
                     <div style="flex:1; min-width:0;" id="detail-server-id-wrap">
                         <label>Server ID <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
-                        <input type="text" id="detail-server-id" placeholder="Server ID" inputmode="numeric" maxlength="8" oninput="sanitizeIdDigitsInput(this); onPlayerIdFieldChange()">
+                        <input type="text" id="detail-server-id" placeholder="Server ID" oninput="sanitizeIdDigitsInput(this); onPlayerIdFieldChange()">
                     </div>
                 </div>
                 <div id="recent-ids-block" style="display:none;">
@@ -3649,11 +3695,9 @@
         // the customer types or pastes, drops the bracketed number straight
         // into the Server ID field, and trims it back out of the ID field so
         // the value sent to checkPlayerId / the order is just the clean ID.
-        // Note: detail-ingame-id now has maxlength="8" (see the account-info
-        // markup) so a pasted "12345678(1234)" gets hard-truncated by the
-        // browser to "12345678" before this ever runs - the ID itself still
-        // comes through correctly, but the bracketed server code is cut off
-        // and no longer auto-fills; the customer types Server ID separately.
+        // Note: detail-ingame-id has no length cap, so a pasted
+        // "123456789(1234)" comes through in full before this ever runs -
+        // the bracketed server code is extracted normally below.
         function autoFillServerIdFromBrackets() {
             const idField = document.getElementById('detail-ingame-id');
             const match = idField.value.match(/\(([^)]+)\)/);
@@ -3664,12 +3708,13 @@
             idField.value = idField.value.replace(/\s*\([^)]*\)\s*/, '').trim();
         }
 
-        // Strips anything non-numeric and caps length at 8 as the customer
-        // types/pastes - In-Game ID, Server ID, Order ID, Ticket ID, and
-        // Game Package Link codes are all plain 8-digit numbers now.
+        // Strips symbols/special characters as the customer types/pastes into
+        // the In-Game ID / Server ID fields, but keeps both letters and
+        // numbers - some games use alphanumeric player IDs, not plain
+        // digits only. No length cap, so IDs of any length are accepted.
         function sanitizeIdDigitsInput(el) {
-            const digitsOnly = el.value.replace(/\D/g, '').slice(0, 8);
-            if (digitsOnly !== el.value) el.value = digitsOnly;
+            const cleaned = el.value.replace(/[^a-zA-Z0-9]/g, '');
+            if (cleaned !== el.value) el.value = cleaned;
         }
         window.sanitizeIdDigitsInput = sanitizeIdDigitsInput;
 
@@ -4135,8 +4180,6 @@
                 el = document.createElement('input');
                 el.type = 'text';
                 el.placeholder = 'Server ID';
-                el.inputMode = 'numeric';
-                el.maxLength = 8;
                 el.setAttribute('oninput', 'sanitizeIdDigitsInput(this); onPlayerIdFieldChange()');
             }
             el.id = 'detail-server-id';
@@ -6180,6 +6223,36 @@
         }
         window.closeWalletTopupModal = closeWalletTopupModal;
 
+        // Top Up amount ceiling: 8 digits, so the field itself can never
+        // hold more than 10,000,000 MMK - the "Wallet Balance" total shown
+        // elsewhere isn't capped, only how much can be added in one request.
+        const WALLET_TOPUP_MIN = 1000;
+        const WALLET_TOPUP_MAX = 10000000;
+        // While typing: keep digits only, and if pasting/typing pushes the
+        // value past the 10,000,000 ceiling, clamp it down immediately.
+        // The "always ends in 00" cleanup waits for blur (below) so it
+        // doesn't fight the customer mid-keystroke.
+        function sanitizeWalletTopupAmountInput(el) {
+            let digits = el.value.replace(/\D/g, '').slice(0, 8);
+            if (Number(digits) > WALLET_TOPUP_MAX) digits = String(WALLET_TOPUP_MAX);
+            if (digits !== el.value) el.value = digits;
+            renderWalletTopupPresets();
+        }
+        window.sanitizeWalletTopupAmountInput = sanitizeWalletTopupAmountInput;
+        // On leaving the field: round to the nearest 100 (so a stray extra
+        // digit never leaves the amount off by roughly a factor of ten) and
+        // clamp to the 1,000–10,000,000 MMK range.
+        function finalizeWalletTopupAmountInput(el) {
+            const raw = Number(el.value.replace(/\D/g, '')) || 0;
+            if (raw === 0) { el.value = ''; renderWalletTopupPresets(); return; }
+            let rounded = Math.round(raw / 100) * 100;
+            if (rounded < WALLET_TOPUP_MIN) rounded = WALLET_TOPUP_MIN;
+            if (rounded > WALLET_TOPUP_MAX) rounded = WALLET_TOPUP_MAX;
+            el.value = String(rounded);
+            renderWalletTopupPresets();
+        }
+        window.finalizeWalletTopupAmountInput = finalizeWalletTopupAmountInput;
+
         const WALLET_AMOUNT_PRESETS = [5000, 10000, 20000, 50000, 100000, 200000];
         function renderWalletTopupPresets() {
             const wrap = document.getElementById('wallet-amount-presets');
@@ -6189,8 +6262,9 @@
             `).join('');
         }
         function pickWalletAmountPreset(v) {
-            document.getElementById('wallet-topup-amount').value = v;
-            renderWalletTopupPresets();
+            const input = document.getElementById('wallet-topup-amount');
+            input.value = v;
+            finalizeWalletTopupAmountInput(input);
         }
         window.pickWalletAmountPreset = pickWalletAmountPreset;
         window.renderWalletTopupPresets = renderWalletTopupPresets;
@@ -6607,6 +6681,8 @@
         async function submitWalletTopup(btnEl) {
             const amount = Number(document.getElementById('wallet-topup-amount').value);
             if (!amount || amount <= 0) { window.showToast('Please enter a valid amount.', 'fail'); if (window.resetWalletSlideConfirmThumb) window.resetWalletSlideConfirmThumb(); return; }
+            if (amount < WALLET_TOPUP_MIN) { window.showToast(`Minimum top up amount is ${WALLET_TOPUP_MIN.toLocaleString()} MMK.`, 'fail'); if (window.resetWalletSlideConfirmThumb) window.resetWalletSlideConfirmThumb(); return; }
+            if (amount > WALLET_TOPUP_MAX) { window.showToast(`Maximum top up amount is ${WALLET_TOPUP_MAX.toLocaleString()} MMK.`, 'fail'); if (window.resetWalletSlideConfirmThumb) window.resetWalletSlideConfirmThumb(); return; }
             if (!selectedWalletPaymentMethod) { window.showToast('Please select a payment method.', 'fail'); if (window.resetWalletSlideConfirmThumb) window.resetWalletSlideConfirmThumb(); return; }
             if (!editingWalletReceiptFile) { window.showToast('Please upload your payment receipt.', 'fail'); if (window.resetWalletSlideConfirmThumb) window.resetWalletSlideConfirmThumb(); return; }
 
@@ -7311,21 +7387,34 @@
             const bar = document.getElementById('admin-status-bar');
             const dot = document.getElementById('admin-status-dot');
             const text = document.getElementById('admin-status-text');
-            if (lastAdminActiveMs === null) { bar.style.display = 'none'; return; }
+            // Support Chat tab's own iOS-Messages-style header (avatar + name +
+            // Online/last-seen line) mirrors the same lastAdminActiveMs reading.
+            const chatDot = document.getElementById('support-chat-header-dot');
+            const chatText = document.getElementById('support-chat-header-status-text');
+            if (lastAdminActiveMs === null) {
+                bar.style.display = 'none';
+                if (chatText) chatText.innerText = 'Checking...';
+                return;
+            }
             bar.style.display = 'flex';
             const isOnline = (Date.now() - lastAdminActiveMs) < ADMIN_ONLINE_THRESHOLD_MS;
             dot.className = 'admin-status-dot ' + (isOnline ? 'online' : 'offline');
             bar.classList.toggle('online-text', isOnline);
             bar.title = 'Orders still process automatically either way.';
+            let chatStatusStr;
             if (isOnline) {
                 text.innerText = 'Admin Online';
+                chatStatusStr = 'Online';
             } else {
                 const lastSeenDate = new Date(lastAdminActiveMs);
                 const isToday = lastSeenDate.toDateString() === new Date().toDateString();
                 const timeStr = lastSeenDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
                 const lastSeenStr = isToday ? timeStr : `${lastSeenDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} ${timeStr}`;
                 text.innerText = `Admin Offline — last seen ${lastSeenStr}`;
+                chatStatusStr = `Last seen ${lastSeenStr}`;
             }
+            if (chatDot) chatDot.classList.toggle('online', isOnline);
+            if (chatText) chatText.innerText = chatStatusStr;
         }
         onSnapshot(doc(db, "settings", "presence"), (docSnap) => {
             const data = docSnap.exists() ? docSnap.data() : null;
@@ -10398,6 +10487,44 @@
         let supportChatMsgUnsub = null;
         let supportFabDragged = false;
 
+        // ---------- Support Chat sound effects (iOS Messages-style) ----------
+        // Synthesized with the Web Audio API (no external sound files needed):
+        // a short two-pop rising chime for incoming admin replies, and a
+        // quick upward "swoosh" for messages the customer sends - the same
+        // shape as the classic iPhone Messages tones.
+        let gzChatAudioCtx = null;
+        function getChatAudioCtx() {
+            try {
+                if (!gzChatAudioCtx) gzChatAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                if (gzChatAudioCtx.state === 'suspended') gzChatAudioCtx.resume();
+                return gzChatAudioCtx;
+            } catch (e) { return null; }
+        }
+        function playChatTone(freqStart, freqEnd, duration, volume) {
+            const ctx = getChatAudioCtx();
+            if (!ctx) return;
+            const now = ctx.currentTime;
+            const osc = ctx.createOscillator();
+            const gain = ctx.createGain();
+            osc.type = 'sine';
+            osc.frequency.setValueAtTime(freqStart, now);
+            osc.frequency.exponentialRampToValueAtTime(freqEnd, now + duration);
+            gain.gain.setValueAtTime(volume, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
+            osc.connect(gain).connect(ctx.destination);
+            osc.start(now);
+            osc.stop(now + duration);
+        }
+        function playSupportChatSendSound() {
+            try { playChatTone(700, 1000, 0.12, 0.12); } catch (e) { /* ignore */ }
+        }
+        function playSupportChatReceiveSound() {
+            try {
+                playChatTone(900, 1300, 0.14, 0.14);
+                setTimeout(() => playChatTone(1150, 1550, 0.14, 0.12), 90);
+            } catch (e) { /* ignore */ }
+        }
+
         function loadSupportFabPos() {
             try {
                 const saved = JSON.parse(localStorage.getItem('gz_support_fab_pos') || 'null');
@@ -10576,6 +10703,12 @@
         const TYPING_STALE_MS = 3000;
         let userTypingWriteAt = 0;
         let adminTypingAtMs = null;
+        // Guards for the "new admin reply" receive sound: skip the very first
+        // summary snapshot (that's just existing history loading in, not a
+        // new message) and de-dupe by timestamp so a reconnect/refresh never
+        // replays the sound for a reply the customer already heard.
+        let supportChatSummarySeenFirst = false;
+        let lastPlayedAdminMsgMs = 0;
 
         function renderSupportChatTypingIndicator() {
             const el = document.getElementById('support-chat-typing-indicator');
@@ -10600,6 +10733,14 @@
                     if (dot) dot.style.display = 'block';
                     if (badge) badge.style.display = 'inline-block';
                 }
+                if (data.lastSender === 'admin' && data.lastMessageAt && data.lastMessageAt.toMillis) {
+                    const msgMs = data.lastMessageAt.toMillis();
+                    if (supportChatSummarySeenFirst && msgMs > lastPlayedAdminMsgMs) {
+                        playSupportChatReceiveSound();
+                    }
+                    lastPlayedAdminMsgMs = Math.max(lastPlayedAdminMsgMs, msgMs);
+                }
+                supportChatSummarySeenFirst = true;
                 adminTypingAtMs = (data.adminTypingAt && data.adminTypingAt.toMillis) ? data.adminTypingAt.toMillis() : null;
                 renderSupportChatTypingIndicator();
             }, (error) => console.error("Support chat summary listen error:", error));
@@ -10639,6 +10780,7 @@
         function appendOptimisticSupportChatMessage(text) {
             const box = document.getElementById('support-chat-messages');
             if (!box) return;
+            playSupportChatSendSound();
             const empty = box.querySelector('.support-chat-empty');
             if (empty) empty.remove();
             const time = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
