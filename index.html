@@ -246,6 +246,11 @@
         }
         .notif-dot.show { display: block; animation: notifPulse 1.8s ease-in-out infinite; }
         @keyframes notifPulse { 0%, 100% { box-shadow: 0 0 0 2px rgba(229,57,53,0.25); } 50% { box-shadow: 0 0 0 6px rgba(229,57,53,0); } }
+        /* Favorite (star) toggle on the game detail page header - filled gold
+           when this game is in the customer's favorites, outline otherwise. */
+        .favorite-game-btn svg { transition: transform 0.15s ease; }
+        .favorite-game-btn.active { color: #F5A623; }
+        .favorite-game-btn.active svg { fill: #F5A623; transform: scale(1.08); }
         /* ===================== SIDE DRAWER ===================== */
         /* Overlay = dim backdrop that also hosts the sliding panel, so a
            single .show class animates both at once. Panel width is capped
@@ -962,10 +967,6 @@
             background: rgba(239,68,68,0.12); color: #C0392B; font-size: 13px; font-weight: 600;
         }
         html[data-theme="dark"] .acct-sold-banner { color: #FF9B9B; }
-        .acct-thumbs-row { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 2px; }
-        .acct-thumb { width: 56px; height: 56px; flex-shrink: 0; border-radius: 8px; overflow: hidden; border: 2px solid transparent; cursor: pointer; }
-        .acct-thumb.active { border-color: var(--accent); }
-        .acct-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
 
         /* Order/detail page on wider screens: banner shrinks and sits in its
            own sidebar column instead of stretching full-width, account info +
@@ -1508,53 +1509,6 @@
         .avatar-upload-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .avatar-upload-placeholder { color: var(--accent); display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
 
-        /* Custom equipped avatar frame (Frame Collection) — same anchor point as
-           avatar-tier-frame/avatar-upload-box but drawn from real frame art, sized
-           larger so the art's ring/spikes/ornaments show clearly around the photo.
-           Sits above the photo (z-index 3) and pointer-events:none so tapping the
-           avatar still opens the photo picker underneath it. */
-        .custom-avatar-frame {
-            position: absolute; left: 50%; top: 0; transform: translate(-50%, -50%);
-            width: 132px; height: 132px; pointer-events: none; z-index: 3;
-            object-fit: contain; filter: drop-shadow(0 4px 10px rgba(0,0,0,0.2));
-        }
-
-        /* Name frame — decorative banner art placed behind the display name text.
-           Applied inline (backgroundImage) by applyEquippedFrames() in JS. */
-        .profile-hero-name.has-name-frame {
-            display: inline-block; background-size: 100% 100%; background-repeat: no-repeat;
-            background-position: center; padding: 8px 30px; border-radius: 8px; margin-top: 2px;
-        }
-
-        /* ===================== FRAME COLLECTION PAGE ===================== */
-        .frame-type-tabs { display: flex; gap: 8px; margin-bottom: 14px; }
-        .frame-type-tab { flex: 1; padding: 10px; border-radius: 12px; border: 1.5px solid var(--border); background: var(--surface); color: var(--text-muted); font-weight: 600; font-size: 13px; cursor: pointer; transition: 0.15s; }
-        .frame-type-tab.active { border-color: var(--accent); color: var(--accent); background: color-mix(in srgb, var(--accent) 10%, var(--surface)); }
-        .frame-collection-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 12px; }
-        .frame-coll-card { background: var(--surface); border: 1.5px solid var(--border); border-radius: 16px; padding: 12px; display: flex; flex-direction: column; gap: 6px; position: relative; }
-        .frame-coll-card.equipped { border-color: var(--accent); box-shadow: 0 0 0 2px color-mix(in srgb, var(--accent) 25%, transparent); }
-        .frame-coll-thumb { width: 100%; aspect-ratio: 1; border-radius: 12px; background: radial-gradient(circle, rgba(0,0,0,0.06), rgba(0,0,0,0.02)); display: flex; align-items: center; justify-content: center; overflow: hidden; position: relative; }
-        .frame-coll-thumb.name-type { aspect-ratio: 2.2; }
-        .frame-coll-thumb img { max-width: 88%; max-height: 88%; object-fit: contain; }
-        .frame-coll-thumb.locked img { filter: grayscale(1) brightness(0.55); }
-        .frame-coll-lock { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; color: #fff; background: rgba(0,0,0,0.15); }
-        .frame-coll-lock svg { width: 20px; height: 20px; }
-        .frame-coll-name { font-size: 12.5px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .frame-coll-rarity { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.3px; }
-        .frame-coll-rarity.rarity-common { color: #64748B; }
-        .frame-coll-rarity.rarity-rare { color: #2563EB; }
-        .frame-coll-rarity.rarity-epic { color: #9333EA; }
-        .frame-coll-rarity.rarity-legendary { color: #B45309; }
-        .frame-coll-rarity.rarity-mythic { color: #DB2777; }
-        .frame-coll-progress-track { height: 5px; border-radius: 3px; background: var(--border); overflow: hidden; margin-top: 2px; }
-        .frame-coll-progress-fill { height: 100%; background: var(--accent); border-radius: 3px; transition: width 0.3s ease; }
-        .frame-coll-progress-text { font-size: 10.5px; color: var(--text-muted); }
-        .frame-coll-event-badge { position: absolute; top: 8px; right: 8px; background: #FA3E3E; color: #fff; font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 6px; text-transform: uppercase; letter-spacing: 0.3px; }
-        .frame-coll-btn { margin-top: 2px; padding: 7px; border-radius: 9px; border: none; font-size: 12px; font-weight: 600; cursor: pointer; text-align: center; }
-        .frame-coll-btn.equip { background: var(--accent); color: #fff; }
-        .frame-coll-btn.unequip { background: var(--border); color: var(--text); }
-        .frame-coll-btn.manual-locked { background: var(--border); color: var(--text-muted); cursor: default; }
-
         /* Editable fields card - collapsed by default, toggled by the Edit Profile button */
 
         /* Google account card (Profile page) */
@@ -2028,6 +1982,13 @@
         .support-chat-send { width: 42px; height: 42px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; flex-shrink: 0; }
         .support-chat-empty { text-align: center; color: var(--text-secondary); font-size: 13px; padding: 30px 10px; }
         .support-chat-badge { display: none; width: 8px; height: 8px; border-radius: 50%; background: #FF3B30; margin-left: 5px; vertical-align: middle; }
+        .support-chat-typing { display: none; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); padding: 0 2px 6px; flex-shrink: 0; }
+        .support-chat-typing.show { display: flex; }
+        .support-chat-typing-dots { display: inline-flex; gap: 3px; }
+        .support-chat-typing-dots span { width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: 0.4; animation: supportChatTypingBounce 1.2s infinite ease-in-out; }
+        .support-chat-typing-dots span:nth-child(2) { animation-delay: 0.15s; }
+        .support-chat-typing-dots span:nth-child(3) { animation-delay: 0.3s; }
+        @keyframes supportChatTypingBounce { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-3px); opacity: 1; } }
 
         /* ===== Support Widget: centered white+purple modal card =====
            Scoped entirely to #support-widget-overlay so no other modal in
@@ -2174,8 +2135,8 @@
         <symbol id="icon-sun" viewBox="0 0 24 24"><circle cx="12" cy="12" r="5"></circle><line x1="12" y1="1" x2="12" y2="3"></line><line x1="12" y1="21" x2="12" y2="23"></line><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line><line x1="1" y1="12" x2="3" y2="12"></line><line x1="21" y1="12" x2="23" y2="12"></line><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line></symbol>
         <symbol id="icon-moon" viewBox="0 0 24 24"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path></symbol>
         <symbol id="icon-download" viewBox="0 0 24 24"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></symbol>
-        <symbol id="icon-frame" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"></rect><circle cx="12" cy="12" r="4.2"></circle></symbol>
         <symbol id="icon-lock" viewBox="0 0 24 24"><rect x="4" y="11" width="16" height="9" rx="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path></symbol>
+        <symbol id="icon-star" viewBox="0 0 24 24"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon></symbol>
         <symbol id="icon-alert" viewBox="0 0 24 24"><line x1="12" y1="7" x2="12" y2="13.5"></line><line x1="12" y1="17" x2="12.01" y2="17"></line></symbol>
         <symbol id="icon-info" viewBox="0 0 24 24"><line x1="12" y1="17" x2="12" y2="11"></line><line x1="12" y1="7" x2="12.01" y2="7"></line></symbol>
         <symbol id="icon-gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4"></rect><path d="M12 8v13"></path><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"></path><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"></path></symbol>
@@ -2245,8 +2206,11 @@
             <!-- Support Chat tab -->
             <div class="modal-body support-chat-wrap" id="support-panel-chat" style="display:none;">
                 <div class="support-chat-messages" id="support-chat-messages"></div>
+                <div class="support-chat-typing" id="support-chat-typing-indicator">
+                    <span class="support-chat-typing-dots"><span></span><span></span><span></span></span> Admin is typing...
+                </div>
                 <div class="support-chat-inputrow">
-                    <input type="text" id="support-chat-input" placeholder="မက်ဆေ့ချ် ရိုက်ပါ..." onkeydown="if(event.key==='Enter'){event.preventDefault();window.sendSupportChatMessage();}">
+                    <input type="text" id="support-chat-input" placeholder="မက်ဆေ့ချ် ရိုက်ပါ..." oninput="window.handleSupportChatTyping()" onkeydown="if(event.key==='Enter'){event.preventDefault();window.sendSupportChatMessage();}">
                     <button type="button" class="support-chat-send" onclick="window.sendSupportChatMessage()"><svg class="ui-icon" style="width:18px;height:18px;"><use href="#icon-send"></use></svg></button>
                 </div>
             </div>
@@ -2324,9 +2288,6 @@
                 <div class="drawer-nav-item" onclick="closeDrawer(); openNotificationsPage();">
                     <svg class="ui-icon"><use href="#icon-bell"></use></svg><span>Notifications</span>
                 </div>
-                <div class="drawer-nav-item" onclick="closeDrawer(); openFrameCollection();">
-                    <svg class="ui-icon"><use href="#icon-frame"></use></svg><span>Frame Collection</span>
-                </div>
                 <div class="drawer-nav-item" onclick="closeDrawer(); showPage('terms');">
                     <svg class="ui-icon"><use href="#icon-book"></use></svg><span>Terms &amp; Policy</span>
                 </div>
@@ -2379,6 +2340,10 @@
                     <div class="flash-sale-desc" id="flash-sale-desc"></div>
                 </div>
                 <div class="flash-sale-countdown" id="flash-sale-countdown">--:--:--</div>
+            </div>
+            <div id="favorite-games-section" style="display:none;">
+                <h2 class="title-header">My Favorites</h2>
+                <div class="popular-scroll-wrap" id="favorite-games-scroll"></div>
             </div>
             <div id="popular-games-section">
                 <h2 class="title-header">Popular Games</h2>
@@ -2436,13 +2401,38 @@
              sale, grouped by game (data lives in Firestore's "gameAccounts"
              collection, managed from the admin panel's Account tab). -->
         <div id="account" class="page-section">
-            <h2 class="title-header">Game Accounts</h2>
-            <p class="empty-msg" style="text-align:left;padding:0 2px 12px;">Pre-made accounts ready to play — pick a game to browse.</p>
-            <div class="games-grid-scroll">
-                <div class="cards-grid" id="account-games-grid">
-                    <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
-                    <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
-                    <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
+            <!-- Google sign-in gate: game accounts are high-value listings, so
+                 browsing them requires a real Google sign-in (unlike the rest
+                 of the store, which works fully on the anonymous guest ID). -->
+            <div id="account-login-gate" style="display:none;">
+                <div class="empty-state">
+                    <div class="empty-state-icon"><svg class="ui-icon"><use href="#icon-shield"></use></svg></div>
+                    <div class="empty-state-title">Sign in to browse accounts</div>
+                    <div class="empty-state-sub">Game accounts are high value, so please sign in with Google first.</div>
+                    <div class="empty-state-action">
+                        <div class="google-account-card" style="margin:0 auto;max-width:320px;">
+                            <button type="button" class="google-login-btn" id="account-google-signin-btn" onclick="handleGoogleSignIn('account-google-signin-btn')">
+                                <svg width="18" height="18" viewBox="0 0 48 48">
+                                    <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
+                                    <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/>
+                                    <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/>
+                                    <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.1 5.6l6.2 5.2C40.9 36.2 44 30.6 44 24c0-1.3-.1-2.7-.4-3.5z"/>
+                                </svg>
+                                Continue with Google
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div id="account-content" style="display:none;">
+                <h2 class="title-header">Game Accounts</h2>
+                <p class="empty-msg" style="text-align:left;padding:0 2px 12px;">Pre-made accounts ready to play — pick a game to browse.</p>
+                <div class="games-grid-scroll">
+                    <div class="cards-grid" id="account-games-grid">
+                        <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
+                        <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
+                        <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -2467,9 +2457,9 @@
                 <h2 style="font-size:18px; font-weight: 600; color:var(--text);" id="acct-detail-game-name">Account</h2>
             </div>
             <div class="detail-layout">
-            <div class="detail-banner-col">
+            <div class="detail-banner-col" style="position:relative;">
                 <img id="acct-detail-main-img" src="" alt="" style="width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:12px; margin-bottom:10px;">
-                <div class="acct-thumbs-row" id="acct-detail-thumbs"></div>
+                <span id="acct-detail-img-counter" style="position:absolute;bottom:18px;right:10px;background:rgba(0,0,0,0.6);color:#fff;font-size:12px;font-weight:600;padding:3px 9px;border-radius:20px;">1/1</span>
             </div>
             <div class="detail-main-col">
                 <h3 class="detail-section-title" style="margin-top:0;" id="acct-detail-title">Account</h3>
@@ -2487,6 +2477,12 @@
                     <h3 class="detail-section-title">Skins Included</h3>
                     <div class="acct-chips-row" id="acct-detail-skins"></div>
                 </div>
+
+                <!-- KYC / identity-verification gate: shown instead of the payment
+                     section whenever the buyer isn't yet verified. Game accounts
+                     get checked before payment rather than after, since these
+                     are higher-value, higher-fraud-risk listings. -->
+                <div id="acct-kyc-gate" class="detail-form-card" style="display:none;text-align:center;"></div>
 
                 <div id="acct-detail-payment-section">
                     <h3 class="detail-section-title">How do you want to pay?</h3>
@@ -2845,10 +2841,6 @@
                         <span class="tier-frame-spark spark-7"></span>
                         <span class="tier-frame-spark spark-8"></span>
                     </div>
-                    <!-- Custom equipped avatar frame (from Frame Collection). Overlaid on
-                         top of the tier-ring above; whichever is showing is decided in
-                         applyEquippedFrames() based on whether the user has one equipped. -->
-                    <img class="custom-avatar-frame" id="custom-avatar-frame" src="" alt="" style="display:none;">
                     <label class="avatar-upload-box" id="avatar-upload-box" for="profile-photo-file">
                         <img id="profile-photo-preview" src="" alt="Profile photo" style="display:none;">
                         <div class="avatar-upload-placeholder" id="avatar-upload-placeholder">
@@ -3009,19 +3001,6 @@
                 <div class="tier-preview-grid" id="tier-preview-grid" style="display:none;"></div>
             </div>
 
-            <!-- Frame Collection entry: opens the dedicated #frame-collection page
-                 where every avatar/name frame (mission-unlocked, event-limited, or
-                 manually granted) can be viewed and equipped. -->
-            <div class="detail-form-card" id="frame-collection-entry-card" style="margin-top:14px;cursor:pointer;" onclick="openFrameCollection()" role="button" aria-label="Open frame collection">
-                <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
-                    <span class="prefs-row-label">
-                        <span class="prefs-row-icon"><svg class="ui-icon" style="width:18px;height:18px;"><use href="#icon-frame"></use></svg></span>
-                        <span>Frame Collection <span id="frame-collection-count-badge" style="font-size:11px;color:var(--text-muted);font-weight: 500;"></span></span>
-                    </span>
-                    <svg class="ui-icon" style="width:16px;height:16px;color:var(--text-muted);"><use href="#icon-chevron-right"></use></svg>
-                </div>
-            </div>
-
             <div class="detail-form-card" id="social-links-card" style="margin-top:14px;">
                 <label style="align-self:flex-start;">Follow Us</label>
                 <div class="social-links-row" id="social-links-row">
@@ -3114,24 +3093,6 @@
             <div class="cards-grid" id="server-select-grid"></div>
         </div>
 
-        <!-- FRAME COLLECTION PAGE: every avatar/name frame — mission-unlocked,
-             event-limited, or manually granted — with progress + equip/unequip. -->
-        <div id="frame-collection" class="page-section">
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
-                <div class="header-icon" style="width:36px;height:36px;" onclick="closeFrameCollection()">
-                    <svg class="ui-icon" style="width:18px;"><use href="#icon-chevron-left"></use></svg>
-                </div>
-                <h2 style="font-size:18px; font-weight: 600; color:var(--text);">Frame Collection</h2>
-            </div>
-            <div class="frame-type-tabs" id="frame-type-tabs">
-                <button type="button" class="frame-type-tab active" data-ftype="avatar" onclick="setFrameCollectionTab('avatar')">Avatar Frames</button>
-                <button type="button" class="frame-type-tab" data-ftype="name" onclick="setFrameCollectionTab('name')">Name Frames</button>
-            </div>
-            <div class="frame-collection-grid" id="frame-collection-grid">
-                <p class="empty-msg">Loading frames...</p>
-            </div>
-        </div>
-
         <!-- TERMS AND POLICY PAGE -->
         <div id="terms" class="page-section">
             <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
@@ -3174,7 +3135,10 @@
                 <div class="header-icon" style="width:36px;height:36px;" onclick="closeGameDetail()">
                     <svg class="ui-icon" style="width:18px;"><use href="#icon-chevron-left"></use></svg>
                 </div>
-                <h2 style="font-size:18px; font-weight: 600; color:var(--text);" id="detail-game-name">Game</h2>
+                <h2 style="font-size:18px; font-weight: 600; color:var(--text); flex:1;" id="detail-game-name">Game</h2>
+                <div class="header-icon favorite-game-btn" id="favorite-game-btn" style="width:36px;height:36px;" onclick="toggleFavoriteGame()" role="button" aria-label="Toggle favorite">
+                    <svg class="ui-icon" style="width:18px;"><use href="#icon-star"></use></svg>
+                </div>
             </div>
             <div class="detail-layout">
             <div class="detail-banner-col">
@@ -3205,11 +3169,11 @@
                 <div style="display:flex; gap:10px;">
                     <div style="flex:1; min-width:0;">
                         <label>In-Game ID</label>
-                        <input type="text" id="detail-ingame-id" placeholder="Enter your ID" oninput="onPlayerIdFieldChange()">
+                        <input type="text" id="detail-ingame-id" placeholder="Enter your ID" inputmode="numeric" maxlength="8" oninput="sanitizeIdDigitsInput(this); onPlayerIdFieldChange()">
                     </div>
                     <div style="flex:1; min-width:0;" id="detail-server-id-wrap">
                         <label>Server ID <span style="font-weight:400;color:var(--text-muted);">(optional)</span></label>
-                        <input type="text" id="detail-server-id" placeholder="Server ID" oninput="onPlayerIdFieldChange()">
+                        <input type="text" id="detail-server-id" placeholder="Server ID" inputmode="numeric" maxlength="8" oninput="sanitizeIdDigitsInput(this); onPlayerIdFieldChange()">
                     </div>
                 </div>
                 <div id="recent-ids-block" style="display:none;">
@@ -3371,7 +3335,8 @@
                 <svg class="ui-icon"><use href="#icon-gamepad"></use></svg>
                 <span>Game ဖွင့်မယ်</span>
             </button>
-            <button class="btn btn-primary" onclick="goHomeFromSuccess()">Back to Home</button>
+            <button class="btn btn-primary" id="success-go-history-btn" onclick="goToHistoryFromSuccess()">Go to History</button>
+            <button class="btn btn-primary" id="success-go-admin-btn" onclick="goToAdminFromSuccess()" style="display:none;">Go to Admin</button>
         </div>
     </div>
 
@@ -3423,7 +3388,7 @@
             if (pageId === 'profile' && window.renderPushToggleUI) window.renderPushToggleUI();
             if (pageId === 'leaderboard' && window.loadLeaderboard) window.loadLeaderboard();
             if (pageId === 'voucher' && window.renderVoucherGames) window.renderVoucherGames();
-            if (pageId === 'account' && window.renderAccountGames) window.renderAccountGames();
+            if (pageId === 'account' && window.renderAccountAccessGate) window.renderAccountAccessGate();
         }
 
         let toastHideTimer = null;
@@ -3661,6 +3626,7 @@
         let receiptOcrPromise = null; // resolves once auto-detection of the Transaction ID from the uploaded receipt finishes
         let selectedPaymentType = null; // 'wallet' | 'payment' — how the customer wants to pay for a game order
         let currentWalletBalance = 0; // kept in sync by listenWalletBalance()
+        let myFavoriteGames = []; // array of gameIds, kept in sync by listenWalletBalance()'s users/{gid} snapshot
         let playerIdVerified = null; // null = not checked, true = valid, false = failed
         let verifiedPlayerName = null; // in-game name resolved by checkPlayerId, saved with the order
         let playerIdCheckTimer = null;
@@ -3683,6 +3649,11 @@
         // the customer types or pastes, drops the bracketed number straight
         // into the Server ID field, and trims it back out of the ID field so
         // the value sent to checkPlayerId / the order is just the clean ID.
+        // Note: detail-ingame-id now has maxlength="8" (see the account-info
+        // markup) so a pasted "12345678(1234)" gets hard-truncated by the
+        // browser to "12345678" before this ever runs - the ID itself still
+        // comes through correctly, but the bracketed server code is cut off
+        // and no longer auto-fills; the customer types Server ID separately.
         function autoFillServerIdFromBrackets() {
             const idField = document.getElementById('detail-ingame-id');
             const match = idField.value.match(/\(([^)]+)\)/);
@@ -3692,6 +3663,15 @@
             serverIdField.value = match[1].trim();
             idField.value = idField.value.replace(/\s*\([^)]*\)\s*/, '').trim();
         }
+
+        // Strips anything non-numeric and caps length at 8 as the customer
+        // types/pastes - In-Game ID, Server ID, Order ID, Ticket ID, and
+        // Game Package Link codes are all plain 8-digit numbers now.
+        function sanitizeIdDigitsInput(el) {
+            const digitsOnly = el.value.replace(/\D/g, '').slice(0, 8);
+            if (digitsOnly !== el.value) el.value = digitsOnly;
+        }
+        window.sanitizeIdDigitsInput = sanitizeIdDigitsInput;
 
         // Debounced live check against G2Bulk's checkPlayerId - only runs for
         // games linked to a G2Bulk code. Shows the resolved in-game name so the
@@ -3972,8 +3952,12 @@
         //                        built from appAndroidPackage
         //   appIosScheme       - iOS custom URL scheme (without "://")
         //   appIosStoreUrl     - App Store URL, used as the iOS fallback
+        // TEMP: "Open Game" feature switched off (not in use yet) — flip this
+        // back to true to re-enable both buttons (detail page + success page)
+        // without touching anything else.
+        const GAME_OPEN_FEATURE_ENABLED = false;
         function hasGameAppLink(game) {
-            return !!(game && (game.appAndroidPackage || game.appAndroidStoreUrl || game.appIosScheme || game.appIosStoreUrl));
+            return GAME_OPEN_FEATURE_ENABLED && !!(game && (game.appAndroidPackage || game.appAndroidStoreUrl || game.appIosScheme || game.appIosStoreUrl));
         }
         window.hasGameAppLink = hasGameAppLink;
 
@@ -4151,11 +4135,139 @@
                 el = document.createElement('input');
                 el.type = 'text';
                 el.placeholder = 'Server ID';
+                el.inputMode = 'numeric';
+                el.maxLength = 8;
+                el.setAttribute('oninput', 'sanitizeIdDigitsInput(this); onPlayerIdFieldChange()');
             }
             el.id = 'detail-server-id';
-            el.setAttribute('oninput', 'onPlayerIdFieldChange()');
             el.setAttribute('onchange', 'onPlayerIdFieldChange()');
             old.replaceWith(el);
+        }
+
+        // ---------- Shareable package link (?game=<gameId>&pkg=<index>) ----------
+        // Tapping a package (selectPackageOption below) copies a link like
+        // "<store-url>?game=freefire&pkg=2" to the clipboard. Opening that
+        // link on any device runs tryOpenPendingPackageDeepLink() below once
+        // window.GAMES is loaded, which jumps straight to that game's detail
+        // page with the same package pre-selected - instead of just landing
+        // on the store's home page like a plain shared URL would.
+        let pendingPackageDeepLink = null;
+        let pendingPackageDeepLinkCode = null; // new-style "?code=<8-digit>" link awaiting Firestore lookup
+        (function capturePackageDeepLinkFromURL() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                if (params.has('code')) {
+                    pendingPackageDeepLinkCode = params.get('code');
+                } else if (params.has('game')) {
+                    // Legacy "?game=<gameId>&pkg=<index>" links shared before
+                    // the 8-digit code system - still honored so old links
+                    // people already sent out keep working.
+                    pendingPackageDeepLink = { gameId: params.get('game'), pkgIndex: parseInt(params.get('pkg'), 10) };
+                }
+            } catch (e) { /* malformed URL - ignore, act as a normal visit */ }
+        })();
+
+        // Resolves a "?code=<8-digit>" package link against the packageLinks
+        // collection (written by buildPackageShareLink) and hands off to the
+        // same jump logic the legacy game/pkg link path uses.
+        async function tryOpenPendingPackageLinkCode() {
+            if (!pendingPackageDeepLinkCode || !window.GAMES) return;
+            const code = pendingPackageDeepLinkCode;
+            pendingPackageDeepLinkCode = null; // handle exactly once
+            try {
+                const snap = await window.getDoc(window.doc(window.db, "packageLinks", code));
+                if (!snap.exists()) { window.showToast('This link is invalid or has expired.', 'fail'); return; }
+                const { gameId, pkgIndex } = snap.data();
+                pendingPackageDeepLink = { gameId, pkgIndex };
+                tryOpenPendingPackageDeepLink();
+            } catch (e) {
+                console.error("Package link code lookup error:", e);
+            } finally {
+                try {
+                    const clean = new URL(window.location.href);
+                    clean.searchParams.delete('code');
+                    window.history.replaceState({}, '', clean.toString());
+                } catch (e) { /* ignore */ }
+            }
+        }
+
+        function tryOpenPendingPackageDeepLink() {
+            if (pendingPackageDeepLinkCode) { tryOpenPendingPackageLinkCode(); return; }
+            if (!pendingPackageDeepLink || !window.GAMES) return;
+            const { gameId, pkgIndex } = pendingPackageDeepLink;
+            const game = window.GAMES[gameId];
+            if (!game) return; // games list hasn't loaded that id yet (or it no longer exists)
+            pendingPackageDeepLink = null; // handle exactly once
+            openGameDetail(gameId);
+            if (Number.isInteger(pkgIndex) && Array.isArray(game.packages) && game.packages[pkgIndex]) {
+                // The package might live under a different tab than whichever
+                // one openGameDetail() defaulted to - switch to its tab first
+                // so the card actually exists in the DOM to select/highlight.
+                const targetPkg = game.packages[pkgIndex];
+                const targetTab = pkgTabOf(targetPkg);
+                if (targetTab !== activePackageTab) switchPackageTab(targetTab);
+                selectPackageOption(pkgIndex);
+                setTimeout(() => {
+                    const card = document.querySelector(`#detail-package-list .package-card[data-index="${pkgIndex}"]`);
+                    if (card) card.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 50);
+            }
+            // Clean the address bar so refreshing this tab later doesn't
+            // re-trigger the jump, and so this visitor sharing their own
+            // current URL later doesn't accidentally re-forward someone
+            // else's package link.
+            try {
+                const clean = new URL(window.location.href);
+                clean.searchParams.delete('game');
+                clean.searchParams.delete('pkg');
+                window.history.replaceState({}, '', clean.toString());
+            } catch (e) { /* ignore */ }
+        }
+
+        // Clipboard write with a manual-selection fallback for browsers/
+        // webviews (some in-app browsers) that don't support or allow the
+        // async Clipboard API.
+        async function copyTextToClipboard(text) {
+            try {
+                if (navigator.clipboard && window.isSecureContext) {
+                    await navigator.clipboard.writeText(text);
+                    return true;
+                }
+            } catch (e) { /* fall through to legacy path below */ }
+            try {
+                const ta = document.createElement('textarea');
+                ta.value = text;
+                ta.style.position = 'fixed';
+                ta.style.opacity = '0';
+                document.body.appendChild(ta);
+                ta.focus();
+                ta.select();
+                const ok = document.execCommand('copy');
+                document.body.removeChild(ta);
+                return ok;
+            } catch (e) {
+                return false;
+            }
+        }
+
+        // Generates a short 8-digit code for this exact game+package, saves
+        // the mapping to Firestore, and returns a "?code=<8-digit>" link.
+        // Resolved back to the game/package on open by
+        // tryOpenPendingPackageLinkCode() above.
+        async function buildPackageShareLink(gameId, pkgIndex) {
+            const code = await window.generateShortNumericId("packageLinks");
+            try {
+                await window.setDoc(window.doc(window.db, "packageLinks", code), {
+                    gameId, pkgIndex, createdAt: window.serverTimestamp()
+                });
+            } catch (e) {
+                console.error("Package link save error:", e);
+            }
+            const url = new URL(window.location.href);
+            url.search = '';
+            url.hash = '';
+            url.searchParams.set('code', code);
+            return url.toString();
         }
 
         function openGameDetail(gameId) {
@@ -4221,6 +4333,7 @@
             document.getElementById('detail-game-name').innerText = game.name;
             document.getElementById('detail-game-banner').src = game.banner || game.image;
             document.getElementById('detail-game-banner').alt = game.name;
+            updateFavoriteButtonState();
             renderGameDescCard(game.description || '', game.redeemLink || '', game);
             loadSavedContactIntoForm();
 
@@ -4481,6 +4594,15 @@
             confirmBtn.innerText = 'Choose How to Pay';
 
             document.getElementById('detail-payment-section').style.display = 'block';
+
+            // Auto-copy a direct link to this exact package so the customer
+            // can immediately forward it - opening it elsewhere lands the
+            // recipient on this same package via tryOpenPendingPackageDeepLink().
+            buildPackageShareLink(selectedGameId, index)
+                .then(shareLink => copyTextToClipboard(shareLink))
+                .then(ok => {
+                    if (ok) window.showToast('Link copied — share it with a friend 🔗', 'success');
+                });
         }
 
         // Highest quantity the customer is allowed to pick for the currently
@@ -5078,14 +5200,24 @@
         // customer still standing right there on the success screen.
         let successOrderUnsubscribe = null;
 
-        function openSuccessOverlay(orderId, initialData) {
+        function openSuccessOverlay(orderId, initialData, mode = 'default') {
             document.getElementById('success-overlay').classList.add('show');
 
+            // "Account" orders (pre-made game account purchases, handled
+            // manually by the admin) show a "Go to Admin" button that jumps
+            // straight to the admin's Telegram instead of the normal
+            // "Go to History" button — everything else about the screen
+            // (live status timeline, voucher-code block) is shared as-is.
+            document.getElementById('success-go-history-btn').style.display = mode === 'account' ? 'none' : '';
+            document.getElementById('success-go-admin-btn').style.display = mode === 'account' ? '' : 'none';
+
             // Show the "Game ဖွင့်မယ်" button on the success screen only when
-            // the just-purchased game has an app link configured.
+            // the just-purchased game has an app link configured (never for
+            // an account-order success screen, which isn't tied to a single
+            // selectedGameId in the same way).
             const openGameBtn = document.getElementById('success-open-game-btn');
             const purchasedGame = window.GAMES ? window.GAMES[selectedGameId] : null;
-            openGameBtn.style.display = hasGameAppLink(purchasedGame) ? 'flex' : 'none';
+            openGameBtn.style.display = (mode !== 'account' && hasGameAppLink(purchasedGame)) ? 'flex' : 'none';
 
             if (successOrderUnsubscribe) { successOrderUnsubscribe(); successOrderUnsubscribe = null; }
 
@@ -5139,11 +5271,25 @@
             }
         }
 
-        function goHomeFromSuccess() {
+        function goToHistoryFromSuccess() {
             document.getElementById('success-overlay').classList.remove('show');
             document.getElementById('success-voucher-code-block').innerHTML = '';
             if (successOrderUnsubscribe) { successOrderUnsubscribe(); successOrderUnsubscribe = null; }
             closeGameDetail();
+            showPage('history');
+        }
+
+        // Account-order success screen's "Go to Admin" button — opens the
+        // admin's configured Telegram/Facebook (same link as the Profile
+        // page's Support row, see contactAdmin()) in a new tab, since these
+        // orders are handed off to the admin manually rather than through
+        // the usual auto-fulfillment providers.
+        function goToAdminFromSuccess() {
+            document.getElementById('success-overlay').classList.remove('show');
+            document.getElementById('success-voucher-code-block').innerHTML = '';
+            if (successOrderUnsubscribe) { successOrderUnsubscribe(); successOrderUnsubscribe = null; }
+            if (window.contactAdmin) window.contactAdmin();
+            showPage('history');
         }
 
         async function confirmPackagePurchase(btnElement) {
@@ -5420,7 +5566,8 @@
         window.previewReceiptImage = previewReceiptImage;
         window.copyPaymentField = copyPaymentField;
         window.closeGameDetail = closeGameDetail;
-        window.goHomeFromSuccess = goHomeFromSuccess;
+        window.goToHistoryFromSuccess = goToHistoryFromSuccess;
+        window.goToAdminFromSuccess = goToAdminFromSuccess;
         window.openSuccessOverlay = openSuccessOverlay;
         window.confirmPackagePurchase = confirmPackagePurchase;
         initSlideConfirm();
@@ -5573,7 +5720,7 @@
     <!-- FIREBASE CODE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, getDoc, setDoc, updateDoc, serverTimestamp, query, where, orderBy, limit, getDocs, onSnapshot, increment, runTransaction, arrayUnion } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, getDoc, setDoc, updateDoc, serverTimestamp, query, where, orderBy, limit, getDocs, onSnapshot, increment, runTransaction, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
@@ -5593,10 +5740,40 @@
         window.db = db;
         window.doc = doc;
         window.onSnapshot = onSnapshot;
+        // Also needed by the non-module <script> above for the Game Package
+        // Link 8-digit code lookup/save (tryOpenPendingPackageLinkCode /
+        // buildPackageShareLink).
+        window.getDoc = getDoc;
+        window.setDoc = setDoc;
+        window.serverTimestamp = serverTimestamp;
         // Stay signed in across visits/app restarts until the user explicitly
         // signs out - stored in the browser's IndexedDB, so a plain reload or
         // reopening the site never asks for Google sign-in again on its own.
         setPersistence(auth, browserLocalPersistence).catch((e) => console.error('Auth persistence error:', e));
+
+        // ---------- Short numeric IDs (8 digits) ----------
+        // Firestore's default auto-IDs are long random alphanumeric strings.
+        // Order IDs, support Ticket IDs, and shareable Game Package Link
+        // codes are all customer-facing (read aloud to support, typed into a
+        // link, shown on a receipt) so they use plain 8-digit numbers
+        // instead. Picks a random 8-digit number and checks it isn't
+        // already used in the given collection, retrying on the rare
+        // collision; falls back to returning the candidate unchecked if the
+        // existence check itself fails, rather than blocking the write.
+        async function generateShortNumericId(collectionName) {
+            for (let attempt = 0; attempt < 8; attempt++) {
+                const candidate = String(Math.floor(10000000 + Math.random() * 90000000));
+                try {
+                    const snap = await getDoc(doc(db, collectionName, candidate));
+                    if (!snap.exists()) return candidate;
+                } catch (e) {
+                    console.error(`generateShortNumericId(${collectionName}) check error:`, e);
+                    return candidate;
+                }
+            }
+            return String(Math.floor(10000000 + Math.random() * 90000000));
+        }
+        window.generateShortNumericId = generateShortNumericId;
 
         // Free image hosting for payment receipts (no Firebase Storage / Blaze plan needed).
         // Uses the same free ImgBB key as the admin panel's game photo uploads.
@@ -5774,10 +5951,80 @@
                     const n = Number(data.referralCount || 0);
                     countEl.innerText = n === 1 ? '1 friend invited' : n + ' friends invited';
                 }
+                currentKycStatus = data.kycStatus || 'none';
+                if (window.currentStorePage === 'account-detail' && window.renderAcctKycGate) window.renderAcctKycGate();
+                myFavoriteGames = Array.isArray(data.favoriteGames) ? data.favoriteGames : [];
+                renderFavoriteGamesRow();
+                updateFavoriteButtonState();
             }, (error) => console.error('Wallet balance listener error:', error));
         }
 
-        // ---------- Referral / Invite Friends ----------
+        // ---------- Favorite Games (My Favorites quick-access row) ----------
+        // Stored as users/{gid}.favoriteGames: [gameId,...]. Kept in sync by
+        // listenWalletBalance()'s existing users/{gid} snapshot above rather
+        // than a second listener on the same document.
+        function renderFavoriteGamesRow() {
+            const section = document.getElementById('favorite-games-section');
+            const scroll = document.getElementById('favorite-games-scroll');
+            if (!section || !scroll || !window.GAMES) return;
+            const ids = myFavoriteGames.filter(id => window.GAMES[id]);
+            if (ids.length === 0) {
+                section.style.display = 'none';
+                scroll.innerHTML = '';
+                return;
+            }
+            section.style.display = 'block';
+            scroll.innerHTML = ids.map((id, i) => {
+                const g = window.GAMES[id];
+                return `
+                    <div class="game-card popular-card game-card-anim" style="animation-delay:${Math.min(i * 18, 120)}ms" onclick="openGameDetail('${id}')">
+                        <div class="game-card-img-wrap">
+                            <img src="${g.image}" alt="${g.name}" loading="lazy" decoding="async">
+                        </div>
+                        <div class="game-card-name">${g.serverName || g.name}</div>
+                    </div>
+                `;
+            }).join('');
+        }
+        window.renderFavoriteGamesRow = renderFavoriteGamesRow;
+
+        // Reflects whether the currently-open game-detail page's game is
+        // favorited, on the star button in the header.
+        function updateFavoriteButtonState() {
+            const btn = document.getElementById('favorite-game-btn');
+            if (!btn) return;
+            btn.classList.toggle('active', !!selectedGameId && myFavoriteGames.includes(selectedGameId));
+        }
+        window.updateFavoriteButtonState = updateFavoriteButtonState;
+
+        async function toggleFavoriteGame() {
+            const gid = window.getGuestId ? window.getGuestId() : null;
+            if (!gid || !selectedGameId) return;
+            const btn = document.getElementById('favorite-game-btn');
+            const isFav = myFavoriteGames.includes(selectedGameId);
+            // Optimistic UI update - the users/{gid} snapshot listener will
+            // reconcile with the real value moments later either way.
+            if (isFav) {
+                myFavoriteGames = myFavoriteGames.filter(id => id !== selectedGameId);
+            } else {
+                myFavoriteGames = [...myFavoriteGames, selectedGameId];
+            }
+            if (btn) btn.classList.toggle('active', !isFav);
+            try {
+                await setDoc(doc(db, "users", gid), {
+                    favoriteGames: isFav ? arrayRemove(selectedGameId) : arrayUnion(selectedGameId)
+                }, { merge: true });
+                if (window.showToast) window.showToast(isFav ? 'Removed from favorites' : 'Added to favorites', 'success');
+            } catch (error) {
+                console.error('toggleFavoriteGame error:', error);
+                // Roll back the optimistic update on failure.
+                if (isFav) myFavoriteGames = [...myFavoriteGames, selectedGameId];
+                else myFavoriteGames = myFavoriteGames.filter(id => id !== selectedGameId);
+                if (btn) btn.classList.toggle('active', isFav);
+                if (window.showToast) window.showToast('Failed to update favorites.', 'fail');
+            }
+        }
+        window.toggleFavoriteGame = toggleFavoriteGame;
         // The referral "code" is just the guest's own ID - already unique, no new
         // field to generate or collide-check. Reward amounts are read from
         // settings/referral (admin-configurable) with hardcoded fallbacks so this
@@ -6467,25 +6714,10 @@
         window.closeWalletTopupDetail = closeWalletTopupDetail;
 
         window.formatMMK = window.formatMMK || function (n) { return Math.round(n || 0).toLocaleString('en-US') + ' MMK'; };
-        // Frame-collection state must exist before the listener calls below
-        // run (they were previously declared much further down the file with
-        // `let`, which threw a ReferenceError here due to the temporal dead
-        // zone - that uncaught error silently killed every later top-level
-        // statement in this script, including the theme toggle and VIP tier
-        // setup, which is why those stopped working too).
-        let FRAMES = {};
-        let framesListenerAttached = false;
-        let frameCollectionTab = 'avatar';
-        let myUnlockedFrames = [];
-        let myEquippedAvatarFrame = '';
-        let myEquippedNameFrame = '';
-        let userFrameStateListenerAttached = false;
 
         listenWalletBalance();
         listenWalletTopups();
         renderReferralCard();
-        listenFrames();
-        listenUserFrameState();
 
         // ---------- Google sign-in (optional) ----------
         // Purely a convenience on the Profile page: auto-fills name/photo below
@@ -6532,7 +6764,7 @@
             syncUserToFirestore();
         }
 
-        async function handleGoogleSignIn() {
+        async function handleGoogleSignIn(btnId) {
             // Home Screen "Add to Home Screen" apps run in a separate storage
             // container from the regular browser (iOS Safari standalone mode,
             // and the equivalent on Android). The redirect can still "succeed"
@@ -6546,7 +6778,7 @@
                 if (window.showToast) window.showToast('Please open this site in Safari or Chrome (not the Home Screen icon) to sign in with Google.', 'fail');
                 return;
             }
-            const btn = document.getElementById('google-signin-btn');
+            const btn = document.getElementById(btnId || 'google-signin-btn');
             const originalHTML = btn.innerHTML;
             btn.disabled = true;
             btn.innerHTML = 'Signing in...';
@@ -6591,7 +6823,24 @@
 
         onAuthStateChanged(auth, (user) => {
             renderGoogleAccountUI(user);
+            if (window.renderAccountAccessGate) window.renderAccountAccessGate();
         });
+
+        // ---------- Account marketplace access gate ----------
+        // Browsing pre-made game accounts requires a real Google sign-in
+        // (unlike the rest of the store, which works fully on the anonymous
+        // guest ID) — these are higher-value listings so we want a signed-in
+        // identity before anyone can even see what's for sale.
+        function renderAccountAccessGate() {
+            const gate = document.getElementById('account-login-gate');
+            const content = document.getElementById('account-content');
+            if (!gate || !content) return;
+            const signedIn = !!(auth.currentUser);
+            gate.style.display = signedIn ? 'none' : 'block';
+            content.style.display = signedIn ? 'block' : 'none';
+            if (signedIn && window.renderAccountGames) window.renderAccountGames();
+        }
+        window.renderAccountAccessGate = renderAccountAccessGate;
 
         // Picks up the result after a signInWithRedirect() round-trip (the
         // popup-blocked fallback above). Harmless no-op on a normal page load
@@ -6858,236 +7107,8 @@
                 }
             }
 
-            if (window.checkFrameUnlocks) window.checkFrameUnlocks({ total, count, games });
-            if (window.renderFrameCollection) window.renderFrameCollection();
         }
         window.loadProfileStats = loadProfileStats;
-
-        // ===================== CUSTOM FRAMES (Frame Collection) =====================
-        // frames/{id}: { name, type:'avatar'|'name', imageUrl, rarity, unlockType:
-        //   'spend'|'orders'|'games'|'manual', target, eventLimited, eventStart,
-        //   eventEnd, active }
-        // users/{uid}: unlockedFrames:[frameId,...], equippedAvatarFrame, equippedNameFrame
-        function listenFrames() {
-            if (framesListenerAttached) return;
-            framesListenerAttached = true;
-            onSnapshot(collection(db, "frames"), (snap) => {
-                FRAMES = {};
-                snap.forEach(d => { FRAMES[d.id] = { id: d.id, ...d.data() }; });
-                if (window.currentStorePage === 'frame-collection' && window.renderFrameCollection) window.renderFrameCollection();
-                updateFrameCollectionBadge();
-                if (window.applyEquippedFrames) window.applyEquippedFrames();
-            }, (error) => console.error("Frames listener error:", error));
-        }
-
-        // Live user-doc listener for this customer's frame state (separate from
-        // the wallet-balance listener above so either can be added/removed
-        // independently). Keeps equip choices and newly-granted frames in sync
-        // across devices/tabs without a reload.
-        function listenUserFrameState() {
-            if (userFrameStateListenerAttached) return;
-            userFrameStateListenerAttached = true;
-            const gid = window.getGuestId ? window.getGuestId() : null;
-            if (!gid) return;
-            onSnapshot(doc(db, "users", gid), (snap) => {
-                const data = snap.exists() ? snap.data() : {};
-                myUnlockedFrames = data.unlockedFrames || [];
-                myEquippedAvatarFrame = data.equippedAvatarFrame || '';
-                myEquippedNameFrame = data.equippedNameFrame || '';
-                if (window.currentStorePage === 'frame-collection' && window.renderFrameCollection) window.renderFrameCollection();
-                updateFrameCollectionBadge();
-                if (window.applyEquippedFrames) window.applyEquippedFrames();
-            }, (error) => console.error("User frame state listener error:", error));
-        }
-
-        function updateFrameCollectionBadge() {
-            const badge = document.getElementById('frame-collection-count-badge');
-            if (!badge) return;
-            const activeCount = Object.values(FRAMES).filter(f => f.active !== false).length;
-            badge.innerText = activeCount ? `${myUnlockedFrames.length}/${activeCount}` : '';
-        }
-
-        function frameIsEventOpen(f) {
-            if (!f.eventLimited) return true;
-            const now = Date.now();
-            const start = f.eventStart ? new Date(f.eventStart).getTime() : 0;
-            const end = f.eventEnd ? new Date(f.eventEnd).getTime() : Infinity;
-            return now >= start && now <= end;
-        }
-
-        function frameProgressValue(f, stats) {
-            if (f.unlockType === 'spend') return stats.total;
-            if (f.unlockType === 'orders') return stats.count;
-            if (f.unlockType === 'games') return stats.games;
-            return 0;
-        }
-
-        // Auto-unlocks any mission-based frame the customer now qualifies for
-        // (only while its event window is open, for event-limited frames).
-        // Manual-only frames never unlock here — an admin grants those.
-        async function checkFrameUnlocks(stats) {
-            const gid = window.getGuestId ? window.getGuestId() : null;
-            if (!gid) return;
-            const toUnlock = Object.values(FRAMES).filter(f =>
-                f.active !== false &&
-                f.unlockType !== 'manual' &&
-                !myUnlockedFrames.includes(f.id) &&
-                frameIsEventOpen(f) &&
-                frameProgressValue(f, stats) >= (Number(f.target) || 0) && Number(f.target) > 0
-            );
-            if (toUnlock.length === 0) return;
-            try {
-                await updateDoc(doc(db, "users", gid), {
-                    unlockedFrames: arrayUnion(...toUnlock.map(f => f.id))
-                });
-                toUnlock.forEach(f => {
-                    if (window.showToast) window.showToast(`🎉 New frame unlocked: ${f.name}!`, 'success');
-                });
-            } catch (error) {
-                console.error("checkFrameUnlocks error:", error);
-            }
-        }
-        window.checkFrameUnlocks = checkFrameUnlocks;
-
-        function setFrameCollectionTab(type) {
-            frameCollectionTab = type;
-            document.querySelectorAll('.frame-type-tab').forEach(el => {
-                el.classList.toggle('active', el.dataset.ftype === type);
-            });
-            renderFrameCollection();
-        }
-        window.setFrameCollectionTab = setFrameCollectionTab;
-
-        function openFrameCollection() {
-            showPage('frame-collection');
-            renderFrameCollection();
-        }
-        window.openFrameCollection = openFrameCollection;
-
-        function closeFrameCollection() {
-            showPage('profile');
-        }
-        window.closeFrameCollection = closeFrameCollection;
-
-        function closeTermsPage() {
-            showPage('profile');
-        }
-        window.closeTermsPage = closeTermsPage;
-
-        function renderFrameCollection() {
-            const grid = document.getElementById('frame-collection-grid');
-            if (!grid) return;
-            const stats = window.__lastUserStats || { total: 0, count: 0, games: 0 };
-            const list = Object.values(FRAMES).filter(f => f.active !== false && f.type === frameCollectionTab);
-            if (list.length === 0) {
-                grid.innerHTML = '<p class="empty-msg" style="grid-column:1/-1;">No frames here yet — check back soon!</p>';
-                return;
-            }
-            grid.innerHTML = list.map(f => {
-                const unlocked = myUnlockedFrames.includes(f.id);
-                const equippedId = f.type === 'name' ? myEquippedNameFrame : myEquippedAvatarFrame;
-                const isEquipped = unlocked && equippedId === f.id;
-                const eventOpen = frameIsEventOpen(f);
-                const progress = frameProgressValue(f, stats);
-                const target = Number(f.target) || 0;
-                const pct = target > 0 ? Math.min(100, (progress / target) * 100) : 0;
-
-                let progressHTML = '';
-                if (!unlocked) {
-                    if (f.unlockType === 'manual') {
-                        progressHTML = `<span class="frame-coll-progress-text">Special frame — ask support how to earn it</span>`;
-                    } else if (f.eventLimited && !eventOpen) {
-                        progressHTML = `<span class="frame-coll-progress-text">Event window closed</span>`;
-                    } else {
-                        const unitLabel = f.unlockType === 'spend' ? `${formatMMK(progress)} / ${formatMMK(target)}` : `${progress} / ${target}`;
-                        progressHTML = `<div class="frame-coll-progress-track"><div class="frame-coll-progress-fill" style="width:${pct}%;"></div></div><span class="frame-coll-progress-text">${unitLabel}</span>`;
-                    }
-                }
-
-                let btnHTML = '';
-                if (unlocked) {
-                    btnHTML = isEquipped
-                        ? `<button class="frame-coll-btn unequip" onclick="unequipFrame('${f.type}')">Unequip</button>`
-                        : `<button class="frame-coll-btn equip" onclick="equipFrame('${f.id}','${f.type}')">Equip</button>`;
-                } else {
-                    btnHTML = `<button class="frame-coll-btn manual-locked" disabled>Locked</button>`;
-                }
-
-                return `
-                <div class="frame-coll-card ${isEquipped ? 'equipped' : ''}">
-                    ${f.eventLimited ? `<span class="frame-coll-event-badge">${eventOpen ? 'Event' : 'Ended'}</span>` : ''}
-                    <div class="frame-coll-thumb ${f.type === 'name' ? 'name-type' : ''} ${!unlocked ? 'locked' : ''}">
-                        ${f.imageUrl ? `<img src="${f.imageUrl}" alt="">` : ''}
-                        ${!unlocked ? `<div class="frame-coll-lock"><svg class="ui-icon"><use href="#icon-lock"></use></svg></div>` : ''}
-                    </div>
-                    <div class="frame-coll-name">${f.name || 'Untitled'}</div>
-                    <div class="frame-coll-rarity rarity-${f.rarity || 'common'}">${f.rarity || 'common'}</div>
-                    ${progressHTML}
-                    ${btnHTML}
-                </div>`;
-            }).join('');
-        }
-        window.renderFrameCollection = renderFrameCollection;
-
-        async function equipFrame(frameId, type) {
-            const gid = window.getGuestId ? window.getGuestId() : null;
-            if (!gid) return;
-            const field = type === 'name' ? 'equippedNameFrame' : 'equippedAvatarFrame';
-            try {
-                await updateDoc(doc(db, "users", gid), { [field]: frameId });
-                if (window.showToast) window.showToast('Frame equipped!', 'success');
-            } catch (error) {
-                console.error("equipFrame error:", error);
-                if (window.showToast) window.showToast('Failed to equip frame.', 'fail');
-            }
-        }
-        window.equipFrame = equipFrame;
-
-        async function unequipFrame(type) {
-            const gid = window.getGuestId ? window.getGuestId() : null;
-            if (!gid) return;
-            const field = type === 'name' ? 'equippedNameFrame' : 'equippedAvatarFrame';
-            try {
-                await updateDoc(doc(db, "users", gid), { [field]: '' });
-            } catch (error) {
-                console.error("unequipFrame error:", error);
-                if (window.showToast) window.showToast('Failed to unequip frame.', 'fail');
-            }
-        }
-        window.unequipFrame = unequipFrame;
-
-        // Swaps the equipped custom avatar frame image in over the automatic
-        // VIP tier ring, and paints the equipped name-frame banner behind the
-        // display name. Falls back to the tier ring / plain name when nothing
-        // custom is equipped (or the frame data hasn't loaded yet).
-        function applyEquippedFrames() {
-            const avatarImgEl = document.getElementById('custom-avatar-frame');
-            const tierFrameEl = document.getElementById('avatar-tier-frame');
-            const avatarFrame = myEquippedAvatarFrame ? FRAMES[myEquippedAvatarFrame] : null;
-            if (avatarImgEl) {
-                if (avatarFrame && avatarFrame.imageUrl) {
-                    avatarImgEl.src = avatarFrame.imageUrl;
-                    avatarImgEl.style.display = 'block';
-                    if (tierFrameEl) tierFrameEl.style.display = 'none';
-                } else {
-                    avatarImgEl.style.display = 'none';
-                    if (tierFrameEl) tierFrameEl.style.display = '';
-                }
-            }
-
-            const nameEl = document.getElementById('profile-hero-name');
-            const nameFrame = myEquippedNameFrame ? FRAMES[myEquippedNameFrame] : null;
-            if (nameEl) {
-                if (nameFrame && nameFrame.imageUrl) {
-                    nameEl.classList.add('has-name-frame');
-                    nameEl.style.backgroundImage = `url('${nameFrame.imageUrl}')`;
-                } else {
-                    nameEl.classList.remove('has-name-frame');
-                    nameEl.style.backgroundImage = '';
-                }
-            }
-        }
-        window.applyEquippedFrames = applyEquippedFrames;
 
 
         // Aggregates every successful order by customer, ranks by lifetime
@@ -7295,7 +7316,16 @@
             const isOnline = (Date.now() - lastAdminActiveMs) < ADMIN_ONLINE_THRESHOLD_MS;
             dot.className = 'admin-status-dot ' + (isOnline ? 'online' : 'offline');
             bar.classList.toggle('online-text', isOnline);
-            text.innerText = isOnline ? 'Admin Online' : 'Admin Offline — orders still process automatically';
+            bar.title = 'Orders still process automatically either way.';
+            if (isOnline) {
+                text.innerText = 'Admin Online';
+            } else {
+                const lastSeenDate = new Date(lastAdminActiveMs);
+                const isToday = lastSeenDate.toDateString() === new Date().toDateString();
+                const timeStr = lastSeenDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+                const lastSeenStr = isToday ? timeStr : `${lastSeenDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} ${timeStr}`;
+                text.innerText = `Admin Offline — last seen ${lastSeenStr}`;
+            }
         }
         onSnapshot(doc(db, "settings", "presence"), (docSnap) => {
             const data = docSnap.exists() ? docSnap.data() : null;
@@ -7471,7 +7501,7 @@
                 // /redeem-coupon BEFORE the order itself is written - if the
                 // coupon turns out to no longer be valid (someone else took
                 // the last slot in the meantime), nothing gets created at all.
-                const orderRef = doc(collection(db, "orders"));
+                const orderRef = doc(db, "orders", await generateShortNumericId("orders"));
                 if (couponCode) {
                     // costTotal lets the Worker re-enforce the cost floor
                     // server-side (authoritative — see capCouponDiscountToCost
@@ -7496,6 +7526,9 @@
                     playerId: inGameId,
                     serverId: serverId || '',
                     serverRegion: serverRegion || '',
+                    // Name resolved by the "Confirm ID" name-check, saved so
+                    // it can be shown in Order Details and printed on the receipt.
+                    ...(inGameName ? { inGameName } : {}),
                     game: gameName,
                     itemAmount: amount,
                     price: price,
@@ -7577,7 +7610,7 @@
         // rendered) so two rapid orders can never both slip through on a
         // balance that only actually covers one of them.
         async function submitWalletOrder(orderData, btnElement) {
-            const { gameName, serverRegion, amount, price, cost, quantity, inGameId, serverId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId, fazercardCategoryId, fazercardOfferId, fazercardGiftCategoryId, fazercardGiftCardId, bay2gameProductId, couponCode, couponDiscount, couponSubtotal } = orderData;
+            const { gameName, serverRegion, amount, price, cost, quantity, inGameId, inGameName, serverId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId, fazercardCategoryId, fazercardOfferId, fazercardGiftCategoryId, fazercardGiftCardId, bay2gameProductId, couponCode, couponDiscount, couponSubtotal } = orderData;
 
             const originalText = btnElement.innerText;
             btnElement.innerText = "Processing...";
@@ -7606,7 +7639,7 @@
                 // Pre-generate the order's doc ref/id so it can be passed to
                 // /redeem-coupon BEFORE any wallet money moves - if the coupon
                 // is no longer valid, nothing is deducted and nothing is created.
-                const orderRef = doc(collection(db, "orders"));
+                const orderRef = doc(db, "orders", await generateShortNumericId("orders"));
                 if (couponCode) {
                     // costTotal lets the Worker re-enforce the cost floor
                     // server-side (authoritative — see capCouponDiscountToCost
@@ -7639,6 +7672,9 @@
                     playerId: inGameId,
                     serverId: serverId || '',
                     serverRegion: serverRegion || '',
+                    // Name resolved by the "Confirm ID" name-check, saved so
+                    // it can be shown in Order Details and printed on the receipt.
+                    ...(inGameName ? { inGameName } : {}),
                     game: gameName,
                     itemAmount: amount,
                     price: price,
@@ -8891,6 +8927,7 @@
             });
             GAMES = filtered;
             window.GAMES = GAMES;
+            tryOpenPendingPackageDeepLink();
             runWhenNotTouching(document.querySelector('#all-games-grid')?.closest('.games-grid-scroll'), renderHomeGames);
             if (window.currentStorePage === 'voucher') {
                 runWhenNotTouching(document.querySelector('#voucher-games-grid')?.closest('.games-grid-scroll'), renderVoucherGames);
@@ -9369,10 +9406,22 @@
         let ACCOUNT_GAME_GROUPS = [];
         let currentAccountGameName = null;
         let currentAccountId = null;
+        // Images for whichever account listing is currently open on
+        // account-detail, plus which one the main image is showing — kept
+        // as simple module state so both the thumb taps and the swipe
+        // gesture below can move through the same list the same way.
+        let acctDetailImages = [];
+        let acctDetailImageIndex = 0;
         let acctSelectedPaymentType = null;
         let acctSelectedPaymentMethod = null;
         let acctEditingReceiptFile = null;
         let acctReceiptOcrPromise = null;
+        // Identity-verification (KYC) state for the game-account marketplace.
+        // Kept live via the same user-doc listener that already tracks wallet
+        // balance (see listenWalletBalance) so an admin approval reflects
+        // here instantly without a page reload.
+        let currentKycStatus = 'none';
+        let acctKycFile = null;
 
         function isAccountAvailable(a) {
             return !!a && (a.status || 'available') === 'available';
@@ -9471,12 +9520,17 @@
         }
         window.closeAccountDetail = closeAccountDetail;
 
-        function setAccountMainImage(url, thumbEl) {
-            document.getElementById('acct-detail-main-img').src = url;
-            document.querySelectorAll('#acct-detail-thumbs .acct-thumb').forEach(el => el.classList.remove('active'));
-            if (thumbEl) thumbEl.classList.add('active');
+        // Shows the image at `index` (wrapping around at either end) as the
+        // main image. Only used by the swipe gesture now (see
+        // initAccountImageSwipe below) — the thumbnail strip was removed.
+        function showAccountImage(index) {
+            if (!acctDetailImages.length) return;
+            acctDetailImageIndex = ((index % acctDetailImages.length) + acctDetailImages.length) % acctDetailImages.length;
+            document.getElementById('acct-detail-main-img').src = acctDetailImages[acctDetailImageIndex];
+            const counterEl = document.getElementById('acct-detail-img-counter');
+            if (counterEl) counterEl.innerText = `${acctDetailImageIndex + 1}/${acctDetailImages.length}`;
         }
-        window.setAccountMainImage = setAccountMainImage;
+        window.showAccountImage = showAccountImage;
 
         function openAccountDetail(id) {
             currentAccountId = id;
@@ -9496,17 +9550,21 @@
             }
             document.getElementById('acct-detail-game-name').innerText = a.gameName || '';
             const images = (Array.isArray(a.images) && a.images.length) ? a.images : [''];
+            acctDetailImages = images;
+            acctDetailImageIndex = 0;
             document.getElementById('acct-detail-main-img').src = images[0];
-            document.getElementById('acct-detail-thumbs').innerHTML = images.map((img, i) => `
-                <div class="acct-thumb ${i === 0 ? 'active' : ''}" onclick="setAccountMainImage('${img}', this)">
-                    <img src="${img}" alt="" loading="lazy" decoding="async">
-                </div>
-            `).join('');
+            const counterEl = document.getElementById('acct-detail-img-counter');
+            if (counterEl) counterEl.innerText = `1/${images.length}`;
             document.getElementById('acct-detail-title').innerText = a.title || 'Untitled Account';
             document.getElementById('acct-detail-price').innerText = `${Number(a.price || 0).toLocaleString()} MMK`;
             const chips = [];
             if (a.rank) chips.push(`<span class="acct-chip">Rank: ${a.rank}</span>`);
             if (a.server) chips.push(`<span class="acct-chip">Server: ${a.server}</span>`);
+            if (Array.isArray(a.customFields)) {
+                a.customFields.forEach(f => {
+                    if (f && f.label && f.value) chips.push(`<span class="acct-chip">${f.label}: ${f.value}</span>`);
+                });
+            }
             document.getElementById('acct-detail-chips').innerHTML = chips.join('');
             document.getElementById('acct-detail-desc-wrap').style.display = a.description ? 'block' : 'none';
             document.getElementById('acct-detail-desc').innerText = a.description || '';
@@ -9533,8 +9591,176 @@
             confirmBtn.style.backgroundColor = '';
             confirmBtn.innerText = 'Select a payment method';
             if (window.resetAccountSlideConfirmThumb) window.resetAccountSlideConfirmThumb();
+            if (window.renderAcctKycGate) window.renderAcctKycGate();
         }
         window.renderAccountDetail = renderAccountDetail;
+
+        // Identity verification (KYC) gate for buying a game account. Shown
+        // in place of the payment section until the buyer's kycStatus is
+        // 'verified' — admin reviews the submitted NRC photo from the Users
+        // page and flips the status, no need to pay before that's done.
+        function kycUploadFormHTML() {
+            return `
+                <label class="upload-shot-box" id="acct-kyc-upload-box" for="acct-kyc-file" style="margin-top:12px;">
+                    <div class="upload-shot-icon"><svg class="ui-icon"><use href="#icon-camera"></use></svg></div>
+                    <span class="upload-shot-label">Upload NRC / ID Photo</span>
+                    <span class="upload-shot-hint">Tap to choose a clear photo of your ID card</span>
+                    <img id="acct-kyc-preview" src="" style="display:none;">
+                </label>
+                <input type="file" id="acct-kyc-file" class="upload-shot-input" accept="image/*" onchange="acctPreviewKycImage(event)">
+                <p id="acct-kyc-upload-status" style="font-size:12px;color:var(--text-secondary);display:none;"></p>
+                <button type="button" class="btn btn-primary" style="margin-top:10px;" id="acct-kyc-submit-btn" onclick="submitAccountKyc()" disabled>Submit for Verification</button>
+            `;
+        }
+
+        function telegramContactHTML() {
+            return `<a class="btn btn-outline" style="margin-top:10px;display:inline-flex;" href="https://t.me/pca_gamestore" target="_blank" rel="noopener">Contact Admin on Telegram</a>`;
+        }
+
+        function renderAcctKycGate() {
+            const gateEl = document.getElementById('acct-kyc-gate');
+            const paySection = document.getElementById('acct-detail-payment-section');
+            const confirmWrap = document.getElementById('acct-confirm-wrap');
+            if (!gateEl || !paySection) return;
+            const a = GAME_ACCOUNTS[currentAccountId];
+            if (!a || !isAccountAvailable(a)) { gateEl.style.display = 'none'; return; }
+
+            if (currentKycStatus === 'verified') {
+                gateEl.style.display = 'none';
+                paySection.style.display = '';
+                if (confirmWrap) confirmWrap.style.display = '';
+                return;
+            }
+
+            paySection.style.display = 'none';
+            if (confirmWrap) confirmWrap.style.display = 'none';
+            gateEl.style.display = 'block';
+
+            if (currentKycStatus === 'pending') {
+                gateEl.innerHTML = `
+                    <div class="empty-state-icon"><svg class="ui-icon"><use href="#icon-shield"></use></svg></div>
+                    <h3 class="detail-section-title" style="margin-top:10px;">Verification in review</h3>
+                    <p style="font-size:13px;color:var(--text-secondary);">We're checking your submitted ID before this purchase can go ahead. Message admin if it's urgent.</p>
+                    ${telegramContactHTML()}
+                `;
+            } else if (currentKycStatus === 'rejected') {
+                gateEl.innerHTML = `
+                    <div class="empty-state-icon"><svg class="ui-icon"><use href="#icon-alert"></use></svg></div>
+                    <h3 class="detail-section-title" style="margin-top:10px;">Verification rejected</h3>
+                    <p style="font-size:13px;color:var(--text-secondary);">Your submitted ID couldn't be verified. Upload a clearer photo, or contact admin for help.</p>
+                    ${kycUploadFormHTML()}
+                    ${telegramContactHTML()}
+                `;
+            } else {
+                gateEl.innerHTML = `
+                    <div class="empty-state-icon"><svg class="ui-icon"><use href="#icon-shield"></use></svg></div>
+                    <h3 class="detail-section-title" style="margin-top:10px;">Verify your identity to continue</h3>
+                    <p style="font-size:13px;color:var(--text-secondary);">Game accounts are high value, so we check your ID (NRC) before payment — no need to pay yet.</p>
+                    ${kycUploadFormHTML()}
+                    <p style="font-size:12px;color:var(--text-muted);margin-top:10px;">Prefer to talk to someone instead?</p>
+                    ${telegramContactHTML()}
+                `;
+            }
+        }
+        window.renderAcctKycGate = renderAcctKycGate;
+
+        function acctPreviewKycImage(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            acctKycFile = file;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const img = document.getElementById('acct-kyc-preview');
+                if (img) { img.src = ev.target.result; img.style.display = 'block'; }
+                const box = document.getElementById('acct-kyc-upload-box');
+                if (box) box.classList.add('has-image');
+            };
+            reader.readAsDataURL(file);
+            const btn = document.getElementById('acct-kyc-submit-btn');
+            if (btn) btn.disabled = false;
+        }
+        window.acctPreviewKycImage = acctPreviewKycImage;
+
+        async function uploadKycImageToImgBB(file) {
+            const statusEl = document.getElementById('acct-kyc-upload-status');
+            if (statusEl) { statusEl.style.display = 'block'; statusEl.innerText = 'Uploading photo...'; }
+            const form = new FormData();
+            form.append('image', file);
+            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: form });
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error?.message || 'Photo upload failed');
+            if (statusEl) statusEl.innerText = 'Uploaded ✓';
+            return data.data.url;
+        }
+
+        async function submitAccountKyc() {
+            if (!acctKycFile) { window.showToast('Please choose a photo first.', 'fail'); return; }
+            const btn = document.getElementById('acct-kyc-submit-btn');
+            const originalText = btn.innerText;
+            btn.disabled = true;
+            btn.innerText = 'Submitting...';
+            try {
+                const gid = window.getGuestId ? window.getGuestId() : '';
+                if (!gid) throw new Error('Missing guest ID');
+                const url = await uploadKycImageToImgBB(acctKycFile);
+                await setDoc(doc(db, "users", gid), {
+                    kycStatus: 'pending',
+                    kycNrcUrl: url,
+                    kycSubmittedAt: serverTimestamp(),
+                    // Cleared so the Telegram worker's sweep treats this as a
+                    // fresh, unsent submission — otherwise a resubmission
+                    // after a rejection would silently never reach Telegram
+                    // again (it only sends once per telegramMessageId).
+                    telegramMessageId: null,
+                    telegramChatId: null
+                }, { merge: true });
+                currentKycStatus = 'pending';
+                acctKycFile = null;
+                window.showToast('Submitted for verification ✓');
+                renderAcctKycGate();
+            } catch (error) {
+                console.error('KYC submit error:', error);
+                window.showToast(error.message || 'Failed to submit. Check connection.', 'fail');
+                btn.disabled = false;
+                btn.innerText = originalText;
+            }
+        }
+        window.submitAccountKyc = submitAccountKyc;
+
+        // Swipe left/right on the account detail's main image to step
+        // through its photos, same threshold/restraint feel as the
+        // top-level tab swipe (initTabSwipe above) but scoped to just this
+        // image and wrapping around at either end instead of stopping.
+        (function initAccountImageSwipe() {
+            const img = document.getElementById('acct-detail-main-img');
+            if (!img) return;
+
+            const THRESHOLD = 40;  // min horizontal px to count as a swipe
+            const RESTRAINT = 60;  // max vertical drift allowed
+            const MAX_TIME = 600;  // ms
+
+            let startX = 0, startY = 0, startTime = 0;
+
+            img.addEventListener('touchstart', (e) => {
+                if (e.touches.length !== 1) return;
+                const t = e.touches[0];
+                startX = t.clientX; startY = t.clientY; startTime = Date.now();
+            }, { passive: true });
+
+            img.addEventListener('touchend', (e) => {
+                if (acctDetailImages.length < 2) return;
+                const t = e.changedTouches[0];
+                const dx = t.clientX - startX;
+                const dy = t.clientY - startY;
+                const dt = Date.now() - startTime;
+
+                if (dt > MAX_TIME) return;
+                if (Math.abs(dx) < THRESHOLD || Math.abs(dy) > RESTRAINT) return;
+
+                if (dx < 0) showAccountImage(acctDetailImageIndex + 1); // swipe left -> next photo
+                else showAccountImage(acctDetailImageIndex - 1);       // swipe right -> previous photo
+            }, { passive: true });
+        })();
 
         function acctChoosePaymentType(type) {
             acctSelectedPaymentType = type;
@@ -9663,6 +9889,15 @@
                 if (window.resetAccountSlideConfirmThumb) window.resetAccountSlideConfirmThumb();
                 return;
             }
+            // Defense in depth: the payment section is already hidden behind
+            // the KYC gate in the UI (see renderAcctKycGate), but double-check
+            // here too in case this ever gets called some other way.
+            if (currentKycStatus !== 'verified') {
+                window.showToast('Please complete identity verification before purchasing.', 'fail');
+                if (window.renderAcctKycGate) window.renderAcctKycGate();
+                if (window.resetAccountSlideConfirmThumb) window.resetAccountSlideConfirmThumb();
+                return;
+            }
             if (acctSelectedPaymentType === 'wallet') {
                 await submitAccountWalletOrder(btnElement);
             } else if (acctSelectedPaymentType === 'payment') {
@@ -9714,7 +9949,7 @@
                 const receiptUrl = await uploadReceiptToImgBB(acctEditingReceiptFile);
                 const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
                 const location = await getOrderLocation();
-                const orderRef = doc(collection(db, "orders"));
+                const orderRef = doc(db, "orders", await generateShortNumericId("orders"));
                 await setDoc(orderRef, {
                     game: a.gameName || '',
                     itemAmount: a.title || 'Game Account',
@@ -9735,8 +9970,7 @@
                 });
                 btnElement.innerText = "Order Sent";
                 btnElement.style.backgroundColor = "#28a745";
-                window.showToast("Order placed! We'll review it shortly — track it in History.", 'success');
-                setTimeout(() => { showPage('history'); }, 900);
+                window.openSuccessOverlay(orderRef.id, { status: 'Pending', timestamp: { toDate: () => new Date() } }, 'account');
             } catch (error) {
                 console.error("Account order error:", error);
                 window.showToast(error.message || 'Failed to place order! Check connection.', 'fail');
@@ -9771,7 +10005,7 @@
                 const price = Number(a.price || 0);
                 const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
                 const location = await getOrderLocation();
-                const orderRef = doc(collection(db, "orders"));
+                const orderRef = doc(db, "orders", await generateShortNumericId("orders"));
                 const userRef = doc(db, "users", guestId);
                 await runTransaction(db, async (tx) => {
                     const snap = await tx.get(userRef);
@@ -9798,8 +10032,7 @@
                 });
                 btnElement.innerText = "Order Sent";
                 btnElement.style.backgroundColor = "#28a745";
-                window.showToast("Order placed! We'll review it shortly — track it in History.", 'success');
-                setTimeout(() => { showPage('history'); }, 900);
+                window.openSuccessOverlay(orderRef.id, { status: 'Pending', timestamp: { toDate: () => new Date() } }, 'account');
             } catch (error) {
                 console.error("Account wallet order error:", error);
                 const msg = error.message === 'INSUFFICIENT_BALANCE'
@@ -10276,7 +10509,8 @@
             try {
                 const guestId = window.getGuestId ? window.getGuestId() : '';
                 const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
-                await addDoc(collection(db, "supportTickets"), {
+                const ticketId = await generateShortNumericId("supportTickets");
+                await setDoc(doc(db, "supportTickets", ticketId), {
                     userId: guestId,
                     userName: (savedProfile.name && savedProfile.name.trim()) ? savedProfile.name.trim() : guestId,
                     userPhone: (savedProfile.phone && savedProfile.phone.trim()) ? savedProfile.phone.trim() : '',
@@ -10333,6 +10567,23 @@
         // Runs from app start (not just once the Chat tab is opened) purely to
         // light up the FAB dot / tab badge the moment an admin reply lands while
         // the widget is closed or on a different tab.
+        // Typing indicator: mirrors admin.html's side of this - a
+        // userTypingAt/adminTypingAt timestamp pair on the supportChats
+        // summary doc, refreshed at most every TYPING_THROTTLE_MS and
+        // treated as stale (indicator hidden) after TYPING_STALE_MS with no
+        // refresh. See admin.html's handleAdminChatTyping for the mirror.
+        const TYPING_THROTTLE_MS = 1500;
+        const TYPING_STALE_MS = 3000;
+        let userTypingWriteAt = 0;
+        let adminTypingAtMs = null;
+
+        function renderSupportChatTypingIndicator() {
+            const el = document.getElementById('support-chat-typing-indicator');
+            if (!el) return;
+            const isTyping = adminTypingAtMs !== null && (Date.now() - adminTypingAtMs) < TYPING_STALE_MS;
+            el.classList.toggle('show', isTyping);
+        }
+
         function listenSupportChatSummary() {
             const guestId = window.getGuestId ? window.getGuestId() : '';
             if (!guestId) return;
@@ -10349,8 +10600,34 @@
                     if (dot) dot.style.display = 'block';
                     if (badge) badge.style.display = 'inline-block';
                 }
+                adminTypingAtMs = (data.adminTypingAt && data.adminTypingAt.toMillis) ? data.adminTypingAt.toMillis() : null;
+                renderSupportChatTypingIndicator();
             }, (error) => console.error("Support chat summary listen error:", error));
+            // Re-checks staleness even with no new snapshot, so the "Admin is
+            // typing..." row disappears on its own ~3s after they pause.
+            setInterval(renderSupportChatTypingIndicator, 1000);
         }
+
+        // Wired to the chat input's oninput. Throttled while there's text,
+        // cleared immediately once the box is emptied (see
+        // sendSupportChatMessage for the clear-on-send path).
+        function handleSupportChatTyping() {
+            const guestId = window.getGuestId ? window.getGuestId() : '';
+            if (!guestId) return;
+            const input = document.getElementById('support-chat-input');
+            const now = Date.now();
+            if (!input.value.trim()) {
+                if (userTypingWriteAt !== 0) {
+                    userTypingWriteAt = 0;
+                    setDoc(doc(db, "supportChats", guestId), { userTypingAt: null }, { merge: true }).catch(() => {});
+                }
+                return;
+            }
+            if (now - userTypingWriteAt < TYPING_THROTTLE_MS) return;
+            userTypingWriteAt = now;
+            setDoc(doc(db, "supportChats", guestId), { userTypingAt: serverTimestamp() }, { merge: true }).catch(() => {});
+        }
+        window.handleSupportChatTyping = handleSupportChatTyping;
 
         // Show the just-sent message instantly in the sender's own chat
         // view. Needed because the message is written with
@@ -10378,6 +10655,7 @@
             const text = input.value.trim();
             if (!text) return;
             input.value = '';
+            userTypingWriteAt = 0;
             appendOptimisticSupportChatMessage(text);
             try {
                 const guestId = window.getGuestId ? window.getGuestId() : '';
@@ -10391,7 +10669,8 @@
                     lastMessage: text,
                     lastMessageAt: serverTimestamp(),
                     lastSender: 'user',
-                    unreadByAdmin: true
+                    unreadByAdmin: true,
+                    userTypingAt: null
                 }, { merge: true });
             } catch (error) {
                 console.error("Support chat send error:", error);
