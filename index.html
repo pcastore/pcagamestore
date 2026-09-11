@@ -175,6 +175,85 @@
         html[data-theme="dark"] .theme-toggle-thumb { transform: translateX(22px); background: linear-gradient(160deg,#25335A,#0D1830); color: #9FB3D9; }
         .theme-toggle-thumb svg { width: 14px; height: 14px; }
 
+        /* Language toggle (EN/MY) - sits beside the theme toggle in the header */
+        .lang-toggle-btn {
+            position: relative;
+            width: 34px; height: 34px; border-radius: 50%; flex-shrink: 0; cursor: pointer;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden;
+            background: var(--glass-bg-strong); border: 1px solid var(--glass-border);
+            box-shadow: 0 4px 14px rgba(0,0,0,0.08), inset 0 1px 1px rgba(255,255,255,0.4), inset 0 -6px 10px rgba(0,0,0,0.04);
+            transition: transform 0.15s ease;
+        }
+        .lang-toggle-btn:active { transform: scale(0.92); }
+        /* "slice" (not the default "meet") crops the wide 60x40 flag to fill
+           the whole circle instead of letterboxing it into a smaller
+           rounded-square in the middle. */
+        .lang-toggle-flag { width: 100%; height: 100%; border-radius: 50%; }
+        /* Glossy highlight arc, like light glinting off a rounded badge. */
+        .lang-toggle-btn::after {
+            content: ''; position: absolute; top: -32%; left: -18%;
+            width: 135%; height: 85%; border-radius: 50%;
+            background: linear-gradient(135deg, rgba(255,255,255,0.6) 0%, rgba(255,255,255,0.18) 40%, transparent 65%);
+            transform: rotate(-18deg); pointer-events: none;
+        }
+
+        /* ===================== ONBOARDING (Google sign-in -> language -> Get Started) =====================
+           Full-screen gate shown once per device on first visit. Sits above
+           everything (including modals) via z-index. Completing it stores
+           'pca_onboarded'=1 in localStorage so it never shows again unless
+           that key is cleared. */
+        .onboarding-overlay {
+            position: fixed; inset: 0; z-index: 999999;
+            background: var(--bg); background-image: var(--bg-gradient); background-attachment: fixed;
+            display: flex; align-items: center; justify-content: center; padding: 24px;
+        }
+        .onboarding-card {
+            width: 100%; max-width: 360px; text-align: center;
+            background: var(--glass-bg-strong); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+            border: 1px solid var(--glass-border); box-shadow: var(--glass-shadow);
+            border-radius: 26px; padding: 36px 26px 30px;
+        }
+        .onboarding-logo {
+            position: relative;
+            width: 64px; height: 64px; border-radius: 20px; margin: 0 auto 16px;
+            display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, rgba(var(--accent-rgb),0.95), rgba(var(--accent-rgb),0.75));
+            box-shadow: 0 8px 20px rgba(var(--accent-rgb),0.35);
+            overflow: hidden;
+        }
+        .onboarding-logo img { width: 100%; height: 100%; object-fit: cover; border-radius: 20px; display: block; }
+        .onboarding-title { font-size: 19px; font-weight: 700; color: var(--text); margin-bottom: 22px; }
+        .onboarding-sub { font-size: 13.5px; color: var(--text-secondary); margin: 0 0 20px; line-height: 1.5; }
+        .onboarding-spinner {
+            display: inline-block; width: 26px; height: 26px; margin: 10px 0;
+            border: 3px solid rgba(var(--accent-rgb),0.2); border-top-color: var(--accent);
+            border-radius: 50%; animation: spin 0.8s linear infinite;
+        }
+        .onboarding-lang-choices { display: flex; gap: 10px; margin-bottom: 22px; }
+        .onboarding-lang-chip {
+            flex: 1; padding: 14px 8px; border-radius: 16px; cursor: pointer;
+            font-size: 14px; font-weight: 600; color: var(--text);
+            background: var(--surface-alt); border: 1.5px solid var(--border);
+            transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
+        }
+        .onboarding-lang-chip:active { transform: scale(0.96); }
+        .onboarding-lang-chip.selected {
+            border-color: #7C3AED; background: rgba(124,58,237,0.1); color: #7C3AED;
+        }
+        .onboarding-start-btn {
+            width: 100%; padding: 13px 12px; border: none; border-radius: 14px; cursor: pointer;
+            font-size: 15px; font-weight: 700; color: #fff;
+            background: linear-gradient(135deg, #8B5CF6, #7C3AED);
+            box-shadow: 0 8px 20px rgba(124,58,237,0.4);
+            animation: onboard-start-in 0.35s ease;
+        }
+        .onboarding-start-btn:active { transform: scale(0.97); }
+        @keyframes onboard-start-in {
+            from { opacity: 0; transform: translateY(8px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
         /* Sun/moon icon spin+pop whenever the theme actually switches — the
            thumb sliding across the pill was motion, but the icon itself just
            snapped to the new glyph with no transition of its own. Re-added
@@ -187,6 +266,23 @@
             100% { transform: rotate(360deg) scale(1); opacity: 1; }
         }
         .theme-icon-cycling { animation: theme-icon-cycle 0.38s cubic-bezier(.4,1.6,.4,1); }
+
+        /* Theme-switch circular reveal — a plain solid-color disc that grows
+           from the toggle button to cover the screen, then fades out once
+           the real theme has already swapped underneath it. We tried a true
+           View Transitions API reveal before (see toggleTheme's comment)
+           but that rasterizes two full-page snapshots on every tap, which
+           stuttered on phones. This is just one div animating `transform:
+           scale()` (compositor-only, no layout/paint per frame), so it's
+           the same "fills up from the button" motion at a fraction of the
+           cost. */
+        .theme-ripple {
+            position: fixed; top: 0; left: 0; width: 0; height: 0; border-radius: 50%;
+            transform: translate(-50%, -50%) scale(0);
+            pointer-events: none; z-index: 999990; opacity: 1;
+            will-change: transform, opacity;
+        }
+        @media (prefers-reduced-motion: reduce) { .theme-ripple { display: none; } }
 
         /* Push notification toggle (Profile > Preferences) — same pill-switch
            look as the theme toggle, kept as its own class since it tracks a
@@ -501,21 +597,34 @@
         .cat-filter-scroll { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 12px; -webkit-overflow-scrolling: touch; }
         .cat-filter-scroll::-webkit-scrollbar { display: none; }
 
-        /* Game search bar */
-        .game-search-wrap { position: relative; display: flex; align-items: center; margin-bottom: 12px; }
-        .game-search-icon { position: absolute; left: 12px; width: 18px; height: 18px; color: var(--text-muted); pointer-events: none; }
+        /* Game search bar — matches the app's glass-panel language used by
+           cards/modals elsewhere, instead of a plain bordered box. */
+        .game-search-wrap {
+            position: relative; display: flex; align-items: center; margin-bottom: 14px;
+            background: var(--glass-bg-strong); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+            border: 1.5px solid var(--glass-border); border-radius: 16px;
+            box-shadow: var(--glass-shadow-sm);
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .game-search-wrap:focus-within {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 4px rgba(var(--accent-rgb),0.14), var(--glass-shadow-sm);
+        }
+        .game-search-icon { position: absolute; left: 14px; width: 18px; height: 18px; color: var(--text-muted); pointer-events: none; transition: color 0.2s ease; }
+        .game-search-wrap:focus-within .game-search-icon { color: var(--accent); }
         .game-search-input {
-            width: 100%; height: 42px; padding: 0 38px 0 38px; border-radius: 12px;
-            border: 1px solid var(--border); background: var(--surface); color: var(--text);
-            font-size: 14px; outline: none; transition: border-color 0.15s ease, box-shadow 0.15s ease;
+            width: 100%; height: 46px; padding: 0 42px 0 42px; border-radius: 16px;
+            border: none; background: transparent; color: var(--text);
+            font-size: 14.5px; outline: none;
         }
         .game-search-input::placeholder { color: var(--text-muted); }
-        .game-search-input:focus { border-color: var(--accent); box-shadow: 0 0 0 3px rgba(var(--accent-rgb),0.15); }
         .game-search-clear {
-            position: absolute; right: 10px; width: 20px; height: 20px; padding: 4px; border-radius: 50%;
-            color: var(--text-muted); cursor: pointer; box-sizing: content-box;
+            position: absolute; right: 9px; width: 20px; height: 20px; padding: 5px; border-radius: 50%;
+            color: var(--text-secondary); cursor: pointer; box-sizing: content-box;
+            background: var(--glass-bg); border: 1px solid var(--glass-border);
+            transition: transform 0.12s ease, background 0.12s ease;
         }
-        .game-search-clear:active { background: var(--surface-alt); }
+        .game-search-clear:active { background: var(--surface-alt); transform: scale(0.88); }
         .cat-filter-chip {
             display: flex; align-items: center; gap: 6px; flex: 0 0 auto; padding: 9px 15px 9px 11px; border-radius: 20px;
             background: var(--surface); border: 1.5px solid var(--border);
@@ -1974,7 +2083,7 @@
         .recent-id-chip { background: var(--glass-bg); border: 1px solid var(--glass-border); border-radius: 16px; }
         .modal-overlay, .success-overlay { background: rgba(0,0,10,0.45); -webkit-backdrop-filter: blur(2px); backdrop-filter: blur(2px); }
         /* Support Widget - draggable help/contact bubble (Guide / Complaint / Support Chat) */
-        .support-fab { position: fixed; width: 56px; height: 56px; border-radius: 18px; background: radial-gradient(circle at 30% 22%, #0B1730 0%, #01030A 72%); color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 1px rgba(76,147,255,0.55), 0 0 16px 2px rgba(59,130,255,0.55), 0 0 30px 4px rgba(59,130,255,0.28), 0 8px 20px rgba(0,0,0,0.45), inset 0 1px 2px rgba(255,255,255,0.06); z-index: 150; cursor: grab; touch-action: none; right: 16px; bottom: 92px; transition: transform 0.15s ease; }
+        .support-fab { position: fixed; width: 56px; height: 56px; border-radius: 50%; background: radial-gradient(circle at 30% 22%, #0B1730 0%, #01030A 72%); color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 1px rgba(76,147,255,0.55), 0 0 16px 2px rgba(59,130,255,0.55), 0 0 30px 4px rgba(59,130,255,0.28), 0 8px 20px rgba(0,0,0,0.45), inset 0 1px 2px rgba(255,255,255,0.06); z-index: 150; cursor: grab; touch-action: none; right: 16px; bottom: 92px; transition: transform 0.15s ease; }
         .support-fab:active { cursor: grabbing; transform: scale(0.94); }
         .support-fab-icon { fill: url(#fabBubbleGradient); stroke: #CFE6FF; stroke-width: 1.2; filter: drop-shadow(0 0 5px rgba(76,147,255,0.9)); }
         .support-fab-dot { position: absolute; top: 1px; right: 1px; width: 13px; height: 13px; border-radius: 50%; background: #FF3B30; border: 2px solid var(--surface); display: none; }
@@ -2117,6 +2226,59 @@
 </head>
 <body>
 
+    <!-- Onboarding gate: Google sign-in -> language choice -> purple "Get
+         Started" button. Shown once per device; completing it sets
+         localStorage['pca_onboarded']='1' so it's skipped on every later
+         visit. If a Google session already exists (returning device), the
+         login step is skipped and this opens straight on language choice. -->
+    <div class="onboarding-overlay" id="onboarding-overlay" style="display:none;">
+        <div class="onboarding-card">
+            <div class="onboarding-logo" id="onboarding-logo">
+                <div class="skel" id="onboarding-logo-skeleton" style="position:absolute;inset:0;border-radius:20px;"></div>
+                <svg class="ui-icon" id="onboarding-logo-default-icon" style="width:32px;height:32px;color:#fff;display:none;"><use href="#icon-gamepad"></use></svg>
+                <img id="onboarding-logo-img" src="" alt="" style="display:none;">
+            </div>
+            <div class="onboarding-title">PCA Store</div>
+
+            <!-- Step 0: waiting to see if a session already exists, so a
+                 returning device doesn't flash the login step first. -->
+            <div class="onboarding-step" id="onboard-step-checking">
+                <span class="onboarding-spinner"></span>
+            </div>
+
+            <!-- Step 1: Google sign-in -->
+            <div class="onboarding-step" id="onboard-step-login" style="display:none;">
+                <p class="onboarding-sub">Sign in with Google to continue.<br>ဆက်လက်ရန် Google ဖြင့် အကောင့်ဝင်ပါ။</p>
+                <button type="button" class="google-login-btn" id="onboard-google-btn" onclick="handleOnboardGoogleSignIn()">
+                    <svg width="18" height="18" viewBox="0 0 48 48">
+                        <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
+                        <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/>
+                        <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/>
+                        <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.1 5.6l6.2 5.2C40.9 36.2 44 30.6 44 24c0-1.3-.1-2.7-.4-3.5z"/>
+                    </svg>
+                    <span id="onboard-google-btn-label">Continue with Google</span>
+                </button>
+            </div>
+
+            <!-- Step 2: language choice, then the purple Get Started button
+                 appears once a language is picked. -->
+            <div class="onboarding-step" id="onboard-step-lang" style="display:none;">
+                <p class="onboarding-sub">Choose your language.<br>ဘာသာစကား ရွေးပါ။</p>
+                <div class="onboarding-lang-choices">
+                    <div class="onboarding-lang-chip" id="onboard-lang-en" onclick="selectOnboardLanguage('en')">English</div>
+                    <div class="onboarding-lang-chip" id="onboard-lang-my" onclick="selectOnboardLanguage('my')">မြန်မာ</div>
+                </div>
+                <button type="button" class="onboarding-start-btn" id="onboard-start-btn" style="display:none;" onclick="completeOnboarding()">Get Started</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Theme-switch circular reveal: a plain colored disc, sized and
+         positioned by JS (themeRippleTransition) to grow from wherever the
+         theme toggle was tapped. See the .theme-ripple CSS comment for why
+         this is a single div instead of a View Transitions snapshot. -->
+    <div class="theme-ripple" id="theme-ripple" aria-hidden="true"></div>
+
     <!-- Decorative background: soft falling stars / dust motes, purely
          visual (aria-hidden), sits behind all app content. Particle count
          and positions are randomized once on load by initBgFallingStars()
@@ -2178,9 +2340,24 @@
         <symbol id="icon-gift" viewBox="0 0 24 24"><rect x="3" y="8" width="18" height="4"></rect><path d="M12 8v13"></path><path d="M19 12v7a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2v-7"></path><path d="M7.5 8a2.5 2.5 0 0 1 0-5C11 3 12 8 12 8s1-5 4.5-5a2.5 2.5 0 0 1 0 5"></path></symbol>
         <symbol id="icon-external-link" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></symbol>
         <symbol id="icon-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></symbol>
-        <symbol id="icon-message-circle" viewBox="0 0 24 24"><path d="M21 11.5a8.38 8.38 0 0 1-.9 3.8 8.5 8.5 0 0 1-7.6 4.7 8.38 8.38 0 0 1-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 0 1-.9-3.8 8.5 8.5 0 0 1 4.7-7.6 8.38 8.38 0 0 1 3.8-.9h.5a8.48 8.48 0 0 1 8 8v.5z"></path></symbol>
+        <symbol id="icon-message-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><circle cx="8" cy="12" r="1.15" fill="currentColor" stroke="none"></circle><circle cx="12" cy="12" r="1.15" fill="currentColor" stroke="none"></circle><circle cx="16" cy="12" r="1.15" fill="currentColor" stroke="none"></circle></symbol>
         <symbol id="icon-flag" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></symbol>
         <symbol id="icon-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></symbol>
+
+        <!-- Simplified national flags for the EN/MY language toggle -->
+        <symbol id="flag-en" viewBox="0 0 60 40" preserveAspectRatio="xMidYMid slice">
+            <rect width="60" height="40" fill="#00247D"></rect>
+            <path d="M0,0 L60,40 M60,0 L0,40" stroke="#fff" stroke-width="8"></path>
+            <path d="M0,0 L60,40 M60,0 L0,40" stroke="#CF142B" stroke-width="4"></path>
+            <path d="M30,0 V40 M0,20 H60" stroke="#fff" stroke-width="12"></path>
+            <path d="M30,0 V40 M0,20 H60" stroke="#CF142B" stroke-width="6"></path>
+        </symbol>
+        <symbol id="flag-mm" viewBox="0 0 60 40" preserveAspectRatio="xMidYMid slice">
+            <rect width="60" height="13.34" y="0" fill="#FECB00"></rect>
+            <rect width="60" height="13.33" y="13.34" fill="#34B233"></rect>
+            <rect width="60" height="13.33" y="26.67" fill="#EA2839"></rect>
+            <polygon points="30,9 32.4,16.5 40.3,16.5 33.9,21.1 36.3,28.6 30,24 23.7,28.6 26.1,21.1 19.7,16.5 27.6,16.5" fill="#fff"></polygon>
+        </symbol>
     </svg>
 
     <!-- Toast Notification -->
@@ -2195,47 +2372,47 @@
     <div class="modal-overlay" id="support-widget-overlay" onclick="if(event.target===this) window.closeSupportWidget()">
         <div class="modal-box" style="max-height:86vh;">
             <div class="modal-header">
-                <h3>အကူအညီ</h3>
+                <h3 data-i18n="support_title">Help</h3>
                 <div class="modal-close" onclick="window.closeSupportWidget()"><svg class="ui-icon" style="width:16px;"><use href="#icon-close"></use></svg></div>
             </div>
             <div class="pkg-type-tabs">
-                <button class="pkg-type-tab active" id="support-tab-guide" onclick="window.switchSupportTab('guide')">လမ်းညွှန်</button>
-                <button class="pkg-type-tab" id="support-tab-complaint" onclick="window.switchSupportTab('complaint')">တိုင်ကြားရန်</button>
-                <button class="pkg-type-tab" id="support-tab-chat" onclick="window.switchSupportTab('chat')">Support Chat<span class="support-chat-badge" id="support-chat-badge"></span></button>
+                <button class="pkg-type-tab active" id="support-tab-guide" onclick="window.switchSupportTab('guide')" data-i18n="tab_guide">Guide</button>
+                <button class="pkg-type-tab" id="support-tab-complaint" onclick="window.switchSupportTab('complaint')" data-i18n="tab_complaint">Complaint</button>
+                <button class="pkg-type-tab" id="support-tab-chat" onclick="window.switchSupportTab('chat')"><span data-i18n="tab_chat">Support Chat</span><span class="support-chat-badge" id="support-chat-badge"></span></button>
             </div>
 
             <!-- User Guide tab -->
             <div class="modal-body" id="support-panel-guide">
                 <div class="support-guide-item" id="guide-item-1">
-                    <div class="support-guide-q" onclick="window.toggleGuideItem(this.parentElement)">အော်ဒါ ဘယ်လိုတင်ရမလဲ<svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></div>
-                    <div class="support-guide-a">Home စာမျက်နှာမှ ဂိမ်းကို ရွေးပါ။ Package/Currency ကို ရွေးပြီး In-Game ID (နှင့် Server ID လိုအပ်ပါက) ရိုက်ထည့်ပါ။ "Confirm ID" ကို နှိပ်ပြီး ID မှန်ကန်ကြောင်း စစ်ဆေးပါ။ နောက်ဆုံးတွင် ငွေပေးချေမှုအမျိုးအစား ရွေးချယ်ပြီး အတည်ပြုလိုက်ရုံပါပဲ။</div>
+                    <div class="support-guide-q" onclick="window.toggleGuideItem(this.parentElement)"><span data-i18n="guide_q_order">အော်ဒါ ဘယ်လိုတင်ရမလဲ</span><svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></div>
+                    <div class="support-guide-a" data-i18n="guide_a_order">Home စာမျက်နှာမှ ဂိမ်းကို ရွေးပါ။ Package/Currency ကို ရွေးပြီး In-Game ID (နှင့် Server ID လိုအပ်ပါက) ရိုက်ထည့်ပါ။ "Confirm ID" ကို နှိပ်ပြီး ID မှန်ကန်ကြောင်း စစ်ဆေးပါ။ နောက်ဆုံးတွင် ငွေပေးချေမှုအမျိုးအစား ရွေးချယ်ပြီး အတည်ပြုလိုက်ရုံပါပဲ။</div>
                 </div>
                 <div class="support-guide-item" id="guide-item-2">
-                    <div class="support-guide-q" onclick="window.toggleGuideItem(this.parentElement)">ငွေပေးချေနည်း<svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></div>
-                    <div class="support-guide-a">Wallet ထဲက လက်ကျန်ငွေဖြင့် တိုက်ရိုက်ပေးချေနိုင်သလို၊ Payment Method တစ်ခုကို ရွေးပြီး ငွေလွှဲပြေစာ (Receipt) တင်၍လည်း ပေးချေနိုင်ပါသည်။ Wallet ထဲသို့ ငွေဖြည့်ရန် Wallet စာမျက်နှာမှ "Top Up" ကို သုံးပါ။</div>
+                    <div class="support-guide-q" onclick="window.toggleGuideItem(this.parentElement)"><span data-i18n="guide_q_payment">ငွေပေးချေနည်း</span><svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></div>
+                    <div class="support-guide-a" data-i18n="guide_a_payment">Wallet ထဲက လက်ကျန်ငွေဖြင့် တိုက်ရိုက်ပေးချေနိုင်သလို၊ Payment Method တစ်ခုကို ရွေးပြီး ငွေလွှဲပြေစာ (Receipt) တင်၍လည်း ပေးချေနိုင်ပါသည်။ Wallet ထဲသို့ ငွေဖြည့်ရန် Wallet စာမျက်နှာမှ "Top Up" ကို သုံးပါ။</div>
                 </div>
                 <div class="support-guide-item" id="guide-item-3">
-                    <div class="support-guide-q" onclick="window.toggleGuideItem(this.parentElement)">အော်ဒါ Status ကို ဘယ်လိုစစ်ရမလဲ<svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></div>
-                    <div class="support-guide-a">History စာမျက်နှာတွင် အော်ဒါတစ်ခုချင်းစီကို Pending → Processing → Success/Fail အဆင့်ဆင့် အချိန်နှင့်တပြေးညီ ကြည့်ရှုနိုင်ပါသည်။ Processing တွင် ကြာမြင့်နေပါက "တိုင်ကြားရန်" tab ကနေ ပြန်လည်အကြောင်းကြားနိုင်ပါသည်။</div>
+                    <div class="support-guide-q" onclick="window.toggleGuideItem(this.parentElement)"><span data-i18n="guide_q_status">အော်ဒါ Status ကို ဘယ်လိုစစ်ရမလဲ</span><svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></div>
+                    <div class="support-guide-a" data-i18n="guide_a_status">History စာမျက်နှာတွင် အော်ဒါတစ်ခုချင်းစီကို Pending → Processing → Success/Fail အဆင့်ဆင့် အချိန်နှင့်တပြေးညီ ကြည့်ရှုနိုင်ပါသည်။ Processing တွင် ကြာမြင့်နေပါက "တိုင်ကြားရန်" tab ကနေ ပြန်လည်အကြောင်းကြားနိုင်ပါသည်။</div>
                 </div>
                 <div class="support-guide-item" id="guide-item-4">
-                    <div class="support-guide-q" onclick="window.toggleGuideItem(this.parentElement)">ပြဿနာရှိရင် ဘယ်လိုဆက်သွယ်ရမလဲ<svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></div>
-                    <div class="support-guide-a">အသေးစိတ် ရေးရန်ဆိုရင် "တိုင်ကြားရန်" tab ကို သုံးပါ (Ticket အနေနှင့် မှတ်တမ်းတင်ပေးပါမည်)။ တိုက်ရိုက် စကားပြောချင်ရင် "Support Chat" tab ကို သုံးနိုင်ပါသည်။</div>
+                    <div class="support-guide-q" onclick="window.toggleGuideItem(this.parentElement)"><span data-i18n="guide_q_contact">ပြဿနာရှိရင် ဘယ်လိုဆက်သွယ်ရမလဲ</span><svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></div>
+                    <div class="support-guide-a" data-i18n="guide_a_contact">အသေးစိတ် ရေးရန်ဆိုရင် "တိုင်ကြားရန်" tab ကို သုံးပါ (Ticket အနေနှင့် မှတ်တမ်းတင်ပေးပါမည်)။ တိုက်ရိုက် စကားပြောချင်ရင် "Support Chat" tab ကို သုံးနိုင်ပါသည်။</div>
                 </div>
             </div>
 
             <!-- Complaint tab -->
             <div class="modal-body" id="support-panel-complaint" style="display:none;">
                 <div class="support-complaint-field">
-                    <label>ခေါင်းစဉ်</label>
-                    <input type="text" id="complaint-title" placeholder="ဥပမာ - အော်ဒါ Processing မှာ ကပ်နေသည်">
+                    <label data-i18n="complaint_label_title">Title</label>
+                    <input type="text" id="complaint-title" placeholder="ဥပမာ - အော်ဒါ Processing မှာ ကပ်နေသည်" data-i18n-ph="complaint_ph_title">
                 </div>
                 <div class="support-complaint-field">
-                    <label>အကြောင်းအရာ</label>
-                    <textarea id="complaint-text" placeholder="ပြဿနာအား အသေးစိတ် ရေးပေးပါ..."></textarea>
+                    <label data-i18n="complaint_label_content">Details</label>
+                    <textarea id="complaint-text" placeholder="ပြဿနာအား အသေးစိတ် ရေးပေးပါ..." data-i18n-ph="complaint_ph_text"></textarea>
                 </div>
                 <button type="button" class="btn btn-primary" style="width:100%;" onclick="window.submitComplaint(this)">
-                    <svg class="ui-icon" style="width:16px;margin-right:6px;vertical-align:-3px;"><use href="#icon-flag"></use></svg>တိုင်ကြားစာ ပို့မည်
+                    <svg class="ui-icon" style="width:16px;margin-right:6px;vertical-align:-3px;"><use href="#icon-flag"></use></svg><span data-i18n="btn_send_complaint">Send Complaint</span>
                 </button>
             </div>
 
@@ -2247,16 +2424,16 @@
                         <div class="support-chat-header-name">Admin</div>
                         <div class="support-chat-header-status">
                             <span class="support-chat-header-dot" id="support-chat-header-dot"></span>
-                            <span id="support-chat-header-status-text">Checking...</span>
+                            <span id="support-chat-header-status-text" data-i18n="chat_checking">Checking...</span>
                         </div>
                     </div>
                 </div>
                 <div class="support-chat-messages" id="support-chat-messages"></div>
                 <div class="support-chat-typing" id="support-chat-typing-indicator">
-                    <span class="support-chat-typing-dots"><span></span><span></span><span></span></span> Admin is typing...
+                    <span class="support-chat-typing-dots"><span></span><span></span><span></span></span> <span data-i18n="chat_admin_typing">Admin is typing...</span>
                 </div>
                 <div class="support-chat-inputrow">
-                    <input type="text" id="support-chat-input" placeholder="မက်ဆေ့ချ် ရိုက်ပါ..." oninput="window.handleSupportChatTyping()" onkeydown="if(event.key==='Enter'){event.preventDefault();window.sendSupportChatMessage();}">
+                    <input type="text" id="support-chat-input" placeholder="မက်ဆေ့ချ် ရိုက်ပါ..." data-i18n-ph="chat_input_ph" oninput="window.handleSupportChatTyping()" onkeydown="if(event.key==='Enter'){event.preventDefault();window.sendSupportChatMessage();}">
                     <button type="button" class="support-chat-send" onclick="window.sendSupportChatMessage()"><svg class="ui-icon" style="width:18px;height:18px;"><use href="#icon-send"></use></svg></button>
                 </div>
             </div>
@@ -2283,6 +2460,10 @@
                     <svg class="svg-icon" id="theme-toggle-icon" style="stroke:currentColor;"><use href="#icon-sun"></use></svg>
                 </span>
             </div>
+            <div class="lang-toggle-btn" id="lang-toggle-btn" onclick="toggleLanguage()" role="button" aria-label="Switch language / ဘာသာစကားပြောင်းရန်">
+                <svg class="lang-toggle-flag" id="lang-toggle-flag-en"><use href="#flag-en"></use></svg>
+                <svg class="lang-toggle-flag" id="lang-toggle-flag-mm" style="display:none;"><use href="#flag-mm"></use></svg>
+            </div>
             <div class="header-icon" onclick="openNotificationsPage()"><svg class="ui-icon" style="width: 20px;"><use href="#icon-bell"></use></svg><span class="notif-dot" id="notif-dot"></span></div>
         </div>
     </header>
@@ -2307,41 +2488,41 @@
             </div>
             <nav class="drawer-nav" id="drawer-nav">
                 <div class="drawer-nav-item active" data-page="home" onclick="drawerNavigate('home')">
-                    <svg class="ui-icon"><use href="#icon-home"></use></svg><span>Home</span>
+                    <svg class="ui-icon"><use href="#icon-home"></use></svg><span data-i18n="nav_home">Home</span>
                 </div>
                 <div class="drawer-nav-item" data-page="voucher" onclick="drawerNavigate('voucher')">
-                    <svg class="ui-icon"><use href="#icon-gift"></use></svg><span>Voucher</span>
+                    <svg class="ui-icon"><use href="#icon-gift"></use></svg><span data-i18n="nav_voucher">Voucher</span>
                 </div>
                 <div class="drawer-nav-item" data-page="account" onclick="drawerNavigate('account')">
-                    <svg class="ui-icon"><use href="#icon-shield"></use></svg><span>Account</span>
+                    <svg class="ui-icon"><use href="#icon-shield"></use></svg><span data-i18n="nav_account">Account</span>
                 </div>
                 <div class="drawer-nav-item" data-page="history" onclick="drawerNavigate('history')">
-                    <svg class="ui-icon"><use href="#icon-history"></use></svg><span>History</span>
+                    <svg class="ui-icon"><use href="#icon-history"></use></svg><span data-i18n="nav_history">History</span>
                 </div>
                 <div class="drawer-nav-item" data-page="leaderboard" onclick="drawerNavigate('leaderboard')">
-                    <svg class="ui-icon"><use href="#icon-trophy"></use></svg><span>Leaderboard</span>
+                    <svg class="ui-icon"><use href="#icon-trophy"></use></svg><span data-i18n="nav_leaderboard">Leaderboard</span>
                 </div>
                 <div class="drawer-nav-item" data-page="wallet" onclick="drawerNavigate('wallet')">
-                    <svg class="ui-icon"><use href="#icon-wallet"></use></svg><span>Wallet</span>
+                    <svg class="ui-icon"><use href="#icon-wallet"></use></svg><span data-i18n="nav_wallet">Wallet</span>
                 </div>
                 <div class="drawer-nav-item" data-page="profile" onclick="drawerNavigate('profile')">
-                    <svg class="ui-icon"><use href="#icon-user"></use></svg><span>Profile</span>
+                    <svg class="ui-icon"><use href="#icon-user"></use></svg><span data-i18n="nav_profile">Profile</span>
                 </div>
 
                 <div class="drawer-divider"></div>
                 <div class="drawer-section-label">More</div>
 
                 <div class="drawer-nav-item" onclick="closeDrawer(); openNotificationsPage();">
-                    <svg class="ui-icon"><use href="#icon-bell"></use></svg><span>Notifications</span>
+                    <svg class="ui-icon"><use href="#icon-bell"></use></svg><span data-i18n="nav_notifications">Notifications</span>
                 </div>
                 <div class="drawer-nav-item" onclick="closeDrawer(); showPage('terms');">
-                    <svg class="ui-icon"><use href="#icon-book"></use></svg><span>Terms &amp; Policy</span>
+                    <svg class="ui-icon"><use href="#icon-book"></use></svg><span data-i18n="nav_terms">Terms &amp; Policy</span>
                 </div>
                 <div class="drawer-nav-item" onclick="closeDrawer(); openSupportWidget();">
-                    <svg class="ui-icon"><use href="#icon-message-circle"></use></svg><span>Support</span>
+                    <svg class="ui-icon"><use href="#icon-message-circle"></use></svg><span data-i18n="nav_support">Support</span>
                 </div>
             </nav>
-            <div class="drawer-footer">PCA Store</div>
+            <div class="drawer-footer" data-i18n="drawer_footer">PCA Store</div>
         </aside>
     </div>
 
@@ -2360,9 +2541,9 @@
             <svg class="ui-icon" id="mini-profile-avatar-icon" style="width:20px;height:20px;"><use href="#icon-user"></use></svg>
         </div>
         <div class="mini-profile-info">
-            <span id="mini-profile-name">Guest</span>
+            <span id="mini-profile-name" data-i18n="guest">Guest</span>
             <div id="mini-profile-tier" style="display:none;"></div>
-            <small id="mini-profile-hint">Tap to view profile</small>
+            <small id="mini-profile-hint" data-i18n="tap_view_profile">Tap to view profile</small>
         </div>
         <svg class="ui-icon" style="width:18px;height:18px;color:#BCC0C4;"><use href="#icon-chevron-right"></use></svg>
     </div>
@@ -2388,11 +2569,11 @@
                 <div class="flash-sale-countdown" id="flash-sale-countdown">--:--:--</div>
             </div>
             <div id="favorite-games-section" style="display:none;">
-                <h2 class="title-header">My Favorites</h2>
+                <h2 class="title-header" data-i18n="title_favorites">My Favorites</h2>
                 <div class="popular-scroll-wrap" id="favorite-games-scroll"></div>
             </div>
             <div id="popular-games-section">
-                <h2 class="title-header">Popular Games</h2>
+                <h2 class="title-header" data-i18n="title_popular_games">Popular Games</h2>
                 <div class="popular-scroll-wrap" id="popular-games-scroll">
                     <div class="skel-popular-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
                     <div class="skel-popular-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
@@ -2400,7 +2581,7 @@
                     <div class="skel-popular-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
                 </div>
             </div>
-            <h2 class="title-header section-title-spaced">All Games <span id="all-games-count" class="games-count-badge"></span></h2>
+            <h2 class="title-header section-title-spaced"><span data-i18n="title_all_games">All Games</span> <span id="all-games-count" class="games-count-badge"></span></h2>
             <div class="game-search-wrap">
                 <svg class="ui-icon game-search-icon"><use href="#icon-search"></use></svg>
                 <input type="text" id="game-search-input" class="game-search-input" placeholder="Search games..." oninput="filterGamesBySearch(this.value)">
@@ -2425,14 +2606,14 @@
              purchase flow as Home, just pre-filtered to voucher-only entries. -->
         <div id="voucher" class="page-section">
             <div id="popular-vouchers-section">
-                <h2 class="title-header">Popular</h2>
+                <h2 class="title-header" data-i18n="title_popular">Popular</h2>
                 <div class="popular-scroll-wrap" id="popular-vouchers-scroll">
                     <div class="skel-popular-voucher-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
                     <div class="skel-popular-voucher-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
                     <div class="skel-popular-voucher-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
                 </div>
             </div>
-            <h2 class="title-header">Vouchers & Gift Cards</h2>
+            <h2 class="title-header" data-i18n="title_vouchers">Vouchers & Gift Cards</h2>
             <p class="empty-msg" style="text-align:left;padding:0 2px 12px;">Instant-delivery gift cards & top-up vouchers.</p>
             <div class="games-grid-scroll">
                 <div class="cards-grid" id="voucher-games-grid">
@@ -2453,8 +2634,8 @@
             <div id="account-login-gate" style="display:none;">
                 <div class="empty-state">
                     <div class="empty-state-icon"><svg class="ui-icon"><use href="#icon-shield"></use></svg></div>
-                    <div class="empty-state-title">Sign in to browse accounts</div>
-                    <div class="empty-state-sub">Game accounts are high value, so please sign in with Google first.</div>
+                    <div class="empty-state-title" data-i18n="empty_signin_title">Sign in to browse accounts</div>
+                    <div class="empty-state-sub" data-i18n="empty_signin_sub">Game accounts are high value, so please sign in with Google first.</div>
                     <div class="empty-state-action">
                         <div class="google-account-card" style="margin:0 auto;max-width:320px;">
                             <button type="button" class="google-login-btn" id="account-google-signin-btn" onclick="handleGoogleSignIn('account-google-signin-btn')">
@@ -2471,7 +2652,7 @@
                 </div>
             </div>
             <div id="account-content" style="display:none;">
-                <h2 class="title-header">Game Accounts</h2>
+                <h2 class="title-header" data-i18n="title_game_accounts">Game Accounts</h2>
                 <p class="empty-msg" style="text-align:left;padding:0 2px 12px;">Pre-made accounts ready to play — pick a game to browse.</p>
                 <div class="games-grid-scroll">
                     <div class="cards-grid" id="account-games-grid">
@@ -2515,12 +2696,12 @@
                 <div id="acct-sold-banner" class="acct-sold-banner" style="display:none;">This account has already been sold.</div>
 
                 <div id="acct-detail-desc-wrap" style="display:none;">
-                    <h3 class="detail-section-title">Description</h3>
+                    <h3 class="detail-section-title" data-i18n="sec_description">Description</h3>
                     <p class="game-desc-text" id="acct-detail-desc"></p>
                 </div>
 
                 <div id="acct-detail-skins-wrap" style="display:none;">
-                    <h3 class="detail-section-title">Skins Included</h3>
+                    <h3 class="detail-section-title" data-i18n="sec_skins_included">Skins Included</h3>
                     <div class="acct-chips-row" id="acct-detail-skins"></div>
                 </div>
 
@@ -2531,7 +2712,7 @@
                 <div id="acct-kyc-gate" class="detail-form-card" style="display:none;text-align:center;"></div>
 
                 <div id="acct-detail-payment-section">
-                    <h3 class="detail-section-title">How do you want to pay?</h3>
+                    <h3 class="detail-section-title" data-i18n="sec_how_pay">How do you want to pay?</h3>
                     <div class="pay-type-tabs" id="acct-pay-type-tabs">
                         <button type="button" class="pay-type-tab" data-type="wallet" onclick="acctChoosePaymentType('wallet')">Wallet Balance</button>
                         <button type="button" class="pay-type-tab" data-type="payment" onclick="acctChoosePaymentType('payment')">Kpay / Wave / etc.</button>
@@ -2591,7 +2772,7 @@
             </div>
 
             <div class="slide-confirm-wrap" id="acct-confirm-wrap" style="margin-top:20px;">
-                <button type="button" class="btn btn-primary" id="acct-confirm-btn" disabled>Select a payment method</button>
+                <button type="button" class="btn btn-primary" id="acct-confirm-btn" disabled data-i18n="btn_select_payment">Select a payment method</button>
                 <div class="slide-confirm-fill" id="acct-confirm-fill" aria-hidden="true"></div>
                 <div class="slide-confirm-hint" id="acct-confirm-hint" aria-hidden="true">
                     <svg class="ui-icon"><use href="#icon-chevron-right"></use></svg>
@@ -2606,21 +2787,21 @@
 
         <!-- HISTORY PAGE (Live Firebase Orders) -->
         <div id="history" class="page-section">
-            <h2 class="title-header">Transaction History</h2>
+            <h2 class="title-header" data-i18n="title_history">Transaction History</h2>
             <div id="history-container"></div>
         </div>
 
         <!-- LEADERBOARD PAGE — ranks real customers by lifetime successful top-up
              spend, aggregated client-side from the "orders" collection. -->
         <div id="leaderboard" class="page-section">
-            <h2 class="title-header">Top Spenders</h2>
+            <h2 class="title-header" data-i18n="title_leaderboard">Top Spenders</h2>
             <div id="leaderboard-list"><p class="empty-msg">Loading leaderboard...</p></div>
             <div id="leaderboard-you"></div>
         </div>
 
         <!-- WALLET PAGE (real balance + Top Up requests, synced live from Firestore) -->
         <div id="wallet" class="page-section">
-            <h2 class="title-header">My Wallet</h2>
+            <h2 class="title-header" data-i18n="title_wallet">My Wallet</h2>
 
             <div class="wallet-balance-card">
                 <div class="wallet-balance-card-glow"></div>
@@ -2718,7 +2899,7 @@
                     </div>
 
                     <div class="slide-confirm-wrap" id="wallet-topup-confirm-wrap" style="margin-top:18px;">
-                        <button type="button" class="btn btn-primary" id="wallet-topup-submit-btn" disabled>Select a Payment Method</button>
+                        <button type="button" class="btn btn-primary" id="wallet-topup-submit-btn" disabled data-i18n="btn_select_payment_method">Select a Payment Method</button>
                         <div class="slide-confirm-fill" id="wallet-topup-confirm-fill" aria-hidden="true"></div>
                         <div class="slide-confirm-hint" id="wallet-topup-confirm-hint" aria-hidden="true">
                             <svg class="ui-icon"><use href="#icon-chevron-right"></use></svg>
@@ -2752,7 +2933,7 @@
                         <div id="crypto-topup-methods-list" style="display:flex; flex-direction:column; gap:10px;">
                             <p class="empty-msg">Loading payment methods…</p>
                         </div>
-                        <button type="button" class="btn btn-primary" id="crypto-topup-create-btn" style="width:100%;margin-top:16px;" disabled onclick="createCryptoPayment()">Select a Network</button>
+                        <button type="button" class="btn btn-primary" id="crypto-topup-create-btn" style="width:100%;margin-top:16px;" disabled onclick="createCryptoPayment()" data-i18n="btn_select_network">Select a Network</button>
                     </div>
 
                     <!-- Stage B: invoice details + live status -->
@@ -2838,7 +3019,7 @@
 
                         <label style="display:block;font-size:13px;font-weight:600;color:var(--text);margin:14px 0 6px;">Transaction Hash</label>
                         <input type="text" id="aluu-tx-hash-input" class="wallet-topup-amount-input" style="font-size:13.5px;" placeholder="Paste the tx hash after sending">
-                        <button type="button" class="btn btn-primary" style="width:100%;margin-top:8px;" id="aluu-submit-tx-btn" onclick="submitAluuTxHash()">Submit for Verification</button>
+                        <button type="button" class="btn btn-primary" style="width:100%;margin-top:8px;" id="aluu-submit-tx-btn" onclick="submitAluuTxHash()" data-i18n="btn_submit_verification">Submit for Verification</button>
 
                         <div id="aluu-status-box" style="display:none;margin-top:16px;text-align:center;font-size:13.5px;color:var(--text-secondary);">
                             <span id="aluu-status-spinner" style="display:inline-block;width:14px;height:14px;border:2px solid rgba(255,255,255,0.25);border-top-color:var(--primary,#8b5cf6);border-radius:50%;animation:spin 0.8s linear infinite;vertical-align:-2px;margin-right:6px;"></span>
@@ -2865,7 +3046,7 @@
 
         <!-- PROFILE PAGE (saved locally on this device, photo hosted on ImgBB) -->
         <div id="profile" class="page-section">
-            <h2 class="title-header">My Profile</h2>
+            <h2 class="title-header" data-i18n="title_profile">My Profile</h2>
 
             <!-- Hero card: gradient cover, avatar overlapping the edge, name/ID/tier
                  centered below, and a single "Edit Profile" toggle that reveals the
@@ -3119,7 +3300,7 @@
                             <input type="text" id="profile-phone" placeholder="+95 9 123 456 789">
                         </div>
                     </div>
-                    <button class="btn btn-primary" id="save-profile-btn" style="width:100%;margin-top:16px;" onclick="saveProfile()">Save Profile</button>
+                    <button class="btn btn-primary" id="save-profile-btn" style="width:100%;margin-top:16px;" onclick="saveProfile()" data-i18n="btn_save_profile">Save Profile</button>
                 </div>
             </div>
         </div>
@@ -3210,7 +3391,7 @@
             <div class="detail-main-col">
 
             <div id="account-info-section">
-            <h3 class="detail-section-title">Account Info</h3>
+            <h3 class="detail-section-title" data-i18n="sec_account_info">Account Info</h3>
             <div class="detail-form-card">
                 <div style="display:flex; gap:10px;">
                     <div style="flex:1; min-width:0;">
@@ -3228,13 +3409,13 @@
                 </div>
                 <button type="button" id="confirm-id-btn" class="confirm-id-btn" onclick="confirmPlayerIdManual()" style="display:none;">
                     <span class="confirm-id-spinner" id="confirm-id-spinner"></span>
-                    <span id="confirm-id-btn-text">Confirm ID</span>
+                    <span id="confirm-id-btn-text" data-i18n="btn_confirm_id">Confirm ID</span>
                 </button>
                 <div id="detail-id-status" style="margin-top:8px;display:none;"></div>
             </div>
             </div>
 
-            <h3 class="detail-section-title">Select Currency Package</h3>
+            <h3 class="detail-section-title" data-i18n="sec_select_currency_pkg">Select Currency Package</h3>
             <div class="pkg-type-tabs" id="pkg-type-tabs" style="display:none;"></div>
             <div class="package-grid-scroll"><div id="detail-package-list" class="package-grid"></div></div>
 
@@ -3261,7 +3442,7 @@
             <div id="coupon-card" class="detail-form-card" style="display:none; margin-top:12px;"></div>
 
             <div id="detail-payment-section" style="display:none;">
-                <h3 class="detail-section-title">How do you want to pay?</h3>
+                <h3 class="detail-section-title" data-i18n="sec_how_pay">How do you want to pay?</h3>
                 <div class="pay-type-tabs" id="detail-pay-type-tabs">
                     <button type="button" class="pay-type-tab" data-type="wallet" onclick="choosePaymentType('wallet')">Wallet Balance</button>
                     <button type="button" class="pay-type-tab" data-type="payment" onclick="choosePaymentType('payment')">Kpay / Wave / etc.</button>
@@ -3327,7 +3508,7 @@
             </div>
 
             <div class="slide-confirm-wrap" id="detail-confirm-wrap" style="margin-top:20px;">
-                <button type="button" class="btn btn-primary" id="detail-confirm-btn" disabled>Select a Package</button>
+                <button type="button" class="btn btn-primary" id="detail-confirm-btn" disabled data-i18n="btn_select_package">Select a Package</button>
                 <div class="slide-confirm-fill" id="detail-confirm-fill" aria-hidden="true"></div>
                 <div class="slide-confirm-hint" id="detail-confirm-hint" aria-hidden="true">
                     <svg class="ui-icon"><use href="#icon-chevron-right"></use></svg>
@@ -3381,8 +3562,8 @@
                 <svg class="ui-icon"><use href="#icon-gamepad"></use></svg>
                 <span>Game ဖွင့်မယ်</span>
             </button>
-            <button class="btn btn-primary" id="success-go-history-btn" onclick="goToHistoryFromSuccess()">Go to History</button>
-            <button class="btn btn-primary" id="success-go-admin-btn" onclick="goToAdminFromSuccess()" style="display:none;">Go to Admin</button>
+            <button class="btn btn-primary" id="success-go-history-btn" onclick="goToHistoryFromSuccess()" data-i18n="btn_go_history">Go to History</button>
+            <button class="btn btn-primary" id="success-go-admin-btn" onclick="goToAdminFromSuccess()" style="display:none;" data-i18n="btn_go_admin">Go to Admin</button>
         </div>
     </div>
 
@@ -3401,6 +3582,156 @@
 
     <!-- Vanilla JS for Navigation & Toast -->
     <script>
+        /* =====================================================================
+           LANGUAGE (i18n): English / Myanmar toggle.
+           I18N holds { en:{...}, my:{...} } string tables keyed by short ids.
+           t(key) resolves the current language, falling back to English then
+           the raw key, so a missing translation never renders blank. Static
+           markup carries data-i18n="key" (text content) / data-i18n-ph="key"
+           (placeholder attr); applyI18n() walks the DOM and fills them in.
+           JS-built template strings (empty states, dynamically rendered
+           buttons, toasts, etc.) call t('key') directly instead. Defaults to
+           Myanmar (the store's primary audience) and remembers the
+           customer's choice in localStorage under 'gz_lang'.
+        ===================================================================== */
+        const I18N = {
+            en: {
+                nav_home: 'Home', nav_voucher: 'Voucher', nav_account: 'Account',
+                nav_history: 'History', nav_leaderboard: 'Leaderboard', nav_wallet: 'Wallet',
+                nav_profile: 'Profile', nav_notifications: 'Notifications',
+                nav_terms: 'Terms & Policy', nav_support: 'Support',
+                title_favorites: 'My Favorites', title_popular_games: 'Popular Games',
+                title_all_games: 'All Games', title_popular: 'Popular',
+                title_vouchers: 'Vouchers & Gift Cards', title_game_accounts: 'Game Accounts',
+                title_history: 'Transaction History', title_leaderboard: 'Top Spenders',
+                title_wallet: 'My Wallet', title_profile: 'My Profile',
+                sec_account_info: 'Account Info', sec_description: 'Description',
+                sec_skins_included: 'Skins Included', sec_how_pay: 'How do you want to pay?',
+                sec_select_currency_pkg: 'Select Currency Package', sec_order_info: 'Order Info',
+                sec_payment_receipt: 'Payment Receipt', sec_reason: 'Reason', sec_note: 'Note',
+                sec_verify_review: 'Verification in review', sec_verify_rejected: 'Verification rejected',
+                sec_verify_continue: 'Verify your identity to continue',
+                btn_select_payment: 'Select a payment method', btn_select_payment_method: 'Select a Payment Method',
+                btn_select_network: 'Select a Network', btn_select_package: 'Select a Package',
+                btn_submit_verification: 'Submit for Verification', btn_save_profile: 'Save Profile',
+                btn_go_history: 'Go to History', btn_go_admin: 'Go to Admin',
+                btn_remove: 'Remove', btn_apply: 'Apply', btn_top_up_wallet: 'Top Up Wallet',
+                btn_copy_all_codes: 'Copy All Codes', btn_contact_admin_telegram: 'Contact Admin on Telegram',
+                empty_signin_title: 'Sign in to browse accounts',
+                empty_signin_sub: 'Game accounts are high value, so please sign in with Google first.',
+                tap_view_profile: 'Tap to view profile', guest: 'Guest',
+                drawer_footer: 'PCA Store',
+                support_title: 'Help', tab_guide: 'Guide', tab_complaint: 'Complaint', tab_chat: 'Support Chat',
+                guide_q_order: 'How do I place an order?',
+                guide_a_order: 'Pick a game from the Home page. Choose a Package/Currency and enter your In-Game ID (and Server ID if needed). Tap "Confirm ID" to verify it\'s correct. Finally, choose a payment type and confirm.',
+                guide_q_payment: 'How do I pay?',
+                guide_a_payment: 'You can pay directly from your Wallet balance, or choose a Payment Method and upload a transfer receipt. To top up your Wallet, use "Top Up" on the Wallet page.',
+                guide_q_status: 'How do I check my order status?',
+                guide_a_status: 'On the History page, each order shows live Pending → Processing → Success/Fail status. If it stays in Processing too long, reach out via the "Complaint" tab.',
+                guide_q_contact: 'How do I get help if there\'s a problem?',
+                guide_a_contact: 'For details, use the "Complaint" tab (logged as a ticket). For a live conversation, use the "Support Chat" tab.',
+                complaint_label_title: 'Title', complaint_label_content: 'Details',
+                complaint_ph_title: 'e.g. Order stuck in Processing',
+                complaint_ph_text: 'Describe the issue in detail...',
+                btn_send_complaint: 'Send Complaint',
+                chat_admin_typing: 'Admin is typing...', chat_input_ph: 'Type a message...',
+                chat_checking: 'Checking...', chat_admin_online: 'Admin Online',
+                chat_empty: 'No messages yet. Type below to send one.',
+                btn_confirm_id: 'Confirm ID', btn_confirmed_id: 'Confirmed ✓', btn_checking_id: 'Checking...',
+                checking_id_text: 'Checking ID...', id_not_found: 'ID not found — please double-check it.',
+                verified_prefix: 'Verified', player_verified: 'Player verified',
+                success_processing_title: 'Processing Your Order', success_processing_sub: "Our team is working on it now — this won't take long.",
+                success_completed_title: 'Order Completed!', success_completed_sub: 'Your top up has been delivered. Thanks for ordering with us.',
+                success_failed_title: 'Order Failed', success_failed_sub: 'Something went wrong with this order. Check the details in History or contact support.',
+                success_confirmed_title: 'Order Confirmed',
+            },
+            my: {
+                nav_home: 'ပင်မ', nav_voucher: 'ဗောက်ချာ', nav_account: 'အကောင့်',
+                nav_history: 'မှတ်တမ်း', nav_leaderboard: 'ထိပ်တန်းစာရင်း', nav_wallet: 'ပိုက်ဆံအိတ်',
+                nav_profile: 'ပရိုဖိုင်', nav_notifications: 'အသိပေးချက်များ',
+                nav_terms: 'စည်းမျဉ်းစည်းကမ်း', nav_support: 'အကူအညီ',
+                title_favorites: 'အနှစ်သက်ဆုံးများ', title_popular_games: 'ခေတ်စားနေသောဂိမ်းများ',
+                title_all_games: 'ဂိမ်းအားလုံး', title_popular: 'ခေတ်စားနေသော',
+                title_vouchers: 'ဗောက်ချာနှင့် လက်ဆောင်ကတ်များ', title_game_accounts: 'ဂိမ်းအကောင့်များ',
+                title_history: 'ငွေလွှဲမှတ်တမ်း', title_leaderboard: 'အများဆုံးသုံးစွဲသူများ',
+                title_wallet: 'ကျွန်ုပ်၏ပိုက်ဆံအိတ်', title_profile: 'ကျွန်ုပ်၏ပရိုဖိုင်',
+                sec_account_info: 'အကောင့်အချက်အလက်', sec_description: 'ဖော်ပြချက်',
+                sec_skins_included: 'ပါဝင်သောစကင်များ', sec_how_pay: 'ဘယ်လိုငွေပေးချေမလဲ?',
+                sec_select_currency_pkg: 'ငွေကြေးပက်ကေ့ချ်ရွေးပါ', sec_order_info: 'အော်ဒါအချက်အလက်',
+                sec_payment_receipt: 'ငွေပေးချေမှုပြေစာ', sec_reason: 'အကြောင်းအရင်း', sec_note: 'မှတ်ချက်',
+                sec_verify_review: 'အတည်ပြုချက် စစ်ဆေးနေဆဲ', sec_verify_rejected: 'အတည်ပြုချက် ငြင်းပယ်ခံရ',
+                sec_verify_continue: 'ဆက်လက်လုပ်ဆောင်ရန် မိမိကိုယ်ကို အတည်ပြုပါ',
+                btn_select_payment: 'ငွေပေးချေနည်း ရွေးပါ', btn_select_payment_method: 'ငွေပေးချေနည်း ရွေးပါ',
+                btn_select_network: 'ကွန်ရက် ရွေးပါ', btn_select_package: 'ပက်ကေ့ချ် ရွေးပါ',
+                btn_submit_verification: 'အတည်ပြုရန် ပို့ပါ', btn_save_profile: 'ပရိုဖိုင် သိမ်းမည်',
+                btn_go_history: 'မှတ်တမ်းသို့သွားမည်', btn_go_admin: 'အက်ဒမင်ထံသွားမည်',
+                btn_remove: 'ဖယ်ရှားမည်', btn_apply: 'သုံးမည်', btn_top_up_wallet: 'ပိုက်ဆံအိတ်ဖြည့်မည်',
+                btn_copy_all_codes: 'ကုဒ်အားလုံးကူးမည်', btn_contact_admin_telegram: 'Telegram မှ အက်ဒမင်ကိုဆက်သွယ်ရန်',
+                empty_signin_title: 'အကောင့်များကြည့်ရန် အကောင့်ဝင်ပါ',
+                empty_signin_sub: 'ဂိမ်းအကောင့်များသည် တန်ဖိုးမြင့်သောကြောင့် Google ဖြင့် အကောင့်ဝင်ပါ။',
+                tap_view_profile: 'ပရိုဖိုင်ကြည့်ရန် နှိပ်ပါ', guest: 'ဧည့်သည်',
+                drawer_footer: 'PCA Store',
+                support_title: 'အကူအညီ', tab_guide: 'လမ်းညွှန်', tab_complaint: 'တိုင်ကြားရန်', tab_chat: 'Chat ဖြင့်မေးရန်',
+                guide_q_order: 'အော်ဒါ ဘယ်လိုတင်ရမလဲ',
+                guide_a_order: 'Home စာမျက်နှာမှ ဂိမ်းကို ရွေးပါ။ Package/Currency ကို ရွေးပြီး In-Game ID (နှင့် Server ID လိုအပ်ပါက) ရိုက်ထည့်ပါ။ "Confirm ID" ကို နှိပ်ပြီး ID မှန်ကန်ကြောင်း စစ်ဆေးပါ။ နောက်ဆုံးတွင် ငွေပေးချေမှုအမျိုးအစား ရွေးချယ်ပြီး အတည်ပြုလိုက်ရုံပါပဲ။',
+                guide_q_payment: 'ငွေပေးချေနည်း',
+                guide_a_payment: 'Wallet ထဲက လက်ကျန်ငွေဖြင့် တိုက်ရိုက်ပေးချေနိုင်သလို၊ Payment Method တစ်ခုကို ရွေးပြီး ငွေလွှဲပြေစာ (Receipt) တင်၍လည်း ပေးချေနိုင်ပါသည်။ Wallet ထဲသို့ ငွေဖြည့်ရန် Wallet စာမျက်နှာမှ "Top Up" ကို သုံးပါ။',
+                guide_q_status: 'အော်ဒါ Status ကို ဘယ်လိုစစ်ရမလဲ',
+                guide_a_status: 'History စာမျက်နှာတွင် အော်ဒါတစ်ခုချင်းစီကို Pending → Processing → Success/Fail အဆင့်ဆင့် အချိန်နှင့်တပြေးညီ ကြည့်ရှုနိုင်ပါသည်။ Processing တွင် ကြာမြင့်နေပါက "တိုင်ကြားရန်" tab ကနေ ပြန်လည်အကြောင်းကြားနိုင်ပါသည်။',
+                guide_q_contact: 'ပြဿနာရှိရင် ဘယ်လိုဆက်သွယ်ရမလဲ',
+                guide_a_contact: 'အသေးစိတ် ရေးရန်ဆိုရင် "တိုင်ကြားရန်" tab ကို သုံးပါ (Ticket အနေနှင့် မှတ်တမ်းတင်ပေးပါမည်)။ တိုက်ရိုက် စကားပြောချင်ရင် "Support Chat" tab ကို သုံးနိုင်ပါသည်။',
+                complaint_label_title: 'ခေါင်းစဉ်', complaint_label_content: 'အကြောင်းအရာ',
+                complaint_ph_title: 'ဥပမာ - အော်ဒါ Processing မှာ ကပ်နေသည်',
+                complaint_ph_text: 'ပြဿနာအား အသေးစိတ် ရေးပေးပါ...',
+                btn_send_complaint: 'တိုင်ကြားစာ ပို့မည်',
+                chat_admin_typing: 'အက်ဒမင် စာရိုက်နေသည်...', chat_input_ph: 'မက်ဆေ့ချ် ရိုက်ပါ...',
+                chat_checking: 'စစ်ဆေးနေသည်...', chat_admin_online: 'အက်ဒမင် အွန်လိုင်းရှိသည်',
+                chat_empty: 'မက်ဆေ့ချ် မရှိသေးပါ။ အောက်မှာ စာရိုက်ပြီး ပို့လိုက်ပါ။',
+                btn_confirm_id: 'Confirm ID', btn_confirmed_id: 'Confirmed ✓', btn_checking_id: 'စစ်ဆေးနေသည်...',
+                checking_id_text: 'ID စစ်ဆေးနေသည်...', id_not_found: 'ID မတွေ့ပါ — ပြန်စစ်ကြည့်ပါ။',
+                verified_prefix: 'အတည်ပြုပြီး', player_verified: 'ကစားသမား အတည်ပြုပြီး',
+                success_processing_title: 'အော်ဒါ လုပ်ဆောင်နေသည်', success_processing_sub: 'ကျွန်ုပ်တို့အဖွဲ့ လက်ရှိလုပ်ဆောင်နေပါသည် — မကြာမီပြီးပါမည်။',
+                success_completed_title: 'အော်ဒါ ပြီးမြောက်ပါပြီ!', success_completed_sub: 'သင့်ရဲ့ top up ကို ပေးပို့ပြီးပါပြီ။ ကျွန်ုပ်တို့နှင့် အော်ဒါတင်သည့်အတွက် ကျေးဇူးတင်ပါသည်။',
+                success_failed_title: 'အော်ဒါ မအောင်မြင်ပါ', success_failed_sub: 'ဒီအော်ဒါမှာ တစ်ခုခုမှားယွင်းသွားပါသည်။ History တွင်စစ်ဆေးပါ (သို့) Support ကိုဆက်သွယ်ပါ။',
+                success_confirmed_title: 'အော်ဒါ အတည်ပြုပြီး',
+            }
+        };
+        let currentLang = localStorage.getItem('gz_lang') || 'my';
+        function t(key) {
+            const table = I18N[currentLang] || I18N.my;
+            return (table && table[key] !== undefined) ? table[key] : (I18N.en[key] !== undefined ? I18N.en[key] : key);
+        }
+        window.t = t;
+        function applyI18n() {
+            document.documentElement.setAttribute('lang', currentLang === 'my' ? 'my' : 'en');
+            document.querySelectorAll('[data-i18n]').forEach(el => {
+                el.textContent = t(el.getAttribute('data-i18n'));
+            });
+            document.querySelectorAll('[data-i18n-ph]').forEach(el => {
+                el.setAttribute('placeholder', t(el.getAttribute('data-i18n-ph')));
+            });
+            document.querySelectorAll('.lang-toggle-btn').forEach(btn => {
+                const enFlag = btn.querySelector('#lang-toggle-flag-en') || btn.querySelector('.lang-toggle-flag[id$="-en"]');
+                const mmFlag = btn.querySelector('#lang-toggle-flag-mm') || btn.querySelector('.lang-toggle-flag[id$="-mm"]');
+                // Shows the flag of the language a tap would switch TO (same
+                // as the old EN/MY text label's behavior).
+                const showEn = currentLang === 'my';
+                if (enFlag) enFlag.style.display = showEn ? 'block' : 'none';
+                if (mmFlag) mmFlag.style.display = showEn ? 'none' : 'block';
+            });
+        }
+        window.applyI18n = applyI18n;
+        function setLanguage(lang) {
+            currentLang = (lang === 'en') ? 'en' : 'my';
+            try { localStorage.setItem('gz_lang', currentLang); } catch (e) { /* private browsing - ignore */ }
+            applyI18n();
+        }
+        window.setLanguage = setLanguage;
+        function toggleLanguage() {
+            setLanguage(currentLang === 'my' ? 'en' : 'my');
+        }
+        window.toggleLanguage = toggleLanguage;
+
         // Reusable empty-state block: icon-in-circle + title + subtext,
         // optionally with an action button. iconId must match one of the
         // <symbol> ids defined in the SVG sprite up top (e.g. "icon-history").
@@ -3746,7 +4077,7 @@
             confirmBtn.style.display = 'flex';
             confirmBtn.disabled = false;
             confirmBtn.classList.remove('checking', 'confirmed');
-            document.getElementById('confirm-id-btn-text').innerText = 'Confirm ID';
+            document.getElementById('confirm-id-btn-text').innerText = t('btn_confirm_id');
 
             playerIdCheckTimer = setTimeout(() => runPlayerIdCheck(), 700);
         }
@@ -3767,7 +4098,7 @@
             statusEl.innerHTML = '';
             const p = document.createElement('p');
             p.className = 'id-checking-text';
-            p.textContent = 'Checking ID...';
+            p.textContent = t('checking_id_text');
             statusEl.appendChild(p);
             statusEl.style.display = 'block';
         }
@@ -3799,7 +4130,7 @@
             nameEl.textContent = name;
             const labelEl = document.createElement('div');
             labelEl.className = 'id-result-label';
-            labelEl.textContent = gameName ? `Verified · ${gameName}` : 'Player verified';
+            labelEl.textContent = gameName ? `${t('verified_prefix')} · ${gameName}` : t('player_verified');
             info.appendChild(nameEl);
             info.appendChild(labelEl);
 
@@ -3820,7 +4151,7 @@
             statusEl.innerHTML = '';
             const card = document.createElement('div');
             card.className = 'id-fail-card';
-            card.textContent = 'ID not found — please double-check it.';
+            card.textContent = t('id_not_found');
             statusEl.appendChild(card);
             statusEl.style.display = 'block';
         }
@@ -3850,7 +4181,7 @@
             confirmBtn.disabled = true;
             confirmBtn.classList.remove('confirmed');
             confirmBtn.classList.add('checking');
-            btnText.innerText = 'Checking...';
+            btnText.innerText = t('btn_checking_id');
 
             try {
                 // Three possible outcomes, not two: 'valid', 'invalid' (a
@@ -3940,7 +4271,7 @@
                     renderIdConfirmedCard(resolvedName, verifiedLabel);
                     confirmBtn.classList.remove('checking');
                     confirmBtn.classList.add('confirmed');
-                    btnText.innerText = 'Confirmed ✓';
+                    btnText.innerText = t('btn_confirmed_id');
                     confirmBtn.disabled = true;
                     // Once verified, the name-check card above already says
                     // "Verified" — the button underneath it is redundant, so
@@ -3954,7 +4285,7 @@
                     verifiedPlayerName = null;
                     renderIdFailCard();
                     confirmBtn.classList.remove('checking', 'confirmed');
-                    btnText.innerText = 'Confirm ID';
+                    btnText.innerText = t('btn_confirm_id');
                     confirmBtn.disabled = false;
                 } else {
                     // unknown - same as a network hiccup below: don't tell the
@@ -3963,7 +4294,7 @@
                     verifiedPlayerName = null;
                     statusEl.style.display = 'none';
                     confirmBtn.classList.remove('checking', 'confirmed');
-                    btnText.innerText = 'Confirm ID';
+                    btnText.innerText = t('btn_confirm_id');
                     confirmBtn.disabled = false;
                 }
             } catch (error) {
@@ -3971,7 +4302,7 @@
                 playerIdVerified = null; // network hiccup - don't block the order over this
                 statusEl.style.display = 'none';
                 confirmBtn.classList.remove('checking', 'confirmed');
-                btnText.innerText = 'Confirm ID';
+                btnText.innerText = t('btn_confirm_id');
                 confirmBtn.disabled = false;
             }
         }
@@ -4351,7 +4682,7 @@
             idConfirmBtn.style.display = 'none';
             idConfirmBtn.disabled = false;
             idConfirmBtn.classList.remove('checking', 'confirmed');
-            document.getElementById('confirm-id-btn-text').innerText = 'Confirm ID';
+            document.getElementById('confirm-id-btn-text').innerText = t('btn_confirm_id');
             selectedPaymentMethod = null;
             selectedPaymentType = null;
             editingReceiptFile = null;
@@ -4717,7 +5048,7 @@
                             <span style="font-weight:600;font-size:14px;">${appliedCoupon.code}</span>
                             <span style="color:#28a745;font-weight:600;font-size:13px;margin-left:8px;">-${appliedCoupon.discountAmount.toLocaleString()} MMK</span>
                         </div>
-                        <button type="button" class="btn btn-outline" style="flex:unset;padding:6px 12px;font-size:12px;" onclick="removeCoupon()">Remove</button>
+                        <button type="button" class="btn btn-outline" style="flex:unset;padding:6px 12px;font-size:12px;" onclick="removeCoupon()" data-i18n="btn_remove">Remove</button>
                     </div>
                 `;
             } else {
@@ -4725,7 +5056,7 @@
                     <label style="align-self:flex-start;">Coupon Code</label>
                     <div style="display:flex;gap:8px;width:100%;">
                         <input type="text" id="coupon-code-input" placeholder="Enter coupon code" autocomplete="off" style="flex:1;text-transform:uppercase;padding:11px 14px;border-radius:12px;border:1px solid var(--border-glass);background:var(--fill-soft);color:var(--text);font-size:14px;">
-                        <button type="button" class="btn btn-outline" id="coupon-apply-btn" style="flex:unset;padding:0 16px;" onclick="applyCoupon()">Apply</button>
+                        <button type="button" class="btn btn-outline" id="coupon-apply-btn" style="flex:unset;padding:0 16px;" onclick="applyCoupon()" data-i18n="btn_apply">Apply</button>
                     </div>
                 `;
             }
@@ -5292,22 +5623,22 @@
             const subtext = document.getElementById('success-subtext');
             const iconWrap = document.getElementById('success-check-icon');
             if (status === 'Processing') {
-                title.innerText = 'Processing Your Order';
-                subtext.innerText = "Our team is working on it now — this won't take long.";
+                title.innerText = t('success_processing_title');
+                subtext.innerText = t('success_processing_sub');
                 iconWrap.style.background = '#E7F0FF';
                 iconWrap.innerHTML = '<span class="status-anim-spin" style="width:28px;height:28px;border-width:3px;"></span>';
             } else if (status === 'Success') {
-                title.innerText = 'Order Completed!';
-                subtext.innerText = 'Your top up has been delivered. Thanks for ordering with us.';
+                title.innerText = t('success_completed_title');
+                subtext.innerText = t('success_completed_sub');
                 iconWrap.style.background = '#E7F8EE';
                 iconWrap.innerHTML = '<svg class="ui-icon" style="width:36px;height:36px;color:#28a745;"><use href="#icon-check"></use></svg>';
             } else if (status === 'Fail') {
-                title.innerText = 'Order Failed';
-                subtext.innerText = 'Something went wrong with this order. Check the details in History or contact support.';
+                title.innerText = t('success_failed_title');
+                subtext.innerText = t('success_failed_sub');
                 iconWrap.style.background = '#FCE8E6';
                 iconWrap.innerHTML = '<svg class="ui-icon" style="width:36px;height:36px;color:#D93025;"><use href="#icon-close"></use></svg>';
             } else {
-                title.innerText = 'Order Confirmed';
+                title.innerText = t('success_confirmed_title');
                 subtext.innerText = "We've received your order and receipt. Our team will confirm it shortly.";
                 iconWrap.style.background = '#E7F8EE';
                 iconWrap.innerHTML = '<svg class="ui-icon" style="width:36px;height:36px;color:#28a745;"><use href="#icon-check"></use></svg>';
@@ -6897,9 +7228,75 @@
         }
         window.handleGoogleSignOut = handleGoogleSignOut;
 
+        // ---------- Onboarding gate: Google sign-in -> language -> Get Started ----------
+        // Runs once per device on first visit (before the rest of the app is
+        // ever shown). A completed pass is remembered in localStorage so
+        // returning visits go straight to the app. If a Google session is
+        // already active when this first checks (returning device that
+        // hasn't completed onboarding, or one signed in before this feature
+        // shipped), the login step is skipped and it opens on language choice.
+        const ONBOARD_KEY = 'pca_onboarded';
+        let onboardAuthChecked = false;
+        let onboardCurrentStep = null;
+
+        function showOnboardStep(step) {
+            onboardCurrentStep = step;
+            ['checking', 'login', 'lang'].forEach((s) => {
+                const el = document.getElementById('onboard-step-' + s);
+                if (el) el.style.display = (s === step) ? 'block' : 'none';
+            });
+        }
+
+        function handleOnboardAuthState(user) {
+            try {
+                if (localStorage.getItem(ONBOARD_KEY) === '1') return; // already onboarded
+            } catch (e) { /* private browsing - fall through and show onboarding */ }
+            const overlay = document.getElementById('onboarding-overlay');
+            if (!overlay) return;
+            overlay.style.display = 'flex';
+            if (!onboardAuthChecked) {
+                onboardAuthChecked = true;
+                showOnboardStep(user ? 'lang' : 'login');
+            } else if (user && onboardCurrentStep === 'login') {
+                showOnboardStep('lang'); // just signed in from the onboarding step
+            }
+        }
+
+        async function handleOnboardGoogleSignIn() {
+            await handleGoogleSignIn('onboard-google-btn');
+            // If sign-in succeeded, onAuthStateChanged -> handleOnboardAuthState
+            // above advances to the language step automatically.
+        }
+        window.handleOnboardGoogleSignIn = handleOnboardGoogleSignIn;
+
+        function selectOnboardLanguage(lang) {
+            setLanguage(lang);
+            const enChip = document.getElementById('onboard-lang-en');
+            const myChip = document.getElementById('onboard-lang-my');
+            if (enChip) enChip.classList.toggle('selected', lang === 'en');
+            if (myChip) myChip.classList.toggle('selected', lang === 'my');
+            const startBtn = document.getElementById('onboard-start-btn');
+            if (startBtn) startBtn.style.display = 'block';
+        }
+        window.selectOnboardLanguage = selectOnboardLanguage;
+
+        function completeOnboarding() {
+            try { localStorage.setItem(ONBOARD_KEY, '1'); } catch (e) { /* private browsing */ }
+            const overlay = document.getElementById('onboarding-overlay');
+            if (overlay) overlay.style.display = 'none';
+        }
+        window.completeOnboarding = completeOnboarding;
+        // Safety net: if the auth state callback is unusually slow (flaky
+        // network), don't leave a first-time visitor stuck on the spinner -
+        // fall back to the login step. Harmless if the real callback already
+        // resolved things by then (handleOnboardAuthState is idempotent-safe
+        // via the onboardAuthChecked flag).
+        setTimeout(() => { if (!onboardAuthChecked) handleOnboardAuthState(null); }, 2500);
+
         onAuthStateChanged(auth, (user) => {
             renderGoogleAccountUI(user);
             if (window.renderAccountAccessGate) window.renderAccountAccessGate();
+            handleOnboardAuthState(user);
         });
 
         // ---------- Account marketplace access gate ----------
@@ -7349,22 +7746,34 @@
         });
 
         // ---------- Header Logo (optional custom image, set from the admin panel) ----------
+        // Also feeds the onboarding screen's logo (same admin-uploaded image,
+        // or the default gamepad icon when none is set) so it's never a
+        // hardcoded sample - and clears that screen's loading skeleton once
+        // this first resolves, whichever way it resolves.
         let APP_LOGO_URL = '';
         function renderHeaderLogo(data) {
             const img = document.getElementById('header-logo-img');
             const defaultIcon = document.getElementById('header-logo-default-icon');
             const favicon = document.getElementById('favicon-link');
+            const obSkeleton = document.getElementById('onboarding-logo-skeleton');
+            const obImg = document.getElementById('onboarding-logo-img');
+            const obDefaultIcon = document.getElementById('onboarding-logo-default-icon');
             if (data && data.logoUrl) {
                 APP_LOGO_URL = data.logoUrl;
                 img.src = data.logoUrl;
                 img.style.display = 'block';
                 defaultIcon.style.display = 'none';
                 if (favicon) favicon.href = data.logoUrl;
+                if (obImg) { obImg.src = data.logoUrl; obImg.style.display = 'block'; }
+                if (obDefaultIcon) obDefaultIcon.style.display = 'none';
             } else {
                 APP_LOGO_URL = '';
                 img.style.display = 'none';
                 defaultIcon.style.display = '';
+                if (obImg) obImg.style.display = 'none';
+                if (obDefaultIcon) obDefaultIcon.style.display = '';
             }
+            if (obSkeleton) obSkeleton.style.display = 'none';
         }
 
         onSnapshot(doc(db, "settings", "branding"), (docSnap) => {
@@ -7393,7 +7802,7 @@
             const chatText = document.getElementById('support-chat-header-status-text');
             if (lastAdminActiveMs === null) {
                 bar.style.display = 'none';
-                if (chatText) chatText.innerText = 'Checking...';
+                if (chatText) chatText.innerText = t('chat_checking');
                 return;
             }
             bar.style.display = 'flex';
@@ -7403,7 +7812,7 @@
             bar.title = 'Orders still process automatically either way.';
             let chatStatusStr;
             if (isOnline) {
-                text.innerText = 'Admin Online';
+                text.innerText = t('chat_admin_online');
                 chatStatusStr = 'Online';
             } else {
                 const lastSeenDate = new Date(lastAdminActiveMs);
@@ -10414,17 +10823,62 @@
         }
         window.toggleTierPreviewGrid = toggleTierPreviewGrid;
 
-        // Tapping the toggle plays the smooth color-fade (setThemeSmooth).
-        // We tried a circular "reveal" via the View Transitions API here,
-        // but it forces the browser to rasterize two full-page snapshots
-        // (blur layers, gradients, the falling-stars animation, the whole
-        // long DOM) on every tap, which visibly stuttered on phones. The
-        // plain fade plus the toggle thumb's own slide animation gives
+        // Tapping the toggle plays a circular reveal that grows from the
+        // button (themeRippleTransition), then setThemeSmooth's color-fade
+        // happens underneath it once it fully covers the screen. We tried a
+        // true View Transitions API reveal before, but it forces the
+        // browser to rasterize two full-page snapshots (blur layers,
+        // gradients, the falling-stars animation, the whole long DOM) on
+        // every tap, which visibly stuttered on phones. themeRippleTransition
+        // is one plain div animating `transform: scale()` — compositor-only,
+        // no snapshot — so it gets the same "fills up from the button"
         // motion without that cost.
+        function themeRippleTransition(e, nextTheme) {
+            const ripple = document.getElementById('theme-ripple');
+            const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+            if (!ripple || reduceMotion) {
+                setThemeSmooth(nextTheme);
+                return;
+            }
+            const btn = e && e.currentTarget && e.currentTarget.getBoundingClientRect ? e.currentTarget.getBoundingClientRect() : null;
+            const x = btn ? (btn.left + btn.width / 2) : (window.innerWidth / 2);
+            const y = btn ? (btn.top + btn.height / 2) : (window.innerHeight / 2);
+            // Radius needed to reach the farthest corner from the tap point.
+            const radius = Math.hypot(
+                Math.max(x, window.innerWidth - x),
+                Math.max(y, window.innerHeight - y)
+            );
+            const nextBg = nextTheme === 'dark' ? '#060B18' : '#F0F2F5';
+            clearTimeout(themeRippleTransition._swapT);
+            clearTimeout(themeRippleTransition._resetT);
+            ripple.style.transition = 'none';
+            ripple.style.background = nextBg;
+            ripple.style.left = x + 'px';
+            ripple.style.top = y + 'px';
+            ripple.style.width = (radius * 2) + 'px';
+            ripple.style.height = (radius * 2) + 'px';
+            ripple.style.opacity = '1';
+            ripple.style.transform = 'translate(-50%, -50%) scale(0)';
+            void ripple.offsetWidth; // force reflow so the scale-up below actually animates
+            ripple.style.transition = 'transform 0.5s cubic-bezier(.65,0,.35,1)';
+            ripple.style.transform = 'translate(-50%, -50%) scale(1)';
+            // The disc is now fully covering the screen - swap the real
+            // theme while it's hidden underneath, then fade the disc away.
+            themeRippleTransition._swapT = setTimeout(() => {
+                setThemeSmooth(nextTheme);
+                ripple.style.transition = 'opacity 0.35s ease';
+                ripple.style.opacity = '0';
+            }, 480);
+            themeRippleTransition._resetT = setTimeout(() => {
+                ripple.style.transition = 'none';
+                ripple.style.width = '0px';
+                ripple.style.height = '0px';
+            }, 480 + 380);
+        }
         function toggleTheme(e) {
             const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
             const next = current === 'dark' ? 'light' : 'dark';
-            setThemeSmooth(next);
+            themeRippleTransition(e, next);
             try { localStorage.setItem('gz_theme', next); } catch (err) { /* private browsing */ }
             updateThemeAutoNote();
         }
@@ -10663,7 +11117,7 @@
             const box = document.getElementById('support-chat-messages');
             if (!box) return;
             if (msgs.length === 0) {
-                box.innerHTML = '<div class="support-chat-empty">မက်ဆေ့ချ် မရှိသေးပါ။ အောက်မှာ စာရိုက်ပြီး ပို့လိုက်ပါ။</div>';
+                box.innerHTML = `<div class="support-chat-empty">${t('chat_empty')}</div>`;
                 return;
             }
             box.innerHTML = msgs.map(m => {
@@ -10823,6 +11277,7 @@
         window.sendSupportChatMessage = sendSupportChatMessage;
 
         initSupportWidget();
+        applyI18n();
     </script>
 </body>
 </html>
