@@ -24,6 +24,31 @@
             } catch (e) { /* ignore */ }
         })();
     </script>
+    <script>
+        // Stale-page recovery: mobile Chrome sometimes returns a backgrounded
+        // tab in a frozen state (Firebase listeners/timers suspended, nothing
+        // re-rendering) — this shows as a totally blank page until the user
+        // manually reloads. Force a fresh load instead of leaving it blank.
+        (function () {
+            // Pages restored from the back/forward cache (bfcache) come back
+            // with all JS state frozen mid-way — force a fresh navigation.
+            window.addEventListener('pageshow', function (e) {
+                if (e.persisted) location.reload();
+            });
+            // If the tab was backgrounded for a while, its live listeners are
+            // likely stale by the time it's foregrounded again — reload on
+            // return rather than showing whatever frozen state was left.
+            var HIDDEN_RELOAD_MS = 3 * 60 * 1000; // 3 minutes
+            var hiddenAt = null;
+            document.addEventListener('visibilitychange', function () {
+                if (document.hidden) {
+                    hiddenAt = Date.now();
+                } else if (hiddenAt && (Date.now() - hiddenAt) > HIDDEN_RELOAD_MS) {
+                    location.reload();
+                }
+            });
+        })();
+    </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
@@ -494,6 +519,18 @@
         .page-section { display: none; animation: fadeIn 0.3s ease-in-out; }
         .page-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+        /* Directional swipe transition: when a tab change comes from the
+           left/right drag gesture (see initTabSwipe), the new page slides in
+           from the side the finger dragged toward instead of the plain
+           fadeIn above - showPage() adds one of these two classes only for
+           swipe-triggered switches, not for a plain bottom-nav tap. */
+        .page-section.swipe-left.active { animation: pageSlideInRight 0.32s cubic-bezier(.22,1,.36,1) both; }
+        .page-section.swipe-right.active { animation: pageSlideInLeft 0.32s cubic-bezier(.22,1,.36,1) both; }
+        @keyframes pageSlideInRight { from { opacity: 0; transform: translateX(36px); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes pageSlideInLeft { from { opacity: 0; transform: translateX(-36px); } to { opacity: 1; transform: translateX(0); } }
+        @media (prefers-reduced-motion: reduce) {
+            .page-section.swipe-left.active, .page-section.swipe-right.active { animation: none; opacity: 1; transform: none; }
+        }
         .title-header { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
 
         /* Flash Sale banner: shown on Home while settings/flashsale is enabled
@@ -556,6 +593,20 @@
         }
         @media (prefers-reduced-motion: reduce) {
             .game-card-anim, .game-card-anim.in-view { animation: none; opacity: 1; }
+        }
+
+        /* Profile page cards slide in from the side every time the Profile
+           tab is opened (see playProfileCardsIn(), called from showPage()) -
+           always replays on entry, unlike game-card-anim's scroll-triggered
+           reveal, since the whole page just became visible at once. */
+        .profile-card-anim { opacity: 0; }
+        .profile-card-anim.in-view { animation: profileCardSlideIn 0.4s cubic-bezier(.22,1,.36,1) both; }
+        @keyframes profileCardSlideIn {
+            0%   { opacity: 0; transform: translateX(26px); }
+            100% { opacity: 1; transform: translateX(0); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .profile-card-anim, .profile-card-anim.in-view { animation: none; opacity: 1; }
         }
 
         /* Skeleton loading placeholders — shown instead of "Loading..." text while
@@ -1120,6 +1171,10 @@
         }
         .package-card { border: 2px solid var(--border); border-radius: 14px; cursor: pointer; transition: 0.15s; background: var(--surface); overflow: hidden; display: flex; flex-direction: column; }
         .package-card.selected { border-color: var(--accent); }
+        /* Long-press-to-copy in progress (see initPackageCardLongPressCopy) -
+           a brief scale-down so holding gives visible feedback before the
+           2s mark actually copies the share link. */
+        .package-card.pc-holding { transform: scale(0.96); transition: transform 1.8s ease; }
 
         /* Currency/voucher price card — gift-card style: currency amount
            badge pinned at the top, product image centered in the middle
@@ -1932,6 +1987,14 @@
            re-centered (the live version anchors to top:0 of the profile cover; here each
            cell anchors to its own center instead). Purely visual, no live data. */
         .tier-preview-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 18px 6px; margin-top: 16px; }
+        /* Generic collapsible section (Account / VIP Status / Follow Us / Tier
+           Designs) - closed by default, header row toggles a body that slides
+           down with a bit of motion (fade + drop-in from above) instead of a
+           flat instant show/hide. */
+        .collapsible-header { display: flex; align-items: center; justify-content: space-between; width: 100%; cursor: pointer; }
+        .collapsible-chevron { width: 16px; height: 16px; color: var(--text-muted); transition: transform 0.25s ease; flex-shrink: 0; }
+        .collapsible-body { max-height: 0; overflow: hidden; opacity: 0; transform: translateY(-8px); transition: max-height 0.38s cubic-bezier(.22,1,.36,1), opacity 0.3s ease, transform 0.3s ease; }
+        .collapsible-body.open { max-height: 640px; opacity: 1; transform: translateY(0); }
         .tier-preview-item { display: flex; flex-direction: column; align-items: center; gap: 7px; }
         .tier-preview-frame-outer { position: relative; width: 46px; height: 46px; }
         .tier-preview-frame-inner { position: absolute; top: 50%; left: 50%; width: 84px; height: 84px; transform: translate(-50%, -50%) scale(0.548); }
@@ -2085,6 +2148,15 @@
         /* Support Widget - draggable help/contact bubble (Guide / Complaint / Support Chat) */
         .support-fab { position: fixed; width: 56px; height: 56px; border-radius: 50%; background: radial-gradient(circle at 30% 22%, #0B1730 0%, #01030A 72%); color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 1px rgba(76,147,255,0.55), 0 0 16px 2px rgba(59,130,255,0.55), 0 0 30px 4px rgba(59,130,255,0.28), 0 8px 20px rgba(0,0,0,0.45), inset 0 1px 2px rgba(255,255,255,0.06); z-index: 150; cursor: grab; touch-action: none; right: 16px; bottom: 92px; transition: transform 0.15s ease; }
         .support-fab:active { cursor: grabbing; transform: scale(0.94); }
+        /* Peek state: when idle/unused, the bubble tucks half-behind the
+           screen edge it's docked to and dims, like a Messenger chat head.
+           A first tap slides it fully into view; tapping again (while not
+           peeking) pops it up and opens the widget. */
+        .support-fab.fab-peek { opacity: 0.5; transition: transform 0.35s cubic-bezier(.34,1.56,.64,1), opacity 0.35s ease; }
+        .support-fab.fab-peek.peek-right { transform: translateX(30px); }
+        .support-fab.fab-peek.peek-left { transform: translateX(-30px); }
+        .support-fab.fab-peek:active { transform: scale(0.94); }
+        .support-fab.fab-pop { transition: transform 0.2s cubic-bezier(.34,1.56,.64,1); transform: translateY(-16px) scale(1.1); }
         .support-fab-icon { fill: url(#fabBubbleGradient); stroke: #CFE6FF; stroke-width: 1.2; filter: drop-shadow(0 0 5px rgba(76,147,255,0.9)); }
         .support-fab-dot { position: absolute; top: 1px; right: 1px; width: 13px; height: 13px; border-radius: 50%; background: #FF3B30; border: 2px solid var(--surface); display: none; }
         /* Light theme: swap the FAB from its default deep-blue "space"
@@ -3051,7 +3123,7 @@
             <!-- Hero card: gradient cover, avatar overlapping the edge, name/ID/tier
                  centered below, and a single "Edit Profile" toggle that reveals the
                  editable fields card underneath instead of always showing raw inputs. -->
-            <div class="profile-hero">
+            <div class="profile-hero profile-card-anim" style="animation-delay:0ms;">
                 <div class="profile-hero-cover"></div>
                 <div class="profile-hero-body">
                     <!-- Tier frame: sits behind the avatar as a same-centered, larger
@@ -3101,7 +3173,7 @@
 
             <!-- Preferences: mirrors the header's dark mode toggle so it's reachable
                  from the Profile page too, without needing a separate Settings page. -->
-            <div class="detail-form-card" id="profile-prefs-card">
+            <div class="detail-form-card profile-card-anim" id="profile-prefs-card" style="animation-delay:40ms;">
                 <label style="align-self:flex-start;">Preferences</label>
                 <div class="prefs-row">
                     <span class="prefs-row-label">
@@ -3144,7 +3216,7 @@
                  unique, no new field needed). Redeem section only shows for guests
                  who haven't already redeemed a code (referredBy unset), toggled live
                  in listenWalletBalance()'s existing users/{gid} snapshot. -->
-            <div class="detail-form-card" id="referral-card">
+            <div class="detail-form-card profile-card-anim" id="referral-card" style="animation-delay:80ms;">
                 <label style="align-self:flex-start;">Invite Friends</label>
                 <p style="font-size:12.5px;color:var(--text-muted);margin-top:2px;line-height:1.5;">Share your code — when a friend redeems it, you both get wallet credit.</p>
                 <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-top:10px;">
@@ -3169,85 +3241,107 @@
                     <label style="align-self:flex-start;font-size:12.5px;">Have a friend's code?</label>
                     <div style="display:flex;gap:8px;margin-top:6px;">
                         <input type="text" id="referral-code-input" placeholder="e.g. PCA-1234" style="flex:1;min-width:0;padding:11px 14px;border-radius:12px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;text-transform:uppercase;">
-                        <button type="button" class="btn" id="referral-redeem-btn" style="padding:11px 18px;font-size:13.5px;flex-shrink:0;width:auto;" onclick="redeemReferralCode()">Redeem</button>
+                        <button type="button" class="btn btn-primary" id="referral-redeem-btn" style="padding:9px 16px;font-size:13px;flex-shrink:0;width:auto;" onclick="redeemReferralCode()">Redeem</button>
                     </div>
                 </div>
             </div>
 
             <!-- Google account: optional. Signing in just auto-fills the name/photo
                  below and keeps you recognized next time you open the site - it
-                 doesn't gate anything, and staying signed out works exactly as before. -->
-            <div class="google-account-card" id="google-account-signedout">
-                <button type="button" class="google-login-btn" id="google-signin-btn" onclick="handleGoogleSignIn()">
-                    <svg width="18" height="18" viewBox="0 0 48 48">
-                        <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
-                        <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/>
-                        <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/>
-                        <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.1 5.6l6.2 5.2C40.9 36.2 44 30.6 44 24c0-1.3-.1-2.7-.4-3.5z"/>
-                    </svg>
-                    Continue with Google
-                </button>
-                <p class="google-account-hint">Optional — just auto-fills your name &amp; photo below and remembers you next visit.</p>
-            </div>
-            <div class="google-account-card google-account-signedin" id="google-account-signedin" style="display:none;">
-                <img id="google-account-avatar" src="" alt="" class="google-account-avatar">
-                <div class="google-account-details">
-                    <div class="google-account-name-row">
-                        <span id="google-account-name">—</span>
-                        <svg class="verified-badge" viewBox="0 0 24 24" aria-label="Verified">
-                            <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" fill="#22C55E" stroke="none"></path>
-                            <path d="m9 12 2 2 4-4" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"></path>
-                        </svg>
+                 doesn't gate anything, and staying signed out works exactly as before.
+                 Collapsed by default like the sections below - tap the header to open. -->
+            <div class="detail-form-card profile-card-anim" id="account-card" style="margin-top:14px;animation-delay:120ms;">
+                <div class="collapsible-header" onclick="toggleCollapsible('account-body','account-chevron')" role="button" aria-label="Show account">
+                    <label style="align-self:flex-start;margin-top:0;">Account</label>
+                    <svg class="ui-icon collapsible-chevron" id="account-chevron"><use href="#icon-chevron-right"></use></svg>
+                </div>
+                <div class="collapsible-body" id="account-body">
+                    <div class="google-account-card" id="google-account-signedout">
+                        <button type="button" class="google-login-btn" id="google-signin-btn" onclick="handleGoogleSignIn()">
+                            <svg width="18" height="18" viewBox="0 0 48 48">
+                                <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
+                                <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/>
+                                <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/>
+                                <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.1 5.6l6.2 5.2C40.9 36.2 44 30.6 44 24c0-1.3-.1-2.7-.4-3.5z"/>
+                            </svg>
+                            Continue with Google
+                        </button>
+                        <p class="google-account-hint">Optional — just auto-fills your name &amp; photo below and remembers you next visit.</p>
                     </div>
-                    <small id="google-account-email">—</small>
+                    <div class="google-account-card google-account-signedin" id="google-account-signedin" style="display:none;">
+                        <img id="google-account-avatar" src="" alt="" class="google-account-avatar">
+                        <div class="google-account-details">
+                            <div class="google-account-name-row">
+                                <span id="google-account-name">—</span>
+                                <svg class="verified-badge" viewBox="0 0 24 24" aria-label="Verified">
+                                    <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" fill="#22C55E" stroke="none"></path>
+                                    <path d="m9 12 2 2 4-4" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"></path>
+                                </svg>
+                            </div>
+                            <small id="google-account-email">—</small>
+                        </div>
+                        <button type="button" class="google-signout-btn" id="google-signout-btn" onclick="handleGoogleSignOut()">Sign Out</button>
+                    </div>
                 </div>
-                <button type="button" class="google-signout-btn" id="google-signout-btn" onclick="handleGoogleSignOut()">Sign Out</button>
             </div>
 
-            <div class="vip-card" id="vip-card" style="display:none;">
-                <div class="vip-card-head">
+            <div class="vip-card profile-card-anim" id="vip-card" style="display:none;animation-delay:160ms;">
+                <div class="vip-card-head collapsible-header" onclick="toggleCollapsible('vip-body','vip-chevron')" role="button" aria-label="Show VIP status">
                     <h4>VIP Status</h4>
-                    <div id="vip-tier-badge"></div>
+                    <div style="display:flex;align-items:center;gap:8px;">
+                        <div id="vip-tier-badge"></div>
+                        <svg class="ui-icon collapsible-chevron" id="vip-chevron"><use href="#icon-chevron-right"></use></svg>
+                    </div>
                 </div>
-                <div class="vip-stats-row">
-                    <div class="vip-stat"><b id="vip-stat-spent">0 MMK</b><span>Total Spent</span></div>
-                    <div class="vip-stat"><b id="vip-stat-orders">0</b><span>Orders</span></div>
-                    <div class="vip-stat"><b id="vip-stat-since">-</b><span>Member Since</span></div>
-                </div>
-                <div id="vip-progress-wrap">
-                    <div class="vip-progress-label"><span id="vip-progress-text">-</span></div>
-                    <div class="vip-progress-track"><div class="vip-progress-fill" id="vip-progress-fill" style="width:0%;"></div></div>
+                <div class="collapsible-body" id="vip-body">
+                    <div class="vip-stats-row">
+                        <div class="vip-stat"><b id="vip-stat-spent">0 MMK</b><span>Total Spent</span></div>
+                        <div class="vip-stat"><b id="vip-stat-orders">0</b><span>Orders</span></div>
+                        <div class="vip-stat"><b id="vip-stat-since">-</b><span>Member Since</span></div>
+                    </div>
+                    <div id="vip-progress-wrap">
+                        <div class="vip-progress-label"><span id="vip-progress-text">-</span></div>
+                        <div class="vip-progress-track"><div class="vip-progress-fill" id="vip-progress-fill" style="width:0%;"></div></div>
+                    </div>
                 </div>
             </div>
 
-            <div class="detail-form-card" id="tier-preview-card" style="margin-top:14px;">
-                <div onclick="toggleTierPreviewGrid()" role="button" aria-label="Show tier designs" style="display:flex;align-items:center;justify-content:space-between;width:100%;cursor:pointer;">
+            <div class="detail-form-card profile-card-anim" id="tier-preview-card" style="margin-top:14px;animation-delay:200ms;">
+                <div class="collapsible-header" onclick="toggleCollapsible('tier-preview-body','tier-preview-chevron')" role="button" aria-label="Show tier designs">
                     <label style="align-self:flex-start;margin-top:0;">Tier Designs</label>
-                    <svg class="ui-icon" id="tier-preview-chevron" style="width:16px;height:16px;color:var(--text-muted);transition:transform 0.2s;"><use href="#icon-chevron-right"></use></svg>
+                    <svg class="ui-icon collapsible-chevron" id="tier-preview-chevron"><use href="#icon-chevron-right"></use></svg>
                 </div>
-                <div class="tier-preview-grid" id="tier-preview-grid" style="display:none;"></div>
+                <div class="collapsible-body" id="tier-preview-body">
+                    <div class="tier-preview-grid" id="tier-preview-grid"></div>
+                </div>
             </div>
 
-            <div class="detail-form-card" id="social-links-card" style="margin-top:14px;">
-                <label style="align-self:flex-start;">Follow Us</label>
-                <div class="social-links-row" id="social-links-row">
-                    <a class="social-link-btn" id="social-link-facebook" href="#" target="_blank" rel="noopener" style="display:none;">
-                        <span class="social-link-icon" style="background:#1877F2;"><svg class="ui-icon" style="width:20px;height:20px;"><use href="#icon-facebook"></use></svg></span>
-                        <span class="social-link-name">Facebook</span>
-                    </a>
-                    <a class="social-link-btn" id="social-link-telegram" href="#" target="_blank" rel="noopener" style="display:none;">
-                        <span class="social-link-icon" style="background:#29A9EA;"><svg class="ui-icon" style="width:20px;height:20px;"><use href="#icon-telegram"></use></svg></span>
-                        <span class="social-link-name">Telegram</span>
-                    </a>
-                    <a class="social-link-btn" id="social-link-tiktok" href="#" target="_blank" rel="noopener" style="display:none;">
-                        <span class="social-link-icon" style="background:#000000;"><svg class="ui-icon" style="width:20px;height:20px;"><use href="#icon-tiktok"></use></svg></span>
-                        <span class="social-link-name">TikTok</span>
-                    </a>
+            <div class="detail-form-card profile-card-anim" id="social-links-card" style="margin-top:14px;animation-delay:240ms;">
+                <div class="collapsible-header" onclick="toggleCollapsible('social-links-body','social-links-chevron')" role="button" aria-label="Show social links">
+                    <label style="align-self:flex-start;margin-top:0;">Follow Us</label>
+                    <svg class="ui-icon collapsible-chevron" id="social-links-chevron"><use href="#icon-chevron-right"></use></svg>
                 </div>
-                <p class="empty-msg" id="social-links-empty" style="display:none;padding:6px 0 0;">No social links added yet.</p>
+                <div class="collapsible-body" id="social-links-body">
+                    <div class="social-links-row" id="social-links-row">
+                        <a class="social-link-btn" id="social-link-facebook" href="#" target="_blank" rel="noopener" style="display:none;">
+                            <span class="social-link-icon" style="background:#1877F2;"><svg class="ui-icon" style="width:20px;height:20px;"><use href="#icon-facebook"></use></svg></span>
+                            <span class="social-link-name">Facebook</span>
+                        </a>
+                        <a class="social-link-btn" id="social-link-telegram" href="#" target="_blank" rel="noopener" style="display:none;">
+                            <span class="social-link-icon" style="background:#29A9EA;"><svg class="ui-icon" style="width:20px;height:20px;"><use href="#icon-telegram"></use></svg></span>
+                            <span class="social-link-name">Telegram</span>
+                        </a>
+                        <a class="social-link-btn" id="social-link-tiktok" href="#" target="_blank" rel="noopener" style="display:none;">
+                            <span class="social-link-icon" style="background:#000000;"><svg class="ui-icon" style="width:20px;height:20px;"><use href="#icon-tiktok"></use></svg></span>
+                            <span class="social-link-name">TikTok</span>
+                        </a>
+                    </div>
+                    <p class="empty-msg" id="social-links-empty" style="display:none;padding:6px 0 0;">No social links added yet.</p>
+                </div>
             </div>
 
-            <div class="detail-form-card" id="support-entry-card" style="margin-top:14px;cursor:pointer;" onclick="contactAdmin()" role="button" aria-label="Contact admin for support">
+
+            <div class="detail-form-card profile-card-anim" id="support-entry-card" style="margin-top:14px;cursor:pointer;animation-delay:280ms;" onclick="contactAdmin()" role="button" aria-label="Contact admin for support">
                 <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
                     <span class="prefs-row-label">
                         <span class="prefs-row-icon"><svg class="ui-icon" style="width:18px;height:18px;"><use href="#icon-help"></use></svg></span>
@@ -3257,7 +3351,7 @@
                 </div>
             </div>
 
-            <div class="detail-form-card" id="terms-entry-card" style="margin-top:14px;cursor:pointer;" onclick="showPage('terms')" role="button" aria-label="Open Terms and Policy">
+            <div class="detail-form-card profile-card-anim" id="terms-entry-card" style="margin-top:14px;cursor:pointer;animation-delay:320ms;" onclick="showPage('terms')" role="button" aria-label="Open Terms and Policy">
                 <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
                     <span class="prefs-row-label">
                         <span class="prefs-row-icon"><svg class="ui-icon" style="width:18px;height:18px;"><use href="#icon-shield"></use></svg></span>
@@ -3747,10 +3841,28 @@
         }
         window.emptyStateHTML = emptyStateHTML;
 
-        function showPage(pageId) {
-            document.querySelectorAll('.page-section').forEach(p => p.classList.remove('active'));
+        // Replays the Profile page's slide-in-from-the-side entrance every
+        // time the tab is opened (see .profile-card-anim CSS) - removing
+        // then re-adding 'in-view' with a forced reflow in between restarts
+        // the CSS animation instead of it only firing once on first render.
+        function playProfileCardsIn() {
+            document.querySelectorAll('#profile .profile-card-anim').forEach(el => {
+                el.classList.remove('in-view');
+                void el.offsetWidth;
+                el.classList.add('in-view');
+            });
+        }
+        window.playProfileCardsIn = playProfileCardsIn;
+
+        function showPage(pageId, swipeDir) {
+            document.querySelectorAll('.page-section').forEach(p => {
+                p.classList.remove('active');
+                p.classList.remove('swipe-left', 'swipe-right');
+            });
             document.querySelectorAll('.nav-item').forEach(m => m.classList.remove('active'));
-            document.getElementById(pageId).classList.add('active');
+            const target = document.getElementById(pageId);
+            if (swipeDir) target.classList.add(swipeDir);
+            target.classList.add('active');
             const navBtn = document.getElementById(`btn-${pageId}`);
             if (navBtn) navBtn.classList.add('active');
             document.querySelectorAll('.drawer-nav-item[data-page]').forEach(el => {
@@ -3763,6 +3875,7 @@
             if (pageId === 'profile' && window.loadProfileStats) window.loadProfileStats();
             if (pageId === 'profile' && window.renderTierPreviewGrid) window.renderTierPreviewGrid();
             if (pageId === 'profile' && window.renderPushToggleUI) window.renderPushToggleUI();
+            if (pageId === 'profile') playProfileCardsIn();
             if (pageId === 'leaderboard' && window.loadLeaderboard) window.loadLeaderboard();
             if (pageId === 'voucher' && window.renderVoucherGames) window.renderVoucherGames();
             if (pageId === 'account' && window.renderAccountAccessGate) window.renderAccountAccessGate();
@@ -3883,7 +3996,7 @@
                 let nextIdx = idx;
                 if (dx < 0 && idx < TAB_ORDER.length - 1) nextIdx = idx + 1; // swipe left -> next tab
                 else if (dx > 0 && idx > 0) nextIdx = idx - 1;              // swipe right -> previous tab
-                if (nextIdx !== idx) showPage(TAB_ORDER[nextIdx]);
+                if (nextIdx !== idx) showPage(TAB_ORDER[nextIdx], dx < 0 ? 'swipe-left' : 'swipe-right');
             }, { passive: true });
         })();
 
@@ -4968,15 +5081,58 @@
             confirmBtn.innerText = 'Choose How to Pay';
 
             document.getElementById('detail-payment-section').style.display = 'block';
+        }
 
-            // Auto-copy a direct link to this exact package so the customer
-            // can immediately forward it - opening it elsewhere lands the
-            // recipient on this same package via tryOpenPendingPackageDeepLink().
+        // Builds a direct link to a specific package (so it can be shared)
+        // and copies it to the clipboard - used by the package cards'
+        // long-press gesture (see initPackageCardLongPressCopy), not by a
+        // plain tap, since copying on every tap was surprising customers.
+        function copyPackageShareLink(index) {
             buildPackageShareLink(selectedGameId, index)
                 .then(shareLink => copyTextToClipboard(shareLink))
                 .then(ok => {
                     if (ok) window.showToast('Link copied — share it with a friend 🔗', 'success');
                 });
+        }
+
+        // Hold a package/price card for ~2s to copy its share link, instead
+        // of the old behavior of copying on every single tap (customers
+        // found that surprising - a plain tap now only selects the
+        // package). Delegated on the static list container since cards are
+        // re-rendered dynamically; pointer movement or an early release
+        // cancels the hold before it fires.
+        const PACKAGE_COPY_HOLD_MS = 2000;
+        function initPackageCardLongPressCopy() {
+            const list = document.getElementById('detail-package-list');
+            if (!list) return;
+            let holdTimer = null;
+            let startX = 0, startY = 0, activeCard = null;
+            const MOVE_TOLERANCE = 10;
+            const clearHold = () => {
+                clearTimeout(holdTimer);
+                holdTimer = null;
+                if (activeCard) activeCard.classList.remove('pc-holding');
+                activeCard = null;
+            };
+            list.addEventListener('pointerdown', (e) => {
+                const card = e.target.closest('.package-card');
+                if (!card || card.classList.contains('out-of-stock')) return;
+                clearHold();
+                activeCard = card;
+                startX = e.clientX; startY = e.clientY;
+                card.classList.add('pc-holding');
+                const index = card.getAttribute('data-index');
+                holdTimer = setTimeout(() => {
+                    if (navigator.vibrate) { try { navigator.vibrate(15); } catch (err) { /* ignore */ } }
+                    copyPackageShareLink(Number(index));
+                    clearHold();
+                }, PACKAGE_COPY_HOLD_MS);
+            });
+            list.addEventListener('pointermove', (e) => {
+                if (!holdTimer) return;
+                if (Math.abs(e.clientX - startX) > MOVE_TOLERANCE || Math.abs(e.clientY - startY) > MOVE_TOLERANCE) clearHold();
+            });
+            ['pointerup', 'pointercancel', 'pointerleave'].forEach(evt => list.addEventListener(evt, clearHold));
         }
 
         // Highest quantity the customer is allowed to pick for the currently
@@ -10811,17 +10967,19 @@
         }
         window.togglePrefsAutoInfo = togglePrefsAutoInfo;
 
-        // Tier Designs preview grid — collapsed by default so the Profile
-        // page reads cleanly; tap the "Tier Designs" row to open it.
-        function toggleTierPreviewGrid() {
-            const grid = document.getElementById('tier-preview-grid');
-            const chevron = document.getElementById('tier-preview-chevron');
-            if (!grid) return;
-            const open = grid.style.display !== 'none';
-            grid.style.display = open ? 'none' : 'grid';
-            if (chevron) chevron.style.transform = open ? 'rotate(0deg)' : 'rotate(90deg)';
+        // Generic collapsible section toggle (Account / VIP Status / Tier
+        // Designs / Follow Us) - all closed by default; tapping the header
+        // slides the body open with the .collapsible-body/.open CSS motion
+        // (fade + drop-in from above) instead of an instant show/hide.
+        function toggleCollapsible(bodyId, chevronId) {
+            const body = document.getElementById(bodyId);
+            const chevron = document.getElementById(chevronId);
+            if (!body) return;
+            const opening = !body.classList.contains('open');
+            body.classList.toggle('open', opening);
+            if (chevron) chevron.style.transform = opening ? 'rotate(90deg)' : 'rotate(0deg)';
         }
-        window.toggleTierPreviewGrid = toggleTierPreviewGrid;
+        window.toggleCollapsible = toggleCollapsible;
 
         // Tapping the toggle plays a circular reveal that grows from the
         // button (themeRippleTransition), then setThemeSmooth's color-fade
@@ -10940,6 +11098,30 @@
         // and admin-side code that isn't part of this pass - see chat notes.
         let supportChatMsgUnsub = null;
         let supportFabDragged = false;
+        let supportFabPeekTimer = null;
+
+        // Which screen edge the bubble is currently docked nearest to,
+        // based on its live `right` offset (the fab is always positioned
+        // via right/bottom, even after being dragged toward the left side).
+        function supportFabSide() {
+            const fab = document.getElementById('support-fab');
+            const rightVal = fab ? (parseFloat(fab.style.right) || 16) : 16;
+            return (rightVal < window.innerWidth / 2) ? 'right' : 'left';
+        }
+        function scheduleSupportFabPeek() {
+            clearTimeout(supportFabPeekTimer);
+            supportFabPeekTimer = setTimeout(() => {
+                const fab = document.getElementById('support-fab');
+                if (!fab) return;
+                fab.classList.remove('peek-left', 'peek-right');
+                fab.classList.add('fab-peek', supportFabSide() === 'right' ? 'peek-right' : 'peek-left');
+            }, 2600);
+        }
+        function cancelSupportFabPeek() {
+            clearTimeout(supportFabPeekTimer);
+            const fab = document.getElementById('support-fab');
+            if (fab) fab.classList.remove('fab-peek', 'peek-left', 'peek-right');
+        }
 
         // ---------- Support Chat sound effects (iOS Messages-style) ----------
         // Synthesized with the Web Audio API (no external sound files needed):
@@ -11019,6 +11201,7 @@
             };
             fab.addEventListener('pointerdown', (e) => {
                 startX = e.clientX; startY = e.clientY; moved = false;
+                cancelSupportFabPeek();
                 const rect = fab.getBoundingClientRect();
                 startRight = window.innerWidth - rect.right;
                 startBottom = window.innerHeight - rect.bottom;
@@ -11028,10 +11211,24 @@
             // The click that follows a drag is suppressed so dragging the bubble
             // never also opens the panel - only a genuine tap opens it.
             fab.addEventListener('click', () => {
-                if (supportFabDragged) { supportFabDragged = false; return; }
-                openSupportWidget();
+                if (supportFabDragged) { supportFabDragged = false; scheduleSupportFabPeek(); return; }
+                // First tap while peeking (half-hidden + dimmed) just slides
+                // the bubble fully into view - it doesn't open the widget yet.
+                if (fab.classList.contains('fab-peek')) {
+                    cancelSupportFabPeek();
+                    scheduleSupportFabPeek();
+                    return;
+                }
+                // A genuine open tap: pop the bubble up, then open the widget.
+                cancelSupportFabPeek();
+                fab.classList.add('fab-pop');
+                setTimeout(() => {
+                    fab.classList.remove('fab-pop');
+                    openSupportWidget();
+                }, 180);
             });
 
+            scheduleSupportFabPeek();
             listenSupportChatSummary();
         }
 
@@ -11044,6 +11241,7 @@
         function closeSupportWidget() {
             const overlay = document.getElementById('support-widget-overlay');
             if (overlay) overlay.classList.remove('show');
+            scheduleSupportFabPeek();
         }
         window.openSupportWidget = openSupportWidget;
         window.closeSupportWidget = closeSupportWidget;
@@ -11277,6 +11475,7 @@
         window.sendSupportChatMessage = sendSupportChatMessage;
 
         initSupportWidget();
+        initPackageCardLongPressCopy();
         applyI18n();
     </script>
 </body>
