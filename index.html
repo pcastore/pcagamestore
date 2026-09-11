@@ -52,6 +52,10 @@
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        /* Stops the long-press "save image / open image / search image" context
+           menu and drag-ghost on every <img> site-wide (product art, avatars,
+           gallery photos, etc.) without touching click/tap handlers. */
+        img { -webkit-touch-callout: none; -webkit-user-select: none; user-select: none; -webkit-user-drag: none; user-drag: none; pointer-events: auto; }
         /* Mograph-style: a single clean, rounded geometric sans (Poppins)
            used everywhere - body text, headings, display numbers - for a
            minimal, consistent brand look instead of a two-font pairing. */
@@ -489,6 +493,8 @@
             height: 29px;
         }
         .bullet-chat-wrapper.show { display: flex; }
+        .bullet-chat-wrapper.home-hidden { display: none !important; }
+        .mini-profile-bar.home-hidden { display: none !important; }
         .bullet-chat-badge {
             flex-shrink: 0;
             display: flex;
@@ -515,19 +521,25 @@
         @keyframes moveBullet { 0% { transform: translateX(100vw); } 100% { transform: translateX(-100%); } }
 
         /* Content & Pages */
-        .content-area { padding: 15px 15px; }
+        .content-area { padding: 15px 15px; overflow-x: hidden; }
         .page-section { display: none; animation: fadeIn 0.3s ease-in-out; }
         .page-section.active { display: block; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
         /* Directional swipe transition: when a tab change comes from the
            left/right drag gesture (see initTabSwipe), the new page slides in
-           from the side the finger dragged toward instead of the plain
-           fadeIn above - showPage() adds one of these two classes only for
-           swipe-triggered switches, not for a plain bottom-nav tap. */
-        .page-section.swipe-left.active { animation: pageSlideInRight 0.32s cubic-bezier(.22,1,.36,1) both; }
-        .page-section.swipe-right.active { animation: pageSlideInLeft 0.32s cubic-bezier(.22,1,.36,1) both; }
-        @keyframes pageSlideInRight { from { opacity: 0; transform: translateX(36px); } to { opacity: 1; transform: translateX(0); } }
-        @keyframes pageSlideInLeft { from { opacity: 0; transform: translateX(-36px); } to { opacity: 1; transform: translateX(0); } }
+           the full width from off-screen on the side the finger dragged
+           toward instead of the plain fadeIn above - showPage() adds one of
+           these two classes only for swipe-triggered switches, not for a
+           plain bottom-nav tap. Applies to every .page-section, so Profile,
+           the Game (account) tab and Voucher all get the same motion. */
+        .page-section.swipe-left.active { animation: pageSlideInRight 0.36s cubic-bezier(.22,1,.36,1) both; }
+        .page-section.swipe-right.active { animation: pageSlideInLeft 0.36s cubic-bezier(.22,1,.36,1) both; }
+        @keyframes pageSlideInRight { from { opacity: 0; transform: translateX(100%); } to { opacity: 1; transform: translateX(0); } }
+        @keyframes pageSlideInLeft { from { opacity: 0; transform: translateX(-100%); } to { opacity: 1; transform: translateX(0); } }
+        /* Live drag-follow (see initTabSwipe touchmove) - the current page
+           tracks the finger in real time as you drag instead of sitting
+           still until release, so the gesture itself reads as motion. */
+        .page-section.tab-dragging { animation: none !important; transition: none !important; }
         @media (prefers-reduced-motion: reduce) {
             .page-section.swipe-left.active, .page-section.swipe-right.active { animation: none; opacity: 1; transform: none; }
         }
@@ -1169,7 +1181,7 @@
             #detail-game-banner { margin-bottom: 0; }
             .package-grid.layout-currency { grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); gap: 12px; }
         }
-        .package-card { border: 2px solid var(--border); border-radius: 14px; cursor: pointer; transition: 0.15s; background: var(--surface); overflow: hidden; display: flex; flex-direction: column; }
+        .package-card { border: 2px solid var(--border); border-radius: 14px; cursor: pointer; transition: 0.15s; background: var(--surface); overflow: hidden; display: flex; flex-direction: column; -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; }
         .package-card.selected { border-color: var(--accent); }
         /* Long-press-to-copy in progress (see initPackageCardLongPressCopy) -
            a brief scale-down so holding gives visible feedback before the
@@ -1671,7 +1683,7 @@
             border-radius: 0 0 24px 24px;
             padding: 56px 18px 20px; text-align: center; position: relative;
         }
-        .profile-hero-name { font-size: 18px; font-weight: 700; color: var(--text); margin-top: 4px; }
+        .profile-hero-name { font-size: 18px; font-weight: 400; color: var(--text); margin-top: 4px; }
         .profile-hero-id { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
         .profile-hero-id-row { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 3px; }
         .profile-hero-id-row .profile-hero-id { margin-top: 0; }
@@ -1716,6 +1728,7 @@
         .google-account-details .google-account-name-row { display: flex; align-items: center; gap: 5px; min-width: 0; }
         .google-account-details span#google-account-name { display: block; font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .verified-badge { flex-shrink: 0; width: 15px; height: 15px; display: inline-block; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.15)); }
+        #profile-hero-verified-badge { width: 20px; height: 20px; }
         .google-account-details small { font-size: 11.5px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
         .google-signout-btn { flex-shrink: 0; background: var(--bg); color: #C0392B; border: none; padding: 7px 12px; border-radius: 8px; font-size: 12.5px; font-weight: 500; cursor: pointer; }
         .google-signout-btn:active { background: var(--border); }
@@ -2015,13 +2028,15 @@
         .detail-grid-item b { display: block; font-size: 14px; color: var(--text); font-weight: 600; word-break: break-word; }
 
         /* Mini profile strip shown at the top of the Store (below header) */
-        .mini-profile-bar { margin: 10px 15px 0; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px 14px; display: flex; align-items: center; gap: 10px; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
+        .mini-profile-bar { margin: 10px 15px 0; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 7px 12px; display: flex; align-items: center; gap: 8px; cursor: pointer; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .mini-profile-bar:active { background: #F8FBFF; }
-        .mini-profile-avatar { width: 38px; height: 38px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
+        .mini-profile-avatar { width: 30px; height: 30px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; overflow: hidden; flex-shrink: 0; }
         .mini-profile-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .mini-profile-info { flex: 1; min-width: 0; }
-        .mini-profile-info span { display: block; font-size: 15px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-        .mini-profile-info small { font-size: 11px; color: var(--text-muted); }
+        .mini-profile-info span { display: block; font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .mini-profile-info small { font-size: 10px; color: var(--text-muted); }
+        .mini-profile-info .tier-badge { margin-top: 2px; padding: 3px 9px 3px 7px; font-size: 10px; }
+        .mini-profile-info .tier-badge svg { width: 10px; height: 10px; }
 
         /* Social links (Facebook / Telegram / TikTok) on the Profile page - 3 separate grid cards */
         .social-links-row { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-top: 8px; }
@@ -2190,6 +2205,12 @@
         .support-chat-inputrow { display: flex; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border); margin-top: 8px; flex-shrink: 0; }
         .support-chat-inputrow input { flex: 1; padding: 11px 14px; border-radius: 22px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 14px; min-width: 0; }
         .support-chat-send { width: 42px; height: 42px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; flex-shrink: 0; }
+        .support-chat-camera-btn { width: 42px; height: 42px; border-radius: 50%; background: var(--bg); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); cursor: pointer; flex-shrink: 0; }
+        .support-chat-camera-btn:active { background: var(--surface-alt); }
+        .support-chat-bubble.image-bubble { padding: 4px; background: transparent !important; border: none !important; }
+        .support-chat-bubble.image-bubble img { display: block; max-width: 190px; max-height: 240px; width: 100%; border-radius: 12px; cursor: pointer; }
+        .support-chat-bubble.image-bubble .support-chat-bubble-time { position: static; display: block; text-align: right; margin-top: 2px; font-size: 9.5px; color: var(--text-muted); opacity: 1; }
+        .support-chat-img-uploading { opacity: 0.55; }
         .support-chat-empty { text-align: center; color: var(--text-secondary); font-size: 13px; padding: 30px 10px; }
         .support-chat-badge { display: none; width: 8px; height: 8px; border-radius: 50%; background: #FF3B30; margin-left: 5px; vertical-align: middle; }
         .support-chat-header { display: flex; align-items: center; gap: 10px; padding: 0 2px 10px; border-bottom: 1px solid var(--border); margin-bottom: 8px; flex-shrink: 0; }
@@ -2505,6 +2526,10 @@
                     <span class="support-chat-typing-dots"><span></span><span></span><span></span></span> <span data-i18n="chat_admin_typing">Admin is typing...</span>
                 </div>
                 <div class="support-chat-inputrow">
+                    <input type="file" id="support-chat-image-input" accept="image/*" style="display:none;" onchange="window.handleSupportChatImageSelect(this)">
+                    <button type="button" class="support-chat-camera-btn" onclick="document.getElementById('support-chat-image-input').click()" aria-label="Send a photo">
+                        <svg class="ui-icon" style="width:19px;height:19px;"><use href="#icon-camera"></use></svg>
+                    </button>
                     <input type="text" id="support-chat-input" placeholder="မက်ဆေ့ချ် ရိုက်ပါ..." data-i18n-ph="chat_input_ph" oninput="window.handleSupportChatTyping()" onkeydown="if(event.key==='Enter'){event.preventDefault();window.sendSupportChatMessage();}">
                     <button type="button" class="support-chat-send" onclick="window.sendSupportChatMessage()"><svg class="ui-icon" style="width:18px;height:18px;"><use href="#icon-send"></use></svg></button>
                 </div>
@@ -2518,7 +2543,7 @@
             <div class="header-icon" id="drawer-toggle-btn" onclick="openDrawer()" role="button" aria-label="Open menu">
                 <svg class="ui-icon" style="width: 20px;"><use href="#icon-menu"></use></svg>
             </div>
-            <div class="logo" onclick="showPage('home')" role="button" aria-label="Go to home page">
+            <div class="logo" onclick="window.open('https://t.me/pcagamepage','_blank')" role="button" aria-label="Open PCA Store Telegram channel">
                 <span class="logo-icon-wrap">
                     <svg class="ui-icon" id="header-logo-default-icon" style="color:#fff;"><use href="#icon-gamepad"></use></svg>
                     <img id="header-logo-img" src="" alt="PCA Store" style="display:none;">
@@ -2617,7 +2642,7 @@
             <div id="mini-profile-tier" style="display:none;"></div>
             <small id="mini-profile-hint" data-i18n="tap_view_profile">Tap to view profile</small>
         </div>
-        <svg class="ui-icon" style="width:18px;height:18px;color:#BCC0C4;"><use href="#icon-chevron-right"></use></svg>
+        <svg class="ui-icon" style="width:15px;height:15px;color:#BCC0C4;"><use href="#icon-chevron-right"></use></svg>
     </div>
 
     <div class="bullet-chat-wrapper" id="bullet-chat-wrapper">
@@ -3174,7 +3199,11 @@
             <!-- Preferences: mirrors the header's dark mode toggle so it's reachable
                  from the Profile page too, without needing a separate Settings page. -->
             <div class="detail-form-card profile-card-anim" id="profile-prefs-card" style="animation-delay:40ms;">
-                <label style="align-self:flex-start;">Preferences</label>
+                <div class="collapsible-header" onclick="toggleCollapsible('profile-prefs-body','profile-prefs-chevron')" role="button" aria-label="Show preferences">
+                    <label style="align-self:flex-start;margin-top:0;">Preferences</label>
+                    <svg class="ui-icon collapsible-chevron" id="profile-prefs-chevron"><use href="#icon-chevron-right"></use></svg>
+                </div>
+                <div class="collapsible-body" id="profile-prefs-body">
                 <div class="prefs-row">
                     <span class="prefs-row-label">
                         <span class="prefs-row-icon"><svg class="ui-icon" id="theme-toggle-icon-profile-static"><use href="#icon-moon"></use></svg></span>
@@ -3210,6 +3239,7 @@
                         <span id="theme-auto-reset-link" style="color:var(--accent);font-weight: 600;cursor:pointer;display:none;" onclick="resetThemeToAuto()">Switched off — tap to re-enable auto</span>
                     </p>
                 </div>
+                </div>
             </div>
 
             <!-- Referral / Invite Friends: code is just the guest's own ID (already
@@ -3217,7 +3247,11 @@
                  who haven't already redeemed a code (referredBy unset), toggled live
                  in listenWalletBalance()'s existing users/{gid} snapshot. -->
             <div class="detail-form-card profile-card-anim" id="referral-card" style="animation-delay:80ms;">
-                <label style="align-self:flex-start;">Invite Friends</label>
+                <div class="collapsible-header" onclick="toggleCollapsible('referral-body','referral-chevron')" role="button" aria-label="Show invite friends">
+                    <label style="align-self:flex-start;margin-top:0;">Invite Friends</label>
+                    <svg class="ui-icon collapsible-chevron" id="referral-chevron"><use href="#icon-chevron-right"></use></svg>
+                </div>
+                <div class="collapsible-body" id="referral-body">
                 <p style="font-size:12.5px;color:var(--text-muted);margin-top:2px;line-height:1.5;">Share your code — when a friend redeems it, you both get wallet credit.</p>
                 <div style="display:flex;align-items:center;justify-content:space-between;background:var(--bg);border:1px solid var(--border);border-radius:12px;padding:12px 14px;margin-top:10px;">
                     <span id="referral-own-code" style="font-weight:700;font-size:15px;letter-spacing:0.5px;">PCA-0000</span>
@@ -3241,8 +3275,9 @@
                     <label style="align-self:flex-start;font-size:12.5px;">Have a friend's code?</label>
                     <div style="display:flex;gap:8px;margin-top:6px;">
                         <input type="text" id="referral-code-input" placeholder="e.g. PCA-1234" style="flex:1;min-width:0;padding:11px 14px;border-radius:12px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;text-transform:uppercase;">
-                        <button type="button" class="btn btn-primary" id="referral-redeem-btn" style="padding:9px 16px;font-size:13px;flex-shrink:0;width:auto;" onclick="redeemReferralCode()">Redeem</button>
+                        <button type="button" class="btn btn-primary" id="referral-redeem-btn" style="padding:7px 14px;font-size:12px;flex-shrink:0;width:auto;" onclick="redeemReferralCode()">Redeem</button>
                     </div>
+                </div>
                 </div>
             </div>
 
@@ -3868,6 +3903,13 @@
             document.querySelectorAll('.drawer-nav-item[data-page]').forEach(el => {
                 el.classList.toggle('active', el.dataset.page === pageId);
             });
+            // Name+Tier mini-profile strip and the LIVE bullet-chat ticker are
+            // only meant for the Home tab — hide both on every other page.
+            const isHome = pageId === 'home';
+            const miniBar = document.getElementById('mini-profile-bar');
+            if (miniBar) miniBar.classList.toggle('home-hidden', !isHome);
+            const bulletWrapper = document.getElementById('bullet-chat-wrapper');
+            if (bulletWrapper) bulletWrapper.classList.toggle('home-hidden', !isHome);
             window.scrollTo(0,0);
             window.currentStorePage = pageId;
             if (pageId === 'history' && window.loadHistory) window.loadHistory();
@@ -3950,6 +3992,12 @@
         // and backs off entirely if the gesture actually scrolled a
         // horizontally-scrolling row under the finger (e.g. Popular Games)
         // instead of moving across the whole screen.
+        // The current page also tracks the finger live during the drag
+        // (with resistance, and extra resistance past the first/last tab)
+        // instead of staying put until release - on release it either
+        // snaps back (gesture too short/slow) or hands off to showPage(),
+        // whose swipe-left/swipe-right animation slides the next page in
+        // the rest of the way from off-screen.
         (function initTabSwipe() {
             const TAB_ORDER = ['home', 'voucher', 'account', 'history', 'leaderboard', 'wallet', 'profile'];
             const content = document.querySelector('main.content-area');
@@ -3958,9 +4006,13 @@
             const THRESHOLD = 70;   // min horizontal px to count as a swipe
             const RESTRAINT = 90;   // max vertical drift allowed
             const MAX_TIME = 600;   // ms
+            const DRAG_START_PX = 10; // horizontal px before a move counts as "dragging" vs a tap/scroll
+            const DRAG_RESISTANCE = 0.45; // how much of the finger's motion the page follows
+            const EDGE_RESISTANCE = 0.25; // extra resistance applied on top of that at the first/last tab
 
             let startX = 0, startY = 0, startTime = 0;
             let scrollAncestor = null, scrollStartLeft = 0;
+            let dragEl = null, dragging = false;
 
             function findScrollableAncestor(el) {
                 while (el && el !== content) {
@@ -3973,12 +4025,43 @@
                 return null;
             }
 
+            function resetDragEl() {
+                if (!dragEl) return;
+                const el = dragEl;
+                el.classList.remove('tab-dragging');
+                el.style.transition = 'transform 0.22s cubic-bezier(.22,1,.36,1)';
+                el.style.transform = '';
+                setTimeout(() => { el.style.transition = ''; }, 240);
+                dragEl = null;
+            }
+
             content.addEventListener('touchstart', (e) => {
                 if (e.touches.length !== 1) return;
                 const t = e.touches[0];
                 startX = t.clientX; startY = t.clientY; startTime = Date.now();
                 scrollAncestor = findScrollableAncestor(e.target);
                 scrollStartLeft = scrollAncestor ? scrollAncestor.scrollLeft : 0;
+                dragging = false;
+                dragEl = TAB_ORDER.indexOf(window.currentStorePage || 'home') !== -1
+                    ? document.querySelector('.page-section.active') : null;
+            }, { passive: true });
+
+            content.addEventListener('touchmove', (e) => {
+                if (!dragEl || e.touches.length !== 1) return;
+                if (scrollAncestor && Math.abs(scrollAncestor.scrollLeft - scrollStartLeft) > 4) return;
+                const t = e.touches[0];
+                const dx = t.clientX - startX;
+                const dy = t.clientY - startY;
+                if (!dragging) {
+                    if (Math.abs(dx) < DRAG_START_PX || Math.abs(dy) > RESTRAINT) return;
+                    dragging = true;
+                    dragEl.classList.add('tab-dragging');
+                }
+                const idx = TAB_ORDER.indexOf(window.currentStorePage || 'home');
+                const atFirst = idx <= 0, atLast = idx >= TAB_ORDER.length - 1;
+                let follow = dx;
+                if ((dx > 0 && atFirst) || (dx < 0 && atLast)) follow = dx * EDGE_RESISTANCE;
+                dragEl.style.transform = `translateX(${follow * DRAG_RESISTANCE}px)`;
             }, { passive: true });
 
             content.addEventListener('touchend', (e) => {
@@ -3986,8 +4069,12 @@
                 const dx = t.clientX - startX;
                 const dy = t.clientY - startY;
                 const dt = Date.now() - startTime;
+                const wasDragging = dragging;
+                dragging = false;
+                resetDragEl();
 
                 if (scrollAncestor && Math.abs(scrollAncestor.scrollLeft - scrollStartLeft) > 4) return;
+                if (!wasDragging) return;
                 if (dt > MAX_TIME) return;
                 if (Math.abs(dx) < THRESHOLD || Math.abs(dy) > RESTRAINT) return;
 
@@ -9583,6 +9670,13 @@
             window.GAMES = GAMES;
             tryOpenPendingPackageDeepLink();
             runWhenNotTouching(document.querySelector('#all-games-grid')?.closest('.games-grid-scroll'), renderHomeGames);
+            // The favorites row filters against window.GAMES too, so it needs
+            // a re-check whenever the game catalogue changes - otherwise a
+            // favorite added while GAMES was still loading (or one whose
+            // game got hidden/unhidden by an admin toggle) can leave the
+            // row stuck on a stale empty/hidden state until the next wallet
+            // snapshot happens to fire on its own.
+            renderFavoriteGamesRow();
             if (window.currentStorePage === 'voucher') {
                 runWhenNotTouching(document.querySelector('#voucher-games-grid')?.closest('.games-grid-scroll'), renderVoucherGames);
             }
@@ -11325,6 +11419,9 @@
                 // text switches from black to blue.
                 const seen = mine && (m.seenByAdmin === true || m.seen === true);
                 const time = (m.timestamp && m.timestamp.toDate) ? m.timestamp.toDate().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '';
+                if (m.imageUrl) {
+                    return `<div class="support-chat-bubble image-bubble ${mine ? 'mine' : 'theirs'}${seen ? ' seen' : ''}"><img src="${m.imageUrl}" alt="Photo" loading="lazy" onclick="window.open('${m.imageUrl}','_blank')"><span class="support-chat-bubble-time">${time}</span></div>`;
+                }
                 const safe = (m.text || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 return `<div class="support-chat-bubble ${mine ? 'mine' : 'theirs'}${seen ? ' seen' : ''}">${safe}<span class="support-chat-bubble-time">${time}</span></div>`;
             }).join('');
@@ -11473,6 +11570,65 @@
             }
         }
         window.sendSupportChatMessage = sendSupportChatMessage;
+
+        // ---------- Support Chat: sending a photo (camera icon) ----------
+        // Same ImgBB host used for receipts/profile photo/KYC. Message doc
+        // gets an imageUrl instead of text; renderSupportChatMessages and
+        // the optimistic-append path above both know how to show it.
+        async function uploadSupportChatImageToImgBB(file) {
+            const form = new FormData();
+            form.append('image', file);
+            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: form });
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error?.message || 'Photo upload failed');
+            return data.data.url;
+        }
+
+        function appendOptimisticSupportChatImage(url) {
+            const box = document.getElementById('support-chat-messages');
+            if (!box) return;
+            playSupportChatSendSound();
+            const empty = box.querySelector('.support-chat-empty');
+            if (empty) empty.remove();
+            const time = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            const bubble = document.createElement('div');
+            bubble.className = 'support-chat-bubble image-bubble mine';
+            bubble.innerHTML = `<img src="${url}" alt="Photo" onclick="window.open('${url}','_blank')"><span class="support-chat-bubble-time">${time}</span>`;
+            box.appendChild(bubble);
+            box.scrollTop = box.scrollHeight;
+        }
+
+        async function handleSupportChatImageSelect(inputEl) {
+            const file = inputEl.files && inputEl.files[0];
+            inputEl.value = ''; // allow picking the same file again next time
+            if (!file) return;
+            const camBtn = document.querySelector('.support-chat-camera-btn');
+            if (camBtn) camBtn.style.opacity = '0.5';
+            try {
+                const url = await uploadSupportChatImageToImgBB(file);
+                appendOptimisticSupportChatImage(url);
+                const guestId = window.getGuestId ? window.getGuestId() : '';
+                const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
+                await addDoc(collection(db, "supportChats", guestId, "messages"), {
+                    sender: 'user', text: '', imageUrl: url, timestamp: serverTimestamp(), sentToTelegram: false, seenByAdmin: false
+                });
+                await setDoc(doc(db, "supportChats", guestId), {
+                    userId: guestId,
+                    userName: (savedProfile.name && savedProfile.name.trim()) ? savedProfile.name.trim() : guestId,
+                    lastMessage: '📷 Photo',
+                    lastMessageAt: serverTimestamp(),
+                    lastSender: 'user',
+                    unreadByAdmin: true,
+                    userTypingAt: null
+                }, { merge: true });
+            } catch (error) {
+                console.error("Support chat image send error:", error);
+                window.showToast(error.message || 'ဓာတ်ပုံပို့၍မရပါ', 'fail');
+            } finally {
+                if (camBtn) camBtn.style.opacity = '';
+            }
+        }
+        window.handleSupportChatImageSelect = handleSupportChatImageSelect;
 
         initSupportWidget();
         initPackageCardLongPressCopy();
