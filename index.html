@@ -3,8 +3,31 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>PCA Store</title>
-    <link rel="icon" id="favicon-link" href="">
+    <title>PCA Store — Game Top-Up & Voucher Store</title>
+    <meta name="description" content="PCA Store: fast, reliable game top-ups and vouchers. Pay with Wallet balance, KPay, Wave, or Crypto (USDT).">
+    <link rel="canonical" href="https://pcagamestore.vercel.app/">
+
+    <!-- Open Graph / social preview. og:image points at a real hosted file
+         (not a data URI) since Facebook/Telegram/Twitter's scrapers don't
+         run JS and won't fetch data: URIs — upload og-image.png to the site
+         root alongside this file for the preview card to render. -->
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="PCA Store">
+    <meta property="og:title" content="PCA Store — Game Top-Up & Voucher Store">
+    <meta property="og:description" content="Fast, reliable game top-ups and vouchers. Pay with Wallet balance, KPay, Wave, or Crypto (USDT).">
+    <meta property="og:url" content="https://pcagamestore.vercel.app/">
+    <meta property="og:image" content="https://pcagamestore.vercel.app/og-image.png">
+    <meta name="twitter:card" content="summary_large_image">
+    <meta name="twitter:title" content="PCA Store — Game Top-Up & Voucher Store">
+    <meta name="twitter:description" content="Fast, reliable game top-ups and vouchers. Pay with Wallet balance, KPay, Wave, or Crypto (USDT).">
+    <meta name="twitter:image" content="https://pcagamestore.vercel.app/og-image.png">
+
+    <!-- Favicon: static branded fallback shown until (or unless) an admin
+         uploads a custom app logo in Dashboard → Settings, at which point
+         renderHeaderLogo() below swaps this href for that image instead. -->
+    <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" id="favicon-link">
+    <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png">
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png">
     <script>
         // Apply saved theme immediately (before CSS paints) to avoid a light-mode flash.
         // Priority: an explicit manual choice (gz_theme) always wins. Otherwise the
@@ -1484,6 +1507,10 @@
            old full-width stacked rows, so both fields are scannable at a
            glance and each keeps its own copy button. */
         .pm-info-grid { display: grid; grid-template-columns: 1fr; gap: 6px; margin: 0; }
+        .pm-verify-note { display: flex; align-items: flex-start; gap: 8px; background: var(--accent-soft); border: 1px solid var(--accent); border-radius: 10px; padding: 9px 10px; margin-top: 10px; }
+        .pm-verify-note svg { width: 15px; height: 15px; color: var(--accent); flex-shrink: 0; margin-top: 1px; }
+        .pm-verify-note span { font-size: 11.5px; line-height: 1.5; color: var(--text-secondary); }
+        .pm-verify-note a { font-weight: 600; color: var(--accent); cursor: pointer; white-space: nowrap; }
         /* QR code sits beside the No./Name boxes (which stack vertically)
            instead of full-width above them, so the payment card reads as
            one compact block instead of a tall QR followed by a wide grid. */
@@ -1624,6 +1651,10 @@
         .wallet-pay-info-label { position: relative; font-size: 11px; font-weight: 500; color: rgba(255,255,255,0.6); letter-spacing: 0.3px; }
         .wallet-pay-info-card .pm-copy-row p { color: #fff; }
         .wallet-pay-info-card .pm-copy-btn { background: rgba(255,255,255,0.14); color: #fff; }
+        .wallet-pay-info-card .pm-verify-note { background: rgba(255,255,255,0.12); border-color: rgba(255,255,255,0.25); }
+        .wallet-pay-info-card .pm-verify-note svg { color: #fff; }
+        .wallet-pay-info-card .pm-verify-note span { color: rgba(255,255,255,0.82); }
+        .wallet-pay-info-card .pm-verify-note a { color: #fff; text-decoration: underline; }
         .wallet-pay-info-card .pm-copy-btn:active { background: rgba(255,255,255,0.3); transform: scale(0.92); }
 
         /* Top up history rows */
@@ -2201,7 +2232,15 @@
         .support-chat-bubble { position: relative; max-width: 78%; padding: 9px 13px 16px; border-radius: 14px; font-size: 13.5px; line-height: 1.45; word-break: break-word; }
         .support-chat-bubble.mine { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
         .support-chat-bubble.theirs { align-self: flex-start; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
+        .support-chat-msg-avatar { position: absolute; bottom: -6px; left: -6px; width: 18px; height: 18px; border-radius: 50%; overflow: hidden; border: 2px solid var(--surface); background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: #fff; line-height: 1; }
+        .support-chat-msg-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .support-chat-bubble-time { position: absolute; right: 12px; bottom: 4px; font-size: 9.5px; opacity: 0.7; }
+        .support-chat-faq-row { display: flex; gap: 6px; overflow-x: auto; padding: 2px 1px 2px; flex-shrink: 0; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
+        .support-chat-faq-row::-webkit-scrollbar { display: none; }
+        .support-chat-faq-chip { flex-shrink: 0; white-space: nowrap; font-size: 11.5px; font-weight: 500; padding: 6px 12px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); border: 1px solid transparent; cursor: pointer; }
+        .support-chat-faq-chip:active { background: var(--accent); color: #fff; }
+        .support-chat-msg-avatar.bot-avatar { background: var(--surface-alt); font-size: 11px; }
+        .support-chat-bubble-bot-label { display: block; font-size: 10px; color: var(--text-muted); margin: -2px 0 3px; }
         .support-chat-inputrow { display: flex; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border); margin-top: 8px; flex-shrink: 0; }
         .support-chat-inputrow input { flex: 1; padding: 11px 14px; border-radius: 22px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 14px; min-width: 0; }
         .support-chat-send { width: 42px; height: 42px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; flex-shrink: 0; }
@@ -2209,12 +2248,15 @@
         .support-chat-camera-btn:active { background: var(--surface-alt); }
         .support-chat-bubble.image-bubble { padding: 4px; background: transparent !important; border: none !important; }
         .support-chat-bubble.image-bubble img { display: block; max-width: 190px; max-height: 240px; width: 100%; border-radius: 12px; cursor: pointer; }
+        .support-chat-image-spinner-wrap { width: 150px; height: 110px; border-radius: 12px; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; }
+        .support-chat-image-spinner { width: 26px; height: 26px; border-radius: 50%; border: 3px solid var(--border); border-top-color: var(--accent); animation: spin 0.7s linear infinite; }
         .support-chat-bubble.image-bubble .support-chat-bubble-time { position: static; display: block; text-align: right; margin-top: 2px; font-size: 9.5px; color: var(--text-muted); opacity: 1; }
         .support-chat-img-uploading { opacity: 0.55; }
         .support-chat-empty { text-align: center; color: var(--text-secondary); font-size: 13px; padding: 30px 10px; }
         .support-chat-badge { display: none; width: 8px; height: 8px; border-radius: 50%; background: #FF3B30; margin-left: 5px; vertical-align: middle; }
         .support-chat-header { display: flex; align-items: center; gap: 10px; padding: 0 2px 10px; border-bottom: 1px solid var(--border); margin-bottom: 8px; flex-shrink: 0; }
-        .support-chat-header-avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 15px; flex-shrink: 0; }
+        .support-chat-header-avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 15px; flex-shrink: 0; overflow: hidden; }
+        .support-chat-header-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .support-chat-header-info { display: flex; flex-direction: column; min-width: 0; gap: 1px; }
         .support-chat-header-name { font-weight: 600; font-size: 14.5px; color: var(--text); }
         .support-chat-header-status { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-secondary); }
@@ -2512,7 +2554,7 @@
             <!-- Support Chat tab -->
             <div class="modal-body support-chat-wrap" id="support-panel-chat" style="display:none;">
                 <div class="support-chat-header" id="support-chat-header">
-                    <div class="support-chat-header-avatar">A</div>
+                    <div class="support-chat-header-avatar" id="support-chat-header-avatar">A</div>
                     <div class="support-chat-header-info">
                         <div class="support-chat-header-name">Admin</div>
                         <div class="support-chat-header-status">
@@ -2525,6 +2567,7 @@
                 <div class="support-chat-typing" id="support-chat-typing-indicator">
                     <span class="support-chat-typing-dots"><span></span><span></span><span></span></span> <span data-i18n="chat_admin_typing">Admin is typing...</span>
                 </div>
+                <div class="support-chat-faq-row" id="support-chat-faq-row"></div>
                 <div class="support-chat-inputrow">
                     <input type="file" id="support-chat-image-input" accept="image/*" style="display:none;" onchange="window.handleSupportChatImageSelect(this)">
                     <button type="button" class="support-chat-camera-btn" onclick="document.getElementById('support-chat-image-input').click()" aria-label="Send a photo">
@@ -2846,6 +2889,11 @@
                                 </div>
                             </div>
 
+                            <div class="pm-verify-note">
+                                <svg class="ui-icon"><use href="#icon-shield"></use></svg>
+                                <span>Only send to the exact Number &amp; Name above. If it looks different from before, <a onclick="contactAdmin()">contact Support</a> before paying.</span>
+                            </div>
+
                             <label>Upload Payment Receipt</label>
                             <label class="upload-shot-box" id="acct-upload-shot-box" for="acct-receipt-file">
                                 <div class="upload-shot-icon"><svg class="ui-icon"><use href="#icon-camera"></use></svg></div>
@@ -2978,6 +3026,11 @@
                                         </div>
                                     </div>
                                 </div>
+                            </div>
+
+                            <div class="pm-verify-note">
+                                <svg class="ui-icon"><use href="#icon-shield"></use></svg>
+                                <span>Only send to the exact Number &amp; Name above. If it looks different from before, <a onclick="contactAdmin()">contact Support</a> before paying.</span>
                             </div>
                         </div>
 
@@ -3457,31 +3510,127 @@
                 </div>
                 <h2 style="font-size:18px; font-weight: 600; color:var(--text);">Terms & Policy</h2>
             </div>
-            <div class="detail-form-card" style="gap:14px;">
-                <div>
-                    <label style="margin-top:0;">Orders & Delivery</label>
-                    <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">Orders are processed automatically once payment is confirmed. Delivery time depends on the game/voucher provider and is usually instant to a few minutes; some orders may need manual admin review.</p>
+
+            <div class="pkg-type-tabs" id="legal-tabs" style="margin-bottom:14px;">
+                <button type="button" class="pkg-type-tab active" data-legal-tab="terms" onclick="switchLegalTab('terms')">Terms</button>
+                <button type="button" class="pkg-type-tab" data-legal-tab="privacy" onclick="switchLegalTab('privacy')">Privacy</button>
+                <button type="button" class="pkg-type-tab" data-legal-tab="refund" onclick="switchLegalTab('refund')">Refund</button>
+            </div>
+
+            <!-- TERMS OF SERVICE -->
+            <div id="legal-tab-terms" class="legal-tab-content">
+                <div class="detail-form-card" style="gap:14px;">
+                    <div>
+                        <label style="margin-top:0;">About This Service</label>
+                        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">PCA Store (operating at daikokuten.my.id) is a game top-up and voucher store. By using this site, browsing, creating an account, or placing an order, you agree to these Terms.</p>
+                    </div>
+                    <div>
+                        <label>Orders & Delivery</label>
+                        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">Orders are processed automatically once payment is confirmed. Delivery time depends on the game/voucher provider and is usually instant to a few minutes; some orders may need manual admin review.</p>
+                    </div>
+                    <div>
+                        <label>Payments</label>
+                        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">We accept manual payment methods (Kpay/Wave/etc. with receipt upload), Wallet balance, and Crypto/USDT top-up. Payments must use accurate details. Orders placed with incorrect In-Game ID, Server ID, or payment proof may be delayed or rejected — see the Refund tab for what happens in that case.</p>
+                    </div>
+                    <div>
+                        <label>Account & Wallet</label>
+                        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">You're responsible for keeping your account details accurate. Wallet balance is tied to your account/guest ID, is non-transferable between accounts, and can only be used for purchases on this store.</p>
+                    </div>
+                    <div>
+                        <label>Referral Program</label>
+                        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">Referral rewards are credited as Wallet balance when a friend signs up with your code and completes a qualifying action, subject to the reward amounts shown in-app at the time. We may adjust or end the referral program at any time.</p>
+                    </div>
+                    <div>
+                        <label>Fair Use</label>
+                        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">Abuse of promotions/referrals, chargebacks, or fraudulent payment proof may lead to an order being cancelled or an account being restricted.</p>
+                    </div>
+                    <div>
+                        <label>Changes to These Terms</label>
+                        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">We may update these Terms as the store evolves. Continued use after an update means you accept the revised Terms.</p>
+                    </div>
+                    <div>
+                        <label>Contact</label>
+                        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">Questions about these terms? Reach us via Telegram <a href="https://t.me/pcagamepage" target="_blank" rel="noopener" style="color:var(--accent);">@pcagamepage</a> or the Support button on your Profile page.</p>
+                    </div>
                 </div>
-                <div>
-                    <label>Payments</label>
-                    <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">Payments made through the listed manual methods, wallet balance, or auto top-up (crypto/USDT) must use accurate details. Orders placed with incorrect In-Game ID, Server ID, or payment proof may be delayed or rejected.</p>
+            </div>
+
+            <!-- PRIVACY POLICY -->
+            <div id="legal-tab-privacy" class="legal-tab-content" style="display:none;">
+                <div class="detail-form-card" style="gap:14px;">
+                    <div>
+                        <label style="margin-top:0;">What We Collect</label>
+                        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">A device/guest ID to identify your account, profile info you choose to add (name, phone number), your Google name/photo if you sign in with Google, the In-Game ID/Server ID you enter per order, payment receipt images for manual top-ups, and your order/wallet top-up history.</p>
+                    </div>
+                    <div>
+                        <label>Why We Collect It</label>
+                        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">Solely to process your orders and top-ups, verify payments, deliver in-game items to the correct account, run the referral/wallet system, and respond to support requests. We don't use your data for advertising.</p>
+                    </div>
+                    <div>
+                        <label>How Long We Keep It</label>
+                        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">Completed order and wallet top-up records (Success/Fail or Completed/Rejected) are automatically deleted after 7 days. Pending/Processing orders are kept until resolved. Your profile info (name, phone, wallet balance) is kept for as long as your account/guest ID is active.</p>
+                    </div>
+                    <div>
+                        <label>Sharing</label>
+                        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">We don't sell your personal data. Payment receipts and top-up details are only used internally to confirm your payment; crypto top-ups are verified on the public blockchain network you send to.</p>
+                    </div>
+                    <div>
+                        <label>Access & Deletion</label>
+                        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">You can message Telegram <a href="https://t.me/pcagamepage" target="_blank" rel="noopener" style="color:var(--accent);">@pcagamepage</a> at any time to ask what data we hold about you or to request deletion of your profile and history, unless we need to keep specific records to resolve an open order/payment dispute.</p>
+                    </div>
+                    <div>
+                        <label>Children</label>
+                        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">This store is not directed at young children. If you are under the age required by your country's law to make online payments without a guardian, please only use this service with a parent/guardian's involvement.</p>
+                    </div>
+                    <div>
+                        <label>Changes to This Policy</label>
+                        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">We may update this Privacy Policy as the store evolves. Continued use after an update means you accept the revised Policy.</p>
+                    </div>
+                    <div>
+                        <label>Contact</label>
+                        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">Privacy questions? Reach us via Telegram <a href="https://t.me/pcagamepage" target="_blank" rel="noopener" style="color:var(--accent);">@pcagamepage</a>.</p>
+                    </div>
                 </div>
-                <div>
-                    <label>Refunds & Cancellations</label>
-                    <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">Successful/delivered orders are final and non-refundable. Failed orders are refunded to your Wallet balance or resolved directly by the admin. Contact Support with your Order ID for any issue.</p>
+            </div>
+
+            <!-- REFUND & CANCELLATION POLICY -->
+            <div id="legal-tab-refund" class="legal-tab-content" style="display:none;">
+                <div class="detail-form-card" style="gap:14px;">
+                    <div>
+                        <label style="margin-top:0;">Successful Orders</label>
+                        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">Once an order is marked Success and the item is delivered, it is final and non-refundable — this includes cases where you entered the wrong In-Game ID or Server ID yourself, since digital delivery to that account can't be reversed. Please double-check your ID before confirming.</p>
+                    </div>
+                    <div>
+                        <label>Failed Orders</label>
+                        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">If an order fails (e.g. the provider couldn't deliver it), we refund the order amount to your Wallet balance, typically within 24 hours of the order being marked Failed. You can then use that balance for another order.</p>
+                    </div>
+                    <div>
+                        <label>Cancelling an Order</label>
+                        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">Orders still in Pending status can usually be cancelled by contacting Support. Once an order has moved to Processing (sent to the game/voucher provider), it can no longer be cancelled.</p>
+                    </div>
+                    <div>
+                        <label>Manual Top-Ups (Kpay/Wave/etc.)</label>
+                        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">If a manual top-up request is rejected (e.g. unclear or invalid receipt), no Wallet balance is credited — since the money never passed through our Wallet system, please keep your own payment app's transaction record and contact Support if you believe the rejection was a mistake.</p>
+                    </div>
+                    <div>
+                        <label>Crypto/USDT Top-Ups</label>
+                        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">Blockchain transactions are irreversible. Please confirm you're sending the correct amount on the correct network shown in the app. We can't recover funds sent to the wrong address, wrong network, or wrong amount.</p>
+                    </div>
+                    <div>
+                        <label>Wallet Balance</label>
+                        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">Wallet balance can only be used for purchases on this store and isn't redeemable for cash or transferable to another account, except where we choose to resolve a specific issue that way.</p>
+                    </div>
+                    <div>
+                        <label>How to Raise a Dispute</label>
+                        <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">Contact Telegram <a href="https://t.me/pcagamepage" target="_blank" rel="noopener" style="color:var(--accent);">@pcagamepage</a> with your Order ID or Top-Up ID as soon as possible — ideally within 7 days, since order/top-up history older than 7 days is automatically deleted from our records.</p>
+                    </div>
                 </div>
-                <div>
-                    <label>Account & Wallet</label>
-                    <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">You're responsible for keeping your account details accurate. Wallet balance is non-transferable between accounts and can only be used for purchases on this store.</p>
-                </div>
-                <div>
-                    <label>Fair Use</label>
-                    <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">Abuse of promotions, chargebacks, or fraudulent payment proof may lead to an account being restricted.</p>
-                </div>
-                <div>
-                    <label>Contact</label>
-                    <p style="font-size:13px;color:var(--text-secondary);line-height:1.6;margin-top:4px;">Questions about these terms? Reach the admin any time via the Support button on your Profile page.</p>
-                </div>
+            </div>
+
+            <!-- BUSINESS IDENTITY -->
+            <div class="detail-form-card" style="gap:8px;margin-top:14px;">
+                <label style="margin-top:0;">Business Identity</label>
+                <p style="font-size:12.5px;color:var(--text-secondary);line-height:1.6;margin-top:2px;">Operator: PCA Store &nbsp;·&nbsp; Site: daikokuten.my.id &nbsp;·&nbsp; Support: <a href="https://t.me/pcagamepage" target="_blank" rel="noopener" style="color:var(--accent);">Telegram @pcagamepage</a></p>
             </div>
         </div>
 
@@ -3611,6 +3760,11 @@
                                     </div>
                                 </div>
                             </div>
+                        </div>
+
+                        <div class="pm-verify-note">
+                            <svg class="ui-icon"><use href="#icon-shield"></use></svg>
+                            <span>Only send to the exact Number &amp; Name above. If it looks different from before, <a onclick="contactAdmin()">contact Support</a> before paying.</span>
                         </div>
 
                         <label>Upload Payment Receipt</label>
@@ -3888,6 +4042,19 @@
             });
         }
         window.playProfileCardsIn = playProfileCardsIn;
+
+        // Switches between Terms / Privacy / Refund inside the Terms & Policy
+        // page - all three live on one page-section so it stays a plain
+        // static page (no extra routing needed).
+        function switchLegalTab(tabId) {
+            document.querySelectorAll('.legal-tab-content').forEach(el => {
+                el.style.display = (el.id === `legal-tab-${tabId}`) ? '' : 'none';
+            });
+            document.querySelectorAll('#legal-tabs .pkg-type-tab').forEach(el => {
+                el.classList.toggle('active', el.dataset.legalTab === tabId);
+            });
+        }
+        window.switchLegalTab = switchLegalTab;
 
         function showPage(pageId, swipeDir) {
             document.querySelectorAll('.page-section').forEach(p => {
@@ -6337,8 +6504,9 @@
     <!-- FIREBASE CODE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, getDoc, setDoc, updateDoc, serverTimestamp, query, where, orderBy, limit, getDocs, onSnapshot, increment, runTransaction, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp, query, where, orderBy, limit, getDocs, onSnapshot, increment, runTransaction, arrayUnion, arrayRemove, deleteField } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getMessaging, getToken, onMessage, isSupported as isMessagingSupported } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js";
 
         const firebaseConfig = {
             apiKey: "AIzaSyA2mwdZ2tAoZ3_6HNl43fUSi9t_ZkRita4",
@@ -6352,6 +6520,18 @@
         const app = initializeApp(firebaseConfig);
         const db = getFirestore(app);
         const auth = getAuth(app);
+
+        // ---------- Real push notifications (FCM) ----------
+        // VAPID key from Firebase Console → Project Settings → Cloud Messaging
+        // → Web Push certificates → generate key pair. Paste the "Key pair"
+        // value here (NOT the sender ID).
+        const FCM_VAPID_KEY = "BPEfKUCGbR5lny1p59iD3QnSA-EoPoPTbztAN1mmPtDhYexYvam7JLMd_7J8o1D_xCOtI0YBhWkCNYt7SlIzJlg";
+        let messaging = null;
+        let messagingReady = (async () => {
+            try {
+                if (await isMessagingSupported()) messaging = getMessaging(app);
+            } catch (e) { console.error("FCM support check error:", e); }
+        })();
         // Expose to the non-module <script> above (e.g. openSuccessOverlay's
         // live order tracking) since ES module imports aren't global.
         window.db = db;
@@ -7324,12 +7504,42 @@
             }).join('');
         }
 
+        // ---------- Top Up History: 7-day auto-delete (Completed/Rejected only) ----------
+        // Mirrors the Order History 7-day auto-delete above: top-up requests
+        // that have already reached a final state (Completed or Rejected)
+        // older than 7 days are permanently deleted so Top Up History doesn't
+        // grow forever. Pending requests are never touched by this.
+        const WALLET_TOPUP_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
+        let walletTopupCleanupDone = false;
+        async function cleanupOldWalletTopups(guestId) {
+            if (!guestId || walletTopupCleanupDone) return;
+            walletTopupCleanupDone = true;
+            try {
+                const cutoffMs = Date.now() - WALLET_TOPUP_RETENTION_MS;
+                const q = query(collection(db, "walletTopups"), where("userId", "==", guestId));
+                const snap = await getDocs(q);
+                const stale = snap.docs.filter(d => {
+                    const data = d.data();
+                    if (data.status !== 'Completed' && data.status !== 'Rejected') return false;
+                    const ms = data.timestamp && data.timestamp.toMillis ? data.timestamp.toMillis() : null;
+                    return ms && ms < cutoffMs;
+                });
+                if (!stale.length) return;
+                const batch = writeBatch(db);
+                stale.forEach(d => batch.delete(d.ref));
+                await batch.commit();
+            } catch (error) {
+                console.error("Wallet top-up cleanup error:", error);
+            }
+        }
+
         let walletTopupsListenerAttached = false;
         function listenWalletTopups() {
             if (walletTopupsListenerAttached) return;
             walletTopupsListenerAttached = true;
             const gid = window.getGuestId ? window.getGuestId() : null;
             if (!gid) return;
+            cleanupOldWalletTopups(gid);
             const q = query(collection(db, "walletTopups"), where("userId", "==", gid));
             onSnapshot(q, (snap) => {
                 const items = [];
@@ -9602,6 +9812,38 @@
         let historyUnsubscribe = null;
         let historyListenerGuestId = null;
 
+        // ---------- Order History: 7-day auto-delete (Success/Fail only) ----------
+        // Completed orders (Success or Fail) older than 7 days are permanently
+        // deleted so History doesn't grow forever. Pending/Processing orders
+        // are never touched by this - only orders that have already reached a
+        // final state. NOTE: this store's VIP tier and Leaderboard are
+        // computed live from this same "orders" collection, so deleting old
+        // orders means those figures reflect only the trailing 7 days, not
+        // lifetime totals - a deliberate tradeoff the store owner asked for.
+        const ORDER_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
+        let orderCleanupDone = false;
+        async function cleanupOldOrders(guestId) {
+            if (!guestId || orderCleanupDone) return;
+            orderCleanupDone = true;
+            try {
+                const cutoffMs = Date.now() - ORDER_RETENTION_MS;
+                const q = query(collection(db, "orders"), where("userId", "==", guestId));
+                const snap = await getDocs(q);
+                const stale = snap.docs.filter(d => {
+                    const data = d.data();
+                    if (data.status !== 'Success' && data.status !== 'Fail') return false;
+                    const ms = data.timestamp && data.timestamp.toMillis ? data.timestamp.toMillis() : null;
+                    return ms && ms < cutoffMs;
+                });
+                if (!stale.length) return;
+                const batch = writeBatch(db);
+                stale.forEach(d => batch.delete(d.ref));
+                await batch.commit();
+            } catch (error) {
+                console.error("Order cleanup error:", error);
+            }
+        }
+
         function loadHistory() {
             const container = document.getElementById('history-container');
             const guestId = window.getGuestId ? window.getGuestId() : '';
@@ -9619,6 +9861,7 @@
             historyListenerGuestId = guestId;
             HISTORY_FILTER_DATE = null;
             container.innerHTML = historySkeletonHTML();
+            cleanupOldOrders(guestId);
 
             const q = query(collection(db, "orders"), where("userId", "==", guestId));
             historyUnsubscribe = onSnapshot(q, (snap) => {
@@ -10852,6 +11095,27 @@
                 stateEl.textContent = 'Off — tap to enable';
             }
         }
+        async function registerFcmToken() {
+            try {
+                await messagingReady;
+                if (!messaging) return;
+                const gid = window.getGuestId ? window.getGuestId() : null;
+                if (!gid) return;
+                const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                const token = await getToken(messaging, { vapidKey: FCM_VAPID_KEY, serviceWorkerRegistration: registration });
+                if (!token) return;
+                await setDoc(doc(db, "users", gid), { fcmToken: token }, { merge: true });
+            } catch (error) { console.error("FCM token registration error:", error); }
+        }
+
+        async function clearFcmToken() {
+            try {
+                const gid = window.getGuestId ? window.getGuestId() : null;
+                if (!gid) return;
+                await updateDoc(doc(db, "users", gid), { fcmToken: deleteField() });
+            } catch (error) { /* not fatal */ }
+        }
+
         async function togglePushNotifications() {
             if (!pushSupported()) return;
             if (Notification.permission === 'denied') {
@@ -10859,14 +11123,14 @@
                 return;
             }
             if (pushEnabled()) {
-                // Browsers don't let a page revoke permission programmatically;
-                // this just opts the app out of firing notifications locally.
                 try { localStorage.setItem('gz_push_opt_in', '0'); } catch (e) {}
+                clearFcmToken();
                 renderPushToggleUI();
                 return;
             }
             if (Notification.permission === 'granted') {
                 try { localStorage.setItem('gz_push_opt_in', '1'); } catch (e) {}
+                registerFcmToken();
                 renderPushToggleUI();
                 return;
             }
@@ -10874,11 +11138,21 @@
             if (result === 'granted') {
                 try { localStorage.setItem('gz_push_opt_in', '1'); } catch (e) {}
                 new Notification('PCA Store', { body: 'Notifications are on — you\'ll be alerted here.', icon: APP_LOGO_URL || undefined });
+                registerFcmToken();
             }
             renderPushToggleUI();
         }
         window.togglePushNotifications = togglePushNotifications;
         window.renderPushToggleUI = renderPushToggleUI;
+
+        messagingReady.then(() => {
+            if (!messaging) return;
+            onMessage(messaging, (payload) => {
+                if (window.showToast) {
+                    window.showToast(payload.notification?.body || payload.data?.body || 'Order update', 'success');
+                }
+            });
+        });
 
         // A notification only has a full-detail page if the admin actually
         // wrote details (or, for older entries, the old single "message"
@@ -11143,6 +11417,7 @@
         loadProfileStats();
         renderTierPreviewGrid();
         renderPushToggleUI();
+        if (pushEnabled()) registerFcmToken();
 
         // Populates the decorative falling-star background layer (see
         // #bg-falling-stars div right after <body>) with a handful of
@@ -11193,6 +11468,128 @@
         let supportChatMsgUnsub = null;
         let supportFabDragged = false;
         let supportFabPeekTimer = null;
+
+        // ---------- Support Chat: FAQ quick-replies + auto-answer ----------
+        // The FAQ list itself lives in Firestore (settings/supportChatFaq,
+        // field "items": [{q,a,keywords}]) and is edited from admin.html's
+        // Settings > Support Chat FAQ panel - so admins can add/edit/remove
+        // questions without touching this file. Falls back to a small
+        // built-in default list if that doc hasn't been created yet.
+        // Tapping a chip sends that exact question and the matching answer
+        // comes back instantly as a bot reply (sender: 'admin', isBot: true)
+        // - no admin needs to be online. The same keyword match also runs
+        // on anything the customer types by hand.
+        let SUPPORT_FAQ_LIST = [
+            {
+                q: 'အော်ဒါ ဘယ်လိုတင်ရမလဲ',
+                keywords: ['အော်ဒါ', 'order', 'တင်ရ'],
+                a: 'Home စာမျက်နှာမှ ဂိမ်းကို ရွေးပါ။ Package/Currency ကို ရွေးပြီး In-Game ID (နှင့် Server ID လိုအပ်ပါက) ရိုက်ထည့်ပါ။ "Confirm ID" ကို နှိပ်ပြီး ID မှန်ကန်ကြောင်း စစ်ဆေးပါ။ နောက်ဆုံးတွင် ငွေပေးချေမှုအမျိုးအစား ရွေးချယ်ပြီး အတည်ပြုလိုက်ရုံပါပဲ။'
+            },
+            {
+                q: 'ငွေပေးချေနည်း ဘယ်လိုလုပ်ရမလဲ',
+                keywords: ['ငွေပေးချေ', 'payment', 'ပေးချေ'],
+                a: 'Wallet ထဲက လက်ကျန်ငွေဖြင့် တိုက်ရိုက်ပေးချေနိုင်သလို၊ Payment Method တစ်ခုကို ရွေးပြီး ငွေလွှဲပြေစာ (Receipt) တင်၍လည်း ပေးချေနိုင်ပါသည်။ Wallet ထဲသို့ ငွေဖြည့်ရန် Wallet စာမျက်နှာမှ "Top Up" ကို သုံးပါ။'
+            },
+            {
+                q: 'အော်ဒါ Status ဘယ်လိုစစ်ရမလဲ',
+                keywords: ['status', 'အခြေအနေ', 'စစ်ဆေး'],
+                a: 'History စာမျက်နှာတွင် အော်ဒါတစ်ခုချင်းစီကို Pending → Processing → Success/Fail အဆင့်ဆင့် အချိန်နှင့်တပြေးညီ ကြည့်ရှုနိုင်ပါသည်။ Processing တွင် ကြာမြင့်နေပါက "တိုင်ကြားရန်" tab ကနေ ပြန်လည်အကြောင်းကြားနိုင်ပါသည်။'
+            },
+            {
+                q: 'ID မှားထည့်မိရင် ဘယ်လိုလုပ်ရမလဲ',
+                keywords: ['id မှား', 'id ပြင်', 'wrong id'],
+                a: 'ID မှားထည့်မိပါက ဖြစ်နိုင်သမျှ မြန်မြန် Support Chat မှတစ်ဆင့် ပြောပြပေးပါ။ အော်ဒါ "Processing" မဖြစ်သေးလျှင် ပြင်ဆင်ပေးနိုင်ပါသည်၊ Processing ပြီးသွားပါက ပြင်ဆင်ရန် ခက်ခဲနိုင်တဲ့အတွက် ID ကို ထပ်စစ်ပြီးမှ Confirm နှိပ်ဖို့ အကြံပြုပါသည်။'
+            },
+            {
+                q: 'Wallet ငွေဖြည့်ထားတာ ဘယ်လောက်ကြာမှ ဝင်မလဲ',
+                keywords: ['wallet', 'ငွေဖြည့်', 'top up', 'topup'],
+                a: 'Wallet Top Up Receipt တင်ပြီးပါက ပုံမှန်အားဖြင့် မိနစ်အနည်းငယ်မှ နာရီအနည်းငယ်အတွင်း admin မှ စစ်ဆေးပြီး Wallet ထဲ ငွေဖြည့်ပေးပါမည်။ အလုပ်ချိန်ပြင်ပ ဖြစ်ပါက အနည်းငယ်ပိုကြာနိုင်ပါသည်။'
+            }
+        ];
+        let supportFaqListenerAttached = false;
+
+        // One-time live listener: whenever admin.html saves the FAQ editor,
+        // this doc updates and the chips + keyword matching refresh here
+        // immediately, even for a chat panel that's already open.
+        function listenSupportChatFaq() {
+            if (supportFaqListenerAttached) return;
+            supportFaqListenerAttached = true;
+            onSnapshot(doc(db, "settings", "supportChatFaq"), (snap) => {
+                if (snap.exists() && Array.isArray(snap.data().items) && snap.data().items.length) {
+                    SUPPORT_FAQ_LIST = snap.data().items.map(it => ({
+                        q: it.q || '',
+                        a: it.a || '',
+                        keywords: Array.isArray(it.keywords) ? it.keywords : String(it.keywords || '').split(',').map(k => k.trim()).filter(Boolean)
+                    }));
+                    renderSupportChatFaqChips();
+                }
+            }, (error) => console.error("Support FAQ listen error:", error));
+        }
+
+        function renderSupportChatFaqChips() {
+            const row = document.getElementById('support-chat-faq-row');
+            if (!row) return;
+            row.innerHTML = SUPPORT_FAQ_LIST.map((f, i) =>
+                `<button type="button" class="support-chat-faq-chip" onclick="window.sendFaqQuestion(${i})">${f.q}</button>`
+            ).join('');
+        }
+
+        // Finds the first FAQ whose keyword shows up inside the given text.
+        function matchSupportFaq(text) {
+            if (!text) return null;
+            const lower = text.toLowerCase();
+            return SUPPORT_FAQ_LIST.find(f => f.keywords.some(k => lower.includes(k.toLowerCase()))) || null;
+        }
+
+        // Writes the bot's answer straight to Firestore (sender: 'admin',
+        // isBot: true) so it renders through the normal message listener on
+        // both Store.html and admin.html, just tagged as an auto-reply.
+        async function sendSupportFaqAutoReply(guestId, answerText) {
+            try {
+                await addDoc(collection(db, "supportChats", guestId, "messages"), {
+                    sender: 'admin', text: answerText, timestamp: serverTimestamp(), isBot: true, seenByAdmin: true
+                });
+                await setDoc(doc(db, "supportChats", guestId), {
+                    lastMessage: answerText, lastMessageAt: serverTimestamp(), lastSender: 'admin'
+                }, { merge: true });
+            } catch (error) {
+                console.error("Support chat auto-reply error:", error);
+            }
+        }
+
+        // Tapping a quick-reply chip: sends the exact FAQ question as the
+        // customer's own message, then answers it immediately - no need to
+        // wait for keyword matching since we already know which FAQ it is.
+        function sendFaqQuestion(index) {
+            const faq = SUPPORT_FAQ_LIST[index];
+            if (!faq) return;
+            const input = document.getElementById('support-chat-input');
+            if (input) input.value = faq.q;
+            sendSupportChatMessage(faq.a);
+        }
+        window.sendFaqQuestion = sendFaqQuestion;
+
+        // ---------- Support Chat: 7-day auto-cleanup ----------
+        // Messages older than 7 days are deleted so the thread doesn't grow
+        // forever. There's no backend job here, so this runs opportunistically
+        // whenever the customer opens the chat tab (best-effort, client-side).
+        const SUPPORT_CHAT_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
+        let supportChatCleanupDone = false;
+        async function cleanupOldSupportChatMessages(guestId) {
+            if (!guestId || supportChatCleanupDone) return;
+            supportChatCleanupDone = true;
+            try {
+                const cutoff = new Date(Date.now() - SUPPORT_CHAT_RETENTION_MS);
+                const q = query(collection(db, "supportChats", guestId, "messages"), where("timestamp", "<", cutoff));
+                const snap = await getDocs(q);
+                if (snap.empty) return;
+                const batch = writeBatch(db);
+                snap.docs.forEach(d => batch.delete(d.ref));
+                await batch.commit();
+            } catch (error) {
+                console.error("Support chat cleanup error:", error);
+            }
+        }
 
         // Which screen edge the bubble is currently docked nearest to,
         // based on its live `right` offset (the fab is always positioned
@@ -11263,6 +11660,28 @@
                 fab.style.right = saved.right + 'px';
                 fab.style.bottom = saved.bottom + 'px';
             } catch (e) { /* private browsing - ignore */ }
+        }
+
+        // Support chat header avatar: shows whichever admin most recently
+        // replied (adminUsernames/{username}.avatarUrl, denormalized onto
+        // supportChats/{guestId}.lastAdminAvatar by admin.html's
+        // sendSupportChatReply), so different admins show up as different
+        // faces. Falls back to the legacy shared settings/supportChat photo
+        // (for stores with just one admin who hasn't replied yet), then "A".
+        let supportChatLastAdminAvatar = null;
+
+        function renderSupportChatHeaderAvatar() {
+            const el = document.getElementById('support-chat-header-avatar');
+            if (!el) return;
+            const url = supportChatLastAdminAvatar || window.__supportChatFallbackAvatar || null;
+            el.innerHTML = url ? `<img src="${url}" alt="Admin">` : 'A';
+        }
+
+        function listenSupportChatAvatar() {
+            onSnapshot(doc(db, "settings", "supportChat"), (snap) => {
+                window.__supportChatFallbackAvatar = snap.exists() ? (snap.data().adminAvatar || null) : null;
+                renderSupportChatHeaderAvatar();
+            }, (error) => console.error("Support chat avatar listener error:", error));
         }
 
         function initSupportWidget() {
@@ -11350,7 +11769,10 @@
             if (tab === 'chat') {
                 const badge = document.getElementById('support-chat-badge');
                 if (badge) badge.style.display = 'none';
+                listenSupportChatFaq();
+                renderSupportChatFaqChips();
                 listenSupportChatMessages();
+                cleanupOldSupportChatMessages(window.getGuestId ? window.getGuestId() : '');
             }
         }
         window.switchSupportTab = switchSupportTab;
@@ -11419,11 +11841,23 @@
                 // text switches from black to blue.
                 const seen = mine && (m.seenByAdmin === true || m.seen === true);
                 const time = (m.timestamp && m.timestamp.toDate) ? m.timestamp.toDate().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '';
+                // Small avatar badge on admin bubbles: each admin has their
+                // own photo (set in admin.html's Settings > Admin Accounts),
+                // denormalized onto the message at send time so it stays
+                // correct even if that admin later changes their photo.
+                // Falls back to the legacy shared settings/supportChat photo,
+                // then a plain "A", for messages/admins without one.
+                let avatarBadge = '';
+                if (!mine) {
+                    const inner = m.isBot ? '🤖' : (m.adminAvatar ? `<img src="${m.adminAvatar}" alt="">` : (window.__supportChatFallbackAvatar ? `<img src="${window.__supportChatFallbackAvatar}" alt="">` : 'A'));
+                    avatarBadge = `<span class="support-chat-msg-avatar${m.isBot ? ' bot-avatar' : ''}">${inner}</span>`;
+                }
+                const botLabel = (!mine && m.isBot) ? `<span class="support-chat-bubble-bot-label">Auto-reply 🤖</span>` : '';
                 if (m.imageUrl) {
-                    return `<div class="support-chat-bubble image-bubble ${mine ? 'mine' : 'theirs'}${seen ? ' seen' : ''}"><img src="${m.imageUrl}" alt="Photo" loading="lazy" onclick="window.open('${m.imageUrl}','_blank')"><span class="support-chat-bubble-time">${time}</span></div>`;
+                    return `<div class="support-chat-bubble image-bubble ${mine ? 'mine' : 'theirs'}${seen ? ' seen' : ''}">${avatarBadge}<img src="${m.imageUrl}" alt="Photo" loading="lazy" onclick="window.open('${m.imageUrl}','_blank')"><span class="support-chat-bubble-time">${time}</span></div>`;
                 }
                 const safe = (m.text || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                return `<div class="support-chat-bubble ${mine ? 'mine' : 'theirs'}${seen ? ' seen' : ''}">${safe}<span class="support-chat-bubble-time">${time}</span></div>`;
+                return `<div class="support-chat-bubble ${mine ? 'mine' : 'theirs'}${seen ? ' seen' : ''}">${avatarBadge}${botLabel}${safe}<span class="support-chat-bubble-time">${time}</span></div>`;
             }).join('');
             box.scrollTop = box.scrollHeight;
         }
@@ -11490,6 +11924,8 @@
                     lastPlayedAdminMsgMs = Math.max(lastPlayedAdminMsgMs, msgMs);
                 }
                 supportChatSummarySeenFirst = true;
+                supportChatLastAdminAvatar = data.lastAdminAvatar || null;
+                renderSupportChatHeaderAvatar();
                 adminTypingAtMs = (data.adminTypingAt && data.adminTypingAt.toMillis) ? data.adminTypingAt.toMillis() : null;
                 renderSupportChatTypingIndicator();
             }, (error) => console.error("Support chat summary listen error:", error));
@@ -11541,7 +11977,7 @@
             box.scrollTop = box.scrollHeight;
         }
 
-        async function sendSupportChatMessage() {
+        async function sendSupportChatMessage(presetAutoAnswer) {
             const input = document.getElementById('support-chat-input');
             const text = input.value.trim();
             if (!text) return;
@@ -11563,6 +11999,14 @@
                     unreadByAdmin: true,
                     userTypingAt: null
                 }, { merge: true });
+                // Auto-reply: a tapped FAQ chip already knows its answer
+                // (presetAutoAnswer); a hand-typed message gets matched
+                // against the same FAQ keyword list. Either way the bot
+                // answer lands a beat later so it doesn't feel instant/robotic.
+                const autoAnswer = presetAutoAnswer || (matchSupportFaq(text) || {}).a;
+                if (autoAnswer) {
+                    setTimeout(() => sendSupportFaqAutoReply(guestId, autoAnswer), 900);
+                }
             } catch (error) {
                 console.error("Support chat send error:", error);
                 window.showToast(error.message || 'ပို့၍မရပါ', 'fail');
@@ -11584,18 +12028,38 @@
             return data.data.url;
         }
 
-        function appendOptimisticSupportChatImage(url) {
+        // Shows a spinner bubble the instant a photo is picked (upload +
+        // Firestore write both take a moment, and without this the user has
+        // no feedback that anything is happening until the image finally
+        // appears). The same bubble element is then swapped in place for
+        // the real photo once the upload finishes, or removed on failure.
+        function appendOptimisticSupportChatImageSpinner() {
             const box = document.getElementById('support-chat-messages');
-            if (!box) return;
-            playSupportChatSendSound();
+            if (!box) return null;
             const empty = box.querySelector('.support-chat-empty');
             if (empty) empty.remove();
-            const time = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
             const bubble = document.createElement('div');
             bubble.className = 'support-chat-bubble image-bubble mine';
-            bubble.innerHTML = `<img src="${url}" alt="Photo" onclick="window.open('${url}','_blank')"><span class="support-chat-bubble-time">${time}</span>`;
+            bubble.id = 'sc-img-pending-' + Date.now();
+            bubble.innerHTML = `<div class="support-chat-image-spinner-wrap"><div class="support-chat-image-spinner"></div></div>`;
             box.appendChild(bubble);
             box.scrollTop = box.scrollHeight;
+            return bubble.id;
+        }
+
+        function resolveOptimisticSupportChatImage(bubbleId, url) {
+            const bubble = document.getElementById(bubbleId);
+            if (!bubble) return;
+            playSupportChatSendSound();
+            const time = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
+            bubble.innerHTML = `<img src="${url}" alt="Photo" onclick="window.open('${url}','_blank')"><span class="support-chat-bubble-time">${time}</span>`;
+            const box = document.getElementById('support-chat-messages');
+            if (box) box.scrollTop = box.scrollHeight;
+        }
+
+        function failOptimisticSupportChatImage(bubbleId) {
+            const bubble = document.getElementById(bubbleId);
+            if (bubble) bubble.remove();
         }
 
         async function handleSupportChatImageSelect(inputEl) {
@@ -11604,9 +12068,10 @@
             if (!file) return;
             const camBtn = document.querySelector('.support-chat-camera-btn');
             if (camBtn) camBtn.style.opacity = '0.5';
+            const pendingId = appendOptimisticSupportChatImageSpinner();
             try {
                 const url = await uploadSupportChatImageToImgBB(file);
-                appendOptimisticSupportChatImage(url);
+                resolveOptimisticSupportChatImage(pendingId, url);
                 const guestId = window.getGuestId ? window.getGuestId() : '';
                 const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
                 await addDoc(collection(db, "supportChats", guestId, "messages"), {
@@ -11624,6 +12089,7 @@
             } catch (error) {
                 console.error("Support chat image send error:", error);
                 window.showToast(error.message || 'ဓာတ်ပုံပို့၍မရပါ', 'fail');
+                failOptimisticSupportChatImage(pendingId);
             } finally {
                 if (camBtn) camBtn.style.opacity = '';
             }
@@ -11631,6 +12097,7 @@
         window.handleSupportChatImageSelect = handleSupportChatImageSelect;
 
         initSupportWidget();
+        listenSupportChatAvatar();
         initPackageCardLongPressCopy();
         applyI18n();
     </script>
