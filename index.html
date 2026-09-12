@@ -6504,7 +6504,7 @@
     <!-- FIREBASE CODE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp, query, where, orderBy, limit, getDocs, onSnapshot, increment, runTransaction, arrayUnion, arrayRemove, deleteField } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, doc, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp, query, where, orderBy, limit, getDocs, getCountFromServer, onSnapshot, increment, runTransaction, arrayUnion, arrayRemove, deleteField } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getMessaging, getToken, onMessage, isSupported as isMessagingSupported } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js";
 
@@ -7504,12 +7504,14 @@
             }).join('');
         }
 
-        // ---------- Top Up History: 7-day auto-delete (Completed/Rejected only) ----------
-        // Mirrors the Order History 7-day auto-delete above: top-up requests
-        // that have already reached a final state (Completed or Rejected)
-        // older than 7 days are permanently deleted so Top Up History doesn't
-        // grow forever. Pending requests are never touched by this.
-        const WALLET_TOPUP_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
+        // ---------- Top Up History: 2-month flat auto-delete (Completed/Rejected only) ----------
+        // Top-up requests that have already reached a final state (Completed
+        // or Rejected) older than 2 months are permanently deleted so Top Up
+        // History doesn't grow forever. Same window for every VIP tier.
+        // Pending requests are never touched by this. Never touches
+        // userStats/totalSpent — lifetime spend is unaffected by anything
+        // getting cleared here.
+        const WALLET_TOPUP_RETENTION_MS = 60 * 24 * 60 * 60 * 1000;
         let walletTopupCleanupDone = false;
         async function cleanupOldWalletTopups(guestId) {
             if (!guestId || walletTopupCleanupDone) return;
@@ -8037,40 +8039,31 @@
         window.loadProfileStats = loadProfileStats;
 
 
-        // Aggregates every successful order by customer, ranks by lifetime
-        // spend, and renders the top 20 — plus the current user's own rank if
-        // they're outside that top 20. All computed client-side from real
-        // order data; nothing here is sample/fake content.
+        // Ranks customers by lifetime spend from the small pre-aggregated
+        // userStats collection (one doc per customer, kept up to date by
+        // creditLeaderboardStats above) instead of re-scanning every
+        // successful order ever placed — stays fast and cheap to read no
+        // matter how many orders/users pile up over time. Renders the top
+        // 20, plus the current user's own rank if they're outside that top 20.
         async function loadLeaderboard() {
             const listEl = document.getElementById('leaderboard-list');
             const youEl = document.getElementById('leaderboard-you');
             listEl.innerHTML = '<p class="empty-msg">Loading leaderboard...</p>';
             youEl.innerHTML = '';
             try {
-                const q = query(collection(db, "orders"), where("status", "==", "Success"));
+                const q = query(collection(db, "userStats"), orderBy("totalSpent", "desc"), limit(20));
                 const snap = await getDocs(q);
-                const totals = {}; // userId -> { name, total, count }
-                snap.forEach(docSnap => {
+                const top = snap.docs.map(docSnap => {
                     const d = docSnap.data();
-                    const uid = d.userId;
-                    if (!uid) return;
-                    if (!totals[uid]) totals[uid] = { name: d.userName || uid, total: 0, count: 0 };
-                    totals[uid].total += Number(d.price) || 0;
-                    totals[uid].count += 1;
-                    if (d.userName) totals[uid].name = d.userName; // keep latest known name
+                    return { uid: docSnap.id, name: d.name || docSnap.id, total: Number(d.totalSpent) || 0, count: Number(d.orderCount) || 0 };
                 });
 
-                const ranked = Object.entries(totals)
-                    .map(([uid, v]) => ({ uid, ...v }))
-                    .sort((a, b) => b.total - a.total);
-
-                if (ranked.length === 0) {
+                if (top.length === 0) {
                     listEl.innerHTML = '<p class="empty-msg">No spenders yet.</p>';
                     return;
                 }
 
                 const guestId = window.getGuestId ? window.getGuestId() : '';
-                const top = ranked.slice(0, 20);
                 const podium = top.slice(0, 3);
                 const rest = top.slice(3);
 
@@ -8117,23 +8110,35 @@
 
                 listEl.innerHTML = podiumHTML + restHTML;
 
-                const myRankIndex = ranked.findIndex(r => r.uid === guestId);
-                if (guestId && myRankIndex >= 20) {
-                    const me = ranked[myRankIndex];
-                    const tier = tierForSpend(me.total);
-                    youEl.innerHTML = `
-                        <div class="lb-you-row">
-                            <div class="lb-row" style="border:none;padding:0;">
-                                <div class="lb-rank">#${myRankIndex + 1}</div>
-                                <div class="lb-avatar">${(me.name || '?').trim().charAt(0).toUpperCase()}</div>
-                                <div class="lb-info">
-                                    <div class="lb-name">${escapeHtml(me.name)} (You)</div>
-                                    ${tierBadgeHTML(tier)}
+                // Only look up "you" separately when you're not already
+                // shown in the top 20 above.
+                if (guestId && !top.some(r => r.uid === guestId)) {
+                    const myStatsSnap = await getDoc(doc(db, "userStats", guestId));
+                    if (myStatsSnap.exists()) {
+                        const me = myStatsSnap.data();
+                        const myTotal = Number(me.totalSpent) || 0;
+                        const myName = me.name || guestId;
+                        // Rank = 1 + how many customers out-spend you. A single
+                        // inequality filter needs no composite index.
+                        const higherCountSnap = await getCountFromServer(
+                            query(collection(db, "userStats"), where("totalSpent", ">", myTotal))
+                        );
+                        const myRank = higherCountSnap.data().count + 1;
+                        const tier = tierForSpend(myTotal);
+                        youEl.innerHTML = `
+                            <div class="lb-you-row">
+                                <div class="lb-row" style="border:none;padding:0;">
+                                    <div class="lb-rank">#${myRank}</div>
+                                    <div class="lb-avatar">${(myName || '?').trim().charAt(0).toUpperCase()}</div>
+                                    <div class="lb-info">
+                                        <div class="lb-name">${escapeHtml(myName)} (You)</div>
+                                        ${tierBadgeHTML(tier)}
+                                    </div>
+                                    <div class="lb-amount">${formatMMK(myTotal)}</div>
                                 </div>
-                                <div class="lb-amount">${formatMMK(me.total)}</div>
                             </div>
-                        </div>
-                    `;
+                        `;
+                    }
                 }
             } catch (error) {
                 console.error("Leaderboard load error:", error);
@@ -8875,6 +8880,36 @@
         // Runs globally from app start, independent of which page is open, and
         // needs no refresh/reload. Initial load ("added") is recorded silently so
         // only real transitions after that (Pending/Processing -> Success/Fail) fire.
+        // Credits one Success order's spend onto userStats/{guestId} exactly
+        // once (guarded by the order doc's own statsCounted flag inside the
+        // same transaction), instead of the Leaderboard re-scanning every
+        // order ever placed on every view. Runs from this listener because
+        // it's already watching for the Pending/Processing -> Success
+        // transition on the customer's own orders.
+        async function creditLeaderboardStats(orderId, guestId) {
+            try {
+                const orderRef = doc(db, "orders", orderId);
+                const statsRef = doc(db, "userStats", guestId);
+                await runTransaction(db, async (tx) => {
+                    const orderSnap = await tx.get(orderRef);
+                    if (!orderSnap.exists()) return;
+                    const od = orderSnap.data();
+                    if (od.statsCounted) return; // already credited (e.g. by another open tab)
+                    if (od.status !== 'Success') return;
+                    const price = Number(od.price) || 0;
+                    tx.set(statsRef, {
+                        name: od.userName || guestId,
+                        totalSpent: increment(price),
+                        orderCount: increment(1),
+                        updatedAt: serverTimestamp()
+                    }, { merge: true });
+                    tx.update(orderRef, { statsCounted: true });
+                });
+            } catch (e) {
+                console.error("Leaderboard stats credit error:", e);
+            }
+        }
+
         let orderStatusKnown = {};
         let orderStatusNotified = new Set();
         function listenOwnOrderStatus() {
@@ -8893,6 +8928,7 @@
                         if (data.status === 'Success' && !orderStatusNotified.has(orderId + ':success')) {
                             orderStatusNotified.add(orderId + ':success');
                             window.showToast(`Your Order Is Successfully ${label ? '(' + label + ')' : ''}`.trim(), 'success');
+                            creditLeaderboardStats(orderId, guestId);
                         } else if (data.status === 'Fail' && !orderStatusNotified.has(orderId + ':fail')) {
                             orderStatusNotified.add(orderId + ':fail');
                             window.showToast(`Order Failed ${label ? '(' + label + ')' : ''}`.trim(), 'fail');
@@ -9812,38 +9848,6 @@
         let historyUnsubscribe = null;
         let historyListenerGuestId = null;
 
-        // ---------- Order History: 7-day auto-delete (Success/Fail only) ----------
-        // Completed orders (Success or Fail) older than 7 days are permanently
-        // deleted so History doesn't grow forever. Pending/Processing orders
-        // are never touched by this - only orders that have already reached a
-        // final state. NOTE: this store's VIP tier and Leaderboard are
-        // computed live from this same "orders" collection, so deleting old
-        // orders means those figures reflect only the trailing 7 days, not
-        // lifetime totals - a deliberate tradeoff the store owner asked for.
-        const ORDER_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
-        let orderCleanupDone = false;
-        async function cleanupOldOrders(guestId) {
-            if (!guestId || orderCleanupDone) return;
-            orderCleanupDone = true;
-            try {
-                const cutoffMs = Date.now() - ORDER_RETENTION_MS;
-                const q = query(collection(db, "orders"), where("userId", "==", guestId));
-                const snap = await getDocs(q);
-                const stale = snap.docs.filter(d => {
-                    const data = d.data();
-                    if (data.status !== 'Success' && data.status !== 'Fail') return false;
-                    const ms = data.timestamp && data.timestamp.toMillis ? data.timestamp.toMillis() : null;
-                    return ms && ms < cutoffMs;
-                });
-                if (!stale.length) return;
-                const batch = writeBatch(db);
-                stale.forEach(d => batch.delete(d.ref));
-                await batch.commit();
-            } catch (error) {
-                console.error("Order cleanup error:", error);
-            }
-        }
-
         function loadHistory() {
             const container = document.getElementById('history-container');
             const guestId = window.getGuestId ? window.getGuestId() : '';
@@ -9861,7 +9865,6 @@
             historyListenerGuestId = guestId;
             HISTORY_FILTER_DATE = null;
             container.innerHTML = historySkeletonHTML();
-            cleanupOldOrders(guestId);
 
             const q = query(collection(db, "orders"), where("userId", "==", guestId));
             historyUnsubscribe = onSnapshot(q, (snap) => {
@@ -11179,7 +11182,14 @@
             const q = query(collection(db, "notifications"), orderBy("timestamp", "desc"));
             let initialLoad = true;
             onSnapshot(q, (snap) => {
-                NOTIFICATIONS = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+                // Broadcasts (no targetUserId) show for everyone; a targeted
+                // notification (admin "Specific User" send) only shows for the
+                // guestId it was addressed to - everyone else's client filters
+                // it out here since Firestore has no per-doc user ACL to do it
+                // server-side.
+                const myGuestId = window.getGuestId ? window.getGuestId() : '';
+                const isMine = (data) => !data.targetUserId || data.targetUserId === myGuestId;
+                NOTIFICATIONS = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(isMine);
                 updateNotifDot();
                 if (window.currentStorePage === 'notif-page') renderNotificationList();
                 // Only the *first* snapshot is existing history — skip firing OS
@@ -11187,7 +11197,8 @@
                 // genuinely new admin broadcast that just came in live.
                 if (!initialLoad) {
                     snap.docChanges().forEach(change => {
-                        if (change.type === 'added') fireOsNotification({ id: change.doc.id, ...change.doc.data() });
+                        const data = change.doc.data();
+                        if (change.type === 'added' && isMine(data)) fireOsNotification({ id: change.doc.id, ...data });
                     });
                 }
                 initialLoad = false;
