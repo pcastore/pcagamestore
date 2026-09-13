@@ -2546,6 +2546,10 @@
 
             <!-- User Guide tab -->
             <div class="modal-body" id="support-panel-guide">
+                <div class="support-guide-item" id="guide-item-0">
+                    <div class="support-guide-q" onclick="window.toggleGuideItem(this.parentElement)"><span data-i18n="guide_q_about">PCA Store ဆိုတာ ဘာလဲ</span><svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></div>
+                    <div class="support-guide-a" data-i18n="guide_a_about">PCA Store သည် ၂၀၂၆ ခုနှစ်မှစတင်၍ မြန်မာနိုင်ငံရှိ ဂိမ်းသမားများအတွက် Diamond၊ UC စသည့် In-Game Currency နှင့် Top Up ဝန်ဆောင်မှုများကို လျင်မြန်၊ ဘေးကင်း၊ စိတ်ချရစွာ ရရှိနိုင်သော ပလက်ဖောင်းတစ်ခု ဖြစ်ပါသည်။ Wallet၊ VIP အဆင့်များ၊ သူငယ်ချင်းဖိတ်ခေါ်ခြင်း (Referral) နှင့် တိုက်ရိုက် Support Chat တို့ကို ပါဝင်ပေးထားပါသည်။</div>
+                </div>
                 <div class="support-guide-item" id="guide-item-1">
                     <div class="support-guide-q" onclick="window.toggleGuideItem(this.parentElement)"><span data-i18n="guide_q_order">အော်ဒါ ဘယ်လိုတင်ရမလဲ</span><svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></div>
                     <div class="support-guide-a" data-i18n="guide_a_order">Home စာမျက်နှာမှ ဂိမ်းကို ရွေးပါ။ Package/Currency ကို ရွေးပြီး In-Game ID (နှင့် Server ID လိုအပ်ပါက) ရိုက်ထည့်ပါ။ "Confirm ID" ကို နှိပ်ပြီး ID မှန်ကန်ကြောင်း စစ်ဆေးပါ။ နောက်ဆုံးတွင် ငွေပေးချေမှုအမျိုးအစား ရွေးချယ်ပြီး အတည်ပြုလိုက်ရုံပါပဲ။</div>
@@ -2709,7 +2713,7 @@
             <svg class="ui-icon" id="mini-profile-avatar-icon" style="width:20px;height:20px;"><use href="#icon-user"></use></svg>
         </div>
         <div class="mini-profile-info">
-            <span id="mini-profile-name" data-i18n="guest">Guest</span>
+            <span id="mini-profile-name">Guest</span>
             <div id="mini-profile-tier" style="display:none;"></div>
             <small id="mini-profile-hint" data-i18n="tap_view_profile">Tap to view profile</small>
         </div>
@@ -3308,7 +3312,7 @@
 
             <!-- Preferences: mirrors the header's dark mode toggle so it's reachable
                  from the Profile page too, without needing a separate Settings page. -->
-            <div class="detail-form-card profile-card-anim" id="profile-prefs-card" style="animation-delay:40ms;">
+            <div class="detail-form-card profile-card-anim" id="profile-prefs-card" style="margin-top:14px;animation-delay:40ms;">
                 <div class="collapsible-header" onclick="toggleCollapsible('profile-prefs-body','profile-prefs-chevron')" role="button" aria-label="Show preferences">
                     <label style="align-self:flex-start;margin-top:0;">Preferences</label>
                     <svg class="ui-icon collapsible-chevron" id="profile-prefs-chevron"><use href="#icon-chevron-right"></use></svg>
@@ -3356,7 +3360,7 @@
                  unique, no new field needed). Redeem section only shows for guests
                  who haven't already redeemed a code (referredBy unset), toggled live
                  in listenWalletBalance()'s existing users/{gid} snapshot. -->
-            <div class="detail-form-card profile-card-anim" id="referral-card" style="animation-delay:80ms;">
+            <div class="detail-form-card profile-card-anim" id="referral-card" style="margin-top:14px;animation-delay:80ms;">
                 <div class="collapsible-header" onclick="toggleCollapsible('referral-body','referral-chevron')" role="button" aria-label="Show invite friends">
                     <label style="align-self:flex-start;margin-top:0;">Invite Friends</label>
                     <svg class="ui-icon collapsible-chevron" id="referral-chevron"><use href="#icon-chevron-right"></use></svg>
@@ -3963,6 +3967,8 @@
                 tap_view_profile: 'Tap to view profile', guest: 'Guest',
                 drawer_footer: 'PCA Store',
                 support_title: 'Help', tab_guide: 'Guide', tab_complaint: 'Complaint', tab_chat: 'Support Chat',
+                guide_q_about: 'What is PCA Store?',
+                guide_a_about: 'PCA Store has been Myanmar\'s fast, safe and reliable platform for game top-ups and in-game currency (Diamonds, UC, and more) since 2026. It comes with a Wallet, VIP tiers, a friend referral system, and live Support Chat.',
                 guide_q_order: 'How do I place an order?',
                 guide_a_order: 'Pick a game from the Home page. Choose a Package/Currency and enter your In-Game ID (and Server ID if needed). Tap "Confirm ID" to verify it\'s correct. Finally, choose a payment type and confirm.',
                 guide_q_payment: 'How do I pay?',
@@ -4013,6 +4019,8 @@
                 tap_view_profile: 'ပရိုဖိုင်ကြည့်ရန် နှိပ်ပါ', guest: 'ဧည့်သည်',
                 drawer_footer: 'PCA Store',
                 support_title: 'အကူအညီ', tab_guide: 'လမ်းညွှန်', tab_complaint: 'တိုင်ကြားရန်', tab_chat: 'Chat ဖြင့်မေးရန်',
+                guide_q_about: 'PCA Store ဆိုတာ ဘာလဲ',
+                guide_a_about: 'PCA Store သည် ၂၀၂၆ ခုနှစ်မှစတင်၍ မြန်မာနိုင်ငံရှိ ဂိမ်းသမားများအတွက် Diamond၊ UC စသည့် In-Game Currency နှင့် Top Up ဝန်ဆောင်မှုများကို လျင်မြန်၊ ဘေးကင်း၊ စိတ်ချရစွာ ရရှိနိုင်သော ပလက်ဖောင်းတစ်ခု ဖြစ်ပါသည်။ Wallet၊ VIP အဆင့်များ၊ သူငယ်ချင်းဖိတ်ခေါ်ခြင်း (Referral) နှင့် တိုက်ရိုက် Support Chat တို့ကို ပါဝင်ပေးထားပါသည်။',
                 guide_q_order: 'အော်ဒါ ဘယ်လိုတင်ရမလဲ',
                 guide_a_order: 'Home စာမျက်နှာမှ ဂိမ်းကို ရွေးပါ။ Package/Currency ကို ရွေးပြီး In-Game ID (နှင့် Server ID လိုအပ်ပါက) ရိုက်ထည့်ပါ။ "Confirm ID" ကို နှိပ်ပြီး ID မှန်ကန်ကြောင်း စစ်ဆေးပါ။ နောက်ဆုံးတွင် ငွေပေးချေမှုအမျိုးအစား ရွေးချယ်ပြီး အတည်ပြုလိုက်ရုံပါပဲ။',
                 guide_q_payment: 'ငွေပေးချေနည်း',
@@ -12179,14 +12187,27 @@
             if (overlay) overlay.classList.add('show');
             const dot = document.getElementById('support-fab-dot');
             if (dot) dot.style.display = 'none';
+            // Push a history entry so the device's physical/gesture Back button
+            // closes this overlay (handled by the popstate listener below)
+            // instead of navigating the browser away from the site entirely.
+            try { history.pushState({ supportWidget: true }, ''); } catch (e) { /* ignore */ }
         }
-        function closeSupportWidget() {
+        function closeSupportWidget(fromPopstate) {
             const overlay = document.getElementById('support-widget-overlay');
             if (overlay) overlay.classList.remove('show');
             scheduleSupportFabPeek();
+            // Closed via the X/overlay tap rather than Back - unwind the history
+            // entry we pushed on open so Back doesn't just reopen it.
+            if (!fromPopstate) {
+                try { if (history.state && history.state.supportWidget) history.back(); } catch (e) { /* ignore */ }
+            }
         }
         window.openSupportWidget = openSupportWidget;
         window.closeSupportWidget = closeSupportWidget;
+        window.addEventListener('popstate', () => {
+            const overlay = document.getElementById('support-widget-overlay');
+            if (overlay && overlay.classList.contains('show')) closeSupportWidget(true);
+        });
 
         function switchSupportTab(tab) {
             ['guide', 'complaint', 'chat'].forEach(t => {
