@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PCA Store — Game Top-Up & Voucher Store</title>
@@ -28,6 +29,8 @@
     <link rel="icon" type="image/png" sizes="192x192" href="/favicon-192.png" id="favicon-link">
     <link rel="icon" type="image/png" sizes="512x512" href="/favicon-512.png">
     <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#060B18">
     <script>
         // Apply saved theme immediately (before CSS paints) to avoid a light-mode flash.
         // Priority: an explicit manual choice (gz_theme) always wins. Otherwise the
@@ -137,6 +140,16 @@
             --accent-rgb: 76,147,255;
             --blur: blur(16px) saturate(180%);
             color-scheme: dark;
+        }
+        /* Backdrop-filter blur is one of the most GPU-expensive CSS effects,
+           and this app uses it on ~30 elements (header, bottom nav, cards,
+           modals, toggle, tabs...) all driven by the single --blur variable
+           above. blur(16px) is heavy on low-end phones — every element using
+           it forces a GPU compositing pass. Narrow (mobile) viewports get a
+           lighter blur + no saturate boost, which is visually close but far
+           cheaper to render; desktop keeps the original. */
+        @media (max-width: 600px) {
+            :root, html[data-theme="dark"] { --blur: blur(8px); }
         }
         /* Dark-mode recolors for elements that were designed as light pastel
            tints (badges, focus states, status cards). Without these they show
@@ -301,6 +314,13 @@
             animation: onboard-start-in 0.35s ease;
         }
         .onboarding-start-btn:active { transform: scale(0.97); }
+        .onboarding-guest-btn {
+            display: block; width: 100%; margin-top: 10px; padding: 11px 16px;
+            background: transparent; border: 1px solid var(--border, #ddd); border-radius: 12px;
+            color: var(--text-secondary); font-size: 13.5px; font-weight: 600; line-height: 1.5;
+            cursor: pointer; text-align: center;
+        }
+        .onboarding-guest-btn:active { transform: scale(0.97); background: var(--surface-2, rgba(0,0,0,.04)); }
         @keyframes onboard-start-in {
             from { opacity: 0; transform: translateY(8px); }
             to   { opacity: 1; transform: translateY(0); }
@@ -469,7 +489,7 @@
         .drawer-overlay.show .drawer-nav-item:nth-child(5) { animation-delay: 0.2s; }
         .drawer-overlay.show .drawer-nav-item:nth-child(6) { animation-delay: 0.24s; }
         .drawer-overlay.show .drawer-nav-item:nth-child(7) { animation-delay: 0.28s; }
-        .drawer-overlay.show .drawer-nav-item:nth-child(10) { animation-delay: 0.32s; }
+        .drawer-overlay.show .drawer-nav-item:nth-child(8) { animation-delay: 0.32s; }
         .drawer-overlay.show .drawer-nav-item:nth-child(11) { animation-delay: 0.36s; }
         .drawer-overlay.show .drawer-nav-item:nth-child(12) { animation-delay: 0.4s; }
         .drawer-section-label {
@@ -1498,6 +1518,8 @@
         .payment-option-icon { width: 38px; height: 38px; border-radius: 8px; background: var(--accent); color: var(--on-color); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
         .payment-option-icon img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .payment-option-name { font-size: 14px; font-weight: 500; color: var(--text); }
+        .payment-option-text { display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .payment-option-availability { font-size: 11.5px; color: var(--text-secondary); }
         .pm-copy-row { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
         .pm-copy-btn { display: flex; align-items: center; justify-content: center; width: 30px; height: 30px; border-radius: 8px; background: var(--accent-soft); color: var(--accent); cursor: pointer; flex-shrink: 0; transition: 0.15s; border: none; }
         .pm-copy-btn:active { background: var(--accent); color: var(--on-color); transform: scale(0.92); }
@@ -1752,6 +1774,8 @@
         .google-login-btn { width: 100%; padding: 11px 12px; border-radius: 10px; font-weight: 500; font-size: 14px; border: 1px solid #DADCE0; background: var(--surface); color: #3C4043; cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 10px; box-shadow: 0 1px 2px rgba(0,0,0,0.04); }
         .google-login-btn:disabled { opacity: 0.6; }
         .google-login-btn:active { background: var(--surface-alt); }
+        .gis-fallback { display: none; }
+        .gis-btn-slot { min-height: 40px; }
         .google-account-hint { font-size: 11px; color: var(--text-muted); text-align: center; margin-top: 6px; }
         .google-account-signedin { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 10px 12px; box-shadow: 0 1px 2px rgba(0,0,0,0.05); }
         .google-account-avatar { width: 40px; height: 40px; border-radius: 50%; object-fit: cover; flex-shrink: 0; background: var(--accent-soft); }
@@ -2383,8 +2407,9 @@
 
             <!-- Step 1: Google sign-in -->
             <div class="onboarding-step" id="onboard-step-login" style="display:none;">
-                <p class="onboarding-sub">Sign in with Google to continue.<br>ဆက်လက်ရန် Google ဖြင့် အကောင့်ဝင်ပါ။</p>
-                <button type="button" class="google-login-btn" id="onboard-google-btn" onclick="handleOnboardGoogleSignIn()">
+                <p class="onboarding-sub">Sign in with Google, or continue as a guest.<br>Google ဖြင့် အကောင့်ဝင်ပါ၊ သို့မဟုတ် ဧည့်သည်အဖြစ် ဆက်လက်ကြည့်ရှုနိုင်ပါသည်။</p>
+                <div id="onboard-google-gis" class="gis-btn-slot"></div>
+                <button type="button" class="google-login-btn gis-fallback" id="onboard-google-btn" onclick="handleOnboardGoogleSignIn()">
                     <svg width="18" height="18" viewBox="0 0 48 48">
                         <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
                         <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/>
@@ -2392,6 +2417,9 @@
                         <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.1 5.6l6.2 5.2C40.9 36.2 44 30.6 44 24c0-1.3-.1-2.7-.4-3.5z"/>
                     </svg>
                     <span id="onboard-google-btn-label">Continue with Google</span>
+                </button>
+                <button type="button" class="onboarding-guest-btn" id="onboard-guest-btn" onclick="handleOnboardGuestContinue()">
+                    Continue as Guest<br><span style="font-size:11.5px;opacity:.75;">ဧည့်သည်အဖြစ် ဆက်လက်ရန်</span>
                 </button>
             </div>
 
@@ -2648,6 +2676,9 @@
                 <div class="drawer-nav-item" data-page="profile" onclick="drawerNavigate('profile')">
                     <svg class="ui-icon"><use href="#icon-user"></use></svg><span data-i18n="nav_profile">Profile</span>
                 </div>
+                <div class="drawer-nav-item" onclick="closeDrawer(); openSupportWidget();">
+                    <svg class="ui-icon"><use href="#icon-message-circle"></use></svg><span data-i18n="nav_support">Support</span>
+                </div>
 
                 <div class="drawer-divider"></div>
                 <div class="drawer-section-label">More</div>
@@ -2657,9 +2688,6 @@
                 </div>
                 <div class="drawer-nav-item" onclick="closeDrawer(); showPage('terms');">
                     <svg class="ui-icon"><use href="#icon-book"></use></svg><span data-i18n="nav_terms">Terms &amp; Policy</span>
-                </div>
-                <div class="drawer-nav-item" onclick="closeDrawer(); openSupportWidget();">
-                    <svg class="ui-icon"><use href="#icon-message-circle"></use></svg><span data-i18n="nav_support">Support</span>
                 </div>
             </nav>
             <div class="drawer-footer" data-i18n="drawer_footer">PCA Store</div>
@@ -2778,7 +2806,8 @@
                     <div class="empty-state-sub" data-i18n="empty_signin_sub">Game accounts are high value, so please sign in with Google first.</div>
                     <div class="empty-state-action">
                         <div class="google-account-card" style="margin:0 auto;max-width:320px;">
-                            <button type="button" class="google-login-btn" id="account-google-signin-btn" onclick="handleGoogleSignIn('account-google-signin-btn')">
+                            <div id="account-google-signin-gis" class="gis-btn-slot" style="display:flex;justify-content:center;"></div>
+                            <button type="button" class="google-login-btn gis-fallback" id="account-google-signin-btn" onclick="handleGoogleSignIn('account-google-signin-btn')">
                                 <svg width="18" height="18" viewBox="0 0 48 48">
                                     <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
                                     <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/>
@@ -2973,6 +3002,34 @@
             </h3>
             <div id="wallet-topup-list"></div>
             <div id="wallet-topup-empty" style="display:none;"></div>
+        </div>
+
+        <!-- WALLET GOOGLE SIGN-IN GATE: shown instead of the top-up modal when
+             the customer isn't signed in with Google yet. Wallet top-ups are
+             the one flow that needs a real account (so balance/history can
+             follow the customer across devices), unlike browsing/ordering
+             which work on the guest ID alone. -->
+        <div class="modal-overlay" id="wallet-google-gate-overlay" onclick="if(event.target===this) closeWalletGoogleGate()">
+            <div class="modal-box" style="max-width:340px;text-align:center;padding:26px 22px;position:relative;">
+                <div class="modal-close" onclick="closeWalletGoogleGate()" style="position:absolute;top:14px;right:14px;">
+                    <svg class="ui-icon" style="width:18px;height:18px;"><use href="#icon-close"></use></svg>
+                </div>
+                <div style="font-size:15px;font-weight:700;margin-bottom:8px;">Sign in to use Wallet</div>
+                <p style="font-size:13px;color:var(--text-secondary);line-height:1.5;margin:0 0 18px;">
+                    Wallet ကို အသုံးပြုရန် Google account ဖြင့် အကောင့်ဝင်ရန် လိုအပ်ပါသည်။<br>
+                    A Google sign-in keeps your Wallet balance and top-up history safe across devices.
+                </p>
+                <div id="wallet-gate-google-gis" class="gis-btn-slot" style="display:flex;justify-content:center;"></div>
+                <button type="button" class="google-login-btn gis-fallback" id="wallet-gate-google-btn" onclick="handleWalletGateGoogleSignIn()" style="width:100%;justify-content:center;">
+                    <svg width="18" height="18" viewBox="0 0 48 48">
+                        <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
+                        <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/>
+                        <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/>
+                        <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.1 5.6l6.2 5.2C40.9 36.2 44 30.6 44 24c0-1.3-.1-2.7-.4-3.5z"/>
+                    </svg>
+                    <span id="wallet-gate-google-btn-label">Continue with Google</span>
+                </button>
+            </div>
         </div>
 
         <!-- WALLET TOP UP MODAL: amount + payment method + receipt upload -->
@@ -3345,7 +3402,8 @@
                 </div>
                 <div class="collapsible-body" id="account-body">
                     <div class="google-account-card" id="google-account-signedout">
-                        <button type="button" class="google-login-btn" id="google-signin-btn" onclick="handleGoogleSignIn()">
+                        <div id="google-signin-gis" class="gis-btn-slot" style="display:flex;justify-content:center;"></div>
+                        <button type="button" class="google-login-btn gis-fallback" id="google-signin-btn" onclick="handleGoogleSignIn()">
                             <svg width="18" height="18" viewBox="0 0 48 48">
                                 <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
                                 <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/>
@@ -4088,6 +4146,18 @@
             if (pageId === 'leaderboard' && window.loadLeaderboard) window.loadLeaderboard();
             if (pageId === 'voucher' && window.renderVoucherGames) window.renderVoucherGames();
             if (pageId === 'account' && window.renderAccountAccessGate) window.renderAccountAccessGate();
+            // Game Accounts marketplace listener: only alive while on one of
+            // its 3 pages (see listenGameAccounts/stopListenGameAccounts).
+            const ACCOUNT_PAGES = ['account', 'account-list', 'account-detail'];
+            if (ACCOUNT_PAGES.includes(pageId) && window.listenGameAccounts) window.listenGameAccounts();
+            else if (!ACCOUNT_PAGES.includes(pageId) && window.stopListenGameAccounts) window.stopListenGameAccounts();
+            // Coupon availability: only needed while a package/checkout is
+            // being shown on game-detail.
+            if (pageId === 'game-detail' && window.listenCouponAvailability) window.listenCouponAvailability();
+            else if (pageId !== 'game-detail' && window.stopListenCouponAvailability) window.stopListenCouponAvailability();
+            // Wallet top-up history: only needed on the Wallet page.
+            if (pageId === 'wallet' && window.listenWalletTopups) window.listenWalletTopups();
+            else if (pageId !== 'wallet' && window.stopListenWalletTopups) window.stopListenWalletTopups();
         }
 
         let toastHideTimer = null;
@@ -5614,12 +5684,12 @@
             const bal = currentWalletBalance;
             const enough = bal >= price;
             box.innerHTML = enough ? `
-                <span class="wallet-pay-balance-label">Wallet Balance</span>
+                <span class="wallet-pay-balance-label">Wallet Balance <span class="payment-option-availability" style="font-weight:400;">- Available 24/7</span></span>
                 <span class="wallet-pay-balance-amount">${bal.toLocaleString()} MMK</span>
                 ${discountLine}
                 <span class="wallet-pay-note ok">✓ Enough balance — ${price.toLocaleString()} MMK will be deducted when you confirm.</span>
             ` : `
-                <span class="wallet-pay-balance-label">Wallet Balance</span>
+                <span class="wallet-pay-balance-label">Wallet Balance <span class="payment-option-availability" style="font-weight:400;">- Available 24/7</span></span>
                 <span class="wallet-pay-balance-amount">${bal.toLocaleString()} MMK</span>
                 ${discountLine}
                 <span class="wallet-pay-note low">Not enough balance — top up ${(price - bal).toLocaleString()} MMK more to pay from your wallet.</span>
@@ -5665,7 +5735,10 @@
                 return `
                     <div class="payment-option" data-payment-id="${id}" onclick="selectPaymentMethod('${id}')">
                         <div class="payment-option-icon">${p.image ? `<img src="${p.image}" alt="${p.name}">` : '<svg class="ui-icon" style="width:20px;"><use href="#icon-wallet"></use></svg>'}</div>
-                        <span class="payment-option-name">${p.name}</span>
+                        <div class="payment-option-text">
+                            <span class="payment-option-name">${p.name}</span>
+                            ${p.availabilityNote ? `<span class="payment-option-availability">${p.availabilityNote}</span>` : ''}
+                        </div>
                     </div>
                 `;
             }).join('');
@@ -6505,7 +6578,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, collection, addDoc, doc, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp, query, where, orderBy, limit, getDocs, getCountFromServer, onSnapshot, increment, runTransaction, arrayUnion, arrayRemove, deleteField } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, getRedirectResult, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInWithCredential, getRedirectResult, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getMessaging, getToken, onMessage, isSupported as isMessagingSupported } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js";
 
         const firebaseConfig = {
@@ -6950,7 +7023,36 @@
         window.redeemReferralCode = redeemReferralCode;
 
         // ---------- Top Up Modal ----------
+        // Wallet requires a real Google sign-in (balance/history need to follow
+        // the customer across devices, unlike guest-ID-only browsing/orders).
+        // Signed-out taps show the gate modal instead; walletGatePending tracks
+        // that we should auto-open the real top-up modal once sign-in succeeds.
+        let walletGatePending = false;
+
         function openWalletTopupModal() {
+            if (!auth.currentUser) {
+                walletGatePending = true;
+                document.getElementById('wallet-google-gate-overlay').classList.add('show');
+                return;
+            }
+            openWalletTopupModalActual();
+        }
+        window.openWalletTopupModal = openWalletTopupModal;
+
+        function closeWalletGoogleGate() {
+            walletGatePending = false;
+            document.getElementById('wallet-google-gate-overlay').classList.remove('show');
+        }
+        window.closeWalletGoogleGate = closeWalletGoogleGate;
+
+        async function handleWalletGateGoogleSignIn() {
+            await handleGoogleSignIn('wallet-gate-google-btn');
+            // If sign-in succeeded, onAuthStateChanged below closes this gate
+            // and opens the real Wallet top-up modal automatically.
+        }
+        window.handleWalletGateGoogleSignIn = handleWalletGateGoogleSignIn;
+
+        function openWalletTopupModalActual() {
             document.getElementById('wallet-topup-amount').value = '';
             document.getElementById('wallet-topup-payment-info').style.display = 'none';
             document.getElementById('wallet-receipt-preview').style.display = 'none';
@@ -6968,7 +7070,6 @@
             renderWalletPaymentMethods();
             document.getElementById('wallet-topup-overlay').classList.add('show');
         }
-        window.openWalletTopupModal = openWalletTopupModal;
 
         function closeWalletTopupModal() {
             document.getElementById('wallet-topup-overlay').classList.remove('show');
@@ -7037,7 +7138,10 @@
             const cryptoCard = PROVIDER_ENABLED.fazercard === false ? '' : `
                 <div class="payment-option" data-wallet-payment-id="__crypto__" onclick="openCryptoTopupModal()">
                     <div class="payment-option-icon"><svg class="ui-icon" style="width:20px;"><use href="#icon-wallet"></use></svg></div>
-                    <span class="payment-option-name">Pay with Crypto (auto top-up)</span>
+                    <div class="payment-option-text">
+                        <span class="payment-option-name">Pay with Crypto (auto top-up)</span>
+                        <span class="payment-option-availability">Instant - available 24/7</span>
+                    </div>
                 </div>
             `;
             // Independent from the FazerCards crypto card above - its own
@@ -7046,7 +7150,10 @@
             const aluuCard = PROVIDER_ENABLED.aluu === false ? '' : `
                 <div class="payment-option" data-wallet-payment-id="__aluu_usdt__" onclick="openAluuTopupModal()">
                     <div class="payment-option-icon"><svg class="ui-icon" style="width:20px;"><use href="#icon-wallet"></use></svg></div>
-                    <span class="payment-option-name">Pay with USDT (Aluu.in, auto top-up)</span>
+                    <div class="payment-option-text">
+                        <span class="payment-option-name">Pay with USDT (Aluu.in, auto top-up)</span>
+                        <span class="payment-option-availability">Instant - available 24/7</span>
+                    </div>
                 </div>
             `;
             if (ids.length === 0) {
@@ -7058,7 +7165,10 @@
                 return `
                     <div class="payment-option" data-wallet-payment-id="${id}" onclick="selectWalletPaymentMethod('${id}')">
                         <div class="payment-option-icon">${p.image ? `<img src="${p.image}" alt="${p.name}">` : '<svg class="ui-icon" style="width:20px;"><use href="#icon-wallet"></use></svg>'}</div>
-                        <span class="payment-option-name">${p.name}</span>
+                        <div class="payment-option-text">
+                            <span class="payment-option-name">${p.name}</span>
+                            ${p.availabilityNote ? `<span class="payment-option-availability">${p.availabilityNote}</span>` : ''}
+                        </div>
                     </div>
                 `;
             }).join('') + cryptoCard + aluuCard;
@@ -7477,6 +7587,15 @@
         function renderWalletTopupList() {
             const list = document.getElementById('wallet-topup-list');
             const empty = document.getElementById('wallet-topup-empty');
+            if (!walletTopupsLoaded) {
+                // First render before the live snapshot has arrived yet -
+                // neutral loading state, not the "No top up requests" empty
+                // state (which would misleadingly flash before real data).
+                list.innerHTML = '';
+                empty.innerHTML = emptyStateHTML('icon-wallet', 'Loading...', '', '');
+                empty.style.display = 'block';
+                return;
+            }
             if (walletTopupCache.length === 0) {
                 list.innerHTML = '';
                 empty.innerHTML = emptyStateHTML('icon-wallet', 'No top up requests yet', 'Top up your wallet to pay for orders instantly.',
@@ -7535,22 +7654,36 @@
             }
         }
 
-        let walletTopupsListenerAttached = false;
+        // walletTopupCache/renderWalletTopupList only feed the Wallet page's
+        // top-up history list + its detail modal (confirmed via grep — no
+        // other page reads walletTopupCache), so this listener is lazy: only
+        // live while Wallet is open, wired into showPage() below. A
+        // `walletTopupsLoaded` flag lets the first render show a neutral
+        // "loading" state instead of a misleading "No top up requests yet"
+        // empty-state flash before the first snapshot arrives.
+        let walletTopupsUnsub = null;
+        let walletTopupsLoaded = false;
         function listenWalletTopups() {
-            if (walletTopupsListenerAttached) return;
-            walletTopupsListenerAttached = true;
+            if (walletTopupsUnsub) return;
             const gid = window.getGuestId ? window.getGuestId() : null;
             if (!gid) return;
             cleanupOldWalletTopups(gid);
             const q = query(collection(db, "walletTopups"), where("userId", "==", gid));
-            onSnapshot(q, (snap) => {
+            walletTopupsUnsub = onSnapshot(q, (snap) => {
                 const items = [];
                 snap.forEach(d => items.push({ id: d.id, ...d.data() }));
                 items.sort((a, b) => (b.timestamp?.toMillis?.() || 0) - (a.timestamp?.toMillis?.() || 0));
                 walletTopupCache = items;
+                walletTopupsLoaded = true;
                 renderWalletTopupList();
             }, (error) => console.error('Wallet topups listener error:', error));
         }
+        function stopListenWalletTopups() {
+            if (walletTopupsUnsub) { walletTopupsUnsub(); walletTopupsUnsub = null; }
+            walletTopupsLoaded = false;
+        }
+        window.listenWalletTopups = listenWalletTopups;
+        window.stopListenWalletTopups = stopListenWalletTopups;
 
         function openWalletTopupDetail(index) {
             const t = walletTopupCache[index];
@@ -7578,7 +7711,6 @@
         window.formatMMK = window.formatMMK || function (n) { return Math.round(n || 0).toLocaleString('en-US') + ' MMK'; };
 
         listenWalletBalance();
-        listenWalletTopups();
         renderReferralCard();
 
         // ---------- Google sign-in (optional) ----------
@@ -7589,6 +7721,57 @@
         // whether or not someone ever signs in with Google.
         const googleProvider = new GoogleAuthProvider();
         googleProvider.setCustomParameters({ prompt: 'select_account' });
+
+        // ---------- Google Identity Services (GIS) sign-in ----------
+        // Renders Google's own "Sign in with Google" button, which opens an
+        // in-page account chooser overlay instead of a separate popup/tab
+        // (signInWithPopup opens as a full new tab on most mobile browsers,
+        // since they don't support classic small popup windows). Falls back
+        // to the old popup/redirect buttons (class .gis-fallback, hidden by
+        // default) if the GIS script is blocked/fails to load - e.g. some
+        // ad/tracker blockers block accounts.google.com/gsi/client.
+        const GIS_CLIENT_ID = '666629360027-us8un4uogmeb24mgb9jt6ljsbp3r25k4.apps.googleusercontent.com';
+        const GIS_BUTTON_SLOT_IDS = ['onboard-google-gis', 'account-google-signin-gis', 'wallet-gate-google-gis', 'google-signin-gis'];
+
+        async function handleGisCredentialResponse(response) {
+            try {
+                const credential = GoogleAuthProvider.credential(response.credential);
+                const result = await signInWithCredential(auth, credential);
+                applyGoogleProfile(result.user);
+            } catch (error) {
+                console.error('GIS sign-in error:', error);
+                if (window.showToast) window.showToast('Google sign-in failed. Please try again.', 'fail');
+            }
+        }
+        window.handleGisCredentialResponse = handleGisCredentialResponse;
+
+        function initGisSignIn() {
+            if (!(window.google && google.accounts && google.accounts.id)) return false;
+            google.accounts.id.initialize({
+                client_id: GIS_CLIENT_ID,
+                callback: handleGisCredentialResponse,
+                auto_select: false
+            });
+            GIS_BUTTON_SLOT_IDS.forEach((id) => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                google.accounts.id.renderButton(el, { theme: 'outline', size: 'large', shape: 'pill', text: 'continue_with', logo_alignment: 'left' });
+            });
+            return true;
+        }
+
+        // Give the GIS script (loaded async in <head>) a moment to arrive;
+        // if it hasn't after 2s (blocked, offline, etc.), reveal the old
+        // popup/redirect buttons instead so sign-in still works.
+        (function waitForGis(attemptsLeft) {
+            if (initGisSignIn()) return;
+            if (attemptsLeft <= 0) {
+                document.querySelectorAll('.gis-fallback').forEach((el) => { el.style.display = ''; });
+                document.querySelectorAll('.gis-btn-slot').forEach((el) => { el.style.display = 'none'; });
+                return;
+            }
+            setTimeout(() => waitForGis(attemptsLeft - 1), 200);
+        })(10);
 
         function renderGoogleAccountUI(user) {
             const signedOutEl = document.getElementById('google-account-signedout');
@@ -7724,6 +7907,16 @@
         }
         window.handleOnboardGoogleSignIn = handleOnboardGoogleSignIn;
 
+        // Guest browsing: the store already runs fully on the localStorage
+        // guestId (see getGuestId()) for browsing, orders, and wallet - Google
+        // sign-in is only needed for cross-device profile sync and the
+        // account marketplace gate. So skipping straight to language choice
+        // here is safe and doesn't block any core purchase flow.
+        function handleOnboardGuestContinue() {
+            showOnboardStep('lang');
+        }
+        window.handleOnboardGuestContinue = handleOnboardGuestContinue;
+
         function selectOnboardLanguage(lang) {
             setLanguage(lang);
             const enChip = document.getElementById('onboard-lang-en');
@@ -7752,6 +7945,11 @@
             renderGoogleAccountUI(user);
             if (window.renderAccountAccessGate) window.renderAccountAccessGate();
             handleOnboardAuthState(user);
+            if (user && walletGatePending) {
+                walletGatePending = false;
+                document.getElementById('wallet-google-gate-overlay').classList.remove('show');
+                openWalletTopupModalActual();
+            }
         });
 
         // ---------- Account marketplace access gate ----------
@@ -7977,10 +8175,12 @@
         // Populates the mini profile strip's tier chip and the Profile page's
         // VIP card: current tier, lifetime spend, order count, member-since,
         // and a progress bar toward the next tier.
-        async function loadProfileStats() {
-            const guestId = window.getGuestId ? window.getGuestId() : '';
-            if (!guestId) return;
-            const { total, count, games } = await computeUserStats(guestId);
+        // Renders the mini-profile tier chip + Profile page's VIP card from a
+        // {total, count, games} stats object. Split out from loadProfileStats
+        // so the same rendering can run twice: once instantly from a cached
+        // value (see loadProfileStats below), then again once the live
+        // Firestore numbers come back.
+        function renderProfileStatsUI(total, count, games) {
             window.__lastUserStats = { total, count, games };
             const tier = tierForSpend(total);
             const next = nextTierForSpend(total);
@@ -8034,7 +8234,40 @@
                     tierFrame.dataset.tier = tier.name.toLowerCase();
                 }
             }
+        }
 
+        // localStorage cache for the last computed stats, keyed by guest ID
+        // (so switching devices/clearing storage never shows someone else's
+        // numbers). computeUserStats() is 2 real Firestore reads (orders +
+        // walletTopups) that ran on every single app load just to fill in the
+        // mini-profile tier chip - now the cached number renders instantly,
+        // and the live query still runs right after to correct it silently
+        // if anything changed since the cache was written.
+        function getCachedUserStats(guestId) {
+            try {
+                const raw = localStorage.getItem('gz_stats_cache');
+                if (!raw) return null;
+                const cached = JSON.parse(raw);
+                if (!cached || cached.guestId !== guestId) return null;
+                return cached;
+            } catch (e) { return null; }
+        }
+        function setCachedUserStats(guestId, total, count, games) {
+            try {
+                localStorage.setItem('gz_stats_cache', JSON.stringify({ guestId, total, count, games, ts: Date.now() }));
+            } catch (e) {}
+        }
+
+        async function loadProfileStats() {
+            const guestId = window.getGuestId ? window.getGuestId() : '';
+            if (!guestId) return;
+
+            const cached = getCachedUserStats(guestId);
+            if (cached) renderProfileStatsUI(cached.total, cached.count, cached.games);
+
+            const { total, count, games } = await computeUserStats(guestId);
+            renderProfileStatsUI(total, count, games);
+            setCachedUserStats(guestId, total, count, games);
         }
         window.loadProfileStats = loadProfileStats;
 
@@ -8273,12 +8506,8 @@
                 text.innerText = t('chat_admin_online');
                 chatStatusStr = 'Online';
             } else {
-                const lastSeenDate = new Date(lastAdminActiveMs);
-                const isToday = lastSeenDate.toDateString() === new Date().toDateString();
-                const timeStr = lastSeenDate.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-                const lastSeenStr = isToday ? timeStr : `${lastSeenDate.toLocaleDateString('en-GB', { day: '2-digit', month: 'short' })} ${timeStr}`;
-                text.innerText = `Admin Offline — last seen ${lastSeenStr}`;
-                chatStatusStr = `Last seen ${lastSeenStr}`;
+                text.innerText = 'Last seen recently';
+                chatStatusStr = 'Last seen recently';
             }
             if (chatDot) chatDot.classList.toggle('online', isOnline);
             if (chatText) chatText.innerText = chatStatusStr;
@@ -8838,6 +9067,9 @@
         // completely outside of any coupon "event window" instead of always
         // being visible with a code box that would just fail to validate.
         // Doesn't reveal codes to the client - only a yes/no availability flag.
+        // Only relevant while a package is selected on the game-detail page
+        // (renderCouponCard, checkout), so this now subscribes on entering
+        // game-detail and unsubscribes on leaving it — see showPage().
         let couponAvailabilityUnsub = null;
         function isCouponCurrentlyUsable(c) {
             if (!c || !c.isActive) return false;
@@ -8869,7 +9101,11 @@
                 refreshPricesAfterCouponChange();
             }, (error) => console.error('Coupon availability listener error:', error));
         }
-        listenCouponAvailability();
+        function stopListenCouponAvailability() {
+            if (couponAvailabilityUnsub) { couponAvailabilityUnsub(); couponAvailabilityUnsub = null; }
+        }
+        window.listenCouponAvailability = listenCouponAvailability;
+        window.stopListenCouponAvailability = stopListenCouponAvailability;
 
         function openFlashSaleGame() {
             if (flashSaleGameId && window.openGameDetail) window.openGameDetail(flashSaleGameId);
@@ -9988,6 +10224,7 @@
         function findCategory(id) { return GAME_CATEGORIES.find(c => c.id === id); }
         let selectedGameCategory = 'all';
         let gameSearchQuery = '';
+        let gameSearchDebounceTimer = null;
 
         function escapeHtml(str) {
             return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
@@ -9997,14 +10234,22 @@
         function filterGamesBySearch(value) {
             gameSearchQuery = (value || '').trim().toLowerCase();
             document.getElementById('game-search-clear').style.display = gameSearchQuery ? 'block' : 'none';
-            renderHomeGames();
+            // Debounced: typing fires this on every keystroke, but the actual
+            // re-render (filters + rebuilds the game grid) only runs 250ms
+            // after the user pauses, so fast typing on low-end phones doesn't
+            // trigger a full re-render per character.
+            clearTimeout(gameSearchDebounceTimer);
+            gameSearchDebounceTimer = setTimeout(() => renderHomeGames(), 250);
         }
         window.filterGamesBySearch = filterGamesBySearch;
 
         function clearGameSearch() {
             const input = document.getElementById('game-search-input');
             input.value = '';
-            filterGamesBySearch('');
+            clearTimeout(gameSearchDebounceTimer);
+            gameSearchQuery = '';
+            document.getElementById('game-search-clear').style.display = 'none';
+            renderHomeGames();
             input.focus();
         }
         window.clearGameSearch = clearGameSearch;
@@ -10127,6 +10372,16 @@
             }, { root: null, rootMargin: '0px', threshold: 0.15 })
             : null;
 
+        // Popular Games row perf: rendering every popular-flagged game (and
+        // fetching every card's image) up front was wasted work on phones
+        // that never scroll the row to the end. Render an initial batch,
+        // then load more in batches as the row's end sentinel scrolls into
+        // view (also fed by the auto-scroll loop above, so it works even
+        // without the user touching the row).
+        const POPULAR_INITIAL_BATCH = 8;
+        const POPULAR_LOAD_STEP = 8;
+        let popularLoadMoreObserver = null;
+
         function revealCardsIn(container) {
             if (!container) return;
             const cards = container.querySelectorAll('.game-card-anim:not(.in-view)');
@@ -10194,6 +10449,50 @@
             });
         })();
 
+        function popularGameCardHtml(gr, i) {
+            const g = GAMES[gr.repId];
+            return `
+                <div class="game-card popular-card game-card-anim" style="animation-delay:${Math.min(i * 18, 120)}ms" onclick="openGameEntry(${gr.idx})">
+                    <div class="game-card-img-wrap">
+                        <img src="${g.image}" alt="${g.name}" loading="lazy" decoding="async">
+                        ${categoryBadgeHtml(g.category)}
+                    </div>
+                    <div class="game-card-name">${g.name}</div>
+                </div>
+            `;
+        }
+
+        function renderPopularGamesRow(popularGroups) {
+            const popularScroll = document.getElementById('popular-games-scroll');
+            if (popularLoadMoreObserver) { popularLoadMoreObserver.disconnect(); popularLoadMoreObserver = null; }
+
+            let loaded = Math.min(POPULAR_INITIAL_BATCH, popularGroups.length);
+            const sentinelHtml = loaded < popularGroups.length
+                ? '<div class="popular-games-sentinel" style="flex-shrink:0;width:1px;"></div>' : '';
+            popularScroll.innerHTML = popularGroups.slice(0, loaded).map((gr, i) => popularGameCardHtml(gr, i)).join('') + sentinelHtml;
+            revealCardsIn(popularScroll);
+
+            if (loaded >= popularGroups.length || !('IntersectionObserver' in window)) return;
+
+            popularLoadMoreObserver = new IntersectionObserver((entries) => {
+                if (!entries.some(e => e.isIntersecting)) return;
+                const sentinel = popularScroll.querySelector('.popular-games-sentinel');
+                const nextLoaded = Math.min(loaded + POPULAR_LOAD_STEP, popularGroups.length);
+                const nextHtml = popularGroups.slice(loaded, nextLoaded).map((gr, i) => popularGameCardHtml(gr, loaded + i)).join('');
+                if (sentinel) sentinel.insertAdjacentHTML('beforebegin', nextHtml);
+                revealCardsIn(popularScroll);
+                loaded = nextLoaded;
+                if (loaded >= popularGroups.length) {
+                    popularLoadMoreObserver.disconnect();
+                    popularLoadMoreObserver = null;
+                    if (sentinel) sentinel.remove();
+                }
+            }, { root: popularScroll, rootMargin: '0px 200px 0px 0px', threshold: 0 });
+
+            const sentinelEl = popularScroll.querySelector('.popular-games-sentinel');
+            if (sentinelEl) popularLoadMoreObserver.observe(sentinelEl);
+        }
+
         function renderHomeGames() {
             const popularSection = document.getElementById('popular-games-section');
             const popularScroll = document.getElementById('popular-games-scroll');
@@ -10238,22 +10537,11 @@
             const popularGroups = gameSearchQuery ? [] : indexedGroups.filter(gr => gr.ids.some(id => GAMES[id].popular));
             if (popularGroups.length > 0) {
                 popularSection.style.display = 'block';
-                popularScroll.innerHTML = popularGroups.map((gr, i) => {
-                    const g = GAMES[gr.repId];
-                    return `
-                        <div class="game-card popular-card game-card-anim" style="animation-delay:${Math.min(i * 18, 120)}ms" onclick="openGameEntry(${gr.idx})">
-                            <div class="game-card-img-wrap">
-                                <img src="${g.image}" alt="${g.name}" loading="lazy" decoding="async">
-                                ${categoryBadgeHtml(g.category)}
-                            </div>
-                            <div class="game-card-name">${g.name}</div>
-                        </div>
-                    `;
-                }).join('');
-                revealCardsIn(popularScroll);
+                renderPopularGamesRow(popularGroups);
             } else {
                 popularSection.style.display = 'none';
                 popularScroll.innerHTML = '';
+                if (popularLoadMoreObserver) { popularLoadMoreObserver.disconnect(); popularLoadMoreObserver = null; }
             }
 
             // All Games: filtered by the selected category chip (or everything, for "All"),
@@ -10423,8 +10711,15 @@
             return !!a && (a.status || 'available') === 'available';
         }
 
+        // GAME_ACCOUNTS is only ever read from the three account-marketplace
+        // pages (see the usages below), so unlike the always-on listeners
+        // above, this one subscribes only while the user is actually on one
+        // of those pages and unsubscribes the moment they leave — see the
+        // showPage() calls to listenGameAccounts()/stopListenGameAccounts().
+        let gameAccountsUnsub = null;
         function listenGameAccounts() {
-            onSnapshot(collection(db, "gameAccounts"), (snap) => {
+            if (gameAccountsUnsub) return; // already subscribed
+            gameAccountsUnsub = onSnapshot(collection(db, "gameAccounts"), (snap) => {
                 const map = {};
                 snap.forEach(docSnap => { map[docSnap.id] = docSnap.data(); });
                 GAME_ACCOUNTS = map;
@@ -10435,7 +10730,11 @@
                 console.error("Game accounts listener error:", error);
             });
         }
-        listenGameAccounts();
+        function stopListenGameAccounts() {
+            if (gameAccountsUnsub) { gameAccountsUnsub(); gameAccountsUnsub = null; }
+        }
+        window.listenGameAccounts = listenGameAccounts;
+        window.stopListenGameAccounts = stopListenGameAccounts;
 
         function renderAccountGames() {
             const grid = document.getElementById('account-games-grid');
@@ -10838,7 +11137,10 @@
                 return `
                     <div class="payment-option" data-payment-id="${id}" onclick="acctSelectPaymentMethod('${id}')">
                         <div class="payment-option-icon">${p.image ? `<img src="${p.image}" alt="${p.name}">` : '<svg class="ui-icon" style="width:20px;"><use href="#icon-wallet"></use></svg>'}</div>
-                        <span class="payment-option-name">${p.name}</span>
+                        <div class="payment-option-text">
+                            <span class="payment-option-name">${p.name}</span>
+                            ${p.availabilityNote ? `<span class="payment-option-availability">${p.availabilityNote}</span>` : ''}
+                        </div>
                     </div>
                 `;
             }).join('');
@@ -11070,12 +11372,47 @@
         // while this tab/browser is running (foreground, minimized, or another
         // tab) — it can't wake the device if the browser itself is fully closed,
         // since that requires a paid Cloud Messaging + Cloud Function backend.
+        //
+        // When this page is loaded inside the Capacitor Android/iOS shell,
+        // Capacitor auto-injects a global `window.Capacitor` object into the
+        // WebView (no bundler/import needed) exposing native plugins under
+        // `Capacitor.Plugins.*`. We branch on that to use true native FCM
+        // (survives app being swiped away, unaffected by battery optimizers
+        // once the user allows it) instead of the browser web-push path.
+        function isNativeApp() {
+            return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
+        }
         function pushSupported() {
-            return 'Notification' in window;
+            return isNativeApp() || 'Notification' in window;
         }
         function pushEnabled() {
-            try { return pushSupported() && Notification.permission === 'granted' && localStorage.getItem('gz_push_opt_in') === '1'; }
-            catch (e) { return false; }
+            try {
+                if (isNativeApp()) return pushSupported() && localStorage.getItem('gz_push_opt_in') === '1';
+                return pushSupported() && Notification.permission === 'granted' && localStorage.getItem('gz_push_opt_in') === '1';
+            } catch (e) { return false; }
+        }
+        // Wires up the native FCM token listener. Call once on load. Actual
+        // permission is requested later by togglePushNotifications()/
+        // registerFcmToken() — this only sets up where the resulting token
+        // gets saved once the OS hands it back.
+        function initNativePush() {
+            if (!isNativeApp() || !window.Capacitor.Plugins || !window.Capacitor.Plugins.PushNotifications) return;
+            const PN = window.Capacitor.Plugins.PushNotifications;
+            PN.addListener('registration', async (token) => {
+                try {
+                    const gid = window.getGuestId ? window.getGuestId() : null;
+                    if (!gid || !token || !token.value) return;
+                    await setDoc(doc(db, "users", gid), { fcmToken: token.value }, { merge: true });
+                    renderPushToggleUI();
+                } catch (e) { console.error('Native push token save error:', e); }
+            });
+            PN.addListener('registrationError', (err) => {
+                console.error('Native push registration error:', err);
+            });
+            // Re-register silently on every app launch if the user already
+            // opted in previously — the OS won't re-prompt, it just hands the
+            // token back through the same 'registration' listener.
+            if (pushEnabled()) PN.register();
         }
         function renderPushToggleUI() {
             const toggle = document.getElementById('push-toggle');
@@ -11084,6 +11421,17 @@
             if (!pushSupported()) {
                 toggle.classList.add('blocked');
                 stateEl.textContent = 'Not supported on this browser';
+                return;
+            }
+            if (isNativeApp()) {
+                toggle.classList.remove('blocked');
+                if (pushEnabled()) {
+                    toggle.classList.add('on');
+                    stateEl.textContent = 'On — you\'ll get alerts for admin announcements';
+                } else {
+                    toggle.classList.remove('on');
+                    stateEl.textContent = 'Off — tap to enable';
+                }
                 return;
             }
             const perm = Notification.permission;
@@ -11102,10 +11450,19 @@
         }
         async function registerFcmToken() {
             try {
-                await messagingReady;
-                if (!messaging) return;
                 const gid = window.getGuestId ? window.getGuestId() : null;
                 if (!gid) return;
+                if (isNativeApp()) {
+                    // Native path: the token doesn't come back from this call directly —
+                    // it arrives async via the 'registration' listener set up in
+                    // initNativePush(), which is what actually saves it to Firestore.
+                    if (window.Capacitor.Plugins && window.Capacitor.Plugins.PushNotifications) {
+                        window.Capacitor.Plugins.PushNotifications.register();
+                    }
+                    return;
+                }
+                await messagingReady;
+                if (!messaging) return;
                 const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
                 const token = await getToken(messaging, { vapidKey: FCM_VAPID_KEY, serviceWorkerRegistration: registration });
                 if (!token) return;
@@ -11123,6 +11480,26 @@
 
         async function togglePushNotifications() {
             if (!pushSupported()) return;
+            if (isNativeApp()) {
+                if (pushEnabled()) {
+                    try { localStorage.setItem('gz_push_opt_in', '0'); } catch (e) {}
+                    clearFcmToken();
+                    renderPushToggleUI();
+                    return;
+                }
+                try {
+                    const PN = window.Capacitor.Plugins.PushNotifications;
+                    const perm = await PN.requestPermissions();
+                    if (perm && perm.receive === 'granted') {
+                        try { localStorage.setItem('gz_push_opt_in', '1'); } catch (e) {}
+                        registerFcmToken(); // token arrives via the 'registration' listener
+                    } else {
+                        showToast('Notifications permission was not granted', 'error');
+                    }
+                } catch (error) { console.error('Native push permission error:', error); }
+                renderPushToggleUI();
+                return;
+            }
             if (Notification.permission === 'denied') {
                 showToast('Notifications are blocked — enable them in your browser settings', 'error');
                 return;
@@ -11148,6 +11525,45 @@
             renderPushToggleUI();
         }
         window.togglePushNotifications = togglePushNotifications;
+        if (document.readyState === 'loading') {
+            document.addEventListener('DOMContentLoaded', initNativePush);
+        } else {
+            initNativePush();
+        }
+
+        // ---------- PWA installability + custom "Download App" button ----------
+        // Chrome only offers to install a site as an app (WebAPK) if a service
+        // worker is registered — previously that only happened inside
+        // registerFcmToken(), i.e. only after a visitor turned push
+        // notifications on. Registering it here unconditionally means every
+        // visitor's browser sees this as an installable app from their first
+        // visit, and — once actually installed — notifications show up under
+        // the app's own name/icon instead of "Chrome • pcagamestore.vercel.app".
+        if (!isNativeApp() && 'serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/firebase-messaging-sw.js')
+                .catch(err => console.error('Service worker registration error:', err));
+        }
+
+        let deferredInstallPrompt = null;
+        window.addEventListener('beforeinstallprompt', (e) => {
+            e.preventDefault(); // stop Chrome's default mini-infobar; we show our own button instead
+            deferredInstallPrompt = e;
+            const btn = document.getElementById('install-app-btn');
+            if (btn) btn.style.display = 'flex';
+        });
+        async function installApp() {
+            if (!deferredInstallPrompt) return;
+            deferredInstallPrompt.prompt();
+            await deferredInstallPrompt.userChoice; // resolves once the user taps Install or Cancel
+            deferredInstallPrompt = null;
+            const btn = document.getElementById('install-app-btn');
+            if (btn) btn.style.display = 'none';
+        }
+        window.installApp = installApp;
+        window.addEventListener('appinstalled', () => {
+            const btn = document.getElementById('install-app-btn');
+            if (btn) btn.style.display = 'none';
+        });
         window.renderPushToggleUI = renderPushToggleUI;
 
         messagingReady.then(() => {
@@ -12114,5 +12530,12 @@
         initPackageCardLongPressCopy();
         applyI18n();
     </script>
+    <!-- Shown only when Chrome fires 'beforeinstallprompt' (site meets PWA
+         install criteria: manifest + registered service worker over HTTPS).
+         Lets a visitor install straight from the website itself, no Play
+         Store needed. Hidden by default; JS toggles it visible. -->
+    <button id="install-app-btn" onclick="installApp()" style="display:none;position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom, 0px));z-index:9999;padding:13px 16px;border:none;border-radius:14px;background:#2563EB;color:#fff;font-size:15px;font-weight:700;box-shadow:0 8px 24px rgba(37,99,235,0.35);align-items:center;justify-content:center;gap:8px;">
+        ⬇️ App ကို Download လုပ်ပါ
+    </button>
 </body>
 </html>
