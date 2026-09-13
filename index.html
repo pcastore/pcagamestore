@@ -7804,7 +7804,42 @@
         // Fills in name/photo from the Google account, but only where the
         // customer hasn't already set something manually - never overwrites a
         // deliberate edit they made before signing in.
-        function applyGoogleProfile(user) {
+        //
+        // Also keeps ONE guest account per Google account: googleAccounts/{uid}
+        // records which guestId a Google account is canonically tied to. The
+        // first time a Google account signs in anywhere, it links to whatever
+        // guestId that device already had. If it signs in again later on a
+        // *different* device/browser (a fresh guestId), we detect the existing
+        // link and pull that device back onto the original guestId instead of
+        // quietly running a second, separate account under the same Gmail.
+        async function applyGoogleProfile(user) {
+            try {
+                const linkRef = doc(db, "googleAccounts", user.uid);
+                const linkSnap = await getDoc(linkRef);
+                const myGid = window.getGuestId ? window.getGuestId() : null;
+                if (linkSnap.exists() && linkSnap.data().guestId && linkSnap.data().guestId !== myGid) {
+                    const linkedGid = linkSnap.data().guestId;
+                    // Pull the canonical account's saved fields down first so the
+                    // switch shows the right name/photo immediately, then reload
+                    // so every Firestore listener (wallet, VIP, orders, referral)
+                    // re-subscribes under the correct guestId from scratch.
+                    try {
+                        const userSnap = await getDoc(doc(db, "users", linkedGid));
+                        const d = userSnap.exists() ? userSnap.data() : {};
+                        localStorage.setItem('gz_profile', JSON.stringify({ name: d.name || '', phone: d.phone || '', photo: d.photo || '' }));
+                        localStorage.setItem('gz_guest_id', linkedGid);
+                    } catch (e) { /* private browsing / storage blocked */ }
+                    if (window.showToast) window.showToast('ချိတ်ဆက်ထားသော အကောင့်သို့ ပြန်ခေါ်နေသည်...', 'success');
+                    setTimeout(() => location.reload(), 900);
+                    return;
+                }
+                if (!linkSnap.exists()) {
+                    await setDoc(linkRef, { guestId: myGid, email: user.email || '' }, { merge: true });
+                }
+            } catch (e) {
+                console.error('Google account link check failed:', e);
+            }
+
             const existing = window.getSavedProfile ? window.getSavedProfile() : { name: '', phone: '', photo: '' };
             const profile = {
                 name: existing.name || user.displayName || '',
@@ -10126,6 +10161,17 @@
         // ---------- Game Catalogue (live from Firestore "games" collection) ----------
         let GAMES = {};          // { docId: { name, image, packages: [{amount, price}] } } — filtered, see below
         let RAW_GAMES = {};      // unfiltered snapshot straight from Firestore
+        // Every package/price edit in admin touches its game's Firestore doc, which
+        // fires the *whole* "games" collection listener below - even though most of
+        // those edits (price, cost, stock) don't change anything the Home grid
+        // actually displays. Without this, every customer currently on the Home tab
+        // got a full innerHTML rebuild of all ~25 game cards (destroying scroll
+        // position and replaying every card's entrance animation) on every single
+        // package tweak elsewhere in the catalogue - the "stutter" this was added
+        // to fix. renderHomeGames() below compares a signature of only the fields
+        // it actually renders (name/image/category/popular/order) against the last
+        // render and skips the rebuild entirely when nothing visible changed.
+        let lastHomeGamesSignature = null;
 
         // Whether each import source is currently turned on in the admin panel
         // (Dashboard → that provider's Settings → "Enabled" toggle). Mirrors
@@ -10520,6 +10566,15 @@
             });
             renderCategoryFilterChips();
             const countEl = document.getElementById('all-games-count');
+            // Signature over only the fields this function renders - a price/cost/
+            // stock-only edit elsewhere in the doc leaves this identical, so the
+            // expensive rebuild below (and its animation replay) gets skipped.
+            const signature = JSON.stringify([
+                selectedGameCategory, gameSearchQuery,
+                ids.map(id => { const g = GAMES[id]; return [id, g.name, g.image, g.category, g.serverName, g.order, !!g.popular]; })
+            ]);
+            if (signature === lastHomeGamesSignature && grid.children.length > 0) return;
+            lastHomeGamesSignature = signature;
             if (ids.length === 0) {
                 grid.innerHTML = '<p class="empty-msg">No games available yet.</p>';
                 popularSection.style.display = 'none';
