@@ -988,7 +988,12 @@
         .lb-list-heading { font-size: 12px; font-weight: 600; color: var(--text-muted); margin: 2px 4px 6px; }
 
         /* Buttons & Nav */
-        .btn { width: 100%; padding: 10px; border-radius: 6px; font-weight: 500; font-size: 15px; cursor: pointer; border: none; text-align: center; transition: 0.2s;}
+        .btn {
+            width: 100%; min-height: 44px; padding: 10px 14px; border-radius: 6px; font-weight: 500; font-size: 15px;
+            cursor: pointer; border: none; text-align: center; transition: 0.2s;
+            display: flex; align-items: center; justify-content: center;
+            line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+        }
         .btn-primary { background-color: var(--accent); color: white; }
         .btn-primary:active { background-color: var(--accent-dark); }
         .btn:disabled { opacity: 0.55; cursor: not-allowed; }
@@ -1132,7 +1137,7 @@
         .modal-body { overflow-y: auto; -webkit-overflow-scrolling: touch; overscroll-behavior: contain; display: flex; flex-direction: column; gap: 10px; flex: 1 1 auto; min-height: 0; }
         /* Package/Currency tab switcher */
         .pkg-type-tabs { display: flex; background: var(--bg); border-radius: 10px; padding: 4px; gap: 4px; margin-bottom: 14px; }
-        .pkg-type-tab { flex: 1; text-align: center; padding: 9px 0; border: none; background: transparent; border-radius: 8px; font-size: 14px; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: 0.15s; }
+        .pkg-type-tab { flex: 1; min-height: 38px; text-align: center; padding: 9px 4px; border: none; background: transparent; border-radius: 8px; font-size: 14px; font-weight: 500; color: var(--text-secondary); cursor: pointer; transition: 0.15s; display: flex; align-items: center; justify-content: center; gap: 4px; line-height: 1.2; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .pkg-type-tab.active { background: var(--surface); color: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
         /* Pay-with (Wallet vs Payment method) tabs — same look as pkg-type-tabs
            but a separate class so the two toggles never fight over which one
@@ -2690,7 +2695,7 @@
                 <div class="drawer-nav-item" onclick="closeDrawer(); openNotificationsPage();">
                     <svg class="ui-icon"><use href="#icon-bell"></use></svg><span data-i18n="nav_notifications">Notifications</span>
                 </div>
-                <div class="drawer-nav-item" onclick="closeDrawer(); showPage('terms');">
+                <div class="drawer-nav-item" onclick="closeDrawer(); openTermsPage();">
                     <svg class="ui-icon"><use href="#icon-book"></use></svg><span data-i18n="nav_terms">Terms &amp; Policy</span>
                 </div>
             </nav>
@@ -3501,7 +3506,7 @@
                 </div>
             </div>
 
-            <div class="detail-form-card profile-card-anim" id="terms-entry-card" style="margin-top:14px;cursor:pointer;animation-delay:320ms;" onclick="showPage('terms')" role="button" aria-label="Open Terms and Policy">
+            <div class="detail-form-card profile-card-anim" id="terms-entry-card" style="margin-top:14px;cursor:pointer;animation-delay:320ms;" onclick="openTermsPage()" role="button" aria-label="Open Terms and Policy">
                 <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
                     <span class="prefs-row-label">
                         <span class="prefs-row-icon"><svg class="ui-icon" style="width:18px;height:18px;"><use href="#icon-shield"></use></svg></span>
@@ -4249,15 +4254,16 @@
             if (!content) return;
 
             const THRESHOLD = 70;   // min horizontal px to count as a swipe
-            const RESTRAINT = 90;   // max vertical drift allowed
+            const RESTRAINT = 90;   // max vertical drift allowed once a horizontal drag is already locked in
             const MAX_TIME = 600;   // ms
             const DRAG_START_PX = 10; // horizontal px before a move counts as "dragging" vs a tap/scroll
+            const DIRECTION_LOCK_RATIO = 1.3; // |dx| must exceed |dy| by this much to claim the gesture as horizontal
             const DRAG_RESISTANCE = 0.45; // how much of the finger's motion the page follows
             const EDGE_RESISTANCE = 0.25; // extra resistance applied on top of that at the first/last tab
 
             let startX = 0, startY = 0, startTime = 0;
             let scrollAncestor = null, scrollStartLeft = 0;
-            let dragEl = null, dragging = false;
+            let dragEl = null, dragging = false, verticalIntent = false;
 
             function findScrollableAncestor(el) {
                 while (el && el !== content) {
@@ -4287,18 +4293,30 @@
                 scrollAncestor = findScrollableAncestor(e.target);
                 scrollStartLeft = scrollAncestor ? scrollAncestor.scrollLeft : 0;
                 dragging = false;
+                verticalIntent = false;
                 dragEl = TAB_ORDER.indexOf(window.currentStorePage || 'home') !== -1
                     ? document.querySelector('.page-section.active') : null;
             }, { passive: true });
 
             content.addEventListener('touchmove', (e) => {
                 if (!dragEl || e.touches.length !== 1) return;
+                if (verticalIntent) return; // this gesture was already claimed as a vertical scroll — never hijack it
                 if (scrollAncestor && Math.abs(scrollAncestor.scrollLeft - scrollStartLeft) > 4) return;
                 const t = e.touches[0];
                 const dx = t.clientX - startX;
                 const dy = t.clientY - startY;
                 if (!dragging) {
-                    if (Math.abs(dx) < DRAG_START_PX || Math.abs(dy) > RESTRAINT) return;
+                    // Direction not yet locked: only claim the gesture as a horizontal
+                    // tab-swipe once it has moved far enough AND is clearly more
+                    // horizontal than vertical. Otherwise it's a normal card/page
+                    // scroll — hand it back to native scrolling and stop watching it,
+                    // which is what was causing the tabs to shift/flicker mid-scroll.
+                    if (Math.abs(dx) < DRAG_START_PX && Math.abs(dy) < DRAG_START_PX) return;
+                    if (Math.abs(dx) < Math.abs(dy) * DIRECTION_LOCK_RATIO) {
+                        verticalIntent = true;
+                        return;
+                    }
+                    if (Math.abs(dy) > RESTRAINT) { verticalIntent = true; return; }
                     dragging = true;
                     dragEl.classList.add('tab-dragging');
                 }
@@ -4319,6 +4337,7 @@
                 resetDragEl();
 
                 if (scrollAncestor && Math.abs(scrollAncestor.scrollLeft - scrollStartLeft) > 4) return;
+                if (verticalIntent) return;
                 if (!wasDragging) return;
                 if (dt > MAX_TIME) return;
                 if (Math.abs(dx) < THRESHOLD || Math.abs(dy) > RESTRAINT) return;
@@ -5536,7 +5555,7 @@
                             <span style="font-weight:600;font-size:14px;">${appliedCoupon.code}</span>
                             <span style="color:#28a745;font-weight:600;font-size:13px;margin-left:8px;">-${appliedCoupon.discountAmount.toLocaleString()} MMK</span>
                         </div>
-                        <button type="button" class="btn btn-outline" style="flex:unset;padding:6px 12px;font-size:12px;" onclick="removeCoupon()" data-i18n="btn_remove">Remove</button>
+                        <button type="button" class="btn btn-outline" style="flex:unset;width:auto;min-width:78px;padding:6px 12px;font-size:12px;" onclick="removeCoupon()" data-i18n="btn_remove">Remove</button>
                     </div>
                 `;
             } else {
@@ -5544,7 +5563,7 @@
                     <label style="align-self:flex-start;">Coupon Code</label>
                     <div style="display:flex;gap:8px;width:100%;">
                         <input type="text" id="coupon-code-input" placeholder="Enter coupon code" autocomplete="off" style="flex:1;text-transform:uppercase;padding:11px 14px;border-radius:12px;border:1px solid var(--border-glass);background:var(--fill-soft);color:var(--text);font-size:14px;">
-                        <button type="button" class="btn btn-outline" id="coupon-apply-btn" style="flex:unset;padding:0 16px;" onclick="applyCoupon()" data-i18n="btn_apply">Apply</button>
+                        <button type="button" class="btn btn-outline" id="coupon-apply-btn" style="flex:unset;width:auto;min-width:76px;padding:0 16px;" onclick="applyCoupon()" data-i18n="btn_apply">Apply</button>
                     </div>
                 `;
             }
@@ -10410,6 +10429,24 @@
             showPage(serverSelectReturnPage);
         }
         window.closeServerSelect = closeServerSelect;
+
+        // Terms & Policy page can be opened from the drawer nav (any page)
+        // or from the entry card on Profile — remembers whichever page the
+        // user was on so the back arrow returns them there instead of
+        // always going Home. Same pattern as openServerSelect/openNotificationsPage.
+        let termsReturnPage = 'home';
+        function openTermsPage() {
+            if (window.currentStorePage && window.currentStorePage !== 'terms') {
+                termsReturnPage = window.currentStorePage;
+            }
+            showPage('terms');
+        }
+        window.openTermsPage = openTermsPage;
+
+        function closeTermsPage() {
+            showPage(termsReturnPage || 'home');
+        }
+        window.closeTermsPage = closeTermsPage;
 
         // Scroll-reveal for .game-card-anim elements: instead of every card
         // animating in the instant it's rendered, each card stays invisible
