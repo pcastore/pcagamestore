@@ -4795,7 +4795,7 @@
         // TEMP: "Open Game" feature switched off (not in use yet) — flip this
         // back to true to re-enable both buttons (detail page + success page)
         // without touching anything else.
-        const GAME_OPEN_FEATURE_ENABLED = false;
+        const GAME_OPEN_FEATURE_ENABLED = true;
         function hasGameAppLink(game) {
             return GAME_OPEN_FEATURE_ENABLED && !!(game && (game.appAndroidPackage || game.appAndroidStoreUrl || game.appIosScheme || game.appIosStoreUrl));
         }
