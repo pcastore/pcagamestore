@@ -1291,11 +1291,15 @@
         /* Account list: sort + rank/server/price filter chips (reuses
            .cat-filter-chip styling so it matches the game-category filter). */
         .acct-filter-bar { margin-bottom: 4px; }
-        .acct-sort-row, .acct-filter-scroll {
+        .acct-sort-row, .acct-filter-scroll, .acct-game-tab-row {
             display: flex; align-items: center; gap: 8px; overflow-x: auto; white-space: nowrap;
             padding: 2px 2px 10px; -webkit-overflow-scrolling: touch;
         }
-        .acct-sort-row::-webkit-scrollbar, .acct-filter-scroll::-webkit-scrollbar { display: none; }
+        .acct-sort-row::-webkit-scrollbar, .acct-filter-scroll::-webkit-scrollbar, .acct-game-tab-row::-webkit-scrollbar { display: none; }
+        /* Game-name tab row sits above the sort/filter row and uses a bigger,
+           bolder chip so it reads as the primary "which game" choice rather
+           than a secondary filter. */
+        .acct-game-tab-row .cat-filter-chip { font-size: 13px; font-weight: 700; padding: 8px 16px; }
         .acct-filter-label {
             flex: 0 0 auto; font-size: 11px; font-weight: 700; color: var(--text-muted);
             text-transform: uppercase; letter-spacing: 0.4px; padding-right: 2px;
@@ -2917,27 +2921,14 @@
             </div>
             <div id="account-content" style="display:none;">
                 <h2 class="title-header" data-i18n="title_game_accounts">Game Accounts</h2>
-                <p class="empty-msg" style="text-align:left;padding:0 2px 12px;">Pre-made accounts ready to play — pick a game to browse.</p>
-                <div class="games-grid-scroll">
-                    <div class="cards-grid" id="account-games-grid">
-                        <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
-                        <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
-                        <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
-                    </div>
-                </div>
+                <!-- Game-name tabs: pick which game's accounts to browse.
+                     Price + main image show right on each card below — no
+                     extra tap needed to see those; opening a card is only
+                     for the full detail (skins, description, buy flow). -->
+                <div id="account-game-tabs" class="acct-game-tab-row"></div>
+                <div id="account-list-filter-bar" class="acct-filter-bar"></div>
+                <div id="account-list-grid"></div>
             </div>
-        </div>
-
-        <!-- ACCOUNT LIST — every available account for one game -->
-        <div id="account-list" class="page-section">
-            <div style="display:flex; align-items:center; gap:10px; margin-bottom:16px;">
-                <div class="header-icon" style="width:36px;height:36px;" onclick="closeAccountList()">
-                    <svg class="ui-icon" style="width:18px;"><use href="#icon-chevron-left"></use></svg>
-                </div>
-                <h2 style="font-size:18px; font-weight: 600; color:var(--text);" id="account-list-title">Accounts</h2>
-            </div>
-            <div id="account-list-filter-bar" class="acct-filter-bar"></div>
-            <div id="account-list-grid"></div>
         </div>
 
         <!-- ACCOUNT DETAIL — gallery, skins, rank/server, description, buy flow -->
@@ -11177,7 +11168,7 @@
         let ACCOUNT_GAME_GROUPS = [];
         let currentAccountGameName = null;
         // Account-list sort/filter state. Reset whenever a different game
-        // is opened (see openAccountGame) so filters don't leak across games.
+        // is opened (see selectAccountGameTab) so filters don't leak across games.
         let acctSortMode = 'newest';       // 'newest' | 'price-asc' | 'price-desc'
         let acctFilterRank = 'all';
         let acctFilterServer = 'all';
@@ -11226,7 +11217,6 @@
                 GAME_ACCOUNTS = map;
                 gameAccountsLoadedOnce = true;
                 if (window.currentStorePage === 'account') renderAccountGames();
-                if (window.currentStorePage === 'account-list' && currentAccountGameName) renderAccountList(currentAccountGameName);
                 if (window.currentStorePage === 'account-detail' && currentAccountId) renderAccountDetail(currentAccountId);
             }, (error) => {
                 console.error("Game accounts listener error:", error);
@@ -11238,56 +11228,64 @@
         window.listenGameAccounts = listenGameAccounts;
         window.stopListenGameAccounts = stopListenGameAccounts;
 
+        // Builds the game-name tab row and renders the selected game's
+        // account cards straight onto the outer "Game Accounts" page — no
+        // separate folder-grid page to tap through first. Price and main
+        // image are already visible on each card (see renderAccountList);
+        // only the full detail (skins, description, buy flow) needs a tap.
         function renderAccountGames() {
-            const grid = document.getElementById('account-games-grid');
+            const tabsBar = document.getElementById('account-game-tabs');
+            const grid = document.getElementById('account-list-grid');
             if (!grid) return;
             const byGame = {};
             Object.keys(GAME_ACCOUNTS).forEach(id => {
                 const a = GAME_ACCOUNTS[id];
                 if (!isAccountAvailable(a)) return;
                 const name = a.gameName || 'Other';
-                if (!byGame[name]) byGame[name] = { gameName: name, image: (Array.isArray(a.images) && a.images[0]) || '', count: 0 };
+                if (!byGame[name]) byGame[name] = { gameName: name, count: 0 };
                 byGame[name].count++;
             });
             const groups = Object.values(byGame).sort((a, b) => a.gameName.localeCompare(b.gameName));
             ACCOUNT_GAME_GROUPS = groups;
+
             if (groups.length === 0) {
+                if (tabsBar) tabsBar.innerHTML = '';
+                const filterBar = document.getElementById('account-list-filter-bar');
+                if (filterBar) filterBar.innerHTML = '';
                 grid.innerHTML = gameAccountsLoadedOnce
                     ? emptyStateHTML('icon-shield', 'No accounts yet', 'Game accounts for sale will show up here once added.')
                     : loadingStateHTML();
                 return;
             }
-            grid.innerHTML = groups.map((g, i) => `
-                <div class="game-card game-card-anim" style="animation-delay:${Math.min(i * 18, 120)}ms" onclick="openAccountGame(${i})">
-                    <div class="game-card-img-wrap">
-                        <img src="${g.image}" alt="${g.gameName}" loading="lazy" decoding="async">
-                        <span class="acct-count-badge">${g.count} available</span>
-                    </div>
-                    <div class="game-card-name">${g.gameName}</div>
-                </div>
-            `).join('');
-            revealCardsIn(grid);
+
+            // Keep whichever game tab was already selected as long as it
+            // still has stock; otherwise default to the first alphabetically.
+            if (!currentAccountGameName || !groups.some(g => g.gameName === currentAccountGameName)) {
+                currentAccountGameName = groups[0].gameName;
+            }
+
+            if (tabsBar) {
+                tabsBar.innerHTML = groups.map(g => `
+                    <div class="cat-filter-chip${g.gameName === currentAccountGameName ? ' active' : ''}" onclick="selectAccountGameTab('${String(g.gameName).replace(/'/g, "\\'")}')">${g.gameName} (${g.count})</div>
+                `).join('');
+            }
+
+            renderAccountList(currentAccountGameName);
         }
         window.renderAccountGames = renderAccountGames;
 
-        function openAccountGame(idx) {
-            const g = ACCOUNT_GAME_GROUPS[idx];
-            if (!g) return;
-            currentAccountGameName = g.gameName;
-            acctSortMode = 'newest';
+        // Switching the game tab resets the rank/server/price filters (sort
+        // mode is left as-is — "Newest"/"Price" is a browsing preference,
+        // not something tied to one game) so a filter chip left over from a
+        // different game doesn't silently hide everything.
+        function selectAccountGameTab(name) {
+            currentAccountGameName = name;
             acctFilterRank = 'all';
             acctFilterServer = 'all';
             acctFilterPriceBucket = 'all';
-            document.getElementById('account-list-title').innerText = g.gameName;
-            showPage('account-list');
-            renderAccountList(g.gameName);
+            renderAccountGames();
         }
-        window.openAccountGame = openAccountGame;
-
-        function closeAccountList() {
-            showPage('account');
-        }
-        window.closeAccountList = closeAccountList;
+        window.selectAccountGameTab = selectAccountGameTab;
 
         function renderAccountList(gameName) {
             const list = document.getElementById('account-list-grid');
@@ -11446,7 +11444,7 @@
         window.timeAgoLabel = timeAgoLabel;
 
         function closeAccountDetail() {
-            showPage('account-list');
+            showPage('account');
         }
         window.closeAccountDetail = closeAccountDetail;
 
