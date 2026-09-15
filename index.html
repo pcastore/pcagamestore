@@ -75,9 +75,32 @@
             });
         })();
     </script>
+    <script>
+        // Blocks the Android Chrome long-press menu ("Copy/Share/Select all",
+        // "Open image in new tab/Copy image/Download image", etc.) that pops
+        // up on game cards, thumbnails and other artwork. -webkit-touch-callout
+        // in the CSS below only works on iOS Safari — Android Chrome shows its
+        // menu off the native 'contextmenu' event (which long-press fires), so
+        // it has to be preventDefault()'d here. Inputs/textareas are excluded
+        // so users can still long-press to select/paste text they typed.
+        document.addEventListener('contextmenu', function (e) {
+            var tag = e.target.tagName;
+            if (tag !== 'INPUT' && tag !== 'TEXTAREA' && !e.target.isContentEditable) {
+                e.preventDefault();
+            }
+        });
+    </script>
     <style>
         @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
         * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        /* Stops long-press text selection ("Copy/Share/Select all/Web search")
+           from popping up on cards, labels and other non-editable UI. Inputs,
+           textareas and anything explicitly marked editable are exempted below
+           so typing/pasting still works normally. */
+        body { -webkit-user-select: none; -moz-user-select: none; user-select: none; }
+        input, textarea, [contenteditable="true"], [contenteditable=""] {
+            -webkit-user-select: text; -moz-user-select: text; user-select: text;
+        }
         /* Stops the long-press "save image / open image / search image" context
            menu and drag-ghost on every <img> site-wide (product art, avatars,
            gallery photos, etc.) without touching click/tap handlers. */
@@ -438,6 +461,7 @@
             transform: translateX(-100%);
             transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
             box-shadow: 8px 0 28px rgba(0,0,0,0.2);
+            border-radius: 0 24px 24px 0;
             overflow-y: auto;
         }
         .drawer-overlay.show .side-drawer { transform: translateX(0); }
@@ -1145,7 +1169,7 @@
            anywhere a list can be genuinely empty (history, wallet top ups).
            Keeps things calmer than a bare "No X yet." line and gives a hint
            on what to do next. */
-        .empty-state { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 44px 24px 36px; gap: 4px; }
+        .empty-state { display: flex; flex-direction: column; align-items: center; text-align: center; padding: 44px 24px 36px; gap: 4px; grid-column: 1 / -1; }
         .empty-state-icon { width: 64px; height: 64px; border-radius: 50%; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; margin-bottom: 10px; }
         .empty-state-icon svg { width: 28px; height: 28px; stroke: var(--text-muted); }
         .empty-state-title { font-size: 15px; font-weight: 600; color: var(--text); }
@@ -1154,6 +1178,10 @@
         .page-loading-spinner {
             width: 34px; height: 34px; border: 3px solid rgba(var(--accent-rgb),0.15);
             border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite;
+        }
+        .page-loading-label {
+            margin-top: 12px; font-size: 12px; font-weight: 700; letter-spacing: 1.5px;
+            color: var(--text-muted);
         }
 
         /* Package Selection */
@@ -1220,7 +1248,12 @@
 
         /* Game Account Marketplace (Account tab) — game-folder grid reuses
            .game-card; these are the extra bits specific to browsing/buying
-           pre-made accounts (availability badge, list rows, chips, gallery). */
+           pre-made accounts (availability badge, list rows, chips, gallery).
+           The folder thumbnails go 16:9 instead of the default 1:1 used by
+           the other game/voucher grids, so cards are wider/bigger and read
+           better — 2-up instead of 3-up on mobile to fit the wider ratio. */
+        #account-games-grid { grid-template-columns: repeat(2, 1fr); }
+        #account-games-grid .game-card-img-wrap { aspect-ratio: 16 / 9; }
         .acct-count-badge {
             position: absolute; left: 4px; bottom: 4px; padding: 2px 6px;
             border-radius: 6px; font-size: 9px; font-weight: 600;
@@ -2893,8 +2926,8 @@
                 <h2 style="font-size:18px; font-weight: 600; color:var(--text);" id="acct-detail-game-name">Account</h2>
             </div>
             <div class="detail-layout">
-            <div class="detail-banner-col" style="position:relative;">
-                <img id="acct-detail-main-img" src="" alt="" style="width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:12px; margin-bottom:10px;">
+            <div class="detail-banner-col" style="position:relative; overflow:hidden; border-radius:12px;">
+                <img id="acct-detail-main-img" src="" alt="" style="width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:12px; margin-bottom:10px; display:block;">
                 <span id="acct-detail-img-counter" style="position:absolute;bottom:18px;right:10px;background:rgba(0,0,0,0.6);color:#fff;font-size:12px;font-weight:600;padding:3px 9px;border-radius:20px;">1/1</span>
             </div>
             <div class="detail-main-col">
@@ -4244,7 +4277,7 @@
         // Firestore listener has returned any data yet, so the page never
         // flashes a misleading "No X yet" empty-state ahead of real data.
         function loadingStateHTML() {
-            return `<div class="empty-state"><div class="page-loading-spinner"></div></div>`;
+            return `<div class="empty-state"><div class="page-loading-spinner"></div><div class="page-loading-label">PCA</div></div>`;
         }
         window.loadingStateHTML = loadingStateHTML;
 
@@ -8078,6 +8111,32 @@
             }
         }
 
+        // A ban applies to a guest account, but a banned customer could just
+        // switch devices (fresh guestId) and sign back in with the same
+        // Gmail to reconnect. This checks whether the guest account this
+        // Google account is (or would be) tied to is banned, and if so signs
+        // the Google session straight back out so the ban actually sticks.
+        // Used both right after a fresh sign-in and on every page load for a
+        // persisted session, so a ban applied after someone last signed in
+        // still locks them out the next time the app checks.
+        async function enforceGoogleAccountBan(user, myGid) {
+            try {
+                const linkSnap = await getDoc(doc(db, "googleAccounts", user.uid));
+                const targetGid = (linkSnap.exists() && linkSnap.data().guestId) || myGid;
+                if (!targetGid) return false;
+                const userSnap = await getDoc(doc(db, "users", targetGid));
+                if (userSnap.exists() && userSnap.data().banned) {
+                    await signOut(auth);
+                    if (window.showToast) window.showToast('This account has been restricted. Contact support.', 'fail');
+                    return true;
+                }
+            } catch (e) {
+                console.error('Google account ban check error:', e);
+                // Don't block sign-in over a network hiccup on this check alone.
+            }
+            return false;
+        }
+
         // Fills in name/photo from the Google account, but only where the
         // customer hasn't already set something manually - never overwrites a
         // deliberate edit they made before signing in.
@@ -8090,24 +8149,37 @@
         // link and pull that device back onto the original guestId instead of
         // quietly running a second, separate account under the same Gmail.
         async function applyGoogleProfile(user) {
+            const myGid = window.getGuestId ? window.getGuestId() : null;
+            if (await enforceGoogleAccountBan(user, myGid)) return;
             try {
                 const linkRef = doc(db, "googleAccounts", user.uid);
                 const linkSnap = await getDoc(linkRef);
-                const myGid = window.getGuestId ? window.getGuestId() : null;
                 if (linkSnap.exists() && linkSnap.data().guestId && linkSnap.data().guestId !== myGid) {
                     const linkedGid = linkSnap.data().guestId;
                     // Pull the canonical account's saved fields down first so the
                     // switch shows the right name/photo immediately, then reload
                     // so every Firestore listener (wallet, VIP, orders, referral)
                     // re-subscribes under the correct guestId from scratch.
+                    //
+                    // IMPORTANT: only show the "reconnecting" toast and reload if
+                    // the switch actually succeeded. Previously the toast+reload
+                    // fired unconditionally even when the try block below failed
+                    // (e.g. a transient Firestore read error) - gz_guest_id never
+                    // got updated, but the user still saw a "success" toast and a
+                    // reload, making it look like the switch worked while their
+                    // old balance/order history silently never came back.
                     try {
                         const userSnap = await getDoc(doc(db, "users", linkedGid));
                         const d = userSnap.exists() ? userSnap.data() : {};
                         localStorage.setItem('gz_profile', JSON.stringify({ name: d.name || '', phone: d.phone || '', photo: d.photo || '' }));
                         localStorage.setItem('gz_guest_id', linkedGid);
-                    } catch (e) { /* private browsing / storage blocked */ }
-                    if (window.showToast) window.showToast('ချိတ်ဆက်ထားသော အကောင့်သို့ ပြန်ခေါ်နေသည်...', 'success');
-                    setTimeout(() => location.reload(), 900);
+                        if (localStorage.getItem('gz_guest_id') !== linkedGid) throw new Error('guest id did not persist');
+                        if (window.showToast) window.showToast('ချိတ်ဆက်ထားသော အကောင့်သို့ ပြန်ခေါ်နေသည်...', 'success');
+                        setTimeout(() => location.reload(), 900);
+                    } catch (e) {
+                        console.error('Google account switch failed:', e);
+                        if (window.showToast) window.showToast('အကောင့်ဟောင်းကို ပြန်ခေါ်၍မရပါ။ ထပ်မံကြိုးစားပါ သို့မဟုတ် Support ကို ဆက်သွယ်ပါ။', 'fail');
+                    }
                     return;
                 }
                 if (!linkSnap.exists()) {
@@ -8261,7 +8333,16 @@
         // via the onboardAuthChecked flag).
         setTimeout(() => { if (!onboardAuthChecked) handleOnboardAuthState(null); }, 2500);
 
-        onAuthStateChanged(auth, (user) => {
+        onAuthStateChanged(auth, async (user) => {
+            // Catches a persisted Google session (returning device) whose
+            // linked guest account was banned after the last time they
+            // actually signed in - without this, they'd stay "signed in"
+            // via Google indefinitely since the session just lives in
+            // localStorage and never re-runs applyGoogleProfile on its own.
+            if (user) {
+                const myGid = window.getGuestId ? window.getGuestId() : null;
+                if (await enforceGoogleAccountBan(user, myGid)) return;
+            }
             renderGoogleAccountUI(user);
             if (window.renderAccountAccessGate) window.renderAccountAccessGate();
             handleOnboardAuthState(user);
@@ -11240,7 +11321,11 @@
             const images = (Array.isArray(a.images) && a.images.length) ? a.images : [''];
             acctDetailImages = images;
             acctDetailImageIndex = 0;
-            document.getElementById('acct-detail-main-img').src = images[0];
+            const mainImgEl = document.getElementById('acct-detail-main-img');
+            mainImgEl.style.transition = 'none';
+            mainImgEl.style.transform = 'translateX(0)';
+            mainImgEl.style.opacity = '1';
+            mainImgEl.src = images[0];
             const counterEl = document.getElementById('acct-detail-img-counter');
             if (counterEl) counterEl.innerText = `1/${images.length}`;
             document.getElementById('acct-detail-title').innerText = a.title || 'Untitled Account';
@@ -11419,34 +11504,90 @@
         // through its photos, same threshold/restraint feel as the
         // top-level tab swipe (initTabSwipe above) but scoped to just this
         // image and wrapping around at either end instead of stopping.
+        // The image now live-follows the finger while dragging (like the
+        // tab swipe's drag-follow), then either slides fully out and the
+        // next/prev photo slides in from the matching side, or snaps back
+        // to center if the drag didn't clear the threshold.
         (function initAccountImageSwipe() {
             const img = document.getElementById('acct-detail-main-img');
             if (!img) return;
 
-            const THRESHOLD = 40;  // min horizontal px to count as a swipe
-            const RESTRAINT = 60;  // max vertical drift allowed
-            const MAX_TIME = 600;  // ms
+            const THRESHOLD = 40;   // min horizontal px to count as a swipe
+            const RESTRAINT = 60;   // max vertical drift allowed
+            const MAX_TIME = 600;   // ms
+            const DRAG_START_PX = 6; // horizontal px before a move counts as dragging
+            const SETTLE_MS = 240;
 
             let startX = 0, startY = 0, startTime = 0;
+            let dragging = false, verticalIntent = false, liveDx = 0;
+
+            function setImmediate(transform, opacity) {
+                img.style.transition = 'none';
+                img.style.transform = transform;
+                img.style.opacity = String(opacity);
+            }
+
+            function animateTo(transform, opacity) {
+                img.style.transition = `transform ${SETTLE_MS}ms cubic-bezier(.22,1,.36,1), opacity ${SETTLE_MS}ms ease`;
+                img.style.transform = transform;
+                img.style.opacity = String(opacity);
+            }
+
+            function snapBack() {
+                animateTo('translateX(0)', 1);
+            }
+
+            // direction: -1 for next photo (swiped left), 1 for previous (swiped right)
+            function advance(direction) {
+                animateTo(`translateX(${direction < 0 ? '-100%' : '100%'})`, 0);
+                setTimeout(() => {
+                    showAccountImage(acctDetailImageIndex + (direction < 0 ? 1 : -1));
+                    setImmediate(`translateX(${direction < 0 ? '100%' : '-100%'})`, 0);
+                    void img.offsetWidth; // force reflow so the next transition actually animates
+                    animateTo('translateX(0)', 1);
+                }, SETTLE_MS);
+            }
 
             img.addEventListener('touchstart', (e) => {
                 if (e.touches.length !== 1) return;
                 const t = e.touches[0];
                 startX = t.clientX; startY = t.clientY; startTime = Date.now();
+                dragging = false; verticalIntent = false; liveDx = 0;
+                img.style.transition = 'none';
+            }, { passive: true });
+
+            img.addEventListener('touchmove', (e) => {
+                if (e.touches.length !== 1 || verticalIntent || acctDetailImages.length < 2) return;
+                const t = e.touches[0];
+                const dx = t.clientX - startX;
+                const dy = t.clientY - startY;
+                if (!dragging) {
+                    if (Math.abs(dx) < DRAG_START_PX && Math.abs(dy) < DRAG_START_PX) return;
+                    if (Math.abs(dy) > Math.abs(dx)) { verticalIntent = true; return; }
+                    dragging = true;
+                }
+                liveDx = dx;
+                img.style.transform = `translateX(${dx}px)`;
+                img.style.opacity = String(Math.max(0.6, 1 - Math.abs(dx) / 600));
             }, { passive: true });
 
             img.addEventListener('touchend', (e) => {
-                if (acctDetailImages.length < 2) return;
+                const wasDragging = dragging;
+                dragging = false;
+                if (verticalIntent) { verticalIntent = false; return; }
+                if (!wasDragging || acctDetailImages.length < 2) return;
+
                 const t = e.changedTouches[0];
                 const dx = t.clientX - startX;
                 const dy = t.clientY - startY;
                 const dt = Date.now() - startTime;
 
-                if (dt > MAX_TIME) return;
-                if (Math.abs(dx) < THRESHOLD || Math.abs(dy) > RESTRAINT) return;
-
-                if (dx < 0) showAccountImage(acctDetailImageIndex + 1); // swipe left -> next photo
-                else showAccountImage(acctDetailImageIndex - 1);       // swipe right -> previous photo
+                if (dt > MAX_TIME || Math.abs(dx) < THRESHOLD || Math.abs(dy) > RESTRAINT) {
+                    snapBack();
+                    return;
+                }
+                if (dx < 0) advance(-1); // swipe left -> next photo
+                else advance(1);          // swipe right -> previous photo
             }, { passive: true });
         })();
 
