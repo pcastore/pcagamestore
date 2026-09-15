@@ -1254,6 +1254,14 @@
            better — 2-up instead of 3-up on mobile to fit the wider ratio. */
         #account-games-grid { grid-template-columns: repeat(2, 1fr); }
         #account-games-grid .game-card-img-wrap { aspect-ratio: 16 / 9; }
+        /* When there's only one game with accounts for sale, a half-width
+           card looks accidentally small/cut-off (see screenshot feedback) —
+           span it across the full grid width and give it a wider, more
+           banner-like image ratio instead of the normal 16:9 folder tile. */
+        #account-games-grid .game-card:only-child { grid-column: 1 / -1; }
+        #account-games-grid .game-card:only-child .game-card-img-wrap { aspect-ratio: 21 / 9; }
+        #account-games-grid .game-card:only-child .game-card-name { font-size: 14px; padding: 10px 4px; font-weight: 600; }
+        #account-games-grid .game-card:only-child .acct-count-badge { font-size: 11px; padding: 4px 9px; left: 8px; bottom: 8px; }
         .acct-count-badge {
             position: absolute; left: 4px; bottom: 4px; padding: 2px 6px;
             border-radius: 6px; font-size: 9px; font-weight: 600;
@@ -1279,6 +1287,20 @@
             background: rgba(239,68,68,0.12); color: #C0392B; font-size: 13px; font-weight: 600;
         }
         html[data-theme="dark"] .acct-sold-banner { color: #FF9B9B; }
+
+        /* Account list: sort + rank/server/price filter chips (reuses
+           .cat-filter-chip styling so it matches the game-category filter). */
+        .acct-filter-bar { margin-bottom: 4px; }
+        .acct-sort-row, .acct-filter-scroll {
+            display: flex; align-items: center; gap: 8px; overflow-x: auto; white-space: nowrap;
+            padding: 2px 2px 10px; -webkit-overflow-scrolling: touch;
+        }
+        .acct-sort-row::-webkit-scrollbar, .acct-filter-scroll::-webkit-scrollbar { display: none; }
+        .acct-filter-label {
+            flex: 0 0 auto; font-size: 11px; font-weight: 700; color: var(--text-muted);
+            text-transform: uppercase; letter-spacing: 0.4px; padding-right: 2px;
+        }
+        .acct-empty-filtered { padding: 34px 10px; text-align: center; color: var(--text-muted); font-size: 13.5px; }
 
         /* Order/detail page on wider screens: banner shrinks and sits in its
            own sidebar column instead of stretching full-width, account info +
@@ -2914,6 +2936,7 @@
                 </div>
                 <h2 style="font-size:18px; font-weight: 600; color:var(--text);" id="account-list-title">Accounts</h2>
             </div>
+            <div id="account-list-filter-bar" class="acct-filter-bar"></div>
             <div id="account-list-grid"></div>
         </div>
 
@@ -2932,6 +2955,7 @@
             </div>
             <div class="detail-main-col">
                 <h3 class="detail-section-title" style="margin-top:0;" id="acct-detail-title">Account</h3>
+                <div id="acct-detail-urgency" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:6px;"></div>
                 <div class="acct-price-row" id="acct-detail-price">0 MMK</div>
                 <div class="acct-chips-row" id="acct-detail-chips"></div>
 
@@ -11152,6 +11176,12 @@
         let GAME_ACCOUNTS = {};
         let ACCOUNT_GAME_GROUPS = [];
         let currentAccountGameName = null;
+        // Account-list sort/filter state. Reset whenever a different game
+        // is opened (see openAccountGame) so filters don't leak across games.
+        let acctSortMode = 'newest';       // 'newest' | 'price-asc' | 'price-desc'
+        let acctFilterRank = 'all';
+        let acctFilterServer = 'all';
+        let acctFilterPriceBucket = 'all'; // 'all' | 0 | 1 | 2 (index into the computed buckets)
         let currentAccountId = null;
         // Images for whichever account listing is currently open on
         // account-detail, plus which one the main image is showing — kept
@@ -11244,6 +11274,10 @@
             const g = ACCOUNT_GAME_GROUPS[idx];
             if (!g) return;
             currentAccountGameName = g.gameName;
+            acctSortMode = 'newest';
+            acctFilterRank = 'all';
+            acctFilterServer = 'all';
+            acctFilterPriceBucket = 'all';
             document.getElementById('account-list-title').innerText = g.gameName;
             showPage('account-list');
             renderAccountList(g.gameName);
@@ -11257,25 +11291,105 @@
 
         function renderAccountList(gameName) {
             const list = document.getElementById('account-list-grid');
+            const filterBar = document.getElementById('account-list-filter-bar');
             if (!list) return;
-            const ids = Object.keys(GAME_ACCOUNTS).filter(id => {
+            const allIds = Object.keys(GAME_ACCOUNTS).filter(id => {
                 const a = GAME_ACCOUNTS[id];
                 return a.gameName === gameName && isAccountAvailable(a);
             });
-            if (ids.length === 0) {
+            if (allIds.length === 0) {
+                if (filterBar) filterBar.innerHTML = '';
                 list.innerHTML = emptyStateHTML('icon-shield', 'No accounts available', 'All accounts for this game have been sold. Check back later.');
                 return;
             }
+
+            // Build the filter option sets from the FULL unfiltered list, so
+            // a chip never disappears just because the current filter hid it.
+            const ranks = [...new Set(allIds.map(id => GAME_ACCOUNTS[id].rank).filter(Boolean))];
+            const servers = [...new Set(allIds.map(id => GAME_ACCOUNTS[id].server).filter(Boolean))];
+            const prices = allIds.map(id => Number(GAME_ACCOUNTS[id].price || 0)).sort((a, b) => a - b);
+            const minP = prices[0], maxP = prices[prices.length - 1];
+            // Split into 3 price buckets (only worth showing once there's an
+            // actual spread of prices for this game).
+            let priceBuckets = [];
+            if (maxP > minP) {
+                const step = (maxP - minP) / 3;
+                const p1 = Math.round(minP + step), p2 = Math.round(minP + step * 2);
+                priceBuckets = [
+                    { lo: minP, hi: minP + step, label: `Under ${p1.toLocaleString()}` },
+                    { lo: minP + step, hi: minP + step * 2, label: `${p1.toLocaleString()} - ${p2.toLocaleString()}` },
+                    { lo: minP + step * 2, hi: maxP, label: `Above ${p2.toLocaleString()}` },
+                ];
+            }
+
+            // If a previously-selected filter value doesn't exist for this
+            // game (e.g. left over from switching games), fall back to "all".
+            if (acctFilterRank !== 'all' && !ranks.includes(acctFilterRank)) acctFilterRank = 'all';
+            if (acctFilterServer !== 'all' && !servers.includes(acctFilterServer)) acctFilterServer = 'all';
+            if (acctFilterPriceBucket !== 'all' && !priceBuckets[acctFilterPriceBucket]) acctFilterPriceBucket = 'all';
+
+            if (filterBar) {
+                const sortChip = (mode, label) => `<div class="cat-filter-chip${acctSortMode === mode ? ' active' : ''}" onclick="setAcctSort('${mode}')">${label}</div>`;
+                let html = `<div class="acct-sort-row">${sortChip('newest', 'Newest')}${sortChip('price-asc', 'Price: Low to High')}${sortChip('price-desc', 'Price: High to Low')}</div>`;
+
+                if (ranks.length > 1) {
+                    html += `<div class="acct-filter-scroll"><span class="acct-filter-label">Rank</span>
+                        <div class="cat-filter-chip${acctFilterRank === 'all' ? ' active' : ''}" onclick="setAcctFilterRank('all')">All</div>
+                        ${ranks.map(r => `<div class="cat-filter-chip${acctFilterRank === r ? ' active' : ''}" onclick="setAcctFilterRank('${String(r).replace(/'/g, "\\'")}')">${r}</div>`).join('')}
+                    </div>`;
+                }
+                if (servers.length > 1) {
+                    html += `<div class="acct-filter-scroll"><span class="acct-filter-label">Server</span>
+                        <div class="cat-filter-chip${acctFilterServer === 'all' ? ' active' : ''}" onclick="setAcctFilterServer('all')">All</div>
+                        ${servers.map(s => `<div class="cat-filter-chip${acctFilterServer === s ? ' active' : ''}" onclick="setAcctFilterServer('${String(s).replace(/'/g, "\\'")}')">${s}</div>`).join('')}
+                    </div>`;
+                }
+                if (priceBuckets.length > 0) {
+                    html += `<div class="acct-filter-scroll"><span class="acct-filter-label">Price</span>
+                        <div class="cat-filter-chip${acctFilterPriceBucket === 'all' ? ' active' : ''}" onclick="setAcctFilterPrice('all')">All</div>
+                        ${priceBuckets.map((b, i) => `<div class="cat-filter-chip${acctFilterPriceBucket === i ? ' active' : ''}" onclick="setAcctFilterPrice(${i})">${b.label} Ks</div>`).join('')}
+                    </div>`;
+                }
+                filterBar.innerHTML = html;
+            }
+
+            // Apply filters.
+            let ids = allIds.filter(id => {
+                const a = GAME_ACCOUNTS[id];
+                if (acctFilterRank !== 'all' && a.rank !== acctFilterRank) return false;
+                if (acctFilterServer !== 'all' && a.server !== acctFilterServer) return false;
+                if (acctFilterPriceBucket !== 'all') {
+                    const p = Number(a.price || 0);
+                    const b = priceBuckets[acctFilterPriceBucket];
+                    if (!b || p < b.lo || p > b.hi) return false;
+                }
+                return true;
+            });
+
+            // Apply sort ('newest' keeps the existing Firestore/insertion order).
+            if (acctSortMode === 'price-asc') ids.sort((x, y) => Number(GAME_ACCOUNTS[x].price || 0) - Number(GAME_ACCOUNTS[y].price || 0));
+            else if (acctSortMode === 'price-desc') ids.sort((x, y) => Number(GAME_ACCOUNTS[y].price || 0) - Number(GAME_ACCOUNTS[x].price || 0));
+
+            if (ids.length === 0) {
+                list.innerHTML = `<div class="acct-empty-filtered">No accounts match these filters.<br><span style="color:var(--accent);font-weight:600;cursor:pointer;" onclick="resetAcctFilters()">Clear filters</span></div>`;
+                return;
+            }
+
             list.innerHTML = ids.map(id => {
                 const a = GAME_ACCOUNTS[id];
                 const cover = (Array.isArray(a.images) && a.images[0]) || '';
-                const chips = [a.rank, a.server].filter(Boolean).map(c => `<span class="acct-chip">${c}</span>`).join('');
+                const skinCount = getAcctSkinCount(a);
+                const chipParts = [a.rank || 'N/A', a.server || 'N/A', `${skinCount} Skins`];
+                const chips = chipParts.map(c => `<span class="acct-chip">${c}</span>`).join('');
+                const agoLabel = timeAgoLabel(a.createdAt);
+                const scarcityBadge = isAccountAvailable(a) ? `<span class="badge badge-danger" style="margin-left:6px;">Only 1 left</span>` : '';
                 return `
                     <div class="list-card acct-list-card" onclick="openAccountDetail('${id}')">
                         <div class="acct-list-thumb"><img src="${cover}" alt="${a.title || ''}" loading="lazy" decoding="async"></div>
                         <div class="acct-list-info">
-                            <div class="acct-list-title">${a.title || 'Untitled Account'}</div>
+                            <div class="acct-list-title">${a.title || 'Untitled Account'}${scarcityBadge}</div>
                             <div class="acct-list-chips">${chips}</div>
+                            ${agoLabel ? `<div class="acct-list-ago" style="font-size:11px;color:var(--text-muted);margin-top:2px;">${agoLabel}</div>` : ''}
                             <div class="acct-list-price">${Number(a.price || 0).toLocaleString()} MMK</div>
                         </div>
                     </div>
@@ -11283,6 +11397,53 @@
             }).join('');
         }
         window.renderAccountList = renderAccountList;
+
+        function setAcctSort(mode) { acctSortMode = mode; renderAccountList(currentAccountGameName); }
+        window.setAcctSort = setAcctSort;
+        function setAcctFilterRank(r) { acctFilterRank = r; renderAccountList(currentAccountGameName); }
+        window.setAcctFilterRank = setAcctFilterRank;
+        function setAcctFilterServer(s) { acctFilterServer = s; renderAccountList(currentAccountGameName); }
+        window.setAcctFilterServer = setAcctFilterServer;
+        function setAcctFilterPrice(b) { acctFilterPriceBucket = b; renderAccountList(currentAccountGameName); }
+        window.setAcctFilterPrice = setAcctFilterPrice;
+        function resetAcctFilters() { acctFilterRank = 'all'; acctFilterServer = 'all'; acctFilterPriceBucket = 'all'; renderAccountList(currentAccountGameName); }
+        window.resetAcctFilters = resetAcctFilters;
+
+        // Splits the free-text "skins" field (newline or comma separated)
+        // into a clean list, so we can show a skin *count* even when the
+        // Skins Included section itself stays hidden (it's optional and
+        // only shown when the buyer opens the account detail page).
+        function getAcctSkinList(a) {
+            return ((a && a.skins) || '').split(/[\n,]/).map(s => s.trim()).filter(Boolean);
+        }
+        window.getAcctSkinList = getAcctSkinList;
+        function getAcctSkinCount(a) { return getAcctSkinList(a).length; }
+        window.getAcctSkinCount = getAcctSkinCount;
+
+        // Turns a Firestore Timestamp (or millis) into a short "time ago"
+        // label, e.g. "2 hours ago". Real elapsed time only — this only
+        // renders when the account doc actually has a createdAt value, it
+        // never invents one.
+        function timeAgoLabel(msOrTimestamp) {
+            let ms = null;
+            if (!msOrTimestamp) return '';
+            if (typeof msOrTimestamp.toMillis === 'function') ms = msOrTimestamp.toMillis();
+            else if (typeof msOrTimestamp.toDate === 'function') ms = msOrTimestamp.toDate().getTime();
+            else if (msOrTimestamp instanceof Date) ms = msOrTimestamp.getTime();
+            else if (typeof msOrTimestamp === 'number') ms = msOrTimestamp;
+            if (!ms) return '';
+            const diffSec = Math.max(0, Math.floor((Date.now() - ms) / 1000));
+            if (diffSec < 60) return 'Added just now';
+            const diffMin = Math.floor(diffSec / 60);
+            if (diffMin < 60) return `Added ${diffMin} min${diffMin === 1 ? '' : 's'} ago`;
+            const diffHr = Math.floor(diffMin / 60);
+            if (diffHr < 24) return `Added ${diffHr} hour${diffHr === 1 ? '' : 's'} ago`;
+            const diffDay = Math.floor(diffHr / 24);
+            if (diffDay < 30) return `Added ${diffDay} day${diffDay === 1 ? '' : 's'} ago`;
+            const diffMonth = Math.floor(diffDay / 30);
+            return `Added ${diffMonth} month${diffMonth === 1 ? '' : 's'} ago`;
+        }
+        window.timeAgoLabel = timeAgoLabel;
 
         function closeAccountDetail() {
             showPage('account-list');
@@ -11330,9 +11491,17 @@
             if (counterEl) counterEl.innerText = `1/${images.length}`;
             document.getElementById('acct-detail-title').innerText = a.title || 'Untitled Account';
             document.getElementById('acct-detail-price').innerText = `${Number(a.price || 0).toLocaleString()} MMK`;
+            const urgencyEl = document.getElementById('acct-detail-urgency');
+            const agoLabel = timeAgoLabel(a.createdAt);
+            const urgencyParts = [];
+            if (isAccountAvailable(a)) urgencyParts.push(`<span class="badge badge-danger">Only 1 left</span>`);
+            if (agoLabel) urgencyParts.push(`<span style="font-size:12px;color:var(--text-muted);">${agoLabel}</span>`);
+            urgencyEl.innerHTML = urgencyParts.join('');
+            const skinList = getAcctSkinList(a);
             const chips = [];
-            if (a.rank) chips.push(`<span class="acct-chip">Rank: ${a.rank}</span>`);
-            if (a.server) chips.push(`<span class="acct-chip">Server: ${a.server}</span>`);
+            chips.push(`<span class="acct-chip">Rank: ${a.rank || 'N/A'}</span>`);
+            chips.push(`<span class="acct-chip">Server: ${a.server || 'N/A'}</span>`);
+            chips.push(`<span class="acct-chip">${skinList.length} Skins</span>`);
             if (Array.isArray(a.customFields)) {
                 a.customFields.forEach(f => {
                     if (f && f.label && f.value) chips.push(`<span class="acct-chip">${f.label}: ${f.value}</span>`);
@@ -11341,7 +11510,6 @@
             document.getElementById('acct-detail-chips').innerHTML = chips.join('');
             document.getElementById('acct-detail-desc-wrap').style.display = a.description ? 'block' : 'none';
             document.getElementById('acct-detail-desc').innerText = a.description || '';
-            const skinList = (a.skins || '').split(/[\n,]/).map(s => s.trim()).filter(Boolean);
             document.getElementById('acct-detail-skins-wrap').style.display = skinList.length ? 'block' : 'none';
             document.getElementById('acct-detail-skins').innerHTML = skinList.map(s => `<span class="acct-chip">${s}</span>`).join('');
 
