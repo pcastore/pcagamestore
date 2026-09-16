@@ -1293,6 +1293,16 @@
             background: var(--accent-soft); border: 1px solid var(--border);
         }
         .acct-price-row { font-size: 20px; font-weight: 700; color: var(--text); margin: 2px 0 4px; }
+        /* Sell tab — small pill button pinned to the top-right corner of the
+           Game Accounts header, opens the "list your account" form modal. */
+        .acct-header-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
+        .acct-header-row .title-header { margin: 0; border: none; padding: 0; flex: 1; min-width: 0; }
+        .acct-sell-btn {
+            display: inline-flex; align-items: center; gap: 4px; flex-shrink: 0;
+            padding: 7px 12px; border-radius: 999px; border: none; cursor: pointer;
+            background: var(--accent); color: #fff; font-size: 12.5px; font-weight: 700;
+        }
+        .acct-sell-btn:active { transform: scale(0.96); }
         .acct-sold-banner {
             padding: 10px 14px; border-radius: 12px; margin: 10px 0;
             background: rgba(239,68,68,0.12); color: #C0392B; font-size: 13px; font-weight: 600;
@@ -2938,7 +2948,13 @@
                 </div>
             </div>
             <div id="account-content" style="display:none;">
-                <h2 class="title-header" data-i18n="title_game_accounts">Game Accounts</h2>
+                <div class="acct-header-row">
+                    <h2 class="title-header" data-i18n="title_game_accounts">Game Accounts</h2>
+                    <button type="button" class="acct-sell-btn" onclick="openSellAccountModal()">
+                        <svg class="ui-icon" style="width:13px;height:13px;"><use href="#icon-plus"></use></svg>
+                        <span data-i18n="btn_sell_tab">Sell</span>
+                    </button>
+                </div>
                 <p class="empty-msg" style="text-align:left;padding:0 2px 12px;" data-i18n="sub_game_accounts">Buy pre-verified game accounts for sale — this is separate from top-up vouchers.</p>
                 <!-- Game-name tabs: pick which game's accounts to browse.
                      Price + main image show right on each card below — no
@@ -2950,6 +2966,103 @@
                     <div class="skel-acct-list-card"><div class="skel skel-thumb"></div><div class="skel-lines"><div class="skel skel-line w60"></div><div class="skel skel-line w40"></div><div class="skel skel-line w30"></div></div></div>
                     <div class="skel-acct-list-card"><div class="skel skel-thumb"></div><div class="skel-lines"><div class="skel skel-line w60"></div><div class="skel skel-line w40"></div><div class="skel skel-line w30"></div></div></div>
                     <div class="skel-acct-list-card"><div class="skel skel-thumb"></div><div class="skel-lines"><div class="skel skel-line w60"></div><div class="skel skel-line w40"></div><div class="skel skel-line w30"></div></div></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- SELL YOUR ACCOUNT MODAL — reached via the "Sell" tab in the corner
+             of the Game Accounts header. Submissions go to Firestore's
+             "sellRequests" collection (status: 'pending') for admin review;
+             this does NOT list the account for sale automatically — admin
+             checks it and, if approved, adds it as a normal gameAccounts
+             listing themselves. Reuses the same upload-shot-box + ImgBB
+             pattern as the wallet receipt / KYC uploads elsewhere. -->
+        <div class="modal-overlay" id="sell-account-overlay" onclick="if(event.target===this) closeSellAccountModal()">
+            <div class="modal-box" style="max-height:88vh;">
+                <div class="modal-header">
+                    <h3 data-i18n="sell_modal_title">Sell Your Account</h3>
+                    <div class="modal-close" onclick="closeSellAccountModal()">
+                        <svg class="ui-icon" style="width:18px;height:18px;"><use href="#icon-close"></use></svg>
+                    </div>
+                </div>
+                <div class="modal-body">
+                    <p style="font-size:12.5px;color:var(--text-secondary);margin-bottom:4px;" data-i18n="sell_modal_sub">Tell us about the account you want to sell. Our team will review it and contact you.</p>
+                    <div class="profile-edit-grid" style="grid-template-columns:1fr;">
+                        <div class="profile-edit-field">
+                            <label data-i18n="sell_l_game">Game</label>
+                            <input type="text" id="sell-acc-game" placeholder="e.g. Mobile Legends" data-i18n-ph="sell_ph_game">
+                        </div>
+                        <div class="profile-edit-field">
+                            <label data-i18n="sell_l_title">Account Title</label>
+                            <input type="text" id="sell-acc-title" placeholder="e.g. Mythic rank, 50 skins" data-i18n-ph="sell_ph_title">
+                        </div>
+                        <div class="profile-edit-field">
+                            <label data-i18n="sell_l_price">Asking Price (MMK)</label>
+                            <input type="text" id="sell-acc-price" inputmode="numeric" placeholder="e.g. 150000" data-i18n-ph="sell_ph_price">
+                        </div>
+                        <div class="profile-edit-field">
+                            <label data-i18n="sell_l_contact">Your Contact (Phone/Telegram)</label>
+                            <input type="text" id="sell-acc-contact" placeholder="e.g. 09xxxxxxxxx or @yourhandle" data-i18n-ph="sell_ph_contact">
+                        </div>
+                        <div class="profile-edit-field">
+                            <label data-i18n="sell_l_desc">Description</label>
+                            <textarea id="sell-acc-desc" rows="3" style="width:100%;border-radius:12px;border:1px solid var(--border);background:var(--surface-alt);color:var(--text);padding:10px 12px;font-size:13px;resize:vertical;" placeholder="Rank, server, skins, why you're selling…" data-i18n-ph="sell_ph_desc"></textarea>
+                        </div>
+                    </div>
+
+                    <label style="display:block;font-size:13px;font-weight:600;color:var(--text);margin-top:14px;" data-i18n="sell_l_photo">Account Screenshot</label>
+                    <label class="upload-shot-box" id="sell-acc-upload-box" for="sell-acc-photo-file">
+                        <div class="upload-shot-icon"><svg class="ui-icon"><use href="#icon-camera"></use></svg></div>
+                        <span class="upload-shot-label" data-i18n="sell_upload_label">Upload Screenshot</span>
+                        <span class="upload-shot-hint" data-i18n="sell_upload_hint">Rank/profile screenshot helps us review faster</span>
+                        <img id="sell-acc-photo-preview" src="" style="display:none;">
+                        <span class="upload-shot-change" id="sell-acc-upload-change" style="display:none;">
+                            <svg style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><use href="#icon-camera"></use></svg> Change
+                        </span>
+                    </label>
+                    <input type="file" id="sell-acc-photo-file" class="upload-shot-input" accept="image/*" onchange="previewSellAccountImage(event)">
+
+                    <!-- Seller identity verification: kept on the SELLER side only
+                         (never shown to buyers). Purpose is accountability, not a
+                         purchase gate — if a seller ever tries to reclaim/"recover"
+                         an account after it's been sold, admin has NRC + location +
+                         video evidence on file to identify them and act on it. -->
+                    <label style="display:block;font-size:13px;font-weight:600;color:var(--text);margin-top:16px;">Seller Identity Verification</label>
+                    <p style="font-size:12px;color:var(--text-secondary);margin-bottom:4px;">Required to list an account. Kept on file for our records only — never shown to buyers. If you attempt to recover an account after selling it, this evidence is used to identify and act against you.</p>
+
+                    <label class="upload-shot-box" id="sell-acc-kyc-front-box" for="sell-acc-kyc-front-file" style="margin-top:10px;">
+                        <div class="upload-shot-icon"><svg class="ui-icon"><use href="#icon-camera"></use></svg></div>
+                        <span class="upload-shot-label">NRC Front Photo</span>
+                        <span class="upload-shot-hint">Tap to take/choose a clear photo of the front side</span>
+                        <img id="sell-acc-kyc-front-preview" src="" style="display:none;">
+                    </label>
+                    <input type="file" id="sell-acc-kyc-front-file" class="upload-shot-input" accept="image/*" capture="environment" onchange="previewSellAccountKycImage(event, 'front')">
+
+                    <label class="upload-shot-box" id="sell-acc-kyc-back-box" for="sell-acc-kyc-back-file" style="margin-top:10px;">
+                        <div class="upload-shot-icon"><svg class="ui-icon"><use href="#icon-camera"></use></svg></div>
+                        <span class="upload-shot-label">NRC Back Photo</span>
+                        <span class="upload-shot-hint">Tap to take/choose a clear photo of the back side</span>
+                        <img id="sell-acc-kyc-back-preview" src="" style="display:none;">
+                    </label>
+                    <input type="file" id="sell-acc-kyc-back-file" class="upload-shot-input" accept="image/*" capture="environment" onchange="previewSellAccountKycImage(event, 'back')">
+
+                    <label class="upload-shot-box" id="sell-acc-kyc-video-box" for="sell-acc-kyc-video-file" style="margin-top:10px;">
+                        <div class="upload-shot-icon"><svg class="ui-icon"><use href="#icon-camera"></use></svg></div>
+                        <span class="upload-shot-label">Short Video (back camera)</span>
+                        <span class="upload-shot-hint">Record yourself holding the physical NRC next to your face</span>
+                        <video id="sell-acc-kyc-video-preview" src="" style="display:none;" muted playsinline controls></video>
+                    </label>
+                    <input type="file" id="sell-acc-kyc-video-file" class="upload-shot-input" accept="video/*" capture="environment" onchange="previewSellAccountKycVideo(event)">
+
+                    <div class="upload-shot-box" id="sell-acc-kyc-location-box" style="margin-top:10px;cursor:pointer;" onclick="captureSellAccountKycLocation()">
+                        <div class="upload-shot-icon"><svg class="ui-icon"><use href="#icon-map-pin"></use></svg></div>
+                        <span class="upload-shot-label">Live Location</span>
+                        <span class="upload-shot-hint" id="sell-acc-kyc-location-hint">Tap to share your current location</span>
+                    </div>
+
+                    <p id="sell-acc-kyc-upload-status" style="font-size:12px;color:var(--text-secondary);display:none;"></p>
+
+                    <button type="button" class="btn btn-primary" id="sell-acc-submit-btn" style="width:100%;margin-top:16px;" onclick="submitSellAccountRequest(this)" data-i18n="sell_submit_btn">Submit for Review</button>
                 </div>
             </div>
         </div>
@@ -4118,6 +4231,20 @@
                 title_all_games: 'All Games', title_popular: 'Popular',
                 title_vouchers: 'Vouchers & Gift Cards', title_game_accounts: 'Game Accounts',
                 sub_game_accounts: 'Buy pre-verified game accounts for sale — this is separate from top-up vouchers.',
+                btn_sell_tab: 'Sell',
+                sell_modal_title: 'Sell Your Account',
+                sell_modal_sub: 'Tell us about the account you want to sell. Our team will review it and contact you.',
+                sell_l_game: 'Game', sell_ph_game: 'e.g. Mobile Legends',
+                sell_l_title: 'Account Title', sell_ph_title: 'e.g. Mythic rank, 50 skins',
+                sell_l_price: 'Asking Price (MMK)', sell_ph_price: 'e.g. 150000',
+                sell_l_contact: 'Your Contact (Phone/Telegram)', sell_ph_contact: 'e.g. 09xxxxxxxxx or @yourhandle',
+                sell_l_desc: 'Description', sell_ph_desc: 'Rank, server, skins, why you\'re selling…',
+                sell_l_photo: 'Account Screenshot',
+                sell_upload_label: 'Upload Screenshot', sell_upload_hint: 'Rank/profile screenshot helps us review faster',
+                sell_submit_btn: 'Submit for Review',
+                sell_err_game: 'Please enter the game name.', sell_err_title: 'Please enter a title for the account.',
+                sell_err_price: 'Please enter your asking price.', sell_err_contact: 'Please enter a way to contact you.',
+                sell_success: 'Submitted! Our team will review it and reach out to you.',
                 title_history: 'Transaction History', title_leaderboard: 'Top Spenders',
                 title_wallet: 'My Wallet', title_profile: 'My Profile',
                 sec_account_info: 'Account Info', lbl_rank: 'Rank', lbl_server: 'Server', sec_description: 'Description',
@@ -4224,6 +4351,20 @@
                 title_all_games: 'ဂိမ်းအားလုံး', title_popular: 'ခေတ်စားနေသော',
                 title_vouchers: 'ဗောက်ချာနှင့် လက်ဆောင်ကတ်များ', title_game_accounts: 'ဂိမ်းအကောင့်များ',
                 sub_game_accounts: 'ကြိုတင်စစ်ဆေးပြီးသား ဂိမ်းအကောင့်များကို ဝယ်ယူနိုင်ပါသည် — ဒါက Top-up voucher နဲ့ လုံးဝမတူပါ၊ သီးခြားစီပါ။',
+                btn_sell_tab: 'ရောင်းမည်',
+                sell_modal_title: 'သင့်အကောင့် ရောင်းလိုက်ပါ',
+                sell_modal_sub: 'ရောင်းလိုသော အကောင့်အကြောင်း ပြောပြပါ။ ကျွန်ုပ်တို့အဖွဲ့မှ စစ်ဆေးပြီး ဆက်သွယ်ပါမည်။',
+                sell_l_game: 'ဂိမ်း', sell_ph_game: 'ဥပမာ - Mobile Legends',
+                sell_l_title: 'အကောင့်ခေါင်းစဉ်', sell_ph_title: 'ဥပမာ - Mythic rank, skin 50',
+                sell_l_price: 'ရောင်းလိုသောစျေးနှုန်း (MMK)', sell_ph_price: 'ဥပမာ - 150000',
+                sell_l_contact: 'သင့်ဆက်သွယ်ရန် (ဖုန်း/Telegram)', sell_ph_contact: 'ဥပမာ - 09xxxxxxxxx သို့မဟုတ် @yourhandle',
+                sell_l_desc: 'ဖော်ပြချက်', sell_ph_desc: 'အဆင့်၊ ဆာဗာ၊ skin များ၊ ဘာကြောင့်ရောင်းချင်တာလဲ…',
+                sell_l_photo: 'အကောင့် Screenshot',
+                sell_upload_label: 'Screenshot တင်ပါ', sell_upload_hint: 'Rank/profile screenshot ရှိရင် ပိုမြန်စွာစစ်ဆေးနိုင်ပါသည်',
+                sell_submit_btn: 'စစ်ဆေးရန် ပို့ပါ',
+                sell_err_game: 'ဂိမ်းအမည်ထည့်ပါ။', sell_err_title: 'အကောင့်ခေါင်းစဉ်ထည့်ပါ။',
+                sell_err_price: 'ရောင်းလိုသောစျေးနှုန်းထည့်ပါ။', sell_err_contact: 'ဆက်သွယ်ရန်အချက်အလက်ထည့်ပါ။',
+                sell_success: 'ပို့ပြီးပါပြီ! ကျွန်ုပ်တို့အဖွဲ့မှ စစ်ဆေးပြီး ဆက်သွယ်ပါမည်။',
                 title_history: 'ငွေလွှဲမှတ်တမ်း', title_leaderboard: 'အများဆုံးသုံးစွဲသူများ',
                 title_wallet: 'ကျွန်ုပ်၏ပိုက်ဆံအိတ်', title_profile: 'ကျွန်ုပ်၏ပရိုဖိုင်',
                 sec_account_info: 'အကောင့်အချက်အလက်', lbl_rank: 'အဆင့်', lbl_server: 'ဆာဗာ', sec_description: 'ဖော်ပြချက်',
@@ -11290,6 +11431,228 @@
         window.listenGameAccounts = listenGameAccounts;
         window.stopListenGameAccounts = stopListenGameAccounts;
 
+        // ---------- Sell Your Account (Sell tab, corner of Game Accounts header) ----------
+        // A lightweight lead-capture form, not a self-listing flow: submissions
+        // land in Firestore's "sellRequests" collection with status 'pending'
+        // for admin to review from the dashboard; admin then manually creates
+        // the real gameAccounts listing if they approve it. Keeps the buy-side
+        // marketplace (GAME_ACCOUNTS, above) free of unverified seller data.
+        let sellAccountPhotoFile = null;
+
+        // Seller-side identity verification state (NRC front/back, a short
+        // holding-ID video, and a live GPS fix) — kept separate from the
+        // buyer-facing acctKyc* variables above so the two flows can't collide.
+        let sellAccKycFrontFile = null;
+        let sellAccKycBackFile = null;
+        let sellAccKycVideoFile = null;
+        let sellAccKycLocation = null; // { lat, lng, accuracy }
+
+        function openSellAccountModal() {
+            const overlay = document.getElementById('sell-account-overlay');
+            if (overlay) overlay.classList.add('show');
+        }
+        window.openSellAccountModal = openSellAccountModal;
+
+        function closeSellAccountModal() {
+            const overlay = document.getElementById('sell-account-overlay');
+            if (overlay) overlay.classList.remove('show');
+            ['sell-acc-game', 'sell-acc-title', 'sell-acc-price', 'sell-acc-contact', 'sell-acc-desc'].forEach(id => {
+                const el = document.getElementById(id);
+                if (el) el.value = '';
+            });
+            sellAccountPhotoFile = null;
+            const preview = document.getElementById('sell-acc-photo-preview');
+            if (preview) { preview.src = ''; preview.style.display = 'none'; }
+            const box = document.getElementById('sell-acc-upload-box');
+            if (box) box.classList.remove('has-image');
+            const change = document.getElementById('sell-acc-upload-change');
+            if (change) change.style.display = 'none';
+
+            // Reset seller identity-verification fields too.
+            sellAccKycFrontFile = null;
+            sellAccKycBackFile = null;
+            sellAccKycVideoFile = null;
+            sellAccKycLocation = null;
+            ['front', 'back'].forEach(side => {
+                const img = document.getElementById(`sell-acc-kyc-${side}-preview`);
+                if (img) { img.src = ''; img.style.display = 'none'; }
+                const b = document.getElementById(`sell-acc-kyc-${side}-box`);
+                if (b) b.classList.remove('has-image');
+            });
+            const video = document.getElementById('sell-acc-kyc-video-preview');
+            if (video) { video.src = ''; video.style.display = 'none'; }
+            const videoBox = document.getElementById('sell-acc-kyc-video-box');
+            if (videoBox) videoBox.classList.remove('has-image');
+            const locHint = document.getElementById('sell-acc-kyc-location-hint');
+            if (locHint) locHint.innerText = 'Tap to share your current location';
+            const locBox = document.getElementById('sell-acc-kyc-location-box');
+            if (locBox) locBox.classList.remove('has-image');
+            const status = document.getElementById('sell-acc-kyc-upload-status');
+            if (status) { status.style.display = 'none'; status.innerText = ''; }
+        }
+        window.closeSellAccountModal = closeSellAccountModal;
+
+        function previewSellAccountKycImage(e, side) {
+            const file = e.target.files[0];
+            if (!file) return;
+            if (side === 'front') sellAccKycFrontFile = file; else sellAccKycBackFile = file;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const img = document.getElementById(`sell-acc-kyc-${side}-preview`);
+                img.src = ev.target.result;
+                img.style.display = 'block';
+                const box = document.getElementById(`sell-acc-kyc-${side}-box`);
+                if (box) box.classList.add('has-image');
+            };
+            reader.readAsDataURL(file);
+        }
+        window.previewSellAccountKycImage = previewSellAccountKycImage;
+
+        function previewSellAccountKycVideo(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            sellAccKycVideoFile = file;
+            const video = document.getElementById('sell-acc-kyc-video-preview');
+            video.src = URL.createObjectURL(file);
+            video.style.display = 'block';
+            const box = document.getElementById('sell-acc-kyc-video-box');
+            if (box) box.classList.add('has-image');
+        }
+        window.previewSellAccountKycVideo = previewSellAccountKycVideo;
+
+        function captureSellAccountKycLocation() {
+            const hint = document.getElementById('sell-acc-kyc-location-hint');
+            const box = document.getElementById('sell-acc-kyc-location-box');
+            if (!navigator.geolocation) {
+                if (hint) hint.innerText = 'Location not supported on this browser.';
+                return;
+            }
+            if (hint) hint.innerText = 'Getting your location...';
+            navigator.geolocation.getCurrentPosition((pos) => {
+                sellAccKycLocation = {
+                    lat: pos.coords.latitude,
+                    lng: pos.coords.longitude,
+                    accuracy: pos.coords.accuracy
+                };
+                if (hint) hint.innerText = `Location captured ✓ (±${Math.round(pos.coords.accuracy)}m)`;
+                if (box) box.classList.add('has-image');
+            }, (err) => {
+                console.error('Seller KYC location error:', err);
+                if (hint) hint.innerText = err.code === err.PERMISSION_DENIED
+                    ? 'Location permission denied — please allow it and try again.'
+                    : 'Could not get location. Try again.';
+            }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+        }
+        window.captureSellAccountKycLocation = captureSellAccountKycLocation;
+
+        async function uploadSellAccountKycImageToImgBB(file, label) {
+            const statusEl = document.getElementById('sell-acc-kyc-upload-status');
+            if (statusEl) { statusEl.style.display = 'block'; statusEl.innerText = `Uploading ${label}...`; }
+            const form = new FormData();
+            form.append('image', file);
+            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: form });
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error?.message || `${label} upload failed`);
+            return data.data.url;
+        }
+
+        // Same free anonymous video host used for the (now-disabled) buyer
+        // KYC flow — ImgBB only takes images, so video goes to catbox instead.
+        async function uploadSellAccountKycVideoToCatbox(file) {
+            const statusEl = document.getElementById('sell-acc-kyc-upload-status');
+            if (statusEl) { statusEl.style.display = 'block'; statusEl.innerText = 'Uploading video...'; }
+            const form = new FormData();
+            form.append('reqtype', 'fileupload');
+            form.append('fileToUpload', file);
+            const res = await fetch('https://catbox.moe/user/api.php', { method: 'POST', body: form });
+            const url = (await res.text()).trim();
+            if (!url.startsWith('http')) throw new Error('Video upload failed');
+            return url;
+        }
+
+        function previewSellAccountImage(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            sellAccountPhotoFile = file;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                const img = document.getElementById('sell-acc-photo-preview');
+                img.src = ev.target.result;
+                img.style.display = 'block';
+                document.getElementById('sell-acc-upload-box').classList.add('has-image');
+                document.getElementById('sell-acc-upload-change').style.display = 'flex';
+            };
+            reader.readAsDataURL(file);
+        }
+        window.previewSellAccountImage = previewSellAccountImage;
+
+        async function uploadSellAccountImageToImgBB(file) {
+            const form = new FormData();
+            form.append('image', file);
+            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: form });
+            const data = await res.json();
+            if (!data.success) throw new Error(data.error?.message || 'Photo upload failed');
+            return data.data.url;
+        }
+
+        async function submitSellAccountRequest(btnEl) {
+            const game = document.getElementById('sell-acc-game').value.trim();
+            const title = document.getElementById('sell-acc-title').value.trim();
+            const price = document.getElementById('sell-acc-price').value.trim();
+            const contact = document.getElementById('sell-acc-contact').value.trim();
+            const desc = document.getElementById('sell-acc-desc').value.trim();
+
+            if (!game) { window.showToast(t('sell_err_game'), 'fail'); return; }
+            if (!title) { window.showToast(t('sell_err_title'), 'fail'); return; }
+            if (!price) { window.showToast(t('sell_err_price'), 'fail'); return; }
+            if (!contact) { window.showToast(t('sell_err_contact'), 'fail'); return; }
+
+            // Seller identity verification is mandatory: this is the evidence
+            // admin relies on if the seller later tries to reclaim/"recover"
+            // the account after it's sold. Never surfaced to buyers.
+            if (!sellAccKycFrontFile || !sellAccKycBackFile) { window.showToast('Please add both NRC photos.', 'fail'); return; }
+            if (!sellAccKycVideoFile) { window.showToast('Please add the short verification video.', 'fail'); return; }
+            if (!sellAccKycLocation) { window.showToast('Please share your location.', 'fail'); return; }
+
+            const guestId = window.getGuestId ? window.getGuestId() : null;
+            if (!guestId) { window.showToast('Could not identify your account. Please reload.', 'fail'); return; }
+
+            const originalText = btnEl.innerText;
+            btnEl.disabled = true;
+            btnEl.innerText = '...';
+
+            try {
+                let photoUrl = '';
+                if (sellAccountPhotoFile) photoUrl = await uploadSellAccountImageToImgBB(sellAccountPhotoFile);
+                const kycFrontUrl = await uploadSellAccountKycImageToImgBB(sellAccKycFrontFile, 'front photo');
+                const kycBackUrl = await uploadSellAccountKycImageToImgBB(sellAccKycBackFile, 'back photo');
+                const kycVideoUrl = await uploadSellAccountKycVideoToCatbox(sellAccKycVideoFile);
+                const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
+                await addDoc(collection(db, "sellRequests"), {
+                    userId: guestId,
+                    userName: (savedProfile.name && savedProfile.name.trim()) ? savedProfile.name.trim() : guestId,
+                    game, title, price, contact, description: desc, photoUrl,
+                    // Seller-only identity records — admin/dashboard use only,
+                    // never exposed on the buyer-facing listing.
+                    sellerKycNrcFrontUrl: kycFrontUrl,
+                    sellerKycNrcBackUrl: kycBackUrl,
+                    sellerKycVideoUrl: kycVideoUrl,
+                    sellerKycLocation: sellAccKycLocation,
+                    status: 'pending',
+                    createdAt: serverTimestamp()
+                });
+                window.showToast(t('sell_success'), 'success');
+                closeSellAccountModal();
+            } catch (error) {
+                console.error('Sell account submit error:', error);
+                window.showToast(error.message || 'Could not submit. Please try again.', 'fail');
+            } finally {
+                btnEl.disabled = false;
+                btnEl.innerText = originalText;
+            }
+        }
+        window.submitSellAccountRequest = submitSellAccountRequest;
+
         // Builds the game-name tab row and renders the selected game's
         // account cards straight onto the outer "Game Accounts" page — no
         // separate folder-grid page to tap through first. Price and main
@@ -11699,6 +12062,14 @@
             return `<a class="btn btn-outline" style="margin-top:10px;display:inline-flex;" href="https://t.me/pca_gamestore" target="_blank" rel="noopener">Contact Admin on Telegram</a>`;
         }
 
+        // Identity verification has been moved to the SELLER side (see the
+        // "Sell Your Account" modal / submitSellAccountRequest below) so that
+        // admin holds NRC/location/video evidence on the person listing an
+        // account, not the person buying it. Buyers no longer go through a
+        // KYC gate before paying — this flag disables it here rather than
+        // deleting the gate code, in case it's ever needed again.
+        const BUYER_KYC_REQUIRED = false;
+
         function renderAcctKycGate() {
             const gateEl = document.getElementById('acct-kyc-gate');
             const paySection = document.getElementById('acct-detail-payment-section');
@@ -11707,7 +12078,7 @@
             const a = GAME_ACCOUNTS[currentAccountId];
             if (!a || !isAccountAvailable(a)) { gateEl.style.display = 'none'; return; }
 
-            if (currentKycStatus === 'verified') {
+            if (!BUYER_KYC_REQUIRED || currentKycStatus === 'verified') {
                 gateEl.style.display = 'none';
                 paySection.style.display = '';
                 if (confirmWrap) confirmWrap.style.display = '';
@@ -12108,10 +12479,10 @@
                 if (window.resetAccountSlideConfirmThumb) window.resetAccountSlideConfirmThumb();
                 return;
             }
-            // Defense in depth: the payment section is already hidden behind
-            // the KYC gate in the UI (see renderAcctKycGate), but double-check
-            // here too in case this ever gets called some other way.
-            if (currentKycStatus !== 'verified') {
+            // Buyer-side KYC gate is disabled (BUYER_KYC_REQUIRED = false) —
+            // identity verification now happens on the seller side instead.
+            // See renderAcctKycGate above.
+            if (BUYER_KYC_REQUIRED && currentKycStatus !== 'verified') {
                 window.showToast('Please complete identity verification before purchasing.', 'fail');
                 if (window.renderAcctKycGate) window.renderAcctKycGate();
                 if (window.resetAccountSlideConfirmThumb) window.resetAccountSlideConfirmThumb();
