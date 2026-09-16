@@ -1280,8 +1280,19 @@
         }
         .acct-list-card { cursor: pointer; align-items: stretch; gap: 12px; padding: 10px; }
         .acct-list-card:active { transform: scale(0.98); }
-        .acct-list-thumb { width: 120px; aspect-ratio: 16 / 9; height: auto; align-self: flex-start; flex-shrink: 0; border-radius: 10px; overflow: hidden; background: var(--border); }
+        .acct-list-thumb { width: 148px; aspect-ratio: 4 / 3; height: auto; align-self: flex-start; flex-shrink: 0; border-radius: 10px; overflow: hidden; background: var(--border); }
         .acct-list-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        /* "Available"/"Sold Out" pill pinned to the thumbnail's bottom-right
+           corner, with a small glowing/pulsing dot when the listing is
+           still available — mirrors the "N viewing now" pulse elsewhere. */
+        .acct-thumb-status { position: absolute; bottom: 5px; right: 5px; display: inline-flex; align-items: center; gap: 5px; background: rgba(10,14,20,0.72); backdrop-filter: blur(2px); color: #fff; font-size: 10.5px; font-weight: 600; padding: 3px 8px 3px 6px; border-radius: 10px; line-height: 1.3; }
+        .acct-thumb-status-dot { width: 6px; height: 6px; border-radius: 50%; background: #2ECC71; box-shadow: 0 0 0 0 rgba(46,204,113,0.6); flex-shrink: 0; animation: acctThumbDotPulse 1.6s ease-out infinite; }
+        .acct-thumb-status.is-sold .acct-thumb-status-dot { background: var(--text-muted); box-shadow: none; animation: none; }
+        @keyframes acctThumbDotPulse {
+            0% { box-shadow: 0 0 0 0 rgba(46,204,113,0.55); }
+            70% { box-shadow: 0 0 0 6px rgba(46,204,113,0); }
+            100% { box-shadow: 0 0 0 0 rgba(46,204,113,0); }
+        }
         .acct-list-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; justify-content: center; }
         .acct-list-title { font-size: 13.5px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .acct-list-chips { display: flex; flex-wrap: wrap; gap: 5px; }
@@ -11807,9 +11818,10 @@
                 const chips = chipParts.map(c => `<span class="acct-chip">${c}</span>`).join('');
                 const agoLabel = timeAgoLabel(a.createdAt);
                 const available = isAccountAvailable(a);
-                const statusBadge = available
-                    ? `<span class="badge badge-success" style="margin-left:6px;">Available</span>`
-                    : `<span class="badge badge-sold" style="margin-left:6px;">Sold Out</span>`;
+                // Status now lives as a pill in the thumbnail's bottom-right
+                // corner (with a pulsing green dot while available) instead
+                // of inline next to the title.
+                const thumbStatusBadge = `<span class="acct-thumb-status${available ? '' : ' is-sold'}"><span class="acct-thumb-status-dot"></span>${available ? 'Available' : 'Sold Out'}</span>`;
                 const scarcityBadge = available ? `<span class="badge badge-danger" style="margin-left:6px;">Only 1 left</span>` : '';
                 // "N people viewing" only makes sense while the listing is
                 // still purchasable — a sold account shouldn't look like
@@ -11820,13 +11832,13 @@
                 const metaRow = [viewerRow, agoLabel ? `<span style="color:var(--text-muted);">${agoLabel}</span>` : '']
                     .filter(Boolean).join(' <span style="color:var(--border);">·</span> ');
                 const photoBadge = images.length > 1
-                    ? `<span style="position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,0.6);color:#fff;font-size:10px;font-weight:600;padding:2px 6px;border-radius:10px;">${images.length} photos</span>`
+                    ? `<span style="position:absolute;bottom:5px;left:5px;background:rgba(0,0,0,0.6);color:#fff;font-size:10px;font-weight:600;padding:2px 6px;border-radius:10px;">${images.length} photos</span>`
                     : '';
                 return `
                     <div class="list-card acct-list-card" onclick="openAccountDetail('${id}')">
-                        <div class="acct-list-thumb" style="position:relative;"><img src="${cover}" alt="${a.title || ''}" loading="lazy" decoding="async">${photoBadge}</div>
+                        <div class="acct-list-thumb" style="position:relative;"><img src="${cover}" alt="${a.title || ''}" loading="lazy" decoding="async">${photoBadge}${thumbStatusBadge}</div>
                         <div class="acct-list-info">
-                            <div class="acct-list-title">${a.title || 'Untitled Account'}${statusBadge}${scarcityBadge}</div>
+                            <div class="acct-list-title">${a.title || 'Untitled Account'}${scarcityBadge}</div>
                             <div class="acct-list-chips">${chips}</div>
                             ${metaRow ? `<div style="font-size:11px;margin-top:2px;">${metaRow}</div>` : ''}
                             <div class="acct-list-price">${Number(a.price || 0).toLocaleString()} MMK</div>
