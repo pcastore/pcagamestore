@@ -731,6 +731,16 @@
         .skel-popular-voucher-card { flex: 0 0 118px; aspect-ratio: 1 / 1.18; display: block; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
         .skel-popular-voucher-card .skel-img { width: 118px; height: 118px; }
         .skel-popular-voucher-card .skel-name { height: 26px; margin-top: 0; }
+        /* Loading placeholder for the Game Accounts list — same horizontal
+           shape as .acct-list-card (thumb + 3 text lines) so the skeleton
+           doesn't jump/resize once real cards replace it. */
+        .skel-acct-list-card { display: flex; align-items: stretch; gap: 12px; padding: 10px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 10px; }
+        .skel-acct-list-card .skel-thumb { width: 64px; height: 64px; border-radius: 10px; flex-shrink: 0; }
+        .skel-acct-list-card .skel-lines { flex: 1; display: flex; flex-direction: column; gap: 9px; justify-content: center; }
+        .skel-acct-list-card .skel-line { height: 10px; border-radius: 6px; }
+        .skel-acct-list-card .skel-line.w60 { width: 60%; }
+        .skel-acct-list-card .skel-line.w40 { width: 40%; }
+        .skel-acct-list-card .skel-line.w30 { width: 30%; }
         /* History list skeleton — mirrors .list-card/.history-card layout */
         .skel-history-card { background: var(--surface); padding: 15px; border-radius: 10px; margin-bottom: 12px; display: flex; align-items: center; justify-content: space-between; border: 1px solid var(--border); }
         .skel-history-card .skel-hc-left { display: flex; align-items: center; gap: 12px; flex: 1; min-width: 0; }
@@ -2935,7 +2945,11 @@
                      for the full detail (skins, description, buy flow). -->
                 <div id="account-game-tabs" class="acct-game-tab-row"></div>
                 <div id="account-list-filter-bar" class="acct-filter-bar"></div>
-                <div id="account-list-grid"></div>
+                <div id="account-list-grid">
+                    <div class="skel-acct-list-card"><div class="skel skel-thumb"></div><div class="skel-lines"><div class="skel skel-line w60"></div><div class="skel skel-line w40"></div><div class="skel skel-line w30"></div></div></div>
+                    <div class="skel-acct-list-card"><div class="skel skel-thumb"></div><div class="skel-lines"><div class="skel skel-line w60"></div><div class="skel skel-line w40"></div><div class="skel skel-line w30"></div></div></div>
+                    <div class="skel-acct-list-card"><div class="skel skel-thumb"></div><div class="skel-lines"><div class="skel skel-line w60"></div><div class="skel skel-line w40"></div><div class="skel skel-line w30"></div></div></div>
+                </div>
             </div>
         </div>
 
@@ -4311,6 +4325,22 @@
             return `<div class="empty-state"><div class="page-loading-spinner"></div><div class="page-loading-label">PCA</div></div>`;
         }
         window.loadingStateHTML = loadingStateHTML;
+
+        // N skeleton cards shaped like .acct-list-card, for the Game
+        // Accounts grid's first-paint and loading states.
+        function acctListSkeletonHTML(count) {
+            return Array(count).fill(`
+                <div class="skel-acct-list-card">
+                    <div class="skel skel-thumb"></div>
+                    <div class="skel-lines">
+                        <div class="skel skel-line w60"></div>
+                        <div class="skel skel-line w40"></div>
+                        <div class="skel skel-line w30"></div>
+                    </div>
+                </div>
+            `).join('');
+        }
+        window.acctListSkeletonHTML = acctListSkeletonHTML;
 
         // Replays the Profile page's slide-in-from-the-side entrance every
         // time the tab is opened (see .profile-card-anim CSS) - removing
@@ -11270,7 +11300,7 @@
                 if (filterBar) filterBar.innerHTML = '';
                 grid.innerHTML = gameAccountsLoadedOnce
                     ? emptyStateHTML('icon-shield', 'No accounts yet', 'Game accounts for sale will show up here once added.')
-                    : loadingStateHTML();
+                    : acctListSkeletonHTML(3);
                 return;
             }
 
