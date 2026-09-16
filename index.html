@@ -11617,7 +11617,6 @@
             document.getElementById('acct-detail-skins-wrap').style.display = skinList.length ? 'block' : 'none';
             document.getElementById('acct-detail-skins').innerHTML = skinList.map(s => `<span class="acct-chip">${s}</span>`).join('');
 
-            const available = isAccountAvailable(a);
             document.getElementById('acct-detail-payment-section').style.display = available ? '' : 'none';
             document.getElementById('acct-sold-banner').style.display = available ? 'none' : 'block';
             document.getElementById('acct-confirm-wrap').style.display = available ? '' : 'none';
