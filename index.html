@@ -735,7 +735,7 @@
            shape as .acct-list-card (thumb + 3 text lines) so the skeleton
            doesn't jump/resize once real cards replace it. */
         .skel-acct-list-card { display: flex; align-items: stretch; gap: 12px; padding: 10px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 10px; }
-        .skel-acct-list-card .skel-thumb { width: 120px; aspect-ratio: 16 / 9; height: auto; border-radius: 10px; flex-shrink: 0; }
+        .skel-acct-list-card .skel-thumb { width: 120px; aspect-ratio: 16 / 9; height: auto; align-self: flex-start; border-radius: 10px; flex-shrink: 0; }
         .skel-acct-list-card .skel-lines { flex: 1; display: flex; flex-direction: column; gap: 9px; justify-content: center; }
         .skel-acct-list-card .skel-line { height: 10px; border-radius: 6px; }
         .skel-acct-list-card .skel-line.w60 { width: 60%; }
@@ -1280,7 +1280,7 @@
         }
         .acct-list-card { cursor: pointer; align-items: stretch; gap: 12px; padding: 10px; }
         .acct-list-card:active { transform: scale(0.98); }
-        .acct-list-thumb { width: 120px; aspect-ratio: 16 / 9; height: auto; flex-shrink: 0; border-radius: 10px; overflow: hidden; background: var(--border); }
+        .acct-list-thumb { width: 120px; aspect-ratio: 16 / 9; height: auto; align-self: flex-start; flex-shrink: 0; border-radius: 10px; overflow: hidden; background: var(--border); }
         .acct-list-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .acct-list-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; justify-content: center; }
         .acct-list-title { font-size: 13.5px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -2779,7 +2779,7 @@
                     <svg class="ui-icon"><use href="#icon-gift"></use></svg><span data-i18n="nav_voucher">Voucher</span>
                 </div>
                 <div class="drawer-nav-item" data-page="account" onclick="drawerNavigate('account')">
-                    <svg class="ui-icon"><use href="#icon-shield"></use></svg><span data-i18n="nav_account">Account</span>
+                    <svg class="ui-icon"><use href="#icon-shield"></use></svg><span data-i18n="nav_account">Game Accounts</span>
                 </div>
                 <div class="drawer-nav-item" data-page="history" onclick="drawerNavigate('history')">
                     <svg class="ui-icon"><use href="#icon-history"></use></svg><span data-i18n="nav_history">History</span>
@@ -2939,6 +2939,7 @@
             </div>
             <div id="account-content" style="display:none;">
                 <h2 class="title-header" data-i18n="title_game_accounts">Game Accounts</h2>
+                <p class="empty-msg" style="text-align:left;padding:0 2px 12px;" data-i18n="sub_game_accounts">Buy pre-verified game accounts for sale — this is separate from top-up vouchers.</p>
                 <!-- Game-name tabs: pick which game's accounts to browse.
                      Price + main image show right on each card below — no
                      extra tap needed to see those; opening a card is only
@@ -4056,7 +4057,7 @@
         ===================================================================== */
         const I18N = {
             en: {
-                nav_home: 'Home', nav_voucher: 'Voucher', nav_account: 'Account',
+                nav_home: 'Home', nav_voucher: 'Voucher', nav_account: 'Game Accounts',
                 nav_history: 'History', nav_leaderboard: 'Leaderboard', nav_wallet: 'Wallet',
                 nav_profile: 'Profile', nav_notifications: 'Notifications',
                 nav_terms: 'Terms & Policy', nav_support: 'Support',
@@ -4116,6 +4117,7 @@
                 title_favorites: 'My Favorites', title_popular_games: 'Popular Games',
                 title_all_games: 'All Games', title_popular: 'Popular',
                 title_vouchers: 'Vouchers & Gift Cards', title_game_accounts: 'Game Accounts',
+                sub_game_accounts: 'Buy pre-verified game accounts for sale — this is separate from top-up vouchers.',
                 title_history: 'Transaction History', title_leaderboard: 'Top Spenders',
                 title_wallet: 'My Wallet', title_profile: 'My Profile',
                 sec_account_info: 'Account Info', lbl_rank: 'Rank', lbl_server: 'Server', sec_description: 'Description',
@@ -4161,7 +4163,7 @@
                 success_confirmed_title: 'Order Confirmed',
             },
             my: {
-                nav_home: 'ပင်မ', nav_voucher: 'ဗောက်ချာ', nav_account: 'အကောင့်',
+                nav_home: 'ပင်မ', nav_voucher: 'ဗောက်ချာ', nav_account: 'ဂိမ်းအကောင့်',
                 nav_history: 'မှတ်တမ်း', nav_leaderboard: 'ထိပ်တန်းစာရင်း', nav_wallet: 'ပိုက်ဆံအိတ်',
                 nav_profile: 'ပရိုဖိုင်', nav_notifications: 'အသိပေးချက်များ',
                 nav_terms: 'စည်းမျဉ်းစည်းကမ်း', nav_support: 'အကူအညီ',
@@ -4221,6 +4223,7 @@
                 title_favorites: 'အနှစ်သက်ဆုံးများ', title_popular_games: 'ခေတ်စားနေသောဂိမ်းများ',
                 title_all_games: 'ဂိမ်းအားလုံး', title_popular: 'ခေတ်စားနေသော',
                 title_vouchers: 'ဗောက်ချာနှင့် လက်ဆောင်ကတ်များ', title_game_accounts: 'ဂိမ်းအကောင့်များ',
+                sub_game_accounts: 'ကြိုတင်စစ်ဆေးပြီးသား ဂိမ်းအကောင့်များကို ဝယ်ယူနိုင်ပါသည် — ဒါက Top-up voucher နဲ့ လုံးဝမတူပါ၊ သီးခြားစီပါ။',
                 title_history: 'ငွေလွှဲမှတ်တမ်း', title_leaderboard: 'အများဆုံးသုံးစွဲသူများ',
                 title_wallet: 'ကျွန်ုပ်၏ပိုက်ဆံအိတ်', title_profile: 'ကျွန်ုပ်၏ပရိုဖိုင်',
                 sec_account_info: 'အကောင့်အချက်အလက်', lbl_rank: 'အဆင့်', lbl_server: 'ဆာဗာ', sec_description: 'ဖော်ပြချက်',
