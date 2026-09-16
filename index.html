@@ -11491,7 +11491,9 @@
         // Skins Included section itself stays hidden (it's optional and
         // only shown when the buyer opens the account detail page).
         function getAcctSkinList(a) {
-            return ((a && a.skins) || '').split(/[\n,]/).map(s => s.trim()).filter(Boolean);
+            const raw = (a && a.skins) || '';
+            if (Array.isArray(raw)) return raw.map(s => String(s).trim()).filter(Boolean);
+            return String(raw).split(/[\n,]/).map(s => s.trim()).filter(Boolean);
         }
         window.getAcctSkinList = getAcctSkinList;
         function getAcctSkinCount(a) { return getAcctSkinList(a).length; }
