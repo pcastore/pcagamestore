@@ -735,7 +735,7 @@
            shape as .acct-list-card (thumb + 3 text lines) so the skeleton
            doesn't jump/resize once real cards replace it. */
         .skel-acct-list-card { display: flex; align-items: stretch; gap: 12px; padding: 10px; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 10px; }
-        .skel-acct-list-card .skel-thumb { width: 64px; height: 64px; border-radius: 10px; flex-shrink: 0; }
+        .skel-acct-list-card .skel-thumb { width: 120px; aspect-ratio: 16 / 9; height: auto; border-radius: 10px; flex-shrink: 0; }
         .skel-acct-list-card .skel-lines { flex: 1; display: flex; flex-direction: column; gap: 9px; justify-content: center; }
         .skel-acct-list-card .skel-line { height: 10px; border-radius: 6px; }
         .skel-acct-list-card .skel-line.w60 { width: 60%; }
@@ -1280,7 +1280,7 @@
         }
         .acct-list-card { cursor: pointer; align-items: stretch; gap: 12px; padding: 10px; }
         .acct-list-card:active { transform: scale(0.98); }
-        .acct-list-thumb { width: 64px; height: 64px; flex-shrink: 0; border-radius: 10px; overflow: hidden; background: var(--border); }
+        .acct-list-thumb { width: 120px; aspect-ratio: 16 / 9; height: auto; flex-shrink: 0; border-radius: 10px; overflow: hidden; background: var(--border); }
         .acct-list-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .acct-list-info { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 4px; justify-content: center; }
         .acct-list-title { font-size: 13.5px; font-weight: 600; color: var(--text); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -11240,8 +11240,15 @@
         // Kept live via the same user-doc listener that already tracks wallet
         // balance (see listenWalletBalance) so an admin approval reflects
         // here instantly without a page reload.
+        // Four pieces of evidence are required before a buyer can pay for a
+        // high-value account: NRC front photo, NRC back photo, a live GPS
+        // location capture, and a short back-camera video (holding the
+        // physical card) so admin can catch a photo-of-a-photo submission.
         let currentKycStatus = 'none';
-        let acctKycFile = null;
+        let acctKycFrontFile = null;
+        let acctKycBackFile = null;
+        let acctKycVideoFile = null;
+        let acctKycLocation = null; // { lat, lng, accuracy }
 
         function isAccountAvailable(a) {
             return !!a && (a.status || 'available') === 'available';
@@ -11434,6 +11441,9 @@
                 const chips = chipParts.map(c => `<span class="acct-chip">${c}</span>`).join('');
                 const agoLabel = timeAgoLabel(a.createdAt);
                 const available = isAccountAvailable(a);
+                const statusBadge = available
+                    ? `<span class="badge badge-success" style="margin-left:6px;">Available</span>`
+                    : `<span class="badge badge-sold" style="margin-left:6px;">Sold Out</span>`;
                 const scarcityBadge = available ? `<span class="badge badge-danger" style="margin-left:6px;">Only 1 left</span>` : '';
                 // "N people viewing" only makes sense while the listing is
                 // still purchasable — a sold account shouldn't look like
@@ -11450,7 +11460,7 @@
                     <div class="list-card acct-list-card" onclick="openAccountDetail('${id}')">
                         <div class="acct-list-thumb" style="position:relative;"><img src="${cover}" alt="${a.title || ''}" loading="lazy" decoding="async">${photoBadge}</div>
                         <div class="acct-list-info">
-                            <div class="acct-list-title">${a.title || 'Untitled Account'}${scarcityBadge}</div>
+                            <div class="acct-list-title">${a.title || 'Untitled Account'}${statusBadge}${scarcityBadge}</div>
                             <div class="acct-list-chips">${chips}</div>
                             ${metaRow ? `<div style="font-size:11px;margin-top:2px;">${metaRow}</div>` : ''}
                             <div class="acct-list-price">${Number(a.price || 0).toLocaleString()} MMK</div>
@@ -11643,17 +11653,40 @@
 
         // Identity verification (KYC) gate for buying a game account. Shown
         // in place of the payment section until the buyer's kycStatus is
-        // 'verified' — admin reviews the submitted NRC photo from the Users
+        // 'verified' — admin reviews the submitted evidence from the Users
         // page and flips the status, no need to pay before that's done.
         function kycUploadFormHTML() {
             return `
-                <label class="upload-shot-box" id="acct-kyc-upload-box" for="acct-kyc-file" style="margin-top:12px;">
+                <label class="upload-shot-box" id="acct-kyc-front-box" for="acct-kyc-front-file" style="margin-top:12px;">
                     <div class="upload-shot-icon"><svg class="ui-icon"><use href="#icon-camera"></use></svg></div>
-                    <span class="upload-shot-label">Upload NRC / ID Photo</span>
-                    <span class="upload-shot-hint">Tap to choose a clear photo of your ID card</span>
-                    <img id="acct-kyc-preview" src="" style="display:none;">
+                    <span class="upload-shot-label">NRC Front Photo</span>
+                    <span class="upload-shot-hint">Tap to take/choose a clear photo of the front side</span>
+                    <img id="acct-kyc-front-preview" src="" style="display:none;">
                 </label>
-                <input type="file" id="acct-kyc-file" class="upload-shot-input" accept="image/*" onchange="acctPreviewKycImage(event)">
+                <input type="file" id="acct-kyc-front-file" class="upload-shot-input" accept="image/*" capture="environment" onchange="acctPreviewKycImage(event, 'front')">
+
+                <label class="upload-shot-box" id="acct-kyc-back-box" for="acct-kyc-back-file" style="margin-top:10px;">
+                    <div class="upload-shot-icon"><svg class="ui-icon"><use href="#icon-camera"></use></svg></div>
+                    <span class="upload-shot-label">NRC Back Photo</span>
+                    <span class="upload-shot-hint">Tap to take/choose a clear photo of the back side</span>
+                    <img id="acct-kyc-back-preview" src="" style="display:none;">
+                </label>
+                <input type="file" id="acct-kyc-back-file" class="upload-shot-input" accept="image/*" capture="environment" onchange="acctPreviewKycImage(event, 'back')">
+
+                <label class="upload-shot-box" id="acct-kyc-video-box" for="acct-kyc-video-file" style="margin-top:10px;">
+                    <div class="upload-shot-icon"><svg class="ui-icon"><use href="#icon-camera"></use></svg></div>
+                    <span class="upload-shot-label">Short Video (back camera)</span>
+                    <span class="upload-shot-hint">Record yourself holding the physical NRC next to your face</span>
+                    <video id="acct-kyc-video-preview" src="" style="display:none;" muted playsinline controls></video>
+                </label>
+                <input type="file" id="acct-kyc-video-file" class="upload-shot-input" accept="video/*" capture="environment" onchange="acctPreviewKycVideo(event)">
+
+                <div class="upload-shot-box" id="acct-kyc-location-box" style="margin-top:10px;cursor:pointer;" onclick="acctCaptureKycLocation()">
+                    <div class="upload-shot-icon"><svg class="ui-icon"><use href="#icon-map-pin"></use></svg></div>
+                    <span class="upload-shot-label">Live Location</span>
+                    <span class="upload-shot-hint" id="acct-kyc-location-hint">Tap to share your current location</span>
+                </div>
+
                 <p id="acct-kyc-upload-status" style="font-size:12px;color:var(--text-secondary);display:none;"></p>
                 <button type="button" class="btn btn-primary" style="margin-top:10px;" id="acct-kyc-submit-btn" onclick="submitAccountKyc()" disabled>Submit for Verification</button>
             `;
@@ -11693,7 +11726,7 @@
                 gateEl.innerHTML = `
                     <div class="empty-state-icon"><svg class="ui-icon"><use href="#icon-alert"></use></svg></div>
                     <h3 class="detail-section-title" style="margin-top:10px;">Verification rejected</h3>
-                    <p style="font-size:13px;color:var(--text-secondary);">Your submitted ID couldn't be verified. Upload a clearer photo, or contact admin for help.</p>
+                    <p style="font-size:13px;color:var(--text-secondary);">Your submitted ID couldn't be verified. Upload clearer evidence, or contact admin for help.</p>
                     ${kycUploadFormHTML()}
                     ${telegramContactHTML()}
                 `;
@@ -11701,7 +11734,7 @@
                 gateEl.innerHTML = `
                     <div class="empty-state-icon"><svg class="ui-icon"><use href="#icon-shield"></use></svg></div>
                     <h3 class="detail-section-title" style="margin-top:10px;">Verify your identity to continue</h3>
-                    <p style="font-size:13px;color:var(--text-secondary);">Game accounts are high value, so we check your ID (NRC) before payment — no need to pay yet.</p>
+                    <p style="font-size:13px;color:var(--text-secondary);">Game accounts are high value, so we check your ID (NRC front/back), a short video, and your location before payment — no need to pay yet.</p>
                     ${kycUploadFormHTML()}
                     <p style="font-size:12px;color:var(--text-muted);margin-top:10px;">Prefer to talk to someone instead?</p>
                     ${telegramContactHTML()}
@@ -11710,37 +11743,104 @@
         }
         window.renderAcctKycGate = renderAcctKycGate;
 
-        function acctPreviewKycImage(e) {
+        // Enables the Submit button only once all four pieces of evidence
+        // (front photo, back photo, video, location) are in hand.
+        function updateKycSubmitBtnState() {
+            const btn = document.getElementById('acct-kyc-submit-btn');
+            if (!btn) return;
+            btn.disabled = !(acctKycFrontFile && acctKycBackFile && acctKycVideoFile && acctKycLocation);
+        }
+
+        function acctPreviewKycImage(e, side) {
             const file = e.target.files[0];
             if (!file) return;
-            acctKycFile = file;
+            if (side === 'front') acctKycFrontFile = file; else acctKycBackFile = file;
             const reader = new FileReader();
             reader.onload = (ev) => {
-                const img = document.getElementById('acct-kyc-preview');
+                const img = document.getElementById(`acct-kyc-${side}-preview`);
                 if (img) { img.src = ev.target.result; img.style.display = 'block'; }
-                const box = document.getElementById('acct-kyc-upload-box');
+                const box = document.getElementById(`acct-kyc-${side}-box`);
                 if (box) box.classList.add('has-image');
             };
             reader.readAsDataURL(file);
-            const btn = document.getElementById('acct-kyc-submit-btn');
-            if (btn) btn.disabled = false;
+            updateKycSubmitBtnState();
         }
         window.acctPreviewKycImage = acctPreviewKycImage;
 
-        async function uploadKycImageToImgBB(file) {
+        function acctPreviewKycVideo(e) {
+            const file = e.target.files[0];
+            if (!file) return;
+            acctKycVideoFile = file;
+            const video = document.getElementById('acct-kyc-video-preview');
+            if (video) { video.src = URL.createObjectURL(file); video.style.display = 'block'; }
+            const box = document.getElementById('acct-kyc-video-box');
+            if (box) box.classList.add('has-image');
+            updateKycSubmitBtnState();
+        }
+        window.acctPreviewKycVideo = acctPreviewKycVideo;
+
+        // Live GPS capture, so admin can see the buyer was physically
+        // present when submitting rather than just forwarding a stranger's
+        // photos. Kept simple (one-shot getCurrentPosition, no live
+        // tracking) — a single fix is enough for this purpose.
+        function acctCaptureKycLocation() {
+            const hint = document.getElementById('acct-kyc-location-hint');
+            const box = document.getElementById('acct-kyc-location-box');
+            if (!navigator.geolocation) {
+                if (hint) hint.innerText = 'Location not supported on this browser.';
+                return;
+            }
+            if (hint) hint.innerText = 'Getting your location...';
+            navigator.geolocation.getCurrentPosition((pos) => {
+                acctKycLocation = {
+                    lat: pos.coords.latitude,
+                    lng: pos.coords.longitude,
+                    accuracy: pos.coords.accuracy
+                };
+                if (hint) hint.innerText = `Location captured ✓ (±${Math.round(pos.coords.accuracy)}m)`;
+                if (box) box.classList.add('has-image');
+                updateKycSubmitBtnState();
+            }, (err) => {
+                console.error('KYC location error:', err);
+                if (hint) hint.innerText = err.code === err.PERMISSION_DENIED
+                    ? 'Location permission denied — please allow it and try again.'
+                    : 'Could not get location. Try again.';
+            }, { enableHighAccuracy: true, timeout: 15000, maximumAge: 0 });
+        }
+        window.acctCaptureKycLocation = acctCaptureKycLocation;
+
+        async function uploadKycImageToImgBB(file, label) {
             const statusEl = document.getElementById('acct-kyc-upload-status');
-            if (statusEl) { statusEl.style.display = 'block'; statusEl.innerText = 'Uploading photo...'; }
+            if (statusEl) { statusEl.style.display = 'block'; statusEl.innerText = `Uploading ${label}...`; }
             const form = new FormData();
             form.append('image', file);
             const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: form });
             const data = await res.json();
-            if (!data.success) throw new Error(data.error?.message || 'Photo upload failed');
-            if (statusEl) statusEl.innerText = 'Uploaded ✓';
+            if (!data.success) throw new Error(data.error?.message || `${label} upload failed`);
             return data.data.url;
         }
 
+        // Free anonymous file host for the KYC video — ImgBB (used for every
+        // other photo upload in the store) only accepts images, and this
+        // project intentionally avoids the paid Firebase Storage/Blaze plan
+        // (see the IMGBB_API_KEY comment above), so a still-free host that
+        // also takes video is used here instead. No account/API key needed.
+        async function uploadKycVideoToCatbox(file) {
+            const statusEl = document.getElementById('acct-kyc-upload-status');
+            if (statusEl) { statusEl.style.display = 'block'; statusEl.innerText = 'Uploading video...'; }
+            const form = new FormData();
+            form.append('reqtype', 'fileupload');
+            form.append('fileToUpload', file);
+            const res = await fetch('https://catbox.moe/user/api.php', { method: 'POST', body: form });
+            const url = (await res.text()).trim();
+            if (!url.startsWith('http')) throw new Error('Video upload failed');
+            return url;
+        }
+
         async function submitAccountKyc() {
-            if (!acctKycFile) { window.showToast('Please choose a photo first.', 'fail'); return; }
+            if (!acctKycFrontFile || !acctKycBackFile) { window.showToast('Please add both NRC photos.', 'fail'); return; }
+            if (!acctKycVideoFile) { window.showToast('Please add the short verification video.', 'fail'); return; }
+            if (!acctKycLocation) { window.showToast('Please share your location.', 'fail'); return; }
             const btn = document.getElementById('acct-kyc-submit-btn');
             const originalText = btn.innerText;
             btn.disabled = true;
@@ -11748,10 +11848,16 @@
             try {
                 const gid = window.getGuestId ? window.getGuestId() : '';
                 if (!gid) throw new Error('Missing guest ID');
-                const url = await uploadKycImageToImgBB(acctKycFile);
+                const frontUrl = await uploadKycImageToImgBB(acctKycFrontFile, 'front photo');
+                const backUrl = await uploadKycImageToImgBB(acctKycBackFile, 'back photo');
+                const videoUrl = await uploadKycVideoToCatbox(acctKycVideoFile);
                 await setDoc(doc(db, "users", gid), {
                     kycStatus: 'pending',
-                    kycNrcUrl: url,
+                    kycNrcUrl: frontUrl, // kept for back-compat with older admin views
+                    kycNrcFrontUrl: frontUrl,
+                    kycNrcBackUrl: backUrl,
+                    kycVideoUrl: videoUrl,
+                    kycLocation: acctKycLocation,
                     kycSubmittedAt: serverTimestamp(),
                     // Cleared so the Telegram worker's sweep treats this as a
                     // fresh, unsent submission — otherwise a resubmission
@@ -11761,7 +11867,10 @@
                     telegramChatId: null
                 }, { merge: true });
                 currentKycStatus = 'pending';
-                acctKycFile = null;
+                acctKycFrontFile = null;
+                acctKycBackFile = null;
+                acctKycVideoFile = null;
+                acctKycLocation = null;
                 window.showToast('Submitted for verification ✓');
                 renderAcctKycGate();
             } catch (error) {
@@ -11792,7 +11901,7 @@
             const SETTLE_MS = 240;
 
             let startX = 0, startY = 0, startTime = 0;
-            let dragging = false, verticalIntent = false, liveDx = 0;
+            let dragging = false, verticalIntent = false, liveDx = 0, isAnimating = false;
 
             function setImmediate(transform, opacity) {
                 img.style.transition = 'none';
@@ -11812,17 +11921,19 @@
 
             // direction: -1 for next photo (swiped left), 1 for previous (swiped right)
             function advance(direction) {
+                isAnimating = true;
                 animateTo(`translateX(${direction < 0 ? '-100%' : '100%'})`, 0);
                 setTimeout(() => {
                     showAccountImage(acctDetailImageIndex + (direction < 0 ? 1 : -1));
                     setImmediate(`translateX(${direction < 0 ? '100%' : '-100%'})`, 0);
                     void img.offsetWidth; // force reflow so the next transition actually animates
                     animateTo('translateX(0)', 1);
+                    isAnimating = false;
                 }, SETTLE_MS);
             }
 
             img.addEventListener('touchstart', (e) => {
-                if (e.touches.length !== 1) return;
+                if (e.touches.length !== 1 || isAnimating) return;
                 const t = e.touches[0];
                 startX = t.clientX; startY = t.clientY; startTime = Date.now();
                 dragging = false; verticalIntent = false; liveDx = 0;
@@ -11830,7 +11941,7 @@
             }, { passive: true });
 
             img.addEventListener('touchmove', (e) => {
-                if (e.touches.length !== 1 || verticalIntent || acctDetailImages.length < 2) return;
+                if (e.touches.length !== 1 || verticalIntent || isAnimating || acctDetailImages.length < 2) return;
                 const t = e.touches[0];
                 const dx = t.clientX - startX;
                 const dy = t.clientY - startY;
