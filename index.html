@@ -893,6 +893,7 @@
         .badge-warning { background: #E6F7EC; color: #1E8E4F; }
         .badge-danger { background: #FDE8E8; color: #C0392B; }
         .badge-processing { background: var(--border); color: #405DE6; }
+        .badge-sold { background: var(--border); color: var(--text-muted); }
 
         /* Small live-status animations shown at the top of each History card */
         .status-anim-pulse { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #856404; margin-right: 5px; animation: statusPulse 1.1s ease-in-out infinite; }
@@ -1287,6 +1288,8 @@
             background: rgba(239,68,68,0.12); color: #C0392B; font-size: 13px; font-weight: 600;
         }
         html[data-theme="dark"] .acct-sold-banner { color: #FF9B9B; }
+        .acct-img-dot { width: 6px; height: 6px; border-radius: 50%; background: rgba(255,255,255,0.5); transition: width 0.15s ease, border-radius 0.15s ease, background 0.15s ease; }
+        .acct-img-dot.active { width: 16px; border-radius: 3px; background: #fff; }
 
         /* Account list: sort + rank/server/price filter chips (reuses
            .cat-filter-chip styling so it matches the game-category filter). */
@@ -1305,6 +1308,11 @@
             text-transform: uppercase; letter-spacing: 0.4px; padding-right: 2px;
         }
         .acct-empty-filtered { padding: 34px 10px; text-align: center; color: var(--text-muted); font-size: 13.5px; }
+        /* "N people viewing" — same dot+label shape as .admin-status-dot's
+           online indicator, in amber instead of green so it reads as
+           "active interest" rather than "this person is online". */
+        .acct-viewer-dot { width: 7px; height: 7px; border-radius: 50%; background: #F5A623; flex-shrink: 0; box-shadow: 0 0 0 3px rgba(245,166,35,0.18); }
+        .acct-viewer-row { display: inline-flex; align-items: center; gap: 6px; font-size: 11px; color: var(--text-muted); font-weight: 600; }
 
         /* Order/detail page on wider screens: banner shrinks and sits in its
            own sidebar column instead of stretching full-width, account info +
@@ -2943,12 +2951,20 @@
             <div class="detail-banner-col" style="position:relative; overflow:hidden; border-radius:12px;">
                 <img id="acct-detail-main-img" src="" alt="" style="width:100%; aspect-ratio:16/9; object-fit:cover; border-radius:12px; margin-bottom:10px; display:block;">
                 <span id="acct-detail-img-counter" style="position:absolute;bottom:18px;right:10px;background:rgba(0,0,0,0.6);color:#fff;font-size:12px;font-weight:600;padding:3px 9px;border-radius:20px;">1/1</span>
+                <div id="acct-detail-img-dots" style="position:absolute;bottom:20px;left:0;right:0;display:flex;justify-content:center;gap:5px;"></div>
             </div>
             <div class="detail-main-col">
                 <h3 class="detail-section-title" style="margin-top:0;" id="acct-detail-title">Account</h3>
-                <div id="acct-detail-urgency" style="display:flex; align-items:center; gap:8px; flex-wrap:wrap; margin-bottom:6px;"></div>
+                <div id="acct-detail-urgency" style="display:flex; align-items:center; gap:10px; flex-wrap:wrap; margin-bottom:6px;"></div>
                 <div class="acct-price-row" id="acct-detail-price">0 MMK</div>
-                <div class="acct-chips-row" id="acct-detail-chips"></div>
+
+                <!-- Account Info: same label/value grid used for Order Info /
+                     wallet transaction detail elsewhere in the app, so Rank,
+                     Server, Skin count and any custom fields read the same
+                     way as every other "info block" in the store instead of
+                     floating as unlabeled pills. -->
+                <h3 class="detail-section-title" data-i18n="sec_account_info">Account Info</h3>
+                <div class="detail-grid" id="acct-detail-chips"></div>
 
                 <div id="acct-sold-banner" class="acct-sold-banner" style="display:none;">This account has already been sold.</div>
 
@@ -4088,7 +4104,7 @@
                 title_vouchers: 'Vouchers & Gift Cards', title_game_accounts: 'Game Accounts',
                 title_history: 'Transaction History', title_leaderboard: 'Top Spenders',
                 title_wallet: 'My Wallet', title_profile: 'My Profile',
-                sec_account_info: 'Account Info', sec_description: 'Description',
+                sec_account_info: 'Account Info', lbl_rank: 'Rank', lbl_server: 'Server', sec_description: 'Description',
                 sec_skins_included: 'Skins Included', sec_how_pay: 'How do you want to pay?',
                 sec_select_currency_pkg: 'Select Currency Package', sec_order_info: 'Order Info',
                 sec_payment_receipt: 'Payment Receipt', sec_reason: 'Reason', sec_note: 'Note',
@@ -4193,7 +4209,7 @@
                 title_vouchers: 'ဗောက်ချာနှင့် လက်ဆောင်ကတ်များ', title_game_accounts: 'ဂိမ်းအကောင့်များ',
                 title_history: 'ငွေလွှဲမှတ်တမ်း', title_leaderboard: 'အများဆုံးသုံးစွဲသူများ',
                 title_wallet: 'ကျွန်ုပ်၏ပိုက်ဆံအိတ်', title_profile: 'ကျွန်ုပ်၏ပရိုဖိုင်',
-                sec_account_info: 'အကောင့်အချက်အလက်', sec_description: 'ဖော်ပြချက်',
+                sec_account_info: 'အကောင့်အချက်အလက်', lbl_rank: 'အဆင့်', lbl_server: 'ဆာဗာ', sec_description: 'ဖော်ပြချက်',
                 sec_skins_included: 'ပါဝင်သောစကင်များ', sec_how_pay: 'ဘယ်လိုငွေပေးချေမလဲ?',
                 sec_select_currency_pkg: 'ငွေကြေးပက်ကေ့ချ်ရွေးပါ', sec_order_info: 'အော်ဒါအချက်အလက်',
                 sec_payment_receipt: 'ငွေပေးချေမှုပြေစာ', sec_reason: 'အကြောင်းအရင်း', sec_note: 'မှတ်ချက်',
@@ -11375,19 +11391,32 @@
 
             list.innerHTML = ids.map(id => {
                 const a = GAME_ACCOUNTS[id];
-                const cover = (Array.isArray(a.images) && a.images[0]) || '';
+                const images = Array.isArray(a.images) ? a.images : [];
+                const cover = images[0] || '';
                 const skinCount = getAcctSkinCount(a);
                 const chipParts = [a.rank || 'N/A', a.server || 'N/A', `${skinCount} Skins`];
                 const chips = chipParts.map(c => `<span class="acct-chip">${c}</span>`).join('');
                 const agoLabel = timeAgoLabel(a.createdAt);
-                const scarcityBadge = isAccountAvailable(a) ? `<span class="badge badge-danger" style="margin-left:6px;">Only 1 left</span>` : '';
+                const available = isAccountAvailable(a);
+                const scarcityBadge = available ? `<span class="badge badge-danger" style="margin-left:6px;">Only 1 left</span>` : '';
+                // "N people viewing" only makes sense while the listing is
+                // still purchasable — a sold account shouldn't look like
+                // it's still attracting buyers.
+                const viewerRow = available
+                    ? `<span class="acct-viewer-row"><span class="acct-viewer-dot"></span>${getAccountViewerCount(id)} viewing now</span>`
+                    : '';
+                const metaRow = [viewerRow, agoLabel ? `<span style="color:var(--text-muted);">${agoLabel}</span>` : '']
+                    .filter(Boolean).join(' <span style="color:var(--border);">·</span> ');
+                const photoBadge = images.length > 1
+                    ? `<span style="position:absolute;bottom:4px;right:4px;background:rgba(0,0,0,0.6);color:#fff;font-size:10px;font-weight:600;padding:2px 6px;border-radius:10px;">${images.length} photos</span>`
+                    : '';
                 return `
                     <div class="list-card acct-list-card" onclick="openAccountDetail('${id}')">
-                        <div class="acct-list-thumb"><img src="${cover}" alt="${a.title || ''}" loading="lazy" decoding="async"></div>
+                        <div class="acct-list-thumb" style="position:relative;"><img src="${cover}" alt="${a.title || ''}" loading="lazy" decoding="async">${photoBadge}</div>
                         <div class="acct-list-info">
                             <div class="acct-list-title">${a.title || 'Untitled Account'}${scarcityBadge}</div>
                             <div class="acct-list-chips">${chips}</div>
-                            ${agoLabel ? `<div class="acct-list-ago" style="font-size:11px;color:var(--text-muted);margin-top:2px;">${agoLabel}</div>` : ''}
+                            ${metaRow ? `<div style="font-size:11px;margin-top:2px;">${metaRow}</div>` : ''}
                             <div class="acct-list-price">${Number(a.price || 0).toLocaleString()} MMK</div>
                         </div>
                     </div>
@@ -11406,6 +11435,20 @@
         window.setAcctFilterPrice = setAcctFilterPrice;
         function resetAcctFilters() { acctFilterRank = 'all'; acctFilterServer = 'all'; acctFilterPriceBucket = 'all'; renderAccountList(currentAccountGameName); }
         window.resetAcctFilters = resetAcctFilters;
+
+        // Fake-but-stable "N people viewing" social-proof line. There's no
+        // real presence tracking behind this — it's derived from the
+        // account id (stable per listing) plus a coarse 15-minute time
+        // window, so it holds steady across re-renders and page reopens
+        // within that window instead of flickering on every render, but
+        // still drifts slowly like a real live count would.
+        function getAccountViewerCount(id) {
+            const key = String(id) + '-' + Math.floor(Date.now() / (15 * 60 * 1000));
+            let hash = 0;
+            for (let i = 0; i < key.length; i++) hash = (hash * 31 + key.charCodeAt(i)) >>> 0;
+            return 2 + (hash % 7); // 2–8 viewers
+        }
+        window.getAccountViewerCount = getAccountViewerCount;
 
         // Splits the free-text "skins" field (newline or comma separated)
         // into a clean list, so we can show a skin *count* even when the
@@ -11451,12 +11494,26 @@
         // Shows the image at `index` (wrapping around at either end) as the
         // main image. Only used by the swipe gesture now (see
         // initAccountImageSwipe below) — the thumbnail strip was removed.
+        // Rebuilds the gallery dot strip and marks the active one. Hidden
+        // entirely for single-photo listings — dots only earn their place
+        // once there's something to page through.
+        function renderAcctImgDots() {
+            const dotsEl = document.getElementById('acct-detail-img-dots');
+            if (!dotsEl) return;
+            if (acctDetailImages.length < 2) { dotsEl.innerHTML = ''; return; }
+            dotsEl.innerHTML = acctDetailImages.map((_, i) =>
+                `<span class="acct-img-dot${i === acctDetailImageIndex ? ' active' : ''}"></span>`
+            ).join('');
+        }
+        window.renderAcctImgDots = renderAcctImgDots;
+
         function showAccountImage(index) {
             if (!acctDetailImages.length) return;
             acctDetailImageIndex = ((index % acctDetailImages.length) + acctDetailImages.length) % acctDetailImages.length;
             document.getElementById('acct-detail-main-img').src = acctDetailImages[acctDetailImageIndex];
             const counterEl = document.getElementById('acct-detail-img-counter');
             if (counterEl) counterEl.innerText = `${acctDetailImageIndex + 1}/${acctDetailImages.length}`;
+            renderAcctImgDots();
         }
         window.showAccountImage = showAccountImage;
 
@@ -11487,22 +11544,35 @@
             mainImgEl.src = images[0];
             const counterEl = document.getElementById('acct-detail-img-counter');
             if (counterEl) counterEl.innerText = `1/${images.length}`;
+            renderAcctImgDots();
             document.getElementById('acct-detail-title').innerText = a.title || 'Untitled Account';
             document.getElementById('acct-detail-price').innerText = `${Number(a.price || 0).toLocaleString()} MMK`;
             const urgencyEl = document.getElementById('acct-detail-urgency');
             const agoLabel = timeAgoLabel(a.createdAt);
+            const available = isAccountAvailable(a);
             const urgencyParts = [];
-            if (isAccountAvailable(a)) urgencyParts.push(`<span class="badge badge-danger">Only 1 left</span>`);
+            // Clear status pill first — "Available" (green) or "Sold Out"
+            // (grey) — then the scarcity/social-proof nudges only make
+            // sense to show while it's actually available.
+            urgencyParts.push(available
+                ? `<span class="badge badge-success">Available</span>`
+                : `<span class="badge badge-sold">Sold Out</span>`);
+            if (available) urgencyParts.push(`<span class="badge badge-danger">Only 1 left</span>`);
+            // "N people viewing" only while it's still purchasable — see
+            // getAccountViewerCount for why this is deterministic, not live.
+            if (available) urgencyParts.push(`<span class="acct-viewer-row"><span class="acct-viewer-dot"></span>${getAccountViewerCount(id)} viewing now</span>`);
             if (agoLabel) urgencyParts.push(`<span style="font-size:12px;color:var(--text-muted);">${agoLabel}</span>`);
             urgencyEl.innerHTML = urgencyParts.join('');
             const skinList = getAcctSkinList(a);
+            // Account Info grid — same detail-grid-item shape used for Order
+            // Info / wallet transaction detail elsewhere in the app.
             const chips = [];
-            chips.push(`<span class="acct-chip">Rank: ${a.rank || 'N/A'}</span>`);
-            chips.push(`<span class="acct-chip">Server: ${a.server || 'N/A'}</span>`);
-            chips.push(`<span class="acct-chip">${skinList.length} Skins</span>`);
+            chips.push(`<div class="detail-grid-item"><span data-i18n="lbl_rank">Rank</span><b>${a.rank || 'N/A'}</b></div>`);
+            chips.push(`<div class="detail-grid-item"><span data-i18n="lbl_server">Server</span><b>${a.server || 'N/A'}</b></div>`);
+            chips.push(`<div class="detail-grid-item"><span data-i18n="sec_skins_included">Skins Included</span><b>${skinList.length}</b></div>`);
             if (Array.isArray(a.customFields)) {
                 a.customFields.forEach(f => {
-                    if (f && f.label && f.value) chips.push(`<span class="acct-chip">${f.label}: ${f.value}</span>`);
+                    if (f && f.label && f.value) chips.push(`<div class="detail-grid-item"><span>${f.label}</span><b>${f.value}</b></div>`);
                 });
             }
             document.getElementById('acct-detail-chips').innerHTML = chips.join('');
