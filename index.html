@@ -9615,7 +9615,13 @@
         function listenOwnOrderStatus() {
             const guestId = window.getGuestId ? window.getGuestId() : '';
             if (!guestId) return;
-            const q = query(collection(db, "orders"), where("userId", "==", guestId));
+            // Capped to the 50 most recent orders — a customer's very old,
+            // long-settled orders don't need a live listener watching them
+            // forever. Requires a one-time Firestore composite index
+            // (orders: userId Ascending, timestamp Descending) — Firestore
+            // will log a "requires an index" error with a direct create-it
+            // link the first time this runs if it isn't there yet.
+            const q = query(collection(db, "orders"), where("userId", "==", guestId), orderBy("timestamp", "desc"), limit(50));
             onSnapshot(q, (snap) => {
                 snap.docChanges().forEach((change) => {
                     const data = change.doc.data();
