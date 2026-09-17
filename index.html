@@ -2409,6 +2409,35 @@
         .support-chat-image-spinner { width: 26px; height: 26px; border-radius: 50%; border: 3px solid var(--border); border-top-color: var(--accent); animation: spin 0.7s linear infinite; }
         .support-chat-bubble.image-bubble .support-chat-bubble-time { position: static; display: block; text-align: right; margin-top: 2px; font-size: 9.5px; color: var(--text-muted); opacity: 1; }
         .support-chat-img-uploading { opacity: 0.55; }
+
+        /* Multi-photo "collage" bubble — several photos picked and sent
+           together render as one grid (like Messenger/WhatsApp albums)
+           instead of one full-size bubble per photo, which used to eat a
+           lot of vertical space in the thread. Tapping any tile opens the
+           full-screen viewer below, already scrolled to that photo, with
+           prev/next to flip through the rest of the set. */
+        .chat-img-collage { display: grid; gap: 3px; width: 190px; border-radius: 12px; overflow: hidden; }
+        .chat-img-collage.n1 { width: auto; }
+        .chat-img-collage.n1 .chat-img-tile { border-radius: 12px; }
+        .chat-img-collage.n1 .chat-img-tile img { max-width: 190px; max-height: 240px; width: 100%; }
+        .chat-img-collage.n2 { grid-template-columns: 1fr 1fr; height: 130px; }
+        .chat-img-collage.n3 { grid-template-columns: 1.2fr 1fr; grid-template-rows: 1fr 1fr; height: 190px; }
+        .chat-img-collage.n3 .chat-img-tile:first-child { grid-row: 1 / 3; }
+        .chat-img-collage.n4up { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; height: 190px; }
+        .chat-img-tile { position: relative; cursor: pointer; overflow: hidden; background: var(--bg); }
+        .chat-img-tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .chat-img-tile .chat-img-more { position: absolute; inset: 0; background: rgba(0,0,0,0.5); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; }
+
+        /* Full-screen single/multi-photo viewer, opened from a chat bubble
+           or a collage tile. */
+        .chat-img-viewer-overlay { display: none; position: fixed; inset: 0; z-index: 4000; background: rgba(0,0,0,0.92); align-items: center; justify-content: center; }
+        .chat-img-viewer-overlay.show { display: flex; }
+        .chat-img-viewer-overlay img { max-width: 92vw; max-height: 78vh; object-fit: contain; border-radius: 6px; }
+        .chat-img-viewer-close { position: absolute; top: 18px; right: 18px; width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.14); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
+        .chat-img-viewer-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 42px; height: 42px; border-radius: 50%; background: rgba(255,255,255,0.14); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; user-select: none; }
+        .chat-img-viewer-nav.prev { left: 12px; }
+        .chat-img-viewer-nav.next { right: 12px; }
+        .chat-img-viewer-counter { position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%); color: #fff; font-size: 13px; background: rgba(255,255,255,0.14); padding: 4px 12px; border-radius: 20px; }
         .support-chat-empty { text-align: center; color: var(--text-secondary); font-size: 13px; padding: 30px 10px; }
         .support-chat-badge { display: none; width: 8px; height: 8px; border-radius: 50%; background: #FF3B30; margin-left: 5px; vertical-align: middle; }
         .support-chat-header { display: flex; align-items: center; gap: 10px; padding: 0 2px 10px; border-bottom: 1px solid var(--border); margin-bottom: 8px; flex-shrink: 0; }
@@ -2735,7 +2764,7 @@
                 </div>
                 <div class="support-chat-faq-row" id="support-chat-faq-row"></div>
                 <div class="support-chat-inputrow">
-                    <input type="file" id="support-chat-image-input" accept="image/*" style="display:none;" onchange="window.handleSupportChatImageSelect(this)">
+                    <input type="file" id="support-chat-image-input" accept="image/*" multiple style="display:none;" onchange="window.handleSupportChatImageSelect(this)">
                     <button type="button" class="support-chat-camera-btn" onclick="document.getElementById('support-chat-image-input').click()" aria-label="Send a photo">
                         <svg class="ui-icon" style="width:19px;height:19px;"><use href="#icon-camera"></use></svg>
                     </button>
@@ -13573,6 +13602,58 @@
         }
         window.submitComplaint = submitComplaint;
 
+        // ---------- Chat photo collage + full-screen viewer ----------
+        // Several photos sent together render as one grid bubble instead of
+        // one full-size bubble per photo (which used to eat a lot of
+        // vertical space). Tapping any tile opens the viewer at that photo,
+        // with prev/next to flip through the rest of the set.
+        const CHAT_IMG_GROUPS = {};
+        let chatImgGroupCounter = 0;
+        let chatImgViewerUrls = [];
+        let chatImgViewerIndex = 0;
+
+        function chatImageCollageHTML(urls, mineOrTheirs, extraBubbleClasses) {
+            if (!urls || !urls.length) return '';
+            const groupId = 'cig' + (chatImgGroupCounter++);
+            CHAT_IMG_GROUPS[groupId] = urls;
+            const n = urls.length;
+            const shown = urls.slice(0, 4);
+            const extra = n - 4;
+            const layoutClass = n === 1 ? 'n1' : n === 2 ? 'n2' : n === 3 ? 'n3' : 'n4up';
+            const tiles = shown.map((url, i) => {
+                const overlay = (i === 3 && extra > 0) ? `<span class="chat-img-more">+${extra}</span>` : '';
+                return `<div class="chat-img-tile" onclick="event.stopPropagation();openChatImageViewer('${groupId}',${i})"><img src="${url}" alt="Photo" loading="lazy">${overlay}</div>`;
+            }).join('');
+            return `<div class="chat-img-collage ${layoutClass}">${tiles}</div>`;
+        }
+
+        function openChatImageViewer(groupId, index) {
+            const urls = CHAT_IMG_GROUPS[groupId] || [];
+            if (!urls.length) return;
+            chatImgViewerUrls = urls;
+            chatImgViewerIndex = index;
+            renderChatImageViewer();
+            document.getElementById('chat-img-viewer-overlay').classList.add('show');
+        }
+        window.openChatImageViewer = openChatImageViewer;
+
+        function renderChatImageViewer() {
+            document.getElementById('chat-img-viewer-img').src = chatImgViewerUrls[chatImgViewerIndex];
+            const counter = document.getElementById('chat-img-viewer-counter');
+            const multi = chatImgViewerUrls.length > 1;
+            counter.style.display = multi ? 'block' : 'none';
+            counter.textContent = `${chatImgViewerIndex + 1} / ${chatImgViewerUrls.length}`;
+            document.getElementById('chat-img-viewer-prev').style.visibility = (multi && chatImgViewerIndex > 0) ? 'visible' : 'hidden';
+            document.getElementById('chat-img-viewer-next').style.visibility = (multi && chatImgViewerIndex < chatImgViewerUrls.length - 1) ? 'visible' : 'hidden';
+        }
+
+        function chatImageViewerPrev() { if (chatImgViewerIndex > 0) { chatImgViewerIndex--; renderChatImageViewer(); } }
+        window.chatImageViewerPrev = chatImageViewerPrev;
+        function chatImageViewerNext() { if (chatImgViewerIndex < chatImgViewerUrls.length - 1) { chatImgViewerIndex++; renderChatImageViewer(); } }
+        window.chatImageViewerNext = chatImageViewerNext;
+        function closeChatImageViewer() { document.getElementById('chat-img-viewer-overlay').classList.remove('show'); }
+        window.closeChatImageViewer = closeChatImageViewer;
+
         function renderSupportChatMessages(msgs) {
             const box = document.getElementById('support-chat-messages');
             if (!box) return;
@@ -13599,8 +13680,9 @@
                     avatarBadge = `<span class="support-chat-msg-avatar${m.isBot ? ' bot-avatar' : ''}">${inner}</span>`;
                 }
                 const botLabel = (!mine && m.isBot) ? `<span class="support-chat-bubble-bot-label">Auto-reply 🤖</span>` : '';
-                if (m.imageUrl) {
-                    return `<div class="support-chat-bubble image-bubble ${mine ? 'mine' : 'theirs'}${seen ? ' seen' : ''}">${avatarBadge}<img src="${m.imageUrl}" alt="Photo" loading="lazy" onclick="window.open('${m.imageUrl}','_blank')"><span class="support-chat-bubble-time">${time}</span></div>`;
+                const imgUrls = Array.isArray(m.imageUrls) ? m.imageUrls.filter(Boolean) : (m.imageUrl ? [m.imageUrl] : []);
+                if (imgUrls.length) {
+                    return `<div class="support-chat-bubble image-bubble ${mine ? 'mine' : 'theirs'}${seen ? ' seen' : ''}">${avatarBadge}${chatImageCollageHTML(imgUrls)}<span class="support-chat-bubble-time">${time}</span></div>`;
                 }
                 const safe = (m.text || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                 return `<div class="support-chat-bubble ${mine ? 'mine' : 'theirs'}${seen ? ' seen' : ''}">${avatarBadge}${botLabel}${safe}<span class="support-chat-bubble-time">${time}</span></div>`;
@@ -13774,12 +13856,14 @@
             return data.data.url;
         }
 
-        // Shows a spinner bubble the instant a photo is picked (upload +
+        // Shows a spinner bubble the instant photo(s) are picked (upload +
         // Firestore write both take a moment, and without this the user has
         // no feedback that anything is happening until the image finally
         // appears). The same bubble element is then swapped in place for
-        // the real photo once the upload finishes, or removed on failure.
-        function appendOptimisticSupportChatImageSpinner() {
+        // the real photo/collage once the upload finishes, or removed on
+        // failure. count>1 just labels the spinner so a multi-photo pick
+        // doesn't look stuck on "one photo" while several upload.
+        function appendOptimisticSupportChatImageSpinner(count) {
             const box = document.getElementById('support-chat-messages');
             if (!box) return null;
             const empty = box.querySelector('.support-chat-empty');
@@ -13787,18 +13871,19 @@
             const bubble = document.createElement('div');
             bubble.className = 'support-chat-bubble image-bubble mine';
             bubble.id = 'sc-img-pending-' + Date.now();
-            bubble.innerHTML = `<div class="support-chat-image-spinner-wrap"><div class="support-chat-image-spinner"></div></div>`;
+            const label = count > 1 ? `<span style="position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:11px;color:var(--text-secondary);">${count} photos</span>` : '';
+            bubble.innerHTML = `<div class="support-chat-image-spinner-wrap" style="position:relative;"><div class="support-chat-image-spinner"></div>${label}</div>`;
             box.appendChild(bubble);
             box.scrollTop = box.scrollHeight;
             return bubble.id;
         }
 
-        function resolveOptimisticSupportChatImage(bubbleId, url) {
+        function resolveOptimisticSupportChatImage(bubbleId, urls) {
             const bubble = document.getElementById(bubbleId);
             if (!bubble) return;
             playSupportChatSendSound();
             const time = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-            bubble.innerHTML = `<img src="${url}" alt="Photo" onclick="window.open('${url}','_blank')"><span class="support-chat-bubble-time">${time}</span>`;
+            bubble.innerHTML = `${chatImageCollageHTML(urls)}<span class="support-chat-bubble-time">${time}</span>`;
             const box = document.getElementById('support-chat-messages');
             if (box) box.scrollTop = box.scrollHeight;
         }
@@ -13808,25 +13893,29 @@
             if (bubble) bubble.remove();
         }
 
+        // Uploads every picked photo (one tap can select many from the
+        // gallery) and sends them as a single message with an imageUrls
+        // array, so the thread renders them as one collage bubble instead
+        // of one full-size bubble per photo.
         async function handleSupportChatImageSelect(inputEl) {
-            const file = inputEl.files && inputEl.files[0];
-            inputEl.value = ''; // allow picking the same file again next time
-            if (!file) return;
+            const files = Array.from(inputEl.files || []);
+            inputEl.value = ''; // allow picking the same file(s) again next time
+            if (!files.length) return;
             const camBtn = document.querySelector('.support-chat-camera-btn');
             if (camBtn) camBtn.style.opacity = '0.5';
-            const pendingId = appendOptimisticSupportChatImageSpinner();
+            const pendingId = appendOptimisticSupportChatImageSpinner(files.length);
             try {
-                const url = await uploadSupportChatImageToImgBB(file);
-                resolveOptimisticSupportChatImage(pendingId, url);
+                const urls = await Promise.all(files.map(f => uploadSupportChatImageToImgBB(f)));
+                resolveOptimisticSupportChatImage(pendingId, urls);
                 const guestId = window.getGuestId ? window.getGuestId() : '';
                 const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
                 await addDoc(collection(db, "supportChats", guestId, "messages"), {
-                    sender: 'user', text: '', imageUrl: url, timestamp: serverTimestamp(), sentToTelegram: false, seenByAdmin: false
+                    sender: 'user', text: '', imageUrls: urls, timestamp: serverTimestamp(), sentToTelegram: false, seenByAdmin: false
                 });
                 await setDoc(doc(db, "supportChats", guestId), {
                     userId: guestId,
                     userName: (savedProfile.name && savedProfile.name.trim()) ? savedProfile.name.trim() : guestId,
-                    lastMessage: '📷 Photo',
+                    lastMessage: urls.length > 1 ? `📷 ${urls.length} Photos` : '📷 Photo',
                     lastMessageAt: serverTimestamp(),
                     lastSender: 'user',
                     unreadByAdmin: true,
@@ -13853,6 +13942,17 @@
          Store needed. Hidden by default; JS toggles it visible. -->
     <button id="install-app-btn" onclick="installApp()" style="display:none;position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom, 0px));z-index:9999;padding:13px 16px;border:none;border-radius:14px;background:#2563EB;color:#fff;font-size:15px;font-weight:700;box-shadow:0 8px 24px rgba(37,99,235,0.35);align-items:center;justify-content:center;gap:8px;">
         ⬇️ App ကို Download လုပ်ပါ
-    </button>
+    </button>    <!-- Full-screen chat photo viewer (single photo, or a collage tile) —
+         shared by every image bubble in Support Chat; see chatImageCollageHTML()
+         / openChatImageViewer() in the script below. -->
+    <div class="chat-img-viewer-overlay" id="chat-img-viewer-overlay" onclick="if(event.target===this) closeChatImageViewer()">
+        <div class="chat-img-viewer-close" onclick="closeChatImageViewer()">
+            <svg class="ui-icon" style="width:18px;height:18px;stroke:#fff;"><use href="#icon-close"></use></svg>
+        </div>
+        <div class="chat-img-viewer-nav prev" id="chat-img-viewer-prev" onclick="chatImageViewerPrev()">‹</div>
+        <img id="chat-img-viewer-img" src="" alt="Photo">
+        <div class="chat-img-viewer-nav next" id="chat-img-viewer-next" onclick="chatImageViewerNext()">›</div>
+        <div class="chat-img-viewer-counter" id="chat-img-viewer-counter" style="display:none;"></div>
+    </div>
 </body>
 </html>
