@@ -2499,6 +2499,11 @@
         #support-widget-overlay .modal-close { background: var(--accent-soft); border: 1px solid var(--border); color: var(--accent-dark); }
         #support-widget-overlay .modal-header h3 { color: var(--accent-dark); }
         #support-widget-overlay .support-chat-send { background: var(--accent); }
+        /* Account-mode: this panel serves a single dedicated Account thread
+           (no Guide/Complaint tabs, no order-related FAQ chips - see
+           openSupportWidget('account') in the script below). */
+        #support-widget-overlay.account-mode #support-widget-tabs,
+        #support-widget-overlay.account-mode #support-chat-faq-row { display: none; }
         /* Chat bubbles: admin replies come in solid purple; my own sent
            messages stay white with black text until the admin has seen
            them, then the text turns blue as a read-receipt cue. */
@@ -2698,10 +2703,10 @@
     <div class="modal-overlay" id="support-widget-overlay" onclick="if(event.target===this) window.closeSupportWidget()">
         <div class="modal-box" style="max-height:86vh;">
             <div class="modal-header">
-                <h3 data-i18n="support_title">Help</h3>
+                <h3 data-i18n="support_title" id="support-widget-title">Help</h3>
                 <div class="modal-close" onclick="window.closeSupportWidget()"><svg class="ui-icon" style="width:16px;"><use href="#icon-close"></use></svg></div>
             </div>
-            <div class="pkg-type-tabs">
+            <div class="pkg-type-tabs" id="support-widget-tabs">
                 <button class="pkg-type-tab active" id="support-tab-guide" onclick="window.switchSupportTab('guide')" data-i18n="tab_guide">Guide</button>
                 <button class="pkg-type-tab" id="support-tab-complaint" onclick="window.switchSupportTab('complaint')" data-i18n="tab_complaint">Complaint</button>
                 <button class="pkg-type-tab" id="support-tab-chat" onclick="window.switchSupportTab('chat')"><span data-i18n="tab_chat">Support Chat</span><span class="support-chat-badge" id="support-chat-badge"></span></button>
@@ -2990,10 +2995,17 @@
             <div id="account-content" style="display:none;">
                 <div class="acct-header-row">
                     <h2 class="title-header" data-i18n="title_game_accounts">Game Accounts</h2>
-                    <button type="button" class="acct-sell-btn" onclick="openSellAccountModal()">
-                        <svg class="ui-icon" style="width:13px;height:13px;"><use href="#icon-plus"></use></svg>
-                        <span data-i18n="btn_sell_tab">Sell</span>
-                    </button>
+                    <div style="display:flex;gap:6px;">
+                        <button type="button" class="acct-sell-btn" style="position:relative;" onclick="window.openSupportWidget('account')" aria-label="Account Support">
+                            <svg class="ui-icon" style="width:13px;height:13px;"><use href="#icon-message-circle"></use></svg>
+                            <span data-i18n="btn_account_chat">Support</span>
+                            <span class="account-chat-entry-dot" style="display:none;position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:#EF4444;"></span>
+                        </button>
+                        <button type="button" class="acct-sell-btn" onclick="openSellAccountModal()">
+                            <svg class="ui-icon" style="width:13px;height:13px;"><use href="#icon-plus"></use></svg>
+                            <span data-i18n="btn_sell_tab">Sell</span>
+                        </button>
+                    </div>
                 </div>
                 <p class="empty-msg" style="text-align:left;padding:0 2px 12px;" data-i18n="sub_game_accounts">Buy pre-verified game accounts for sale — this is separate from top-up vouchers.</p>
                 <!-- Game-name tabs: pick which game's accounts to browse.
@@ -3114,6 +3126,10 @@
                     <svg class="ui-icon" style="width:18px;"><use href="#icon-chevron-left"></use></svg>
                 </div>
                 <h2 style="font-size:18px; font-weight: 600; color:var(--text);" id="acct-detail-game-name">Account</h2>
+                <div class="header-icon" style="width:36px;height:36px;margin-left:auto;position:relative;" onclick="window.openAccountListingChat()" aria-label="Ask about this account">
+                    <svg class="ui-icon" style="width:18px;"><use href="#icon-message-circle"></use></svg>
+                    <span class="account-chat-entry-dot" style="display:none;position:absolute;top:2px;right:2px;width:8px;height:8px;border-radius:50%;background:#EF4444;"></span>
+                </div>
             </div>
             <div class="detail-layout">
             <div class="detail-banner-col" style="position:relative; overflow:hidden; border-radius:12px;">
@@ -4303,7 +4319,7 @@
                 empty_signin_sub: 'Game accounts are high value, so please sign in with Google first.',
                 tap_view_profile: 'Tap to view profile', guest: 'Guest',
                 drawer_footer: 'PCA Store',
-                support_title: 'Help', tab_guide: 'Guide', tab_complaint: 'Complaint', tab_chat: 'Support Chat',
+                support_title: 'Help', support_title_account: 'Account Support', btn_account_chat: 'Support', tab_guide: 'Guide', tab_complaint: 'Complaint', tab_chat: 'Support Chat',
                 guide_q_about: 'What is PCA Store?',
                 guide_a_about: 'PCA Store has been Myanmar\'s fast, safe and reliable platform for game top-ups and in-game currency (Diamonds, UC, and more) since 2026. It comes with a Wallet, VIP tiers, a friend referral system, and live Support Chat.',
                 guide_q_order: 'How do I place an order?',
@@ -4423,7 +4439,7 @@
                 empty_signin_sub: 'ဂိမ်းအကောင့်များသည် တန်ဖိုးမြင့်သောကြောင့် Google ဖြင့် အကောင့်ဝင်ပါ။',
                 tap_view_profile: 'ပရိုဖိုင်ကြည့်ရန် နှိပ်ပါ', guest: 'ဧည့်သည်',
                 drawer_footer: 'PCA Store',
-                support_title: 'အကူအညီ', tab_guide: 'လမ်းညွှန်', tab_complaint: 'တိုင်ကြားရန်', tab_chat: 'Chat ဖြင့်မေးရန်',
+                support_title: 'အကူအညီ', support_title_account: 'အကောင့်ဆိုင်ရာ အကူအညီ', btn_account_chat: 'အကူအညီ', tab_guide: 'လမ်းညွှန်', tab_complaint: 'တိုင်ကြားရန်', tab_chat: 'Chat ဖြင့်မေးရန်',
                 guide_q_about: 'PCA Store ဆိုတာ ဘာလဲ',
                 guide_a_about: 'PCA Store သည် ၂၀၂၆ ခုနှစ်မှစတင်၍ မြန်မာနိုင်ငံရှိ ဂိမ်းသမားများအတွက် Diamond၊ UC စသည့် In-Game Currency နှင့် Top Up ဝန်ဆောင်မှုများကို လျင်မြန်၊ ဘေးကင်း၊ စိတ်ချရစွာ ရရှိနိုင်သော ပလက်ဖောင်းတစ်ခု ဖြစ်ပါသည်။ Wallet၊ VIP အဆင့်များ၊ သူငယ်ချင်းဖိတ်ခေါ်ခြင်း (Referral) နှင့် တိုက်ရိုက် Support Chat တို့ကို ပါဝင်ပေးထားပါသည်။',
                 guide_q_order: 'အော်ဒါ ဘယ်လိုတင်ရမလဲ',
@@ -13231,6 +13247,30 @@
         let supportFabDragged = false;
         let supportFabPeekTimer = null;
 
+        // Two independent threads share this one panel UI: 'product' (order/
+        // wallet/general support - default, opened from the Support drawer
+        // item) and 'account' (Game Account marketplace only, opened from the
+        // Game Accounts pages). Each mode points at its own Firestore
+        // collection so admin.html can keep the two inboxes fully separate.
+        let supportChatMode = 'product';
+        const SUPPORT_CHAT_COLLECTIONS = { product: 'supportChats', account: 'supportChatsAccount' };
+        function supportChatCollectionName() { return SUPPORT_CHAT_COLLECTIONS[supportChatMode] || 'supportChats'; }
+
+        // ---------- Account chat: per-admin thread routing ----------
+        // The general "Support" button (Game Accounts page header) has no
+        // listing context yet, so it goes to a shared 'general' thread any
+        // account-role admin can pick up. "Ask about this account" (opened
+        // from a specific listing) instead routes to that listing's own
+        // poster (`postedByAdmin` on the gameAccounts doc), so a buyer
+        // messaging two different admins about two different listings gets
+        // two separate threads instead of one crossed conversation. Doc id
+        // in supportChatsAccount becomes `${guestId}__${adminKey}`; the
+        // product thread is unaffected (still keyed by plain guestId).
+        let supportChatAccountAdminKey = 'general';
+        function supportChatThreadId(guestId) {
+            return (supportChatMode === 'account') ? `${guestId}__${supportChatAccountAdminKey}` : guestId;
+        }
+
         // ---------- Support Chat: FAQ quick-replies + auto-answer ----------
         // The FAQ list itself lives in Firestore (settings/supportChatFaq,
         // field "items": [{q,a,keywords}]) and is edited from admin.html's
@@ -13308,10 +13348,11 @@
         // both Store.html and admin.html, just tagged as an auto-reply.
         async function sendSupportFaqAutoReply(guestId, answerText) {
             try {
-                await addDoc(collection(db, "supportChats", guestId, "messages"), {
+                const threadId = supportChatThreadId(guestId);
+                await addDoc(collection(db, supportChatCollectionName(), threadId, "messages"), {
                     sender: 'admin', text: answerText, timestamp: serverTimestamp(), isBot: true, seenByAdmin: true
                 });
-                await setDoc(doc(db, "supportChats", guestId), {
+                await setDoc(doc(db, supportChatCollectionName(), threadId), {
                     lastMessage: answerText, lastMessageAt: serverTimestamp(), lastSender: 'admin'
                 }, { merge: true });
             } catch (error) {
@@ -13336,13 +13377,15 @@
         // forever. There's no backend job here, so this runs opportunistically
         // whenever the customer opens the chat tab (best-effort, client-side).
         const SUPPORT_CHAT_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
-        let supportChatCleanupDone = false;
+        const supportChatCleanupDoneByMode = {};
         async function cleanupOldSupportChatMessages(guestId) {
-            if (!guestId || supportChatCleanupDone) return;
-            supportChatCleanupDone = true;
+            if (!guestId) return;
+            const threadId = supportChatThreadId(guestId);
+            if (supportChatCleanupDoneByMode[threadId]) return;
+            supportChatCleanupDoneByMode[threadId] = true;
             try {
                 const cutoff = new Date(Date.now() - SUPPORT_CHAT_RETENTION_MS);
-                const q = query(collection(db, "supportChats", guestId, "messages"), where("timestamp", "<", cutoff));
+                const q = query(collection(db, supportChatCollectionName(), threadId, "messages"), where("timestamp", "<", cutoff));
                 const snap = await getDocs(q);
                 if (snap.empty) return;
                 const batch = writeBatch(db);
@@ -13430,12 +13473,10 @@
         // sendSupportChatReply), so different admins show up as different
         // faces. Falls back to the legacy shared settings/supportChat photo
         // (for stores with just one admin who hasn't replied yet), then "A".
-        let supportChatLastAdminAvatar = null;
-
         function renderSupportChatHeaderAvatar() {
             const el = document.getElementById('support-chat-header-avatar');
             if (!el) return;
-            const url = supportChatLastAdminAvatar || window.__supportChatFallbackAvatar || null;
+            const url = supportChatSummaryState[supportChatMode].lastAdminAvatar || window.__supportChatFallbackAvatar || null;
             el.innerHTML = url ? `<img src="${url}" alt="Admin">` : 'A';
         }
 
@@ -13504,14 +13545,36 @@
             });
 
             scheduleSupportFabPeek();
-            listenSupportChatSummary();
+            listenSupportChatSummary('product');
+            listenSupportChatSummary('account');
         }
 
-        function openSupportWidget() {
+        function openSupportWidget(mode, adminKey) {
+            const newMode = (mode === 'account') ? 'account' : 'product';
+            const newAdminKey = (newMode === 'account') ? (adminKey || 'general') : null;
+            // Switching modes, OR staying in account mode but jumping to a
+            // different listing's admin thread, both need the old thread's
+            // live message listener dropped first, so the panel never
+            // streams the other thread's messages in mid-transition.
+            const threadChanged = (newMode !== supportChatMode) || (newMode === 'account' && newAdminKey !== supportChatAccountAdminKey);
+            if (threadChanged && supportChatMsgUnsub) {
+                supportChatMsgUnsub();
+                supportChatMsgUnsub = null;
+            }
+            supportChatMode = newMode;
+            if (newMode === 'account') supportChatAccountAdminKey = newAdminKey;
             const overlay = document.getElementById('support-widget-overlay');
-            if (overlay) overlay.classList.add('show');
+            if (overlay) {
+                overlay.classList.add('show');
+                overlay.classList.toggle('account-mode', newMode === 'account');
+            }
+            const title = document.getElementById('support-widget-title');
+            if (title) title.textContent = newMode === 'account' ? t('support_title_account') : t('support_title');
             const dot = document.getElementById('support-fab-dot');
             if (dot) dot.style.display = 'none';
+            // Account mode is a single dedicated thread - skip straight to it
+            // (no Guide/Complaint tabs shown; see the .account-mode CSS rule).
+            if (newMode === 'account') switchSupportTab('chat');
             // Push a history entry so the device's physical/gesture Back button
             // closes this overlay (handled by the popstate listener below)
             // instead of navigating the browser away from the site entirely.
@@ -13529,6 +13592,15 @@
         }
         window.openSupportWidget = openSupportWidget;
         window.closeSupportWidget = closeSupportWidget;
+        // "Ask about this account" (account-detail header icon) needs the
+        // currently-open listing's poster, which is only known here as a
+        // module-scoped var - inline onclick can't read GAME_ACCOUNTS
+        // directly, so this small wrapper is exposed on window instead.
+        function openAccountListingChat() {
+            const listing = GAME_ACCOUNTS[currentAccountId] || {};
+            openSupportWidget('account', listing.postedByAdmin);
+        }
+        window.openAccountListingChat = openAccountListingChat;
         window.addEventListener('popstate', () => {
             const overlay = document.getElementById('support-widget-overlay');
             if (overlay && overlay.classList.contains('show')) closeSupportWidget(true);
@@ -13696,7 +13768,7 @@
             if (supportChatMsgUnsub) return;
             const guestId = window.getGuestId ? window.getGuestId() : '';
             if (!guestId) return;
-            const q = query(collection(db, "supportChats", guestId, "messages"), orderBy("timestamp", "asc"));
+            const q = query(collection(db, supportChatCollectionName(), supportChatThreadId(guestId), "messages"), orderBy("timestamp", "asc"));
             supportChatMsgUnsub = onSnapshot(q, (snap) => {
                 renderSupportChatMessages(snap.docs.map(d => d.data()));
             }, (error) => console.error("Support chat listen error:", error));
@@ -13718,45 +13790,97 @@
         // summary snapshot (that's just existing history loading in, not a
         // new message) and de-dupe by timestamp so a reconnect/refresh never
         // replays the sound for a reply the customer already heard.
-        let supportChatSummarySeenFirst = false;
-        let lastPlayedAdminMsgMs = 0;
+        // Namespaced per mode so the product and account threads never leak
+        // into each other's header avatar / typing indicator / receive-sound
+        // state, even though both summary docs are listened to at once.
+        const supportChatSummaryState = {
+            product: { seenFirst: false, lastPlayedMs: 0, lastAdminAvatar: null, adminTypingAtMs: null },
+            account: { seenFirst: false, lastPlayedMs: 0, lastAdminAvatar: null, adminTypingAtMs: null }
+        };
 
         function renderSupportChatTypingIndicator() {
             const el = document.getElementById('support-chat-typing-indicator');
             if (!el) return;
-            const isTyping = adminTypingAtMs !== null && (Date.now() - adminTypingAtMs) < TYPING_STALE_MS;
+            const atMs = supportChatSummaryState[supportChatMode].adminTypingAtMs;
+            const isTyping = atMs !== null && (Date.now() - atMs) < TYPING_STALE_MS;
             el.classList.toggle('show', isTyping);
         }
 
-        function listenSupportChatSummary() {
-            const guestId = window.getGuestId ? window.getGuestId() : '';
-            if (!guestId) return;
-            onSnapshot(doc(db, "supportChats", guestId), (snap) => {
-                if (!snap.exists()) return;
-                const data = snap.data();
-                const overlay = document.getElementById('support-widget-overlay');
-                const chatTabBtn = document.getElementById('support-tab-chat');
-                const panelOpen = overlay && overlay.classList.contains('show');
-                const chatTabActive = chatTabBtn && chatTabBtn.classList.contains('active');
-                if (data.lastSender === 'admin' && !(panelOpen && chatTabActive)) {
+        // Toggles the small unread dot shown on the Game Accounts entry
+        // points (account-list header button + account-detail button) for a
+        // new Account-thread admin reply, mirroring the product FAB dot.
+        function setAccountChatUnreadDot(show) {
+            document.querySelectorAll('.account-chat-entry-dot').forEach(el => {
+                el.style.display = show ? 'block' : 'none';
+            });
+        }
+
+        // Per-thread sound/seen state for the account collection, keyed by
+        // the full thread doc id (`${guestId}__${adminKey}`) - a buyer can
+        // have several account threads open (one per admin) at once, and
+        // each needs its own de-dupe so switching between them doesn't
+        // replay or drop a receive sound.
+        const accountChatThreadState = {};
+
+        function processSupportSummaryDoc(m, docId, data, guestId) {
+            // "Active" means: this is the product doc, or (for account) this
+            // doc's id matches whichever admin-thread is currently selected.
+            const isActiveThread = (m === 'product') || (docId === supportChatThreadId(guestId));
+            const state = (m === 'product') ? supportChatSummaryState.product
+                : (accountChatThreadState[docId] || (accountChatThreadState[docId] = { seenFirst: false, lastPlayedMs: 0 }));
+            const overlay = document.getElementById('support-widget-overlay');
+            const chatTabBtn = document.getElementById('support-tab-chat');
+            const panelOpen = overlay && overlay.classList.contains('show') && supportChatMode === m && isActiveThread;
+            const chatTabActive = chatTabBtn && chatTabBtn.classList.contains('active');
+            if (data.lastSender === 'admin' && !(panelOpen && chatTabActive)) {
+                if (m === 'product') {
                     const dot = document.getElementById('support-fab-dot');
                     const badge = document.getElementById('support-chat-badge');
                     if (dot) dot.style.display = 'block';
                     if (badge) badge.style.display = 'inline-block';
+                } else {
+                    setAccountChatUnreadDot(true);
                 }
-                if (data.lastSender === 'admin' && data.lastMessageAt && data.lastMessageAt.toMillis) {
-                    const msgMs = data.lastMessageAt.toMillis();
-                    if (supportChatSummarySeenFirst && msgMs > lastPlayedAdminMsgMs) {
-                        playSupportChatReceiveSound();
-                    }
-                    lastPlayedAdminMsgMs = Math.max(lastPlayedAdminMsgMs, msgMs);
+            }
+            if (data.lastSender === 'admin' && data.lastMessageAt && data.lastMessageAt.toMillis) {
+                const msgMs = data.lastMessageAt.toMillis();
+                if (state.seenFirst && msgMs > state.lastPlayedMs && supportChatMode === m && isActiveThread) {
+                    playSupportChatReceiveSound();
                 }
-                supportChatSummarySeenFirst = true;
-                supportChatLastAdminAvatar = data.lastAdminAvatar || null;
+                state.lastPlayedMs = Math.max(state.lastPlayedMs, msgMs);
+            }
+            state.seenFirst = true;
+            if (m === 'account') accountChatThreadState[docId] = state;
+            if (supportChatMode === m && isActiveThread) {
+                supportChatSummaryState[m].lastAdminAvatar = data.lastAdminAvatar || null;
                 renderSupportChatHeaderAvatar();
-                adminTypingAtMs = (data.adminTypingAt && data.adminTypingAt.toMillis) ? data.adminTypingAt.toMillis() : null;
+                supportChatSummaryState[m].adminTypingAtMs = (data.adminTypingAt && data.adminTypingAt.toMillis) ? data.adminTypingAt.toMillis() : null;
                 renderSupportChatTypingIndicator();
-            }, (error) => console.error("Support chat summary listen error:", error));
+            }
+        }
+
+        function listenSupportChatSummary(mode) {
+            const m = (mode === 'account') ? 'account' : 'product';
+            const guestId = window.getGuestId ? window.getGuestId() : '';
+            if (!guestId) return;
+            if (m === 'product') {
+                onSnapshot(doc(db, SUPPORT_CHAT_COLLECTIONS.product, guestId), (snap) => {
+                    if (!snap.exists()) return;
+                    processSupportSummaryDoc('product', guestId, snap.data(), guestId);
+                }, (error) => console.error("Support chat summary listen error:", error));
+            } else {
+                // Account mode: one buyer can have several admin threads at
+                // once (general + one per listing's admin), so this listens
+                // across ALL of them (not a single fixed doc) and lets
+                // processSupportSummaryDoc figure out per-thread state.
+                const q = query(collection(db, SUPPORT_CHAT_COLLECTIONS.account), where("userId", "==", guestId));
+                onSnapshot(q, (snap) => {
+                    snap.docChanges().forEach((change) => {
+                        if (change.type === 'removed') return;
+                        processSupportSummaryDoc('account', change.doc.id, change.doc.data(), guestId);
+                    });
+                }, (error) => console.error("Support chat summary listen error:", error));
+            }
             // Re-checks staleness even with no new snapshot, so the "Admin is
             // typing..." row disappears on its own ~3s after they pause.
             setInterval(renderSupportChatTypingIndicator, 1000);
@@ -13773,13 +13897,13 @@
             if (!input.value.trim()) {
                 if (userTypingWriteAt !== 0) {
                     userTypingWriteAt = 0;
-                    setDoc(doc(db, "supportChats", guestId), { userTypingAt: null }, { merge: true }).catch(() => {});
+                    setDoc(doc(db, supportChatCollectionName(), supportChatThreadId(guestId)), { userTypingAt: null }, { merge: true }).catch(() => {});
                 }
                 return;
             }
             if (now - userTypingWriteAt < TYPING_THROTTLE_MS) return;
             userTypingWriteAt = now;
-            setDoc(doc(db, "supportChats", guestId), { userTypingAt: serverTimestamp() }, { merge: true }).catch(() => {});
+            setDoc(doc(db, supportChatCollectionName(), supportChatThreadId(guestId)), { userTypingAt: serverTimestamp() }, { merge: true }).catch(() => {});
         }
         window.handleSupportChatTyping = handleSupportChatTyping;
 
@@ -13814,13 +13938,18 @@
             appendOptimisticSupportChatMessage(text);
             try {
                 const guestId = window.getGuestId ? window.getGuestId() : '';
+                const threadId = supportChatThreadId(guestId);
                 const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
-                await addDoc(collection(db, "supportChats", guestId, "messages"), {
+                await addDoc(collection(db, supportChatCollectionName(), threadId, "messages"), {
                     sender: 'user', text, timestamp: serverTimestamp(), sentToTelegram: false, seenByAdmin: false
                 });
-                await setDoc(doc(db, "supportChats", guestId), {
+                await setDoc(doc(db, supportChatCollectionName(), threadId), {
                     userId: guestId,
                     userName: (savedProfile.name && savedProfile.name.trim()) ? savedProfile.name.trim() : guestId,
+                    // adminKey routes this thread to a specific account-role
+                    // admin ('general' = shared, unassigned inbox any of them
+                    // can answer); only meaningful for the account collection.
+                    ...(supportChatMode === 'account' ? { adminKey: supportChatAccountAdminKey } : {}),
                     lastMessage: text,
                     lastMessageAt: serverTimestamp(),
                     lastSender: 'user',
@@ -13831,7 +13960,7 @@
                 // (presetAutoAnswer); a hand-typed message gets matched
                 // against the same FAQ keyword list. Either way the bot
                 // answer lands a beat later so it doesn't feel instant/robotic.
-                const autoAnswer = presetAutoAnswer || (matchSupportFaq(text) || {}).a;
+                const autoAnswer = supportChatMode === 'product' ? (presetAutoAnswer || (matchSupportFaq(text) || {}).a) : null;
                 if (autoAnswer) {
                     setTimeout(() => sendSupportFaqAutoReply(guestId, autoAnswer), 900);
                 }
@@ -13908,13 +14037,15 @@
                 const urls = await Promise.all(files.map(f => uploadSupportChatImageToImgBB(f)));
                 resolveOptimisticSupportChatImage(pendingId, urls);
                 const guestId = window.getGuestId ? window.getGuestId() : '';
+                const threadId = supportChatThreadId(guestId);
                 const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
-                await addDoc(collection(db, "supportChats", guestId, "messages"), {
+                await addDoc(collection(db, supportChatCollectionName(), threadId, "messages"), {
                     sender: 'user', text: '', imageUrls: urls, timestamp: serverTimestamp(), sentToTelegram: false, seenByAdmin: false
                 });
-                await setDoc(doc(db, "supportChats", guestId), {
+                await setDoc(doc(db, supportChatCollectionName(), threadId), {
                     userId: guestId,
                     userName: (savedProfile.name && savedProfile.name.trim()) ? savedProfile.name.trim() : guestId,
+                    ...(supportChatMode === 'account' ? { adminKey: supportChatAccountAdminKey } : {}),
                     lastMessage: urls.length > 1 ? `📷 ${urls.length} Photos` : '📷 Photo',
                     lastMessageAt: serverTimestamp(),
                     lastSender: 'user',
