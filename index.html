@@ -3143,10 +3143,11 @@
                     <svg class="ui-icon" style="width:18px;"><use href="#icon-chevron-left"></use></svg>
                 </div>
                 <h2 style="font-size:18px; font-weight: 600; color:var(--text);" id="acct-detail-game-name">Account</h2>
-                <div class="header-icon" style="width:36px;height:36px;margin-left:auto;position:relative;" onclick="window.openAccountListingChat()" aria-label="Ask about this account">
-                    <svg class="ui-icon" style="width:18px;"><use href="#icon-message-circle"></use></svg>
-                    <span class="account-chat-entry-dot" style="display:none;position:absolute;top:2px;right:2px;width:8px;height:8px;border-radius:50%;background:#EF4444;"></span>
-                </div>
+                <button type="button" class="acct-sell-btn" style="margin-left:auto;position:relative;" onclick="window.openAccountListingChat()" aria-label="Ask about this account">
+                    <svg class="ui-icon" style="width:13px;height:13px;"><use href="#icon-message-circle"></use></svg>
+                    <span data-i18n="btn_account_chat">Support</span>
+                    <span class="account-chat-entry-dot" style="display:none;position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:#EF4444;"></span>
+                </button>
             </div>
             <div class="detail-layout">
             <div class="detail-banner-col" style="position:relative; overflow:hidden; border-radius:12px;">
@@ -9606,6 +9607,30 @@
         }
         listenPaymentMethods();
 
+        // ---------- Account-listing Payment Methods (live from Firestore
+        // "accountPaymentMethods" collection) ----------
+        // Buying a game account (see acctRenderPaymentMethods/acctSelectPaymentMethod
+        // below) pays into the account-admin's own payment methods, kept
+        // completely separate from the store owner's main "paymentMethods"
+        // collection used for regular top up / game purchases above.
+        let accountPaymentMethodsListenerAttached = false;
+        function listenAccountPaymentMethods() {
+            if (accountPaymentMethodsListenerAttached) return;
+            accountPaymentMethodsListenerAttached = true;
+            onSnapshot(collection(db, "accountPaymentMethods"), (snap) => {
+                const methods = {};
+                snap.forEach(docSnap => { methods[docSnap.id] = docSnap.data(); });
+                window.ACCOUNT_PAYMENT_METHODS = methods;
+                // Re-draw the account-purchase payment list immediately if it's
+                // on screen right now, same as listenPaymentMethods() does above.
+                const acctWrap = document.getElementById('acct-payment-methods-wrap');
+                if (acctWrap && acctWrap.style.display !== 'none' && window.acctRenderPaymentMethods) window.acctRenderPaymentMethods();
+            }, (error) => {
+                console.error("Account payment methods listener error:", error);
+            });
+        }
+        listenAccountPaymentMethods();
+
         // ---------- Bullet Chat (store ticker, Admin Panel text only) ----------
         // Shows the messages written from the Admin Panel's Store Ticker page.
         // Loops continuously (with a short pause between passes) for as long as
@@ -12057,9 +12082,14 @@
             const skinList = getAcctSkinList(a);
             // Account Info grid — same detail-grid-item shape used for Order
             // Info / wallet transaction detail elsewhere in the app.
+            // Rank/Server only show up when the admin actually filled them in
+            // (previously they always rendered, falling back to "N/A" —
+            // which cluttered games like MLBB/PUBG that use a "Collector
+            // Level" + "Server/ID" custom tab instead of Rank/Server, and
+            // always showed two useless "N/A" chips on top of them).
             const chips = [];
-            chips.push(`<div class="detail-grid-item"><span data-i18n="lbl_rank">Rank</span><b>${a.rank || 'N/A'}</b></div>`);
-            chips.push(`<div class="detail-grid-item"><span data-i18n="lbl_server">Server</span><b>${a.server || 'N/A'}</b></div>`);
+            if (a.rank) chips.push(`<div class="detail-grid-item"><span data-i18n="lbl_rank">Rank</span><b>${a.rank}</b></div>`);
+            if (a.server) chips.push(`<div class="detail-grid-item"><span data-i18n="lbl_server">Server</span><b>${a.server}</b></div>`);
             chips.push(`<div class="detail-grid-item"><span data-i18n="sec_skins_included">Skins Included</span><b>${skinList.length}</b></div>`);
             if (Array.isArray(a.customFields)) {
                 a.customFields.forEach(f => {
@@ -12489,7 +12519,7 @@
 
         function acctRenderPaymentMethods() {
             const container = document.getElementById('acct-payment-methods');
-            const methods = window.PAYMENT_METHODS || {};
+            const methods = window.ACCOUNT_PAYMENT_METHODS || {};
             const ids = Object.keys(methods).sort((a, b) => {
                 const oa = methods[a].order, ob = methods[b].order;
                 if (typeof oa === 'number' && typeof ob === 'number') return oa - ob;
@@ -12517,7 +12547,7 @@
         window.acctRenderPaymentMethods = acctRenderPaymentMethods;
 
         function acctSelectPaymentMethod(id) {
-            const p = (window.PAYMENT_METHODS || {})[id];
+            const p = (window.ACCOUNT_PAYMENT_METHODS || {})[id];
             if (!p) return;
             acctSelectedPaymentMethod = { id, name: p.name, number: p.number, accountName: p.accountName };
             document.querySelectorAll('#acct-payment-methods .payment-option').forEach(el => el.classList.remove('selected'));
@@ -13580,6 +13610,15 @@
             if (threadChanged && supportChatMsgUnsub) {
                 supportChatMsgUnsub();
                 supportChatMsgUnsub = null;
+                // Also drop whatever the OLD thread last rendered. Without
+                // this, if the Chat tab happens to already be the active
+                // panel (left that way from a previous Account-mode visit),
+                // its bubbles stay on screen under the new thread's header —
+                // looking exactly like Account and Product chats are mixed
+                // together — until something else happens to trigger a
+                // fresh render.
+                const box = document.getElementById('support-chat-messages');
+                if (box) box.innerHTML = '';
             }
             supportChatMode = newMode;
             if (newMode === 'account') supportChatAccountAdminKey = newAdminKey;
@@ -13594,7 +13633,18 @@
             if (dot) dot.style.display = 'none';
             // Account mode is a single dedicated thread - skip straight to it
             // (no Guide/Complaint tabs shown; see the .account-mode CSS rule).
-            if (newMode === 'account') switchSupportTab('chat');
+            if (newMode === 'account') {
+                switchSupportTab('chat');
+            } else if (threadChanged) {
+                // Coming back to (or freshly opening) Product mode: if the
+                // Chat tab happens to already be the active panel (left that
+                // way from an earlier Account-mode visit), re-run its setup
+                // for the NEW (Product) thread instead of leaving the old
+                // Account thread's listener/messages sitting there. Guide/
+                // Complaint stay untouched if that's what was showing.
+                const chatPanel = document.getElementById('support-panel-chat');
+                if (chatPanel && chatPanel.style.display !== 'none') switchSupportTab('chat');
+            }
             // Push a history entry so the device's physical/gesture Back button
             // closes this overlay (handled by the popstate listener below)
             // instead of navigating the browser away from the site entirely.
