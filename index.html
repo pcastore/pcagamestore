@@ -1277,7 +1277,7 @@
         .acct-count-badge {
             position: absolute; left: 4px; bottom: 4px; padding: 2px 6px;
             border-radius: 6px; font-size: 9px; font-weight: 600;
-            background: rgba(0,0,0,0.55); color: #fff; backdrop-filter: blur(2px);
+            background: rgba(0,0,0,0.72); color: #fff;
         }
         /* Game Account listing card — redesigned as a clean, image-forward
            card (full-width photo on top, minimal text below) instead of the
@@ -1289,14 +1289,29 @@
         .acct-list-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
         /* "Available"/"Sold Out" pill pinned to the thumbnail's bottom-right
            corner, with a small glowing/pulsing dot when the listing is
-           still available — mirrors the "N viewing now" pulse elsewhere. */
-        .acct-thumb-status { position: absolute; bottom: 8px; right: 8px; display: inline-flex; align-items: center; gap: 5px; background: rgba(10,14,20,0.72); backdrop-filter: blur(2px); color: #fff; font-size: 10.5px; font-weight: 600; padding: 3px 8px 3px 6px; border-radius: 10px; line-height: 1.3; }
-        .acct-thumb-status-dot { width: 6px; height: 6px; border-radius: 50%; background: #2ECC71; box-shadow: 0 0 0 0 rgba(46,204,113,0.6); flex-shrink: 0; animation: acctThumbDotPulse 1.6s ease-out infinite; }
-        .acct-thumb-status.is-sold .acct-thumb-status-dot { background: var(--text-muted); box-shadow: none; animation: none; }
+           still available — mirrors the "N viewing now" pulse elsewhere.
+           PERF: no backdrop-filter here (was blur(2px)) - this badge repeats
+           once per account card in the marketplace grid, and every account
+           thumbnail blurring its own tiny badge is exactly the "many small
+           blur layers" cost already fixed for .game-card/.list-card/etc.
+           above; a solid darker background reads the same at this size. The
+           pulse dot below also used to animate box-shadow (forces a real
+           repaint every frame, on every visible "Available" card, forever)
+           - now it's a transform+opacity ping ring instead, which the
+           compositor can run without repainting anything. */
+        .acct-thumb-status { position: absolute; bottom: 8px; right: 8px; display: inline-flex; align-items: center; gap: 5px; background: rgba(10,14,20,0.82); color: #fff; font-size: 10.5px; font-weight: 600; padding: 3px 8px 3px 6px; border-radius: 10px; line-height: 1.3; }
+        .acct-thumb-status-dot { position: relative; width: 6px; height: 6px; border-radius: 50%; background: #2ECC71; flex-shrink: 0; }
+        .acct-thumb-status-dot::after {
+            content: ''; position: absolute; inset: 0; border-radius: 50%;
+            background: #2ECC71;
+            animation: acctThumbDotPulse 1.6s ease-out infinite;
+        }
+        .acct-thumb-status.is-sold .acct-thumb-status-dot { background: var(--text-muted); }
+        .acct-thumb-status.is-sold .acct-thumb-status-dot::after { display: none; }
         @keyframes acctThumbDotPulse {
-            0% { box-shadow: 0 0 0 0 rgba(46,204,113,0.55); }
-            70% { box-shadow: 0 0 0 6px rgba(46,204,113,0); }
-            100% { box-shadow: 0 0 0 0 rgba(46,204,113,0); }
+            0%   { transform: scale(1); opacity: 0.55; }
+            70%  { transform: scale(3.5); opacity: 0; }
+            100% { transform: scale(3.5); opacity: 0; }
         }
         /* Scarcity ribbon — moved off the title line onto the photo's
            top-left corner so the title/price area below stays uncluttered. */
@@ -8084,6 +8099,7 @@
             setAluuStatus('Verifying with Aluu.in…', true);
             try {
                 await pollAluuVerify(txHash);
+                stopAluuPolling();
                 aluuPollTimer = setInterval(() => pollAluuVerify(txHash), 6000);
             } finally {
                 btn.disabled = false;
@@ -12802,6 +12818,7 @@
                     const gid = window.getGuestId ? window.getGuestId() : null;
                     if (!gid || !token || !token.value) return;
                     await setDoc(doc(db, "users", gid), { fcmToken: token.value }, { merge: true });
+                    try { localStorage.setItem('gz_fcm_token_registered', '1'); } catch (e) {}
                     renderPushToggleUI();
                 } catch (e) { console.error('Native push token save error:', e); }
             });
@@ -12866,7 +12883,17 @@
                 const token = await getToken(messaging, { vapidKey: FCM_VAPID_KEY, serviceWorkerRegistration: registration });
                 if (!token) return;
                 await setDoc(doc(db, "users", gid), { fcmToken: token }, { merge: true });
+                try { localStorage.setItem('gz_fcm_token_registered', '1'); } catch (e) {}
             } catch (error) { console.error("FCM token registration error:", error); }
+        }
+
+        // Tracks whether THIS device successfully got an fcmToken saved (native
+        // path counts too, via the 'registration' listener in initNativePush).
+        // Used to stop fireOsNotification() from firing a second, duplicate
+        // notification on devices where the server-sent FCM push already
+        // covers delivery.
+        function hasRegisteredFcmToken() {
+            try { return localStorage.getItem('gz_fcm_token_registered') === '1'; } catch (e) { return false; }
         }
 
         async function clearFcmToken() {
@@ -12874,6 +12901,7 @@
                 const gid = window.getGuestId ? window.getGuestId() : null;
                 if (!gid) return;
                 await updateDoc(doc(db, "users", gid), { fcmToken: deleteField() });
+                try { localStorage.removeItem('gz_fcm_token_registered'); } catch (e) {}
             } catch (error) { /* not fatal */ }
         }
 
@@ -12982,7 +13010,19 @@
         }
 
         function fireOsNotification(n) {
-            if (!pushEnabled()) return;
+            // Only for users who have push permission but are NOT actually
+            // wired up to receive the server-sent FCM push (e.g. fcmToken
+            // failed to save, or they're on a browser where getToken()
+            // silently didn't run) - anyone with a live fcmToken already
+            // gets this exact same notification delivered by
+            // sweepNotificationBroadcasts() in the Cloudflare worker via FCM.
+            // Previously this fired unconditionally whenever pushEnabled()
+            // was true, which is the SAME condition under which FCM also
+            // sends - so every push-enabled customer got the same
+            // notification twice (once from this live Firestore listener,
+            // once from the FCM service worker). Gating on "no known
+            // fcmToken" keeps this as a fallback only, not a duplicate path.
+            if (!pushEnabled() || hasRegisteredFcmToken()) return;
             try {
                 const notif = new Notification(n.title || 'PCA Store', {
                     body: n.intro || n.message || '',
@@ -13220,14 +13260,41 @@
             // theme while it's hidden underneath, then fade the disc away.
             themeRippleTransition._swapT = setTimeout(() => {
                 setThemeSmooth(nextTheme);
-                ripple.style.transition = 'opacity 0.35s ease';
-                ripple.style.opacity = '0';
+                // Don't start the fade on the very next line - setThemeSmooth
+                // just flipped [data-theme] on <html>, and this app has 100+
+                // "html[data-theme=...] .xxx" rules spread across every page
+                // section that's still sitting in the DOM (even the hidden
+                // ones). On a slower phone that recalc/repaint can take a
+                // beat to actually finish; fading the disc out immediately
+                // could let it finish BEFORE the new theme has fully painted
+                // underneath, showing a half-styled/blank flash through it -
+                // which is exactly the "goes blank and hangs" symptom this
+                // is fixing. Waiting two animation frames gives the browser
+                // a chance to actually paint the new theme first.
+                requestAnimationFrame(() => requestAnimationFrame(() => {
+                    ripple.style.transition = 'opacity 0.35s ease';
+                    ripple.style.opacity = '0';
+                }));
             }, 480);
-            themeRippleTransition._resetT = setTimeout(() => {
+            // Reset once the fade-out transition actually finishes, instead
+            // of guessing a fixed total duration - the two rAFs above make
+            // the real fade start time slightly variable, so a hardcoded
+            // offset here could fire early (snapping the disc back to a dot
+            // while still visible) or leave it lingering invisible-but-huge
+            // longer than necessary. Falls back to a timeout in case
+            // transitionend never fires (e.g. opacity got interrupted by a
+            // rapid re-tap, which clears this timer anyway).
+            const resetRipple = () => {
                 ripple.style.transition = 'none';
                 ripple.style.width = '0px';
                 ripple.style.height = '0px';
-            }, 480 + 380);
+                ripple.removeEventListener('transitionend', onRippleFadeEnd);
+            };
+            function onRippleFadeEnd(ev) {
+                if (ev.propertyName === 'opacity') resetRipple();
+            }
+            ripple.addEventListener('transitionend', onRippleFadeEnd);
+            themeRippleTransition._resetT = setTimeout(resetRipple, 480 + 32 + 350);
         }
         function toggleTheme(e) {
             const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
