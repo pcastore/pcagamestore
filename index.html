@@ -362,23 +362,6 @@
         }
         .theme-icon-cycling { animation: theme-icon-cycle 0.38s cubic-bezier(.4,1.6,.4,1); }
 
-        /* Theme-switch circular reveal — a plain solid-color disc that grows
-           from the toggle button to cover the screen, then fades out once
-           the real theme has already swapped underneath it. We tried a true
-           View Transitions API reveal before (see toggleTheme's comment)
-           but that rasterizes two full-page snapshots on every tap, which
-           stuttered on phones. This is just one div animating `transform:
-           scale()` (compositor-only, no layout/paint per frame), so it's
-           the same "fills up from the button" motion at a fraction of the
-           cost. */
-        .theme-ripple {
-            position: fixed; top: 0; left: 0; width: 0; height: 0; border-radius: 50%;
-            transform: translate(-50%, -50%) scale(0);
-            pointer-events: none; z-index: 999990; opacity: 1;
-            will-change: transform, opacity;
-        }
-        @media (prefers-reduced-motion: reduce) { .theme-ripple { display: none; } }
-
         /* Push notification toggle (Profile > Preferences) — same pill-switch
            look as the theme toggle, kept as its own class since it tracks a
            different state (Notification.permission, not a light/dark flag). */
@@ -853,20 +836,25 @@
             border: 1.5px solid rgba(255,255,255,0.55);
             box-shadow: 0 10px 22px -8px rgba(0,0,0,0.55);
         }
+        /* PERF: these two repeat once per voucher card in the grid - same
+           class of cost as the .game-card/.list-card etc. blur removal
+           above. Blurring dozens of them at once while scrolling the
+           Voucher grid is what stuttered. Dropped backdrop-filter for a
+           flatter, slightly more opaque solid tint that still reads
+           clearly over the card's purple gradient, without the per-card
+           compositing cost. */
         .voucher-card-name {
             position: relative; z-index: 2; color: #fff; font-size: 11.5px; font-weight: 400;
             text-align: center; line-height: 1.25;
             padding: 4px 9px; border-radius: 10px;
-            background: rgba(0,0,0,0.22); border: 1px solid rgba(255,255,255,0.14);
-            -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+            background: rgba(20,8,40,0.4); border: 1px solid rgba(255,255,255,0.14);
             display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
         }
         .voucher-card-tag {
             position: absolute; top: 8px; left: 8px; z-index: 2;
             padding: 3px 8px; border-radius: 8px; font-size: 8.5px; font-weight: 700;
             letter-spacing: 0.4px; text-transform: uppercase; color: #fff;
-            background: rgba(255,255,255,0.16); border: 1px solid rgba(255,255,255,0.3);
-            -webkit-backdrop-filter: blur(4px); backdrop-filter: blur(4px);
+            background: rgba(60,20,110,0.55); border: 1px solid rgba(255,255,255,0.3);
         }
         .card-body { padding: 15px; }
         .card-body h4 { font-size: 16px; font-weight: 500; margin-bottom: 10px; color: var(--text); }
@@ -2634,12 +2622,6 @@
             </div>
         </div>
     </div>
-
-    <!-- Theme-switch circular reveal: a plain colored disc, sized and
-         positioned by JS (themeRippleTransition) to grow from wherever the
-         theme toggle was tapped. See the .theme-ripple CSS comment for why
-         this is a single div instead of a View Transitions snapshot. -->
-    <div class="theme-ripple" id="theme-ripple" aria-hidden="true"></div>
 
     <!-- Decorative background: soft falling stars / dust motes, purely
          visual (aria-hidden), sits behind all app content. Particle count
@@ -4666,6 +4648,17 @@
             const ACCOUNT_PAGES = ['account', 'account-list', 'account-detail'];
             if (ACCOUNT_PAGES.includes(pageId) && window.listenGameAccounts) window.listenGameAccounts();
             else if (!ACCOUNT_PAGES.includes(pageId) && window.stopListenGameAccounts) window.stopListenGameAccounts();
+            // Game catalogue listener: only needed on the pages that read
+            // window.GAMES - Home (grid + favorites row + flash-sale banner),
+            // Voucher (grid), and game-detail (package/app-link/success-screen
+            // lookups). A shared-package deep link can jump straight to
+            // game-detail on boot before any showPage() call has run, but
+            // listenGames() is already started unconditionally at load for
+            // that reason, so this hook only needs to stop it on every other
+            // page and restart it if the user navigates back.
+            const GAMES_PAGES = ['home', 'voucher', 'game-detail'];
+            if (GAMES_PAGES.includes(pageId) && window.listenGames) window.listenGames();
+            else if (!GAMES_PAGES.includes(pageId) && window.stopListenGames) window.stopListenGames();
             // Coupon availability: only needed while a package/checkout is
             // being shown on game-detail.
             if (pageId === 'game-detail' && window.listenCouponAvailability) window.listenCouponAvailability();
@@ -4686,6 +4679,13 @@
             // Account-listing payment methods: only the account purchase flow uses these.
             if (pageId === 'account-detail' && window.listenAccountPaymentMethods) window.listenAccountPaymentMethods();
             else if (pageId !== 'account-detail' && window.stopListenAccountPaymentMethods) window.stopListenAccountPaymentMethods();
+            // Order history: loadHistory() (called above) subscribes the
+            // moment the History tab opens, but until now nothing tore it
+            // down again on the way out - a logged-in user who visited
+            // History once kept that listener alive for the rest of the
+            // session even after leaving the tab. Stop it here instead;
+            // loadHistory() re-subscribes instantly next time the tab opens.
+            if (pageId !== 'history' && window.stopListenHistory) window.stopListenHistory();
         }
 
         let toastHideTimer = null;
@@ -7170,6 +7170,21 @@
         window.getDoc = getDoc;
         window.setDoc = setDoc;
         window.serverTimestamp = serverTimestamp;
+
+        // PERF: on page load, ~8 Firestore realtime listeners were all being
+        // opened in the same tick as the onboarding/login screen — each one
+        // is a live network connection the browser has to set up and keep
+        // alive, which competes with the CPU/network the login screen needs
+        // to paint smoothly, especially on low-end phones. Anything that
+        // isn't shown on the onboarding screen itself (social links, admin
+        // online badge, VIP tier data, flash sale banner, announcement
+        // ticker) gets pushed one idle tick later with deferInit() below —
+        // the data still loads within a fraction of a second, just not in
+        // the exact same frame as the critical login UI.
+        function deferInit(fn) {
+            if (window.requestIdleCallback) requestIdleCallback(fn, { timeout: 1500 });
+            else setTimeout(fn, 200);
+        }
         // Stay signed in across visits/app restarts until the user explicitly
         // signs out - stored in the browser's IndexedDB, so a plain reload or
         // reopening the site never asks for Google sign-in again on its own.
@@ -7584,7 +7599,7 @@
                 if (window.currentStorePage === 'profile' && window.loadProfileStats) window.loadProfileStats();
             }, (error) => console.error('Referral commission settings listener error:', error));
         }
-        listenReferralCommissionSettings();
+        deferInit(() => listenReferralCommissionSettings());
 
         // Updates the "you currently earn X% commission" line on the referral
         // card. Called from loadProfileStats() once that page's tier/spend is
@@ -8410,13 +8425,26 @@
                 callback: handleGisCredentialResponse,
                 auto_select: false
             });
+            renderGisButtons();
+            return true;
+        }
+
+        // Google only ships two button skins - 'outline' (light/white) and
+        // 'filled_black' (dark) - and won't auto-follow the app's own dark
+        // mode. Rendering 'outline' unconditionally is what left the button
+        // stuck as a bright white pill on the dark Account/Profile cards.
+        // Called on init and again every time the app theme changes.
+        function renderGisButtons() {
+            if (!(window.google && google.accounts && google.accounts.id)) return;
+            const isDark = document.documentElement.getAttribute('data-theme') === 'dark';
             GIS_BUTTON_SLOT_IDS.forEach((id) => {
                 const el = document.getElementById(id);
                 if (!el) return;
-                google.accounts.id.renderButton(el, { theme: 'outline', size: 'large', shape: 'pill', text: 'continue_with', logo_alignment: 'left' });
+                el.innerHTML = ''; // clear the previous skin's iframe before re-rendering
+                google.accounts.id.renderButton(el, { theme: isDark ? 'filled_black' : 'outline', size: 'large', shape: 'pill', text: 'continue_with', logo_alignment: 'left' });
             });
-            return true;
         }
+        window.renderGisButtons = renderGisButtons;
 
         // Give the GIS script (loaded async in <head>) a moment to arrive;
         // if it hasn't after 2s (blocked, offline, etc.), reveal the old
@@ -8594,7 +8622,9 @@
         window.handleGoogleSignIn = handleGoogleSignIn;
 
         function handleGoogleSignOut() {
-            signOut(auth).catch((e) => console.error('Google sign out error:', e));
+            signOut(auth)
+                .then(() => { showPage('account'); }) // jump straight to the Account tab's sign-in gate so the login form is what they land on, not the passive signed-out card
+                .catch((e) => console.error('Google sign out error:', e));
         }
         window.handleGoogleSignOut = handleGoogleSignOut;
 
@@ -9171,11 +9201,11 @@
         }
         window.contactAdmin = contactAdmin;
 
-        onSnapshot(doc(db, "settings", "social"), (docSnap) => {
+        deferInit(() => onSnapshot(doc(db, "settings", "social"), (docSnap) => {
             renderSocialLinks(docSnap.exists() ? docSnap.data() : {});
         }, (error) => {
             console.error("Social links fetch error:", error);
-        });
+        }));
 
         // ---------- Header Logo (optional custom image, set from the admin panel) ----------
         // Also feeds the onboarding screen's logo (same admin-uploaded image,
@@ -9253,14 +9283,16 @@
             if (chatDot) chatDot.classList.toggle('online', isOnline);
             if (chatText) chatText.innerText = chatStatusStr;
         }
-        onSnapshot(doc(db, "settings", "presence"), (docSnap) => {
-            const data = docSnap.exists() ? docSnap.data() : null;
-            lastAdminActiveMs = (data && data.lastActive) ? data.lastActive.toMillis() : null;
-            renderAdminStatus();
-        }, (error) => {
-            console.error("Admin presence fetch error:", error);
+        deferInit(() => {
+            onSnapshot(doc(db, "settings", "presence"), (docSnap) => {
+                const data = docSnap.exists() ? docSnap.data() : null;
+                lastAdminActiveMs = (data && data.lastActive) ? data.lastActive.toMillis() : null;
+                renderAdminStatus();
+            }, (error) => {
+                console.error("Admin presence fetch error:", error);
+            });
+            setInterval(renderAdminStatus, 20000); // re-check the threshold even with no new snapshot
         });
-        setInterval(renderAdminStatus, 20000); // re-check the threshold even with no new snapshot
 
         // Remember the customer's last Player ID locally so History can look up
         // their orders across every game they've topped up. This one stays global
@@ -9779,8 +9811,7 @@
                 console.error("Announcements listener error:", error);
             });
         }
-        listenAnnouncements();
-        listenTierSettings();
+        deferInit(() => { listenAnnouncements(); listenTierSettings(); });
 
         // ---------- Flash Sale Banner (Home page) ----------
         // Firestore only tells us WHETHER a sale is on and WHEN it ends -
@@ -9841,7 +9872,7 @@
         // Starts immediately since Home is the app's default landing page
         // (no showPage('home') call fires on initial boot to trigger the
         // hook below) - showPage() then starts/stops it on navigation.
-        listenFlashSale();
+        deferInit(() => listenFlashSale());
 
         // Live-tracks whether ANY coupon is currently redeemable (isActive,
         // and — if set — now falls inside [startsAt, expiresAt]) so the
@@ -10902,6 +10933,14 @@
                 container.innerHTML = emptyStateHTML('icon-refresh', 'Could not load history', 'Check your connection and try again.');
             });
         }
+        // Called from showPage() on every navigation away from the History
+        // tab. Leaves historyListenerGuestId set to null so the very next
+        // loadHistory() call (whenever History is opened again) always
+        // re-subscribes fresh rather than thinking it's still live.
+        function stopListenHistory() {
+            if (historyUnsubscribe) { historyUnsubscribe(); historyUnsubscribe = null; historyListenerGuestId = null; }
+        }
+        window.stopListenHistory = stopListenHistory;
 
         // ---------- Game Catalogue (live from Firestore "games" collection) ----------
         let GAMES = {};          // { docId: { name, image, packages: [{amount, price}] } } — filtered, see below
@@ -11510,8 +11549,14 @@
 
         // Games are managed entirely from the admin panel now — nothing here ever
         // auto-recreates a game, so deleting one in admin removes it for good.
+        // Only kept alive on the pages that actually show/need the catalogue
+        // (see GAMES_PAGES / showPage() below) - started immediately here
+        // since Home, the default landing page, needs it right away and no
+        // showPage('home') call fires on initial boot to trigger that hook.
+        let gamesUnsub = null;
         function listenGames() {
-            onSnapshot(collection(db, "games"), (snap) => {
+            if (gamesUnsub) return; // already subscribed
+            gamesUnsub = onSnapshot(collection(db, "games"), (snap) => {
                 const newGames = {};
                 snap.forEach(docSnap => { newGames[docSnap.id] = docSnap.data(); });
                 RAW_GAMES = newGames;
@@ -11525,6 +11570,11 @@
                 document.getElementById('all-games-grid').innerHTML = '<p class="empty-msg" style="color:red;">Could not load games. Check connection.</p>';
             });
         }
+        function stopListenGames() {
+            if (gamesUnsub) { gamesUnsub(); gamesUnsub = null; }
+        }
+        window.listenGames = listenGames;
+        window.stopListenGames = stopListenGames;
 
         listenGames();
 
@@ -13195,6 +13245,7 @@
             root.classList.add('theme-switching');
             root.setAttribute('data-theme', theme);
             applyThemeIcon(theme);
+            if (window.renderGisButtons) window.renderGisButtons(); // re-skin the Google button (outline/filled_black) to match
             clearTimeout(setThemeSmooth._t);
             setThemeSmooth._t = setTimeout(() => root.classList.remove('theme-switching'), 380);
         }
@@ -13276,89 +13327,17 @@
         }
         window.toggleCollapsible = toggleCollapsible;
 
-        // Tapping the toggle plays a circular reveal that grows from the
-        // button (themeRippleTransition), then setThemeSmooth's color-fade
-        // happens underneath it once it fully covers the screen. We tried a
-        // true View Transitions API reveal before, but it forces the
-        // browser to rasterize two full-page snapshots (blur layers,
-        // gradients, the falling-stars animation, the whole long DOM) on
-        // every tap, which visibly stuttered on phones. themeRippleTransition
-        // is one plain div animating `transform: scale()` — compositor-only,
-        // no snapshot — so it gets the same "fills up from the button"
-        // motion without that cost.
-        function themeRippleTransition(e, nextTheme) {
-            const ripple = document.getElementById('theme-ripple');
-            const reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-            if (!ripple || reduceMotion) {
-                setThemeSmooth(nextTheme);
-                return;
-            }
-            const btn = e && e.currentTarget && e.currentTarget.getBoundingClientRect ? e.currentTarget.getBoundingClientRect() : null;
-            const x = btn ? (btn.left + btn.width / 2) : (window.innerWidth / 2);
-            const y = btn ? (btn.top + btn.height / 2) : (window.innerHeight / 2);
-            // Radius needed to reach the farthest corner from the tap point.
-            const radius = Math.hypot(
-                Math.max(x, window.innerWidth - x),
-                Math.max(y, window.innerHeight - y)
-            );
-            const nextBg = nextTheme === 'dark' ? '#060B18' : '#F0F2F5';
-            clearTimeout(themeRippleTransition._swapT);
-            clearTimeout(themeRippleTransition._resetT);
-            ripple.style.transition = 'none';
-            ripple.style.background = nextBg;
-            ripple.style.left = x + 'px';
-            ripple.style.top = y + 'px';
-            ripple.style.width = (radius * 2) + 'px';
-            ripple.style.height = (radius * 2) + 'px';
-            ripple.style.opacity = '1';
-            ripple.style.transform = 'translate(-50%, -50%) scale(0)';
-            void ripple.offsetWidth; // force reflow so the scale-up below actually animates
-            ripple.style.transition = 'transform 0.5s cubic-bezier(.65,0,.35,1)';
-            ripple.style.transform = 'translate(-50%, -50%) scale(1)';
-            // The disc is now fully covering the screen - swap the real
-            // theme while it's hidden underneath, then fade the disc away.
-            themeRippleTransition._swapT = setTimeout(() => {
-                setThemeSmooth(nextTheme);
-                // Don't start the fade on the very next line - setThemeSmooth
-                // just flipped [data-theme] on <html>, and this app has 100+
-                // "html[data-theme=...] .xxx" rules spread across every page
-                // section that's still sitting in the DOM (even the hidden
-                // ones). On a slower phone that recalc/repaint can take a
-                // beat to actually finish; fading the disc out immediately
-                // could let it finish BEFORE the new theme has fully painted
-                // underneath, showing a half-styled/blank flash through it -
-                // which is exactly the "goes blank and hangs" symptom this
-                // is fixing. Waiting two animation frames gives the browser
-                // a chance to actually paint the new theme first.
-                requestAnimationFrame(() => requestAnimationFrame(() => {
-                    ripple.style.transition = 'opacity 0.35s ease';
-                    ripple.style.opacity = '0';
-                }));
-            }, 480);
-            // Reset once the fade-out transition actually finishes, instead
-            // of guessing a fixed total duration - the two rAFs above make
-            // the real fade start time slightly variable, so a hardcoded
-            // offset here could fire early (snapping the disc back to a dot
-            // while still visible) or leave it lingering invisible-but-huge
-            // longer than necessary. Falls back to a timeout in case
-            // transitionend never fires (e.g. opacity got interrupted by a
-            // rapid re-tap, which clears this timer anyway).
-            const resetRipple = () => {
-                ripple.style.transition = 'none';
-                ripple.style.width = '0px';
-                ripple.style.height = '0px';
-                ripple.removeEventListener('transitionend', onRippleFadeEnd);
-            };
-            function onRippleFadeEnd(ev) {
-                if (ev.propertyName === 'opacity') resetRipple();
-            }
-            ripple.addEventListener('transitionend', onRippleFadeEnd);
-            themeRippleTransition._resetT = setTimeout(resetRipple, 480 + 32 + 350);
-        }
+        // The circular "ripple reveal" that used to grow a disc from the
+        // toggle button was removed - it could leave the screen stuck blank
+        // (the disc fully covering the page, theme swap underneath never
+        // finishing/painting in time). Theme switch is now a direct,
+        // instant call to setThemeSmooth - just the plain background-color
+        // fade already defined on html/body (see the `transition:
+        // background-color 0.35s ease` rule), no extra motion layered on top.
         function toggleTheme(e) {
             const current = document.documentElement.getAttribute('data-theme') === 'dark' ? 'dark' : 'light';
             const next = current === 'dark' ? 'light' : 'dark';
-            themeRippleTransition(e, next);
+            setThemeSmooth(next);
             try { localStorage.setItem('gz_theme', next); } catch (err) { /* private browsing */ }
             updateThemeAutoNote();
         }
