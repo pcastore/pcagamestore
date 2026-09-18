@@ -1162,7 +1162,7 @@
         .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; font-weight: 500; color: var(--text-secondary); cursor: pointer; flex: 1; min-width: 0; }
         .nav-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .nav-item.active { color: var(--accent); }
-        .nav-icon-wrap { width: 40px; height: 40px; border-radius: 14px; display: flex; align-items: center; justify-content: center; }
+        .nav-icon-wrap { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
         .nav-item.active .ui-icon { stroke: var(--accent); }
         
         /* Toast — pastel status card: icon circle, message, dismiss ×.
@@ -2271,7 +2271,7 @@
             -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
             border: 1px solid var(--glass-border);
             border-top: 1px solid var(--glass-border);
-            border-radius: 28px;
+            border-radius: 16px;
             padding: 8px 6px calc(8px + env(safe-area-inset-bottom, 0px));
             box-shadow: 0 16px 40px -10px rgba(20,30,60,0.35), inset 0 1px 1px rgba(255,255,255,0.5), inset 0 -1px 8px rgba(0,0,0,0.04);
             position: fixed;
@@ -2279,7 +2279,7 @@
             will-change: transform;
         }
         html[data-theme="dark"] .bottom-nav { box-shadow: 0 16px 40px -10px rgba(0,0,10,0.6), inset 0 1px 1px rgba(255,255,255,0.06), inset 0 -1px 8px rgba(0,0,0,0.3); }
-        .nav-item { border-radius: 16px; padding: 5px 0 4px; transition: color 0.2s ease; position: relative; }
+        .nav-item { border-radius: 8px; padding: 5px 0 4px; transition: color 0.2s ease; position: relative; }
         .nav-label { transition: transform 0.2s ease, opacity 0.2s ease; }
         .nav-item.active .nav-label { transform: translateY(-1px); font-weight: 600; }
 
@@ -2913,7 +2913,10 @@
             <svg class="ui-icon" id="mini-profile-avatar-icon" style="width:20px;height:20px;"><use href="#icon-user"></use></svg>
         </div>
         <div class="mini-profile-info">
-            <span id="mini-profile-name">Guest</span>
+            <div style="display:flex;align-items:baseline;gap:6px;min-width:0;">
+                <span id="mini-profile-name">Guest</span>
+                <span id="mini-profile-greeting" style="display:inline-block;font-size:10.5px;font-weight:500;color:var(--text-muted);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;"></span>
+            </div>
             <div id="mini-profile-tier" style="display:none;"></div>
             <small id="mini-profile-hint" data-i18n="tap_view_profile">Tap to view profile</small>
         </div>
@@ -4351,6 +4354,8 @@
                 empty_signin_title: 'Sign in to browse accounts',
                 empty_signin_sub: 'Game accounts are high value, so please sign in with Google first.',
                 tap_view_profile: 'Tap to view profile', guest: 'Guest',
+                greeting_morning: 'Good Morning', greeting_afternoon: 'Good Afternoon',
+                greeting_evening: 'Good Evening', greeting_night: 'Good Night',
                 drawer_footer: 'PCA Store',
                 support_title: 'Help', support_title_account: 'Account Support', btn_account_chat: 'Support', tab_guide: 'Guide', tab_complaint: 'Complaint', tab_chat: 'Support Chat',
                 guide_q_about: 'What is PCA Store?',
@@ -4471,6 +4476,8 @@
                 empty_signin_title: 'အကောင့်များကြည့်ရန် အကောင့်ဝင်ပါ',
                 empty_signin_sub: 'ဂိမ်းအကောင့်များသည် တန်ဖိုးမြင့်သောကြောင့် Google ဖြင့် အကောင့်ဝင်ပါ။',
                 tap_view_profile: 'ပရိုဖိုင်ကြည့်ရန် နှိပ်ပါ', guest: 'ဧည့်သည်',
+                greeting_morning: 'မင်္ဂလာနံနက်ခင်းပါ', greeting_afternoon: 'မင်္ဂလာနေ့လယ်ခင်းပါ',
+                greeting_evening: 'မင်္ဂလာညနေခင်းပါ', greeting_night: 'မင်္ဂလာညချမ်းပါ',
                 drawer_footer: 'PCA Store',
                 support_title: 'အကူအညီ', support_title_account: 'အကောင့်ဆိုင်ရာ အကူအညီ', btn_account_chat: 'အကူအညီ', tab_guide: 'လမ်းညွှန်', tab_complaint: 'တိုင်ကြားရန်', tab_chat: 'Chat ဖြင့်မေးရန်',
                 guide_q_about: 'PCA Store ဆိုတာ ဘာလဲ',
@@ -4522,7 +4529,25 @@
                 if (enFlag) enFlag.style.display = showEn ? 'block' : 'none';
                 if (mmFlag) mmFlag.style.display = showEn ? 'none' : 'block';
             });
+            if (window.renderMiniProfileGreeting) window.renderMiniProfileGreeting();
         }
+        // Small time-of-day greeting shown next to the name in the mini
+        // profile strip (Home page). Based on the device's local hour, so
+        // re-render on i18n changes (language switch) and every few minutes
+        // in case the app stays open across a boundary (e.g. 11:59 -> 12:00).
+        function renderMiniProfileGreeting() {
+            const el = document.getElementById('mini-profile-greeting');
+            if (!el) return;
+            const h = new Date().getHours();
+            let key;
+            if (h >= 5 && h < 12) key = 'greeting_morning';
+            else if (h >= 12 && h < 17) key = 'greeting_afternoon';
+            else if (h >= 17 && h < 21) key = 'greeting_evening';
+            else key = 'greeting_night';
+            el.textContent = t(key);
+        }
+        window.renderMiniProfileGreeting = renderMiniProfileGreeting;
+        setInterval(renderMiniProfileGreeting, 5 * 60 * 1000);
         window.applyI18n = applyI18n;
         function setLanguage(lang) {
             currentLang = (lang === 'en') ? 'en' : 'my';
@@ -4648,6 +4673,19 @@
             // Wallet top-up history: only needed on the Wallet page.
             if (pageId === 'wallet' && window.listenWalletTopups) window.listenWalletTopups();
             else if (pageId !== 'wallet' && window.stopListenWalletTopups) window.stopListenWalletTopups();
+            // Flash sale banner: only lives inside the Home page-section.
+            if (pageId === 'home' && window.listenFlashSale) window.listenFlashSale();
+            else if (pageId !== 'home' && window.stopListenFlashSale) window.stopListenFlashSale();
+            // Payment methods: needed wherever a payment-method picker or the
+            // wallet top-up modal can appear - game-detail's checkout, the
+            // Wallet page itself, and account-detail (its "Insufficient
+            // Balance" button also opens the wallet top-up modal).
+            const PAYMENT_METHOD_PAGES = ['game-detail', 'wallet', 'account-detail'];
+            if (PAYMENT_METHOD_PAGES.includes(pageId) && window.listenPaymentMethods) window.listenPaymentMethods();
+            else if (!PAYMENT_METHOD_PAGES.includes(pageId) && window.stopListenPaymentMethods) window.stopListenPaymentMethods();
+            // Account-listing payment methods: only the account purchase flow uses these.
+            if (pageId === 'account-detail' && window.listenAccountPaymentMethods) window.listenAccountPaymentMethods();
+            else if (pageId !== 'account-detail' && window.stopListenAccountPaymentMethods) window.stopListenAccountPaymentMethods();
         }
 
         let toastHideTimer = null;
@@ -7014,6 +7052,7 @@
             const gid = getGuestId();
             const displayName = (p.name && p.name.trim()) ? p.name.trim() : gid;
             document.getElementById('mini-profile-name').innerText = displayName;
+            if (window.renderMiniProfileGreeting) window.renderMiniProfileGreeting();
             const img = document.getElementById('mini-profile-avatar-img');
             const icon = document.getElementById('mini-profile-avatar-icon');
             if (p.photo) {
@@ -7161,8 +7200,11 @@
         window.generateShortNumericId = generateShortNumericId;
 
         // Free image hosting for payment receipts (no Firebase Storage / Blaze plan needed).
-        // Uses the same free ImgBB key as the admin panel's game photo uploads.
-        const IMGBB_API_KEY = "3c061bbc2b77dfb4bcb5d9b8e6509a33";
+        // Uploads go through the imgbb-functions Cloudflare Worker instead of
+        // calling api.imgbb.com directly, so the ImgBB API key stays server-side
+        // and never ships in this file's client-side JS (same "key never reaches
+        // the browser" pattern as the fazercards-functions/aluu-functions Workers).
+        const IMGBB_UPLOAD_URL = 'https://imgbb-functions.pca-game-store.workers.dev';
 
         async function uploadReceiptToImgBB(file) {
             const statusEl = document.getElementById('receipt-upload-status');
@@ -7172,7 +7214,7 @@
             const form = new FormData();
             form.append('image', file);
 
-            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+            const res = await fetch(IMGBB_UPLOAD_URL, {
                 method: 'POST',
                 body: form
             });
@@ -7192,7 +7234,7 @@
             const form = new FormData();
             form.append('image', file);
 
-            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, {
+            const res = await fetch(IMGBB_UPLOAD_URL, {
                 method: 'POST',
                 body: form
             });
@@ -7272,7 +7314,7 @@
             statusEl.innerText = 'Uploading receipt...';
             const form = new FormData();
             form.append('image', file);
-            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: form });
+            const res = await fetch(IMGBB_UPLOAD_URL, { method: 'POST', body: form });
             const data = await res.json();
             if (!data.success) throw new Error(data.error?.message || 'Receipt upload failed');
             statusEl.innerText = 'Receipt uploaded ✓';
@@ -9601,11 +9643,10 @@
         window.submitWalletOrder = submitWalletOrder;
 
         // ---------- Payment Methods (live from Firestore "paymentMethods" collection) ----------
-        let paymentMethodsListenerAttached = false;
+        let paymentMethodsUnsub = null;
         function listenPaymentMethods() {
-            if (paymentMethodsListenerAttached) return;
-            paymentMethodsListenerAttached = true;
-            onSnapshot(collection(db, "paymentMethods"), (snap) => {
+            if (paymentMethodsUnsub) return;
+            paymentMethodsUnsub = onSnapshot(collection(db, "paymentMethods"), (snap) => {
                 const methods = {};
                 snap.forEach(docSnap => { methods[docSnap.id] = docSnap.data(); });
                 window.PAYMENT_METHODS = methods;
@@ -9621,7 +9662,11 @@
                 console.error("Payment methods listener error:", error);
             });
         }
-        listenPaymentMethods();
+        function stopListenPaymentMethods() {
+            if (paymentMethodsUnsub) { paymentMethodsUnsub(); paymentMethodsUnsub = null; }
+        }
+        window.listenPaymentMethods = listenPaymentMethods;
+        window.stopListenPaymentMethods = stopListenPaymentMethods;
 
         // ---------- Account-listing Payment Methods (live from Firestore
         // "accountPaymentMethods" collection) ----------
@@ -9629,11 +9674,10 @@
         // below) pays into the account-admin's own payment methods, kept
         // completely separate from the store owner's main "paymentMethods"
         // collection used for regular top up / game purchases above.
-        let accountPaymentMethodsListenerAttached = false;
+        let accountPaymentMethodsUnsub = null;
         function listenAccountPaymentMethods() {
-            if (accountPaymentMethodsListenerAttached) return;
-            accountPaymentMethodsListenerAttached = true;
-            onSnapshot(collection(db, "accountPaymentMethods"), (snap) => {
+            if (accountPaymentMethodsUnsub) return;
+            accountPaymentMethodsUnsub = onSnapshot(collection(db, "accountPaymentMethods"), (snap) => {
                 const methods = {};
                 snap.forEach(docSnap => { methods[docSnap.id] = docSnap.data(); });
                 window.ACCOUNT_PAYMENT_METHODS = methods;
@@ -9645,7 +9689,11 @@
                 console.error("Account payment methods listener error:", error);
             });
         }
-        listenAccountPaymentMethods();
+        function stopListenAccountPaymentMethods() {
+            if (accountPaymentMethodsUnsub) { accountPaymentMethodsUnsub(); accountPaymentMethodsUnsub = null; }
+        }
+        window.listenAccountPaymentMethods = listenAccountPaymentMethods;
+        window.stopListenAccountPaymentMethods = stopListenAccountPaymentMethods;
 
         // ---------- Bullet Chat (store ticker, Admin Panel text only) ----------
         // Shows the messages written from the Admin Panel's Store Ticker page.
@@ -9760,7 +9808,8 @@
         }
 
         function listenFlashSale() {
-            onSnapshot(doc(db, "settings", "flashsale"), (docSnap) => {
+            if (flashSaleUnsub) return;
+            flashSaleUnsub = onSnapshot(doc(db, "settings", "flashsale"), (docSnap) => {
                 const data = docSnap.exists() ? docSnap.data() : {};
                 const banner = document.getElementById('flash-sale-banner');
                 if (!banner) return;
@@ -9782,6 +9831,16 @@
                 console.error('Flash sale listener error:', error);
             });
         }
+        function stopListenFlashSale() {
+            if (flashSaleUnsub) { flashSaleUnsub(); flashSaleUnsub = null; }
+            if (flashSaleTickInterval) { clearInterval(flashSaleTickInterval); flashSaleTickInterval = null; }
+        }
+        let flashSaleUnsub = null;
+        window.listenFlashSale = listenFlashSale;
+        window.stopListenFlashSale = stopListenFlashSale;
+        // Starts immediately since Home is the app's default landing page
+        // (no showPage('home') call fires on initial boot to trigger the
+        // hook below) - showPage() then starts/stops it on navigation.
         listenFlashSale();
 
         // Live-tracks whether ANY coupon is currently redeemable (isActive,
@@ -11667,7 +11726,7 @@
             if (statusEl) { statusEl.style.display = 'block'; statusEl.innerText = `Uploading ${label}...`; }
             const form = new FormData();
             form.append('image', file);
-            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: form });
+            const res = await fetch(IMGBB_UPLOAD_URL, { method: 'POST', body: form });
             const data = await res.json();
             if (!data.success) throw new Error(data.error?.message || `${label} upload failed`);
             return data.data.url;
@@ -11706,7 +11765,7 @@
         async function uploadSellAccountImageToImgBB(file) {
             const form = new FormData();
             form.append('image', file);
-            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: form });
+            const res = await fetch(IMGBB_UPLOAD_URL, { method: 'POST', body: form });
             const data = await res.json();
             if (!data.success) throw new Error(data.error?.message || 'Photo upload failed');
             return data.data.url;
@@ -12311,7 +12370,7 @@
             if (statusEl) { statusEl.style.display = 'block'; statusEl.innerText = `Uploading ${label}...`; }
             const form = new FormData();
             form.append('image', file);
-            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: form });
+            const res = await fetch(IMGBB_UPLOAD_URL, { method: 'POST', body: form });
             const data = await res.json();
             if (!data.success) throw new Error(data.error?.message || `${label} upload failed`);
             return data.data.url;
@@ -12320,7 +12379,7 @@
         // Free anonymous file host for the KYC video — ImgBB (used for every
         // other photo upload in the store) only accepts images, and this
         // project intentionally avoids the paid Firebase Storage/Blaze plan
-        // (see the IMGBB_API_KEY comment above), so a still-free host that
+        // (see the IMGBB_UPLOAD_URL comment above), so a still-free host that
         // also takes video is used here instead. No account/API key needed.
         async function uploadKycVideoToCatbox(file) {
             const statusEl = document.getElementById('acct-kyc-upload-status');
@@ -13597,12 +13656,18 @@
             el.innerHTML = url ? `<img src="${url}" alt="Admin">` : 'A';
         }
 
+        let supportChatAvatarUnsub = null;
         function listenSupportChatAvatar() {
-            onSnapshot(doc(db, "settings", "supportChat"), (snap) => {
+            if (supportChatAvatarUnsub) return;
+            supportChatAvatarUnsub = onSnapshot(doc(db, "settings", "supportChat"), (snap) => {
                 window.__supportChatFallbackAvatar = snap.exists() ? (snap.data().adminAvatar || null) : null;
                 renderSupportChatHeaderAvatar();
             }, (error) => console.error("Support chat avatar listener error:", error));
         }
+        function stopListenSupportChatAvatar() {
+            if (supportChatAvatarUnsub) { supportChatAvatarUnsub(); supportChatAvatarUnsub = null; }
+        }
+        window.stopListenSupportChatAvatar = stopListenSupportChatAvatar;
 
         function initSupportWidget() {
             const fab = document.getElementById('support-fab');
@@ -13694,6 +13759,9 @@
                 overlay.classList.add('show');
                 overlay.classList.toggle('account-mode', newMode === 'account');
             }
+            // Header avatar listener: only needs to be live while the widget
+            // is actually open, not from app boot onward.
+            listenSupportChatAvatar();
             const title = document.getElementById('support-widget-title');
             if (title) title.textContent = newMode === 'account' ? t('support_title_account') : t('support_title');
             const dot = document.getElementById('support-fab-dot');
@@ -13721,6 +13789,7 @@
             const overlay = document.getElementById('support-widget-overlay');
             if (overlay) overlay.classList.remove('show');
             scheduleSupportFabPeek();
+            stopListenSupportChatAvatar();
             // Closed via the X/overlay tap rather than Back - unwind the history
             // entry we pushed on open so Back doesn't just reopen it.
             if (!fromPopstate) {
@@ -14116,7 +14185,7 @@
         async function uploadSupportChatImageToImgBB(file) {
             const form = new FormData();
             form.append('image', file);
-            const res = await fetch(`https://api.imgbb.com/1/upload?key=${IMGBB_API_KEY}`, { method: 'POST', body: form });
+            const res = await fetch(IMGBB_UPLOAD_URL, { method: 'POST', body: form });
             const data = await res.json();
             if (!data.success) throw new Error(data.error?.message || 'Photo upload failed');
             return data.data.url;
@@ -14200,7 +14269,6 @@
         window.handleSupportChatImageSelect = handleSupportChatImageSelect;
 
         initSupportWidget();
-        listenSupportChatAvatar();
         initPackageCardLongPressCopy();
         applyI18n();
     </script>
