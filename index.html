@@ -3903,7 +3903,7 @@
                 <div id="referral-redeem-section" style="margin-top:14px;display:none;">
                     <label style="align-self:flex-start;font-size:12.5px;">Have a friend's code?</label>
                     <div style="display:flex;gap:8px;margin-top:6px;">
-                        <input type="text" id="referral-code-input" placeholder="e.g. PCA-1234" style="flex:1;min-width:0;padding:11px 14px;border-radius:12px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;text-transform:uppercase;">
+                        <input type="text" id="referral-code-input" placeholder="e.g. PCA-K7M2Q9XR" style="flex:1;min-width:0;padding:11px 14px;border-radius:12px;border:1px solid var(--border);background:var(--bg);color:var(--text);font-size:14px;text-transform:uppercase;">
                         <button type="button" class="btn btn-primary" id="referral-redeem-btn" style="padding:7px 14px;font-size:12px;flex-shrink:0;width:auto;" onclick="redeemReferralCode()">Redeem</button>
                     </div>
                 </div>
@@ -7664,17 +7664,56 @@
 
         // A stable random ID for anyone who hasn't set a name yet, so the mini profile
         // strip always has something to show instead of a blank "Guest".
+        //
+        // NEW IDs are "PCA-" + 8 random characters (e.g. PCA-K7M2Q9XR) drawn
+        // from a 31-symbol alphabet with no look-alikes (no 0/O/1/I/L) —
+        // ~8.5e11 combinations, so two devices colliding is practically
+        // impossible. (The old format was PCA-1000..9999: only 9,000 IDs,
+        // ~50% chance of a clash at ~110 users.) IDs that already exist in
+        // users' localStorage / Firestore are left untouched, so nobody's
+        // wallet, orders or referral link changes.
+        const GUEST_ID_ALPHABET = 'ABCDEFGHJKMNPQRSTUVWXYZ23456789';
+        function makeGuestId() {
+            const len = 8;
+            const n = GUEST_ID_ALPHABET.length;
+            let out = '';
+            try {
+                const limit = 256 - (256 % n); // rejection sampling: no modulo bias
+                while (out.length < len) {
+                    const bytes = new Uint8Array(len * 2);
+                    crypto.getRandomValues(bytes);
+                    for (let i = 0; i < bytes.length && out.length < len; i++) {
+                        if (bytes[i] < limit) out += GUEST_ID_ALPHABET[bytes[i] % n];
+                    }
+                }
+            } catch (e) {
+                // No Web Crypto (very old webview) — Math.random is still
+                // far better than the old 4-digit space.
+                out = '';
+                for (let i = 0; i < len; i++) out += GUEST_ID_ALPHABET[Math.floor(Math.random() * n)];
+            }
+            return 'PCA-' + out;
+        }
+        window.makeGuestId = makeGuestId;
+
+        // Private browsing / storage blocked: keep one unique ID for the
+        // life of this page instead of returning a shared constant (the old
+        // 'PCA-0000' made every such visitor the SAME user — same wallet,
+        // orders, ban status). A signed-in Google account still restores its
+        // own canonical ID via applyGoogleProfile().
+        let memoryGuestId = null;
         function getGuestId() {
             try {
                 let gid = localStorage.getItem('gz_guest_id');
                 if (!gid) {
-                    gid = 'PCA-' + Math.floor(1000 + Math.random() * 9000);
+                    gid = makeGuestId();
                     localStorage.setItem('gz_guest_id', gid);
                     localStorage.setItem('gz_member_since', String(Date.now()));
                 }
                 return gid;
             } catch (e) {
-                return 'PCA-0000'; // private browsing / storage blocked
+                if (!memoryGuestId) memoryGuestId = makeGuestId();
+                return memoryGuestId;
             }
         }
 
@@ -9181,14 +9220,17 @@
         // A new random guest ID that no existing users/{id} doc already uses,
         // so a brand-new Gmail account can never land on someone else's ID.
         async function generateFreshGuestId() {
+            // Same 8-char format as getGuestId(); the Firestore existence
+            // check is kept as a cheap second line of defence.
+            const make = window.makeGuestId || (() => 'PCA-' + Math.random().toString(36).slice(2, 10).toUpperCase());
             for (let i = 0; i < 10; i++) {
-                const gid = 'PCA-' + Math.floor(1000 + Math.random() * 9000);
+                const gid = make();
                 try {
                     const snap = await getDoc(doc(db, "users", gid));
                     if (!snap.exists()) return gid;
                 } catch (e) { return gid; }
             }
-            return 'PCA-' + String(Date.now()).slice(-7);
+            return make();
         }
 
         // True when this device's current guest ID already belongs to a
@@ -10245,6 +10287,24 @@
             });
         }
 
+        // ---------- Coupon redemption memo ----------
+        // /redeem-coupon consumes one use of the coupon the moment it succeeds,
+        // but the order is only written AFTER it (and, for wallet orders, the
+        // wallet debit can still fail). Before this memo, any failure after
+        // redemption - network drop, balance changed meanwhile, DB write
+        // error - burned the coupon while the customer got no order, and the
+        // retry then failed with "coupon no longer valid". Now the last
+        // successful redemption is remembered; if the customer retries the
+        // SAME checkout (same coupon, same subtotal/cost) the same order id is
+        // reused and /redeem-coupon is not called a second time.
+        let couponRedemptionMemo = null; // { code, guestId, subtotal, cost, orderId }
+        function reusableCouponOrderId(couponCode, guestId, couponSubtotal, cost) {
+            const m = couponRedemptionMemo;
+            if (couponCode && m && m.code === couponCode && m.guestId === guestId
+                && m.subtotal === couponSubtotal && m.cost === (Number(cost) || 0)) return m.orderId;
+            return null;
+        }
+
         async function submitOrder(orderData, btnElement) {
             const { gameName, serverRegion, amount, price, cost, quantity, inGameId, inGameName, serverId, paymentMethodName, receiptFile, transactionId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId, fazercardCategoryId, fazercardOfferId, fazercardGiftCategoryId, fazercardGiftCardId, bay2gameProductId, couponCode, couponDiscount, couponSubtotal } = orderData;
 
@@ -10284,8 +10344,9 @@
                 // /redeem-coupon BEFORE the order itself is written - if the
                 // coupon turns out to no longer be valid (someone else took
                 // the last slot in the meantime), nothing gets created at all.
-                const orderRef = doc(db, "orders", await generateShortNumericId("orders"));
-                if (couponCode) {
+                const reusedOrderId = reusableCouponOrderId(couponCode, guestId, couponSubtotal, cost);
+                const orderRef = doc(db, "orders", reusedOrderId || await generateShortNumericId("orders"));
+                if (couponCode && !reusedOrderId) {
                     // costTotal lets the Worker re-enforce the cost floor
                     // server-side (authoritative — see capCouponDiscountToCost
                     // in telegram-worker.js) since the client-side cap above
@@ -10303,9 +10364,10 @@
                         if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb();
                         return;
                     }
+                    couponRedemptionMemo = { code: couponCode, guestId, subtotal: couponSubtotal, cost: Number(cost) || 0, orderId: orderRef.id };
                 }
 
-                await setDoc(orderRef, {
+                const receiptOrderPayload = {
                     playerId: inGameId,
                     serverId: serverId || '',
                     serverRegion: serverRegion || '',
@@ -10367,10 +10429,23 @@
                     // placeBay2gameOrder in the admin panel), same
                     // single-field pattern as g2bulkVoucherProductId above.
                     ...(bay2gameProductId ? { bay2gameProductId } : {})
-                });
+                };
+                // If an earlier attempt of this same checkout already saved the
+                // order (write succeeded but the response was lost), don't write
+                // it again - that would reset a status the admin may have moved.
+                let alreadyPlaced = false;
+                if (reusedOrderId) {
+                    const prev = await getDoc(orderRef);
+                    if (prev.exists()) {
+                        if (prev.data().userId === guestId) alreadyPlaced = true;
+                        else { couponRedemptionMemo = null; throw new Error('Something went wrong creating your order. Please try again.'); }
+                    }
+                }
+                if (!alreadyPlaced) await setDoc(orderRef, receiptOrderPayload);
 
                 saveContact(inGameId, selectedGameId, serverId);
                 appliedCoupon = null; // consumed by /redeem-coupon above
+                couponRedemptionMemo = null;
                 btnElement.innerText = "Order Sent";
                 btnElement.style.backgroundColor = "#28a745";
                 // Pass the new doc's id so the success screen can live-track this
@@ -10403,8 +10478,10 @@
                 const guestId = window.getGuestId ? window.getGuestId() : '';
                 if (!guestId) throw new Error('Could not identify your account. Please reload and try again.');
 
+                let walletBalanceSeen = null; // filled by the ban-check read below
                 try {
                     const userSnap = await getDoc(doc(db, "users", guestId));
+                    walletBalanceSeen = userSnap.exists() ? Number(userSnap.data().walletBalance || 0) : 0;
                     if (userSnap.exists() && userSnap.data().banned) {
                         window.showToast('Your account has been restricted. Contact support.', 'fail');
                         btnElement.innerText = originalText;
@@ -10416,14 +10493,20 @@
                     console.error("Ban check error:", banCheckError);
                 }
 
+                // Cheap balance pre-check BEFORE /redeem-coupon: an obviously
+                // insufficient wallet must not consume a coupon use. (The
+                // authoritative check is still inside the transaction below.)
+                if (walletBalanceSeen !== null && walletBalanceSeen < Number(price)) throw new Error('INSUFFICIENT_BALANCE');
+
                 const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
                 const location = await getOrderLocation();
 
                 // Pre-generate the order's doc ref/id so it can be passed to
                 // /redeem-coupon BEFORE any wallet money moves - if the coupon
                 // is no longer valid, nothing is deducted and nothing is created.
-                const orderRef = doc(db, "orders", await generateShortNumericId("orders"));
-                if (couponCode) {
+                const reusedOrderId = reusableCouponOrderId(couponCode, guestId, couponSubtotal, cost);
+                const orderRef = doc(db, "orders", reusedOrderId || await generateShortNumericId("orders"));
+                if (couponCode && !reusedOrderId) {
                     // costTotal lets the Worker re-enforce the cost floor
                     // server-side (authoritative — see capCouponDiscountToCost
                     // in telegram-worker.js) since the client-side cap above
@@ -10441,17 +10524,12 @@
                         if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb();
                         return;
                     }
+                    couponRedemptionMemo = { code: couponCode, guestId, subtotal: couponSubtotal, cost: Number(cost) || 0, orderId: orderRef.id };
                 }
 
                 const userRef = doc(db, "users", guestId);
-                await runTransaction(db, async (tx) => {
-                    const snap = await tx.get(userRef);
-                    const bal = snap.exists() ? Number(snap.data().walletBalance || 0) : 0;
-                    if (bal < price) throw new Error('INSUFFICIENT_BALANCE');
-                    tx.set(userRef, { walletBalance: increment(-price) }, { merge: true });
-                });
 
-                await setDoc(orderRef, {
+                const orderPayload = {
                     playerId: inGameId,
                     serverId: serverId || '',
                     serverRegion: serverRegion || '',
@@ -10478,16 +10556,44 @@
                     ...(fazercardCategoryId && fazercardOfferId ? { fazercardCategoryId, fazercardOfferId } : {}),
                     ...(fazercardGiftCategoryId && fazercardGiftCardId ? { fazercardGiftCategoryId, fazercardGiftCardId } : {}),
                     ...(bay2gameProductId ? { bay2gameProductId } : {})
+                };
+                // ATOMIC: the wallet debit and the order creation happen in ONE
+                // transaction. Previously the debit committed first and setDoc(orderRef)
+                // ran separately, so a network drop / rules error in between left the
+                // customer charged with no order and no refund. Now either both are
+                // written or neither is. The orderRef existence read also stops a
+                // (rare) short-ID collision from silently overwriting someone else's order.
+                const chargeAmount = Number(price);
+                if (!Number.isFinite(chargeAmount) || chargeAmount < 0) throw new Error('INVALID_PRICE');
+                await runTransaction(db, async (tx) => {
+                    const snap = await tx.get(userRef);
+                    const existingOrder = await tx.get(orderRef);
+                    if (existingOrder.exists()) {
+                        // Our own earlier attempt (same reused id) already committed
+                        // - the response was just lost. Don't debit twice.
+                        if (reusedOrderId && existingOrder.data().userId === guestId) return;
+                        throw new Error('ORDER_ID_TAKEN');
+                    }
+                    const bal = snap.exists() ? Number(snap.data().walletBalance || 0) : 0;
+                    if (bal < chargeAmount) throw new Error('INSUFFICIENT_BALANCE');
+                    tx.set(userRef, { walletBalance: increment(-chargeAmount) }, { merge: true });
+                    tx.set(orderRef, orderPayload);
                 });
+
 
                 saveContact(inGameId, selectedGameId, serverId);
                 appliedCoupon = null; // consumed by /redeem-coupon above
+                couponRedemptionMemo = null;
                 btnElement.innerText = "Order Sent";
                 btnElement.style.backgroundColor = "#28a745";
                 window.openSuccessOverlay(orderRef.id, { status: 'Pending', timestamp: { toDate: () => new Date() } });
             } catch (error) {
                 console.error("Wallet order error: ", error);
-                const msg = error.message === 'INSUFFICIENT_BALANCE'
+                const msg = error.message === 'ORDER_ID_TAKEN'
+                    ? 'Something went wrong creating your order. You were not charged - please try again.'
+                    : error.message === 'INVALID_PRICE'
+                    ? 'Invalid price. Please reload and try again.'
+                    : error.message === 'INSUFFICIENT_BALANCE'
                     ? 'Your wallet balance is no longer enough for this order. Please top up.'
                     : (error.message || 'Failed to place order! Check Connection.');
                 window.showToast(msg, 'fail');
@@ -13670,13 +13776,57 @@
         }
         window.confirmAccountPurchase = confirmAccountPurchase;
 
+        // ---------- One-of-a-kind account: pre-flight + friendly errors ----------
+        // Game accounts are unique items, but the listing only turns "sold"
+        // when an admin flips it by hand, so two buyers could both pay for the
+        // same account (the local GAME_ACCOUNTS copy can also be stale). Before
+        // any money moves / receipt is uploaded this:
+        //   1. re-reads the listing from Firestore (still exists? still
+        //      "available"? price unchanged since the customer saw it?)
+        //   2. looks for another open (Pending / Processing / Success) order
+        //      on the same account and blocks with "in progress".
+        // Step 2 is best-effort: if Firestore rules don't allow that query it
+        // is skipped rather than blocking every purchase. The wallet path
+        // additionally re-checks step 1 INSIDE its transaction.
+        async function verifyAccountPurchasable(accountId, expectedPrice) {
+            const snap = await getDoc(doc(db, "gameAccounts", accountId));
+            if (!snap.exists() || !isAccountAvailable(snap.data())) throw new Error('ACCOUNT_UNAVAILABLE');
+            if (Number(snap.data().price || 0) !== Number(expectedPrice)) throw new Error('ACCOUNT_PRICE_CHANGED');
+            try {
+                const open = await getDocs(query(
+                    collection(db, "orders"),
+                    where("accountId", "==", accountId),
+                    where("status", "in", ["Pending", "Processing", "Success"]),
+                    limit(1)
+                ));
+                if (!open.empty) throw new Error('ACCOUNT_IN_PROGRESS');
+            } catch (e) {
+                if (e && e.message === 'ACCOUNT_IN_PROGRESS') throw e;
+                console.error("Account open-order check skipped:", e);
+            }
+        }
+        function accountPurchaseErrorMessage(error) {
+            switch (error && error.message) {
+                case 'ACCOUNT_UNAVAILABLE': return 'This account is no longer available.';
+                case 'ACCOUNT_PRICE_CHANGED': return 'The price of this account has changed. Please go back and reopen it to see the new price.';
+                case 'ACCOUNT_IN_PROGRESS': return 'Another order for this account is already in progress. Please check back later or choose another account.';
+                default: return null;
+            }
+        }
+
         // Payment-method + receipt path — creates a Pending order the same
         // way submitOrder() does for top-ups, just without any of the
         // package/provider fields those need. The account itself is left
         // "available" here (admin marks it "sold" by hand — see the note
         // above listenGameAccounts), so this never auto-hides the listing.
         async function submitAccountOrder(transactionId, btnElement) {
-            const a = GAME_ACCOUNTS[currentAccountId];
+            const accountId = currentAccountId; // captured once - currentAccountId can change while we await uploads/geolocation below
+            const a = GAME_ACCOUNTS[accountId];
+            if (!a || !isAccountAvailable(a)) {
+                window.showToast('This account is no longer available.', 'fail');
+                if (window.resetAccountSlideConfirmThumb) window.resetAccountSlideConfirmThumb();
+                return;
+            }
             const originalText = btnElement.innerText;
             btnElement.innerText = "Processing...";
             btnElement.disabled = true;
@@ -13695,6 +13845,9 @@
                     } catch (banCheckError) { console.error("Ban check error:", banCheckError); }
                 }
 
+                // Fresh availability/price/open-order check BEFORE the receipt upload.
+                await verifyAccountPurchasable(accountId, Number(a.price || 0));
+
                 const receiptUrl = await uploadReceiptToImgBB(acctEditingReceiptFile);
                 const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
                 const location = await getOrderLocation();
@@ -13706,7 +13859,7 @@
                     cost: 0,
                     quantity: 1,
                     orderType: 'gameAccount',
-                    accountId: currentAccountId,
+                    accountId: accountId,
                     paymentMethod: acctSelectedPaymentMethod.name,
                     receiptUrl: receiptUrl,
                     transactionId: transactionId || 'None',
@@ -13722,7 +13875,7 @@
                 window.openSuccessOverlay(orderRef.id, { status: 'Pending', timestamp: { toDate: () => new Date() } }, 'account');
             } catch (error) {
                 console.error("Account order error:", error);
-                window.showToast(error.message || 'Failed to place order! Check connection.', 'fail');
+                window.showToast(accountPurchaseErrorMessage(error) || error.message || 'Failed to place order! Check connection.', 'fail');
                 btnElement.innerText = originalText;
                 btnElement.disabled = false;
                 if (window.resetAccountSlideConfirmThumb) window.resetAccountSlideConfirmThumb();
@@ -13733,7 +13886,13 @@
         // Wallet path — mirrors submitWalletOrder()'s atomic balance
         // deduction, trimmed to what an account purchase needs.
         async function submitAccountWalletOrder(btnElement) {
-            const a = GAME_ACCOUNTS[currentAccountId];
+            const accountId = currentAccountId; // captured once - currentAccountId can change while we await uploads/geolocation below
+            const a = GAME_ACCOUNTS[accountId];
+            if (!a || !isAccountAvailable(a)) {
+                window.showToast('This account is no longer available.', 'fail');
+                if (window.resetAccountSlideConfirmThumb) window.resetAccountSlideConfirmThumb();
+                return;
+            }
             const originalText = btnElement.innerText;
             btnElement.innerText = "Processing...";
             btnElement.disabled = true;
@@ -13752,24 +13911,20 @@
                 } catch (banCheckError) { console.error("Ban check error:", banCheckError); }
 
                 const price = Number(a.price || 0);
+                // Fresh availability/price/open-order check BEFORE any wallet money moves.
+                await verifyAccountPurchasable(accountId, price);
                 const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
                 const location = await getOrderLocation();
                 const orderRef = doc(db, "orders", await generateShortNumericId("orders"));
                 const userRef = doc(db, "users", guestId);
-                await runTransaction(db, async (tx) => {
-                    const snap = await tx.get(userRef);
-                    const bal = snap.exists() ? Number(snap.data().walletBalance || 0) : 0;
-                    if (bal < price) throw new Error('INSUFFICIENT_BALANCE');
-                    tx.set(userRef, { walletBalance: increment(-price) }, { merge: true });
-                });
-                await setDoc(orderRef, {
+                const orderPayload = {
                     game: a.gameName || '',
                     itemAmount: a.title || 'Game Account',
                     price: price,
                     cost: 0,
                     quantity: 1,
                     orderType: 'gameAccount',
-                    accountId: currentAccountId,
+                    accountId: accountId,
                     paymentMethod: 'Wallet Balance',
                     paidFromWallet: true,
                     status: "Pending",
@@ -13778,15 +13933,43 @@
                     userName: (savedProfile.name && savedProfile.name.trim()) ? savedProfile.name.trim() : guestId,
                     userPhone: (savedProfile.phone && savedProfile.phone.trim()) ? savedProfile.phone.trim() : '',
                     ...(location ? { location } : {})
+                };
+                // ATOMIC: the wallet debit and the order creation happen in ONE
+                // transaction. Previously the debit committed first and setDoc(orderRef)
+                // ran separately, so a network drop / rules error in between left the
+                // customer charged with no order and no refund. Now either both are
+                // written or neither is. The orderRef existence read also stops a
+                // (rare) short-ID collision from silently overwriting someone else's order.
+                const chargeAmount = Number(price);
+                if (!Number.isFinite(chargeAmount) || chargeAmount < 0) throw new Error('INVALID_PRICE');
+                await runTransaction(db, async (tx) => {
+                    const snap = await tx.get(userRef);
+                    const existingOrder = await tx.get(orderRef);
+                    if (existingOrder.exists()) throw new Error('ORDER_ID_TAKEN');
+                    // Re-check the listing INSIDE the transaction: an admin may have
+                    // marked it sold (or changed the price) since the pre-flight above.
+                    const accSnap = await tx.get(doc(db, "gameAccounts", accountId));
+                    if (!accSnap.exists() || !isAccountAvailable(accSnap.data())) throw new Error('ACCOUNT_UNAVAILABLE');
+                    if (Number(accSnap.data().price || 0) !== chargeAmount) throw new Error('ACCOUNT_PRICE_CHANGED');
+                    const bal = snap.exists() ? Number(snap.data().walletBalance || 0) : 0;
+                    if (bal < chargeAmount) throw new Error('INSUFFICIENT_BALANCE');
+                    tx.set(userRef, { walletBalance: increment(-chargeAmount) }, { merge: true });
+                    tx.set(orderRef, orderPayload);
                 });
+
                 btnElement.innerText = "Order Sent";
                 btnElement.style.backgroundColor = "#28a745";
                 window.openSuccessOverlay(orderRef.id, { status: 'Pending', timestamp: { toDate: () => new Date() } }, 'account');
             } catch (error) {
                 console.error("Account wallet order error:", error);
-                const msg = error.message === 'INSUFFICIENT_BALANCE'
+                const msg = accountPurchaseErrorMessage(error)
+                    || (error.message === 'ORDER_ID_TAKEN'
+                    ? 'Something went wrong creating your order. You were not charged - please try again.'
+                    : error.message === 'INVALID_PRICE'
+                    ? 'Invalid price. Please reload and try again.'
+                    : error.message === 'INSUFFICIENT_BALANCE'
                     ? 'Your wallet balance is no longer enough for this account. Please top up.'
-                    : (error.message || 'Failed to place order! Check connection.');
+                    : (error.message || 'Failed to place order! Check connection.'));
                 window.showToast(msg, 'fail');
                 btnElement.innerText = originalText;
                 btnElement.disabled = false;
