@@ -417,6 +417,7 @@
             transition: transform 0.15s ease;
         }
         .header-icon:active { transform: scale(0.92); }
+        .header-menu-btn { background: transparent; border: none; box-shadow: none; }
         @keyframes notifPulse { 0%, 100% { box-shadow: 0 0 0 2px rgba(229,57,53,0.25); } 50% { box-shadow: 0 0 0 6px rgba(229,57,53,0); } }
         /* Notification count badge - sits on the corner of the header menu
            button and on the bell icon in the drawer. Hidden at 0, shows
@@ -817,26 +818,42 @@
         .cat-filter-scroll { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 12px; -webkit-overflow-scrolling: touch; }
         .cat-filter-scroll::-webkit-scrollbar { display: none; }
 
-        /* Game search bar — matches the app's glass-panel language used by
-           cards/modals elsewhere, instead of a plain bordered box. */
-        .game-search-wrap {
-            position: relative; display: flex; align-items: center; margin-bottom: 14px;
-            background: var(--glass-bg-strong); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
-            border: 1.5px solid var(--glass-border); border-radius: 16px;
-            box-shadow: var(--glass-shadow-sm);
-            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        /* Game search — collapses to a small round icon button beside the
+           "All Games" title; tapping it expands into the input (absolutely
+           positioned so it overlays the title instead of pushing layout),
+           and JS auto-focuses the input on expand. */
+        .all-games-title-row {
+            position: relative; display: flex; align-items: center; justify-content: space-between;
+            gap: 8px; margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px;
         }
-        .game-search-wrap:focus-within {
+        .all-games-title-row .title-header {
+            margin: 0; border: none; padding: 0; flex: 1; min-width: 0;
+            transition: opacity 0.15s ease;
+        }
+        .all-games-title-row.search-expanded .title-header { opacity: 0; pointer-events: none; }
+        .game-search-wrap {
+            position: absolute; right: 0; top: 50%; transform: translateY(-50%);
+            display: flex; align-items: center;
+            background: var(--glass-bg-strong); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+            border: 1.5px solid var(--glass-border); border-radius: 999px;
+            box-shadow: var(--glass-shadow-sm);
+            width: 36px; height: 36px; overflow: hidden;
+            transition: width 0.28s cubic-bezier(.4,0,.2,1), border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+        .game-search-wrap.expanded { left: 0; width: auto; }
+        .game-search-wrap:focus-within, .game-search-wrap.expanded {
             border-color: var(--accent);
             box-shadow: 0 0 0 4px rgba(var(--accent-rgb),0.14), var(--glass-shadow-sm);
         }
-        .game-search-icon { position: absolute; left: 14px; width: 18px; height: 18px; color: var(--text-muted); pointer-events: none; transition: color 0.2s ease; }
-        .game-search-wrap:focus-within .game-search-icon { color: var(--accent); }
+        .game-search-icon { position: absolute; left: 9px; width: 18px; height: 18px; color: var(--text-muted); cursor: pointer; transition: color 0.2s ease; z-index: 2; }
+        .game-search-wrap.expanded .game-search-icon { pointer-events: none; color: var(--accent); }
         .game-search-input {
-            width: 100%; height: 46px; padding: 0 42px 0 42px; border-radius: 16px;
+            width: 100%; height: 36px; padding: 0 36px 0 36px; border-radius: 999px;
             border: none; background: transparent; color: var(--text);
-            font-size: 14.5px; outline: none;
+            font-size: 14.5px; outline: none; opacity: 0; transition: opacity 0.15s ease;
         }
+        .game-search-wrap:not(.expanded) .game-search-input { pointer-events: none; }
+        .game-search-wrap.expanded .game-search-input { opacity: 1; }
         .game-search-input::placeholder { color: var(--text-muted); }
         .game-search-clear {
             position: absolute; right: 9px; width: 20px; height: 20px; padding: 5px; border-radius: 50%;
@@ -2404,7 +2421,23 @@
 
         /* ===================== LIQUID GLASS RESKIN ===================== */
         /* Header, bottom nav, notif dot ring */
-        .header { background: var(--glass-bg-strong); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur); border-bottom: 1px solid var(--glass-border); box-shadow: var(--glass-shadow-sm); transform: translateZ(0); will-change: transform; }
+        /* Header = a floating 3D glass dock too, detached from the top edge
+           (mirrors the bottom-nav dock below) instead of a full-width bar
+           stuck flush to the screen top. */
+        .header {
+            position: fixed; top: 12px; left: 12px; right: 12px; width: auto;
+            background: var(--glass-bg-strong); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
+            border: 1px solid var(--glass-border);
+            border-radius: 16px;
+            box-shadow: 0 16px 40px -10px rgba(20,30,60,0.35), inset 0 1px 1px rgba(255,255,255,0.5), inset 0 -1px 8px rgba(0,0,0,0.04);
+            transform: translateZ(0); will-change: transform;
+            padding: 10px 16px;
+        }
+        html[data-theme="dark"] .header { box-shadow: 0 16px 40px -10px rgba(0,0,10,0.6), inset 0 1px 1px rgba(255,255,255,0.06), inset 0 -1px 8px rgba(0,0,0,0.3); }
+        /* Header is now fixed (out of flow), so push page content down by
+           roughly its floating height + top gap, same idea as the bottom
+           nav's body padding-bottom below. */
+        body { padding-top: calc(84px + env(safe-area-inset-top, 0px)); }
 
         /* Bottom nav = a floating 3D glass dock, detached from the screen edge */
         .bottom-nav {
@@ -2981,8 +3014,12 @@
                 <span class="logo-status-text" id="header-logo-status-text">Connecting…</span>
             </span>
         </div>
-        <div class="header-icon" id="drawer-toggle-btn" onclick="openDrawer()" role="button" aria-label="Open menu">
-            <svg class="ui-icon" style="width: 20px;"><use href="#icon-menu"></use></svg>
+        <div class="header-icon header-menu-btn" id="drawer-toggle-btn" onclick="openDrawer()" role="button" aria-label="Open menu">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+                <line x1="3" y1="6" x2="21" y2="6" stroke="#FBC02D" stroke-width="2.4" stroke-linecap="round"></line>
+                <line x1="3" y1="12" x2="21" y2="12" stroke="#43A047" stroke-width="2.4" stroke-linecap="round"></line>
+                <line x1="3" y1="18" x2="21" y2="18" stroke="#E53935" stroke-width="2.4" stroke-linecap="round"></line>
+            </svg>
             <span class="notif-badge" id="notif-badge-header"></span>
         </div>
     </header>
@@ -3117,11 +3154,13 @@
                     <div class="skel-popular-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
                 </div>
             </div>
-            <h2 class="title-header section-title-spaced"><span data-i18n="title_all_games">All Games</span> <span id="all-games-count" class="games-count-badge"></span></h2>
-            <div class="game-search-wrap">
-                <svg class="ui-icon game-search-icon"><use href="#icon-search"></use></svg>
-                <input type="text" id="game-search-input" class="game-search-input" placeholder="Search games..." oninput="filterGamesBySearch(this.value)">
-                <svg class="ui-icon game-search-clear" id="game-search-clear" style="display:none;" onclick="clearGameSearch()"><use href="#icon-close"></use></svg>
+            <div class="all-games-title-row section-title-spaced" id="all-games-title-row">
+                <h2 class="title-header"><span data-i18n="title_all_games">All Games</span> <span id="all-games-count" class="games-count-badge"></span></h2>
+                <div class="game-search-wrap" id="game-search-wrap">
+                    <svg class="ui-icon game-search-icon" id="game-search-toggle-icon" onclick="toggleGameSearch()"><use href="#icon-search"></use></svg>
+                    <input type="text" id="game-search-input" class="game-search-input" placeholder="Search games..." oninput="filterGamesBySearch(this.value)" onblur="handleGameSearchBlur()">
+                    <svg class="ui-icon game-search-clear" id="game-search-clear" style="display:none;" onclick="clearGameSearch()"><use href="#icon-close"></use></svg>
+                </div>
             </div>
             <div class="cat-filter-scroll" id="cat-filter-scroll"></div>
             <div class="games-grid-scroll">
@@ -4038,8 +4077,8 @@
                  Policy, no card/grid needed. APP_VERSION is defined once
                  near the top of the script so it only needs updating in
                  one place for future releases. -->
-            <p id="app-version-footer" style="text-align:center;font-size:11px;color:var(--text-faint);margin-top:16px;letter-spacing:0.02em;">
-                Version <span id="app-version-number">1.0.0</span> · Powered by Kusanagi
+            <p id="app-version-footer" style="text-align:center;font-size:11px;color:var(--text-faint);margin-top:16px;letter-spacing:0.02em;user-select:none;" onclick="handleVersionTap()">
+                &copy;2026 Version <span id="app-version-number">1.45.28</span> Powered By Kusanagi
             </p>
         </div>
 
@@ -6411,8 +6450,8 @@
         // pkg.voucherId) -> remaining stock count, for whichever voucher
         // game is currently open. Same public endpoint the admin panel's
         // Import Products uses (GET /v1/category/:id), so no API key needed.
-        let voucherStockMap = {};
-        let voucherStockInterval = null;
+        var voucherStockMap = {};
+        var voucherStockInterval = null;
         const VOUCHER_STOCK_REFRESH_MS = 15000;
         // Stock-badge color tiers: >HIGH = green (plenty), >LOW = blue (some
         // left), 1..LOW = red (running low), 0 = "outStock" + disabled card.
@@ -12162,6 +12201,37 @@
         }
         window.clearGameSearch = clearGameSearch;
 
+        // Search icon starts collapsed; tapping it expands the bar over the
+        // "All Games" title and focuses the input. Tapping the icon again
+        // while expanded, or leaving an empty input, collapses it back.
+        function toggleGameSearch() {
+            const wrap = document.getElementById('game-search-wrap');
+            const row = document.getElementById('all-games-title-row');
+            const input = document.getElementById('game-search-input');
+            const isExpanded = wrap.classList.contains('expanded');
+            if (isExpanded && !input.value) {
+                wrap.classList.remove('expanded');
+                row.classList.remove('search-expanded');
+            } else {
+                wrap.classList.add('expanded');
+                row.classList.add('search-expanded');
+                setTimeout(() => input.focus(), 150);
+            }
+        }
+        window.toggleGameSearch = toggleGameSearch;
+
+        function handleGameSearchBlur() {
+            const input = document.getElementById('game-search-input');
+            // Give a tap on the clear (×) button time to register before
+            // collapsing, and never collapse while there's typed text.
+            setTimeout(() => {
+                if (input.value) return;
+                document.getElementById('game-search-wrap').classList.remove('expanded');
+                document.getElementById('all-games-title-row').classList.remove('search-expanded');
+            }, 150);
+        }
+        window.handleGameSearchBlur = handleGameSearchBlur;
+
         // Top-right pill: how many servers / regions a game has (the grouped
         // variants behind one card). Hidden for single-server games.
         function serverCountBadgeHtml(group) {
@@ -15598,10 +15668,26 @@
         <div class="chat-img-viewer-counter" id="chat-img-viewer-counter" style="display:none;"></div>
     </div>
 
-    <!-- TEMP DEBUG TOOL: Eruda mobile console (tap the floating icon bottom-right
-         to open console/elements/network panels). Remove this <script> block
-         once the price-card / game-card tap issue is diagnosed and fixed. -->
-    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
-    <script>eruda.init();</script>
+    <!-- HIDDEN DEV TOOL: Eruda mobile console, not loaded by default.
+         Tapping "Version ..." in Profile 7 times (see handleVersionTap()
+         in the script above) dynamically loads and opens it. -->
+    <script>
+        var __versionTapCount = 0;
+        var __versionTapTimer = null;
+        function handleVersionTap() {
+            __versionTapCount++;
+            clearTimeout(__versionTapTimer);
+            __versionTapTimer = setTimeout(() => { __versionTapCount = 0; }, 2000);
+            if (__versionTapCount >= 7) {
+                __versionTapCount = 0;
+                clearTimeout(__versionTapTimer);
+                if (window.eruda) { eruda.show(); return; }
+                var s = document.createElement('script');
+                s.src = 'https://cdn.jsdelivr.net/npm/eruda';
+                s.onload = function () { eruda.init(); eruda.show(); };
+                document.body.appendChild(s);
+            }
+        }
+    </script>
 </body>
 </html>
