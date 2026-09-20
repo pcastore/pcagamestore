@@ -4,6 +4,11 @@
     <script src="https://accounts.google.com/gsi/client" async defer></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <!-- Fonts: preconnect + <link> (an @import inside <style> blocks rendering behind a second request).
+         Noto Sans Myanmar is unicode-range subset by Google, so it only downloads when Burmese text is on screen. -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Noto+Sans+Myanmar:wght@400;500;600;700&display=swap">
     <title>PCA Store — Game Top-Up & Voucher Store</title>
     <meta name="description" content="PCA Store: fast, reliable game top-ups and vouchers. Pay with Wallet balance, KPay, Wave, or Crypto (USDT).">
     <link rel="canonical" href="https://pcagamestore.vercel.app/">
@@ -103,8 +108,7 @@
         });
     </script>
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&display=swap');
-        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', sans-serif; -webkit-tap-highlight-color: transparent; }
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: 'Poppins', 'Noto Sans Myanmar', 'Myanmar Text', sans-serif; -webkit-tap-highlight-color: transparent; }
         /* Stops long-press text selection ("Copy/Share/Select all/Web search")
            from popping up on cards, labels and other non-editable UI. Inputs,
            textareas and anything explicitly marked editable are exempted below
@@ -124,7 +128,7 @@
         .lb-amount, .pc-price, h1, h2, h3, h4,
         .game-card-name, .detail-grid-item b, .mini-profile-info span,
         .id-result-name, .google-account-details span, .vip-card-head h4 {
-            font-family: 'Poppins', sans-serif;
+            font-family: 'Poppins', 'Noto Sans Myanmar', 'Myanmar Text', sans-serif;
         }
 
         /* ===================== THEME TOKENS ===================== */
@@ -215,41 +219,15 @@
         html.theme-switching #toast, html.theme-switching .glass-panel {
             backdrop-filter: none !important; -webkit-backdrop-filter: none !important;
         }
-        /* Decorative falling stars/dust background (see #bg-falling-stars
-           div right after <body>). Fixed full-viewport layer, behind all
-           app content, click-through, GPU-only animation (transform +
-           opacity) so it's free performance-wise. */
-        .bg-falling-stars {
-            position: fixed; inset: 0; z-index: 0; overflow: hidden;
-            pointer-events: none;
-        }
-        .bg-falling-star {
-            position: absolute; top: -12px;
-            width: var(--s-size, 3px); height: var(--s-size, 3px);
-            border-radius: 50%;
-            background: var(--accent);
-            opacity: 0;
-            box-shadow: 0 0 6px 1px var(--accent);
-            transform: translateZ(0);
-            will-change: transform, opacity;
-            animation: bg-star-fall var(--s-dur, 9s) linear infinite;
-            animation-delay: var(--s-delay, 0s);
-        }
-        html[data-theme="dark"] .bg-falling-star { background: #BBD3FF; box-shadow: 0 0 6px 1px rgba(187,211,255,0.9); }
-        html:not([data-theme="dark"]) .bg-falling-star { background: #7FA8FF; box-shadow: 0 0 5px 1px rgba(127,168,255,0.5); }
-        @keyframes bg-star-fall {
-            0%   { transform: translate3d(0, 0, 0); opacity: 0; }
-            8%   { opacity: var(--s-op, 0.8); }
-            85%  { opacity: var(--s-op, 0.8); }
-            100% { transform: translate3d(var(--s-drift, 12px), 108vh, 0); opacity: 0; }
-        }
-        @media (prefers-reduced-motion: reduce) {
-            .bg-falling-stars { display: none; }
-        }
-        /* Keep real app content above the decorative layer. */
+        /* Keep app content in its own stacking context. */
         header, main.content-area, .bottom-nav, .modal-overlay, #toast { position: relative; z-index: 1; }
 
-        body { background-color: var(--bg); background-image: var(--bg-gradient); background-attachment: fixed; color: var(--text); padding-bottom: calc(15px + env(safe-area-inset-bottom, 0px)); }
+        body { background-color: var(--bg); color: var(--text); padding-bottom: calc(15px + env(safe-area-inset-bottom, 0px)); }
+        /* Room for the floating bottom nav; the nav itself hides on sub-pages (game detail, terms...). */
+        body:not(.no-bottom-nav) { padding-bottom: calc(92px + env(safe-area-inset-bottom, 0px)); }
+        body.no-bottom-nav .bottom-nav { display: none; }
+        /* Was background-attachment: fixed on body, which forces a full repaint on every scroll frame on mobile. A fixed pseudo-element is composited instead. */
+        body::before { content: ''; position: fixed; inset: 0; z-index: -1; pointer-events: none; background-image: var(--bg-gradient); }
 
         /* ===================== LIQUID GLASS PANEL ===================== */
         .glass-panel {
@@ -411,11 +389,9 @@
         .logo { color: var(--accent); font-size: 22px; font-weight: 600; display: flex; align-items: center; gap: 10px; cursor: pointer; }
         .logo-icon-wrap {
             width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-            border-radius: 12px; background-color: #FF5A4E;
-            background-image:
-                linear-gradient(rgba(255,255,255,0.16) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.16) 1px, transparent 1px);
-            background-size: 11px 11px;
+            border-radius: 12px; background-color: var(--accent);
+            background-image: linear-gradient(145deg, rgba(255,255,255,0.28), rgba(255,255,255,0) 60%);
+            color: #fff;
         }
         .logo-icon-wrap .ui-icon { width: 26px; height: 26px; }
         .logo-icon-wrap img { width: 100%; height: 100%; object-fit: cover; border-radius: 11px; display: block; }
@@ -432,7 +408,7 @@
         .header-icon {
             position: relative; width: 40px; height: 40px; border-radius: 50%;
             display: flex; justify-content: center; align-items: center; cursor: pointer;
-            color: #16A34A; background: var(--glass-bg-strong);
+            color: var(--accent); background: var(--glass-bg-strong);
             border: 1px solid var(--glass-border);
             box-shadow: 0 4px 14px rgba(0,0,0,0.08), inset 0 1px 1px rgba(255,255,255,0.4), inset 0 -6px 10px rgba(0,0,0,0.04);
             transition: transform 0.15s ease;
@@ -724,7 +700,7 @@
         /* Cards render on their own compositor layer so scroll-drag doesn't
            repaint/reflow the grid every frame, and the tap-scale only fires
            on a real tap (not a finger dragging across the card while scrolling). */
-        .game-card { cursor: pointer; transition: transform 0.1s; will-change: transform; border-radius: 12px; overflow: hidden; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.05); transform: translateZ(0); contain: content; }
+        .game-card { cursor: pointer; transition: transform 0.1s; border-radius: 12px; overflow: hidden; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.05); contain: content; }
         .game-card:active { transform: scale(0.97); }
         @media (hover: none) and (pointer: coarse) {
             .game-card:active { transition-delay: 80ms; }
@@ -890,6 +866,15 @@
         .cat-filter-scroll { gap: 6px; padding-bottom: 10px; }
         .cat-filter-scroll .cat-filter-chip { gap: 4px; padding: 6px 11px 6px 8px; font-size: 11.5px; }
         .cat-filter-scroll .cat-filter-chip svg { width: 12px; height: 12px; }
+        /* The row scrolls (overflow-x:auto also clips vertically), so the active chip's
+           glow used to get cut into a hard rectangle. Give the row padding for the shadow,
+           pull it back out with negative margins, and fade the right edge instead of
+           chopping the last chip mid-word. */
+        .cat-filter-scroll {
+            padding: 8px 15px 18px; margin: -6px -15px -8px;
+            -webkit-mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 30px), transparent 100%);
+            mask-image: linear-gradient(to right, #000 0, #000 calc(100% - 30px), transparent 100%);
+        }
 
         /* Popular Games: horizontal scroll row (separate from the All Games grid) */
         .section-title-spaced { margin-top: 20px; }
@@ -1276,6 +1261,7 @@
         #toast .toast-close { flex-shrink: 0; width: 16px; height: 16px; cursor: pointer; opacity: 0.5; transition: opacity 0.15s ease; color: inherit; }
         #toast .toast-close:active { opacity: 1; }
         .empty-msg { text-align: center; color: var(--text-secondary); font-size: 14px; padding: 20px 0; }
+        .cards-grid > .empty-msg { grid-column: 1 / -1; }
 
         /* Empty-state illustration — icon-in-circle + title + subtext, used
            anywhere a list can be genuinely empty (history, wallet top ups).
@@ -1287,6 +1273,8 @@
         .empty-state-title { font-size: 15px; font-weight: 600; color: var(--text); }
         .empty-state-sub { font-size: 13px; color: var(--text-secondary); line-height: 1.45; max-width: 260px; }
         .empty-state-action { margin-top: 14px; }
+        /* Loading state shown in the middle of the area while a tab's data is still arriving. */
+        .empty-state.page-loading { min-height: 45vh; justify-content: center; }
         .page-loading-spinner {
             width: 34px; height: 34px; border: 3px solid rgba(var(--accent-rgb),0.15);
             border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite;
@@ -2400,7 +2388,7 @@
         .mini-profile-info { flex: 1; min-width: 0; }
         .mini-profile-info span { display: block; font-size: 13px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .mini-profile-info small { font-size: 10px; color: var(--text-muted); }
-        .mini-profile-info .tier-badge { margin-top: 2px; padding: 3px 9px 3px 7px; font-size: 10px; }
+        .mini-profile-info .tier-badge { display: inline-flex; margin-top: 2px; padding: 3px 9px 3px 7px; font-size: 10px; } /* was inheriting display:block from `.mini-profile-info span`, stretching the badge to full width */
         .mini-profile-info .tier-badge svg { width: 10px; height: 10px; }
 
         /* Social links (Facebook / Telegram / TikTok) on the Profile page - 3 separate grid cards */
@@ -2781,13 +2769,6 @@
         </div>
     </div>
 
-    <!-- Decorative background: soft falling stars / dust motes, purely
-         visual (aria-hidden), sits behind all app content. Particle count
-         and positions are randomized once on load by initBgFallingStars()
-         near the end of body. Uses only transform+opacity (GPU-friendly,
-         no layout/paint cost) so it doesn't add scroll jank. -->
-    <div class="bg-falling-stars" id="bg-falling-stars" aria-hidden="true"></div>
-
     <!-- SVGs -->
     <svg style="display: none;">
         <defs>
@@ -2815,7 +2796,7 @@
         <symbol id="icon-rocket" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2l.5-.5M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path></symbol>
         <symbol id="icon-megaphone" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></symbol>
         <symbol id="icon-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></symbol>
-        <symbol id="icon-menu" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" stroke="#FACC15"></line><line x1="3" y1="12" x2="21" y2="12" stroke="#EF4444"></line><line x1="3" y1="18" x2="21" y2="18" stroke="#22C55E"></line></symbol>
+        <symbol id="icon-menu" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></symbol>
         <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></symbol>
         <symbol id="icon-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></symbol>
         <symbol id="icon-chevron-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></symbol>
@@ -2999,6 +2980,9 @@
                 <div class="drawer-nav-item" data-page="account" onclick="drawerNavigate('account')">
                     <svg class="ui-icon"><use href="#icon-shield"></use></svg><span data-i18n="nav_account">Game Accounts</span>
                 </div>
+                <div class="drawer-nav-item" data-page="name-check" onclick="drawerNavigate('name-check')">
+                    <svg class="ui-icon"><use href="#icon-search"></use></svg><span data-i18n="nc_title">Name Check</span>
+                </div>
                 <div class="drawer-nav-item" data-page="history" onclick="drawerNavigate('history')">
                     <svg class="ui-icon"><use href="#icon-history"></use></svg><span data-i18n="nav_history">History</span>
                 </div>
@@ -3145,6 +3129,16 @@
              sale, grouped by game (data lives in Firestore's "gameAccounts"
              collection, managed from the admin panel's Account tab). -->
         <div id="account" class="page-section">
+            <!-- Shown instead of the marketplace while Game Accounts is switched off
+                 from the admin panel (settings/gameAccounts.enabled) - see
+                 renderAccountAccessGate(). -->
+            <div id="account-coming-soon" style="display:none;">
+                <div class="empty-state">
+                    <div class="empty-state-icon"><svg class="ui-icon"><use href="#icon-rocket"></use></svg></div>
+                    <div class="empty-state-title" data-i18n="acct_soon_title">Coming Soon</div>
+                    <div class="empty-state-sub" data-i18n="acct_soon_sub">Game Accounts isn't open yet. We're getting it ready - check back soon.</div>
+                </div>
+            </div>
             <!-- Google sign-in gate: game accounts are high-value listings, so
                  browsing them requires a real Google sign-in (unlike the rest
                  of the store, which works fully on the anonymous guest ID). -->
@@ -3798,21 +3792,6 @@
                 </button>
             </div>
 
-            <!-- Name Check: pick a game, enter the Player ID (+ Server ID only when that
-                 game needs one) and the store looks up the in-game name plus its
-                 region, using the same ID-check providers as the checkout page. -->
-            <div class="detail-form-card profile-card-anim" id="name-check-card" style="margin-top:14px;animation-delay:30ms;">
-                <label style="margin-top:0;" data-i18n="nc_title">Name Check</label>
-                <select id="nc-game" onchange="ncOnGameChange()"><option value="">Select game</option></select>
-                <div id="nc-fields" style="display:none;">
-                    <input type="text" id="nc-player-id" placeholder="Player ID" data-i18n-ph="nc_player_id_ph" autocomplete="off" oninput="sanitizeIdDigitsInput(this); ncOnFieldChange()">
-                    <div id="nc-server-wrap" style="display:none;">
-                        <input type="text" id="nc-server-id" placeholder="Server ID" data-i18n-ph="nc_server_ph" autocomplete="off" oninput="sanitizeIdDigitsInput(this); ncOnFieldChange()">
-                    </div>
-                </div>
-                <div id="nc-result" style="display:none;"></div>
-            </div>
-
             <!-- Preferences: mirrors the header's dark mode toggle so it's reachable
                  from the Profile page too, without needing a separate Settings page. -->
             <div class="detail-form-card profile-card-anim" id="profile-prefs-card" style="margin-top:14px;animation-delay:40ms;">
@@ -4065,6 +4044,24 @@
                 <h2 style="font-size:18px; font-weight: 600; color:var(--text);" id="server-select-title">Game</h2>
             </div>
             <div class="cards-grid" id="server-select-grid"></div>
+        </div>
+
+        <!-- NAME CHECK PAGE: pick a game, enter the Player ID (+ Server ID only when that
+             game needs one) and the store looks up the in-game name plus its region,
+             using the same ID-check providers as the checkout page. -->
+        <div id="name-check" class="page-section">
+            <h2 class="title-header section-title-spaced"><span data-i18n="nc_title">Name Check</span></h2>
+            <div class="detail-form-card" id="name-check-card">
+                <label style="margin-top:0;" data-i18n="nc_title">Name Check</label>
+                <select id="nc-game" onchange="ncOnGameChange()"><option value="">Select game</option></select>
+                <div id="nc-fields" style="display:none;">
+                    <input type="text" id="nc-player-id" placeholder="Player ID" data-i18n-ph="nc_player_id_ph" autocomplete="off" oninput="sanitizeIdDigitsInput(this); ncOnFieldChange()">
+                    <div id="nc-server-wrap" style="display:none;">
+                        <input type="text" id="nc-server-id" placeholder="Server ID" data-i18n-ph="nc_server_ph" autocomplete="off" oninput="sanitizeIdDigitsInput(this); ncOnFieldChange()">
+                    </div>
+                </div>
+                <div id="nc-result" style="display:none;"></div>
+            </div>
         </div>
 
         <!-- TERMS AND POLICY PAGE -->
@@ -4403,6 +4400,31 @@
 
     </main>
 
+    <!-- Bottom navigation: the 5 main tabs. showPage() toggles .active on #btn-<page>
+         and hides the bar on sub-pages (see MAIN_TAB_PAGES). Everything else is in the drawer. -->
+    <nav class="bottom-nav" id="bottom-nav" aria-label="Main navigation">
+        <div class="nav-item active" id="btn-home" onclick="showPage('home')" role="button">
+            <div class="nav-icon-wrap"><svg class="ui-icon"><use href="#icon-home"></use></svg></div>
+            <span class="nav-label" data-i18n="nav_home">Home</span>
+        </div>
+        <div class="nav-item" id="btn-voucher" onclick="showPage('voucher')" role="button">
+            <div class="nav-icon-wrap"><svg class="ui-icon"><use href="#icon-gift"></use></svg></div>
+            <span class="nav-label" data-i18n="nav_voucher">Voucher</span>
+        </div>
+        <div class="nav-item" id="btn-name-check" onclick="showPage('name-check')" role="button">
+            <div class="nav-icon-wrap"><svg class="ui-icon"><use href="#icon-search"></use></svg></div>
+            <span class="nav-label" data-i18n="nc_title">Name Check</span>
+        </div>
+        <div class="nav-item" id="btn-history" onclick="showPage('history')" role="button">
+            <div class="nav-icon-wrap"><svg class="ui-icon"><use href="#icon-history"></use></svg></div>
+            <span class="nav-label" data-i18n="nav_history">History</span>
+        </div>
+        <div class="nav-item" id="btn-profile" onclick="showPage('profile')" role="button">
+            <div class="nav-icon-wrap"><svg class="ui-icon"><use href="#icon-user"></use></svg></div>
+            <span class="nav-label" data-i18n="nav_profile">Profile</span>
+        </div>
+    </nav>
+
     <!-- Order Success Screen -->
     <div class="success-overlay" id="success-overlay">
         <div class="success-box">
@@ -4465,7 +4487,7 @@
                 nav_home: 'Home', nav_voucher: 'Voucher', nav_account: 'Game Accounts',
                 nav_history: 'History', nav_leaderboard: 'Leaderboard', nav_wallet: 'Wallet',
                 nav_profile: 'Profile', nav_notifications: 'Notifications', nav_theme: 'Dark Mode',
-                nav_terms: 'Terms & Policy', nav_support: 'Support', nav_language: 'Language', nc_title: 'Name Check', nc_clear: 'Clear', nc_select_game: 'Select game', nc_player_id_ph: 'Player ID', nc_server_ph: 'Server ID', nc_select_server: 'Select server / region', nc_global: 'Global', nc_server: 'Server', nc_unavailable: "Couldn't check right now. Please try again later.", pc_wallet_balance: 'Wallet balance', pc_topup: 'Top up', pc_orders: 'Orders', pc_total_spent: 'Total spent', pc_edit: 'Edit profile',
+                nav_terms: 'Terms & Policy', nav_support: 'Support', nav_language: 'Language', acct_soon_title: 'Coming Soon', acct_soon_sub: "Game Accounts isn't open yet. We're getting it ready - check back soon.", nc_title: 'Name Check', nc_clear: 'Clear', nc_select_game: 'Select game', nc_player_id_ph: 'Player ID', nc_server_ph: 'Server ID', nc_select_server: 'Select server / region', nc_global: 'Global', nc_server: 'Server', nc_unavailable: "Couldn't check right now. Please try again later.", pc_wallet_balance: 'Wallet balance', pc_topup: 'Top up', pc_orders: 'Orders', pc_total_spent: 'Total spent', pc_edit: 'Edit profile',
                 legal_tab_terms: 'Terms', legal_tab_privacy: 'Privacy', legal_tab_refund: 'Refund',
                 terms_l_about: 'About This Service',
                 terms_b_about: 'PCA Store (operating at daikokuten.my.id) is a game top-up and voucher store. By using this site, browsing, creating an account, or placing an order, you agree to these Terms.',
@@ -4592,7 +4614,7 @@
                 nav_home: 'ပင်မ', nav_voucher: 'ဗောက်ချာ', nav_account: 'ဂိမ်းအကောင့်',
                 nav_history: 'မှတ်တမ်း', nav_leaderboard: 'ထိပ်တန်းစာရင်း', nav_wallet: 'ပိုက်ဆံအိတ်',
                 nav_profile: 'ပရိုဖိုင်', nav_notifications: 'အသိပေးချက်များ', nav_theme: 'အနက်ရောင်မုဒ်',
-                nav_terms: 'စည်းမျဉ်းစည်းကမ်း', nav_support: 'အကူအညီ', nav_language: 'ဘာသာစကား', nc_title: 'အမည်စစ်ဆေးရန်', nc_clear: 'ရှင်းမည်', nc_select_game: 'ဂိမ်းရွေးပါ', nc_player_id_ph: 'Player ID', nc_server_ph: 'Server ID', nc_select_server: 'Server / Region ရွေးပါ', nc_global: 'Global', nc_server: 'Server', nc_unavailable: 'ယခု စစ်ဆေး၍မရပါ၊ ခဏနေမှ ပြန်ကြိုးစားပါ', pc_wallet_balance: 'Wallet လက်ကျန်ငွေ', pc_topup: 'ငွေဖြည့်ရန်', pc_orders: 'အော်ဒါများ', pc_total_spent: 'စုစုပေါင်းသုံးငွေ', pc_edit: 'ပရိုဖိုင်ပြင်ရန်',
+                nav_terms: 'စည်းမျဉ်းစည်းကမ်း', nav_support: 'အကူအညီ', nav_language: 'ဘာသာစကား', acct_soon_title: 'မကြာမီ လာမည်', acct_soon_sub: 'Game Account ဝန်ဆောင်မှုကို ပြင်ဆင်နေပါသည်။ မကြာမီ ပြန်လာကြည့်ပါ။', nc_title: 'အမည်စစ်ဆေးရန်', nc_clear: 'ရှင်းမည်', nc_select_game: 'ဂိမ်းရွေးပါ', nc_player_id_ph: 'Player ID', nc_server_ph: 'Server ID', nc_select_server: 'Server / Region ရွေးပါ', nc_global: 'Global', nc_server: 'Server', nc_unavailable: 'ယခု စစ်ဆေး၍မရပါ၊ ခဏနေမှ ပြန်ကြိုးစားပါ', pc_wallet_balance: 'Wallet လက်ကျန်ငွေ', pc_topup: 'ငွေဖြည့်ရန်', pc_orders: 'အော်ဒါများ', pc_total_spent: 'စုစုပေါင်းသုံးငွေ', pc_edit: 'ပရိုဖိုင်ပြင်ရန်',
                 legal_tab_terms: 'စည်းကမ်းချက်', legal_tab_privacy: 'ကိုယ်ရေးအချက်အလက်', legal_tab_refund: 'ငွေပြန်အမ်း',
                 terms_l_about: 'ဝန်ဆောင်မှုအကြောင်း',
                 terms_b_about: 'PCA Store (daikokuten.my.id တွင် လုပ်ဆောင်သည်) သည် ဂိမ်း top-up နှင့် voucher ရောင်းချသော store တစ်ခု ဖြစ်ပါသည်။ ဤ site ကို အသုံးပြုခြင်း၊ browse လုပ်ခြင်း၊ account ဖွင့်ခြင်း သို့မဟုတ် order တင်ခြင်းဖြင့် ဤစည်းကမ်းချက်များကို သဘောတူလက်ခံရာ ရောက်ပါသည်။',
@@ -4791,7 +4813,7 @@
         // Firestore listener has returned any data yet, so the page never
         // flashes a misleading "No X yet" empty-state ahead of real data.
         function loadingStateHTML() {
-            return `<div class="empty-state"><div class="page-loading-spinner"></div><div class="page-loading-label">PCA</div></div>`;
+            return `<div class="empty-state page-loading"><div class="page-loading-spinner"></div><div class="page-loading-label">PCA</div></div>`;
         }
         window.loadingStateHTML = loadingStateHTML;
 
@@ -4838,6 +4860,8 @@
         window.switchLegalTab = switchLegalTab;
 
         function showPage(pageId, swipeDir) {
+            // Game Accounts switched off from admin: listing detail is never reachable.
+            if (pageId === 'account-detail' && window.accountsEnabled !== true) pageId = 'account';
             document.querySelectorAll('.page-section').forEach(p => {
                 p.classList.remove('active');
                 p.classList.remove('swipe-left', 'swipe-right');
@@ -4861,11 +4885,13 @@
             // Support Chat FAB: only shown on the game-detail (product) page.
             const supportFab = document.getElementById('support-fab');
             if (supportFab) supportFab.classList.toggle('fab-page-hidden', pageId !== 'game-detail');
+            const MAIN_TAB_PAGES = ['home', 'voucher', 'account', 'name-check', 'history', 'leaderboard', 'wallet', 'profile'];
+            document.body.classList.toggle('no-bottom-nav', !MAIN_TAB_PAGES.includes(pageId));
             window.scrollTo(0,0);
             window.currentStorePage = pageId;
             if (pageId === 'history' && window.loadHistory) window.loadHistory();
-            if (pageId === 'profile' && window.ncRenderGameOptions) window.ncRenderGameOptions();
-            if (pageId === 'profile' && window.ncResetScrollBaseline) window.ncResetScrollBaseline();
+            if (pageId === 'name-check' && window.ncRenderGameOptions) window.ncRenderGameOptions();
+            if (pageId === 'name-check' && window.ncResetScrollBaseline) window.ncResetScrollBaseline();
             if (pageId === 'profile' && window.renderProfileFields) window.renderProfileFields();
             if (pageId === 'profile' && window.loadProfileStats) window.loadProfileStats();
             if (pageId === 'profile' && window.renderTierPreviewGrid) window.renderTierPreviewGrid();
@@ -4877,7 +4903,7 @@
             // Game Accounts marketplace listener: only alive while on one of
             // its 3 pages (see listenGameAccounts/stopListenGameAccounts).
             const ACCOUNT_PAGES = ['account', 'account-list', 'account-detail'];
-            if (ACCOUNT_PAGES.includes(pageId) && window.listenGameAccounts) window.listenGameAccounts();
+            if (ACCOUNT_PAGES.includes(pageId) && window.accountsEnabled === true && window.listenGameAccounts) window.listenGameAccounts();
             else if (!ACCOUNT_PAGES.includes(pageId) && window.stopListenGameAccounts) window.stopListenGameAccounts();
             // Game catalogue listener: only needed on the pages that read
             // window.GAMES - Home (grid + favorites row + flash-sale banner),
@@ -4995,7 +5021,7 @@
         // whose swipe-left/swipe-right animation slides the next page in
         // the rest of the way from off-screen.
         (function initTabSwipe() {
-            const TAB_ORDER = ['home', 'voucher', 'account', 'history', 'leaderboard', 'wallet', 'profile'];
+            const TAB_ORDER = ['home', 'voucher', 'account', 'name-check', 'history', 'leaderboard', 'wallet', 'profile'];
             const content = document.querySelector('main.content-area');
             if (!content) return;
 
@@ -5752,11 +5778,11 @@
         // (the IDs stay). The first ~0.8s is ignored so keyboard / layout
         // adjustments right after typing don't close it by accident.
         window.addEventListener('scroll', () => {
-            if (ncShownAt === null || window.currentStorePage !== 'profile') return;
+            if (ncShownAt === null || window.currentStorePage !== 'name-check') return;
             if (Date.now() - ncShownAt < 800) return;
             if (Math.abs(window.scrollY - ncShownScrollY) > 50) ncDismissResult(false);
         }, { passive: true });
-        // Entering Profile scrolls to the top; re-baseline so that alone doesn't count as a scroll.
+        // Entering the Name Check page scrolls to the top; re-baseline so that alone doesn't count as a scroll.
         window.ncResetScrollBaseline = () => {
             if (ncShownAt !== null) { ncShownAt = Date.now(); ncShownScrollY = window.scrollY; }
         };
@@ -6241,7 +6267,8 @@
             selectedPaymentType = null;
             editingReceiptFile = null;
             receiptOcrPromise = null;
-            window.currentGamePackages = game.packages;
+            const gamePackages = Array.isArray(game.packages) ? game.packages : [];
+            window.currentGamePackages = gamePackages;
             // Drives which price-card layout renderDetailPackageList uses:
             // voucher/giftcard games keep the gift-card style; every other
             // (direct top-up) game uses the plain product-card layout.
@@ -6271,7 +6298,7 @@
             // custom tab's packages are invisible as their own section here.
             const tabsEl = document.getElementById('pkg-type-tabs');
             const seenTabs = [];
-            game.packages.forEach(pkg => {
+            gamePackages.forEach(pkg => {
                 const t = pkgTabOf(pkg);
                 if (!seenTabs.includes(t)) seenTabs.push(t);
             });
@@ -8121,7 +8148,15 @@
                     // Consumed by the very next openGameEntry/openGameDetail
                     // call so the tap that ends this long-press doesn't also
                     // navigate into the game.
+                    // Auto-expires shortly after the finger lifts: on touch
+                    // devices a long press usually fires no click at all
+                    // (contextmenu is blocked above), so without this the
+                    // flag stayed true and swallowed the NEXT real tap.
                     window.__suppressNextCardClick = true;
+                    const release = () => setTimeout(() => { window.__suppressNextCardClick = false; }, 350);
+                    document.addEventListener('touchend', release, { once: true, passive: true });
+                    document.addEventListener('touchcancel', release, { once: true, passive: true });
+                    document.addEventListener('mouseup', release, { once: true });
                     toggleFavoriteGameById(card.getAttribute('data-game-id'), card);
                     pressCard = null;
                 }, PIN_HOLD_MS);
@@ -8915,7 +8950,12 @@
             if (!gid) return;
             cleanupOldWalletTopups(gid);
             const q = query(collection(db, "walletTopups"), where("userId", "==", gid));
-            walletTopupsUnsub = onSnapshot(q, (snap) => {
+            walletTopupsUnsub = onSnapshot(q, { includeMetadataChanges: true }, (snap) => {
+                // Firestore delivers an EMPTY snapshot straight from the local cache before
+                // the server answers (slow networks especially) - treating that as "no data"
+                // flashed the empty-state. Ignore it; includeMetadataChanges brings the
+                // server-confirmed snapshot (empty or not) right after.
+                if (snap.empty && snap.metadata.fromCache) return;
                 const items = [];
                 snap.forEach(d => items.push({ id: d.id, ...d.data() }));
                 items.sort((a, b) => (b.timestamp?.toMillis?.() || 0) - (a.timestamp?.toMillis?.() || 0));
@@ -9376,6 +9416,30 @@
             }
         });
 
+        // ---------- Game Accounts on/off switch (admin panel: Settings > Game Accounts) ----------
+        // settings/gameAccounts.enabled. Missing doc / anything but true = OFF,
+        // so the tab shows "Coming Soon" until the admin turns it on.
+        let accountsEnabledListenerAttached = false;
+        function listenAccountsEnabled() {
+            if (accountsEnabledListenerAttached) return;
+            accountsEnabledListenerAttached = true;
+            onSnapshot(doc(db, "settings", "gameAccounts"), (docSnap) => {
+                window.accountsEnabled = docSnap.exists() && docSnap.data().enabled === true;
+                if (!window.accountsEnabled) {
+                    if (window.stopListenGameAccounts) window.stopListenGameAccounts();
+                    if (window.currentStorePage === 'account-detail') window.showPage('account');
+                }
+                renderAccountAccessGate();
+                // Turned on while the user is already sitting on the tab.
+                if (window.accountsEnabled && window.currentStorePage === 'account' && window.listenGameAccounts) window.listenGameAccounts();
+            }, (error) => {
+                console.error('Game Accounts switch listener error:', error);
+                window.accountsEnabled = false;
+                renderAccountAccessGate();
+            });
+        }
+        deferInit(() => listenAccountsEnabled());
+
         // ---------- Account marketplace access gate ----------
         // Browsing pre-made game accounts requires a real Google sign-in
         // (unlike the rest of the store, which works fully on the anonymous
@@ -9384,7 +9448,14 @@
         function renderAccountAccessGate() {
             const gate = document.getElementById('account-login-gate');
             const content = document.getElementById('account-content');
+            const soon = document.getElementById('account-coming-soon');
             if (!gate || !content) return;
+            // Admin switch (settings/gameAccounts.enabled): off -> only the
+            // Coming Soon panel. Until the first snapshot arrives (undefined)
+            // nothing is shown, so neither state flashes.
+            const enabled = window.accountsEnabled;
+            if (soon) soon.style.display = enabled === false ? 'block' : 'none';
+            if (enabled !== true) { gate.style.display = 'none'; content.style.display = 'none'; return; }
             const signedIn = !!(auth.currentUser);
             gate.style.display = signedIn ? 'none' : 'block';
             content.style.display = signedIn ? 'block' : 'none';
@@ -11710,7 +11781,12 @@
             container.innerHTML = historySkeletonHTML();
 
             const q = query(collection(db, "orders"), where("userId", "==", guestId));
-            historyUnsubscribe = onSnapshot(q, (snap) => {
+            historyUnsubscribe = onSnapshot(q, { includeMetadataChanges: true }, (snap) => {
+                // Firestore delivers an EMPTY snapshot straight from the local cache before
+                // the server answers (slow networks especially) - treating that as "no data"
+                // flashed the empty-state. Ignore it; includeMetadataChanges brings the
+                // server-confirmed snapshot (empty or not) right after.
+                if (snap.empty && snap.metadata.fromCache) return;
                 const orders = [];
                 snap.forEach(docSnap => orders.push({ id: docSnap.id, ...docSnap.data() }));
                 runWhenNotTouching(document.querySelector('#history-container .order-list-scroll') || container, () => renderHistoryOrders(orders));
@@ -12083,10 +12159,18 @@
             if (visibilityObserver) visibilityObserver.observe(el);
             else rowVisible = true; // no IntersectionObserver support — fall back to always-on
 
+            // Measured only when the row's size/content changes - reading
+            // scrollWidth/clientWidth inside the per-frame loop forced a
+            // synchronous layout 60x/second.
+            let max = 0;
+            const measure = () => { max = el.scrollWidth - el.clientWidth; };
+            if ('ResizeObserver' in window) new ResizeObserver(measure).observe(el);
+            if ('MutationObserver' in window) new MutationObserver(measure).observe(el, { childList: true });
+            measure();
+
             function step() {
                 const onHome = window.currentStorePage === 'home' || !window.currentStorePage;
                 if (!paused && onHome && rowVisible) {
-                    const max = el.scrollWidth - el.clientWidth;
                     if (max > 0) {
                         el.scrollLeft += dir * SPEED;
                         if (el.scrollLeft >= max - 1) dir = -1;
@@ -12353,7 +12437,12 @@
         let gamesUnsub = null;
         function listenGames() {
             if (gamesUnsub) return; // already subscribed
-            gamesUnsub = onSnapshot(collection(db, "games"), (snap) => {
+            gamesUnsub = onSnapshot(collection(db, "games"), { includeMetadataChanges: true }, (snap) => {
+                // Firestore delivers an EMPTY snapshot straight from the local cache before
+                // the server answers (slow networks especially) - treating that as "no data"
+                // flashed the empty-state. Ignore it; includeMetadataChanges brings the
+                // server-confirmed snapshot (empty or not) right after.
+                if (snap.empty && snap.metadata.fromCache) return;
                 const newGames = {};
                 snap.forEach(docSnap => { newGames[docSnap.id] = docSnap.data(); });
                 RAW_GAMES = newGames;
@@ -12437,7 +12526,12 @@
         function listenGameAccounts() {
             if (gameAccountsUnsub) return; // already subscribed
             gameAccountsLoadedOnce = false;
-            gameAccountsUnsub = onSnapshot(collection(db, "gameAccounts"), (snap) => {
+            gameAccountsUnsub = onSnapshot(collection(db, "gameAccounts"), { includeMetadataChanges: true }, (snap) => {
+                // Firestore delivers an EMPTY snapshot straight from the local cache before
+                // the server answers (slow networks especially) - treating that as "no data"
+                // flashed the empty-state. Ignore it; includeMetadataChanges brings the
+                // server-confirmed snapshot (empty or not) right after.
+                if (snap.empty && snap.metadata.fromCache) return;
                 const map = {};
                 snap.forEach(docSnap => { map[docSnap.id] = docSnap.data(); });
                 GAME_ACCOUNTS = map;
@@ -14461,36 +14555,6 @@
         renderPushToggleUI();
         if (pushEnabled()) registerFcmToken();
 
-        // Populates the decorative falling-star background layer (see
-        // #bg-falling-stars div right after <body>) with a handful of
-        // randomly-placed, randomly-timed dots. Pure decoration - skipped
-        // entirely if the user has "reduce motion" on (matches the CSS
-        // media query that hides the layer).
-        function initBgFallingStars() {
-            const layer = document.getElementById('bg-falling-stars');
-            if (!layer) return;
-            if (window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-            const COUNT = 26;
-            const frag = document.createDocumentFragment();
-            for (let i = 0; i < COUNT; i++) {
-                const star = document.createElement('span');
-                star.className = 'bg-falling-star';
-                const size = (1.5 + Math.random() * 2.5).toFixed(1); // 1.5-4px
-                const duration = (7 + Math.random() * 10).toFixed(1); // 7-17s
-                const delay = (-(Math.random() * 17)).toFixed(1); // negative = already mid-fall on load
-                const drift = (Math.random() * 40 - 20).toFixed(0); // -20..20px horizontal drift
-                const opacity = (0.4 + Math.random() * 0.5).toFixed(2); // 0.4-0.9
-                star.style.left = (Math.random() * 100).toFixed(1) + '%';
-                star.style.setProperty('--s-size', size + 'px');
-                star.style.setProperty('--s-dur', duration + 's');
-                star.style.setProperty('--s-delay', delay + 's');
-                star.style.setProperty('--s-drift', drift + 'px');
-                star.style.setProperty('--s-op', opacity);
-                frag.appendChild(star);
-            }
-            layer.appendChild(frag);
-        }
-        initBgFallingStars();
 
         window.openNotificationsPage = openNotificationsPage;
         window.closeNotificationsPage = closeNotificationsPage;
