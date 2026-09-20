@@ -66,10 +66,22 @@
             // return rather than showing whatever frozen state was left.
             var HIDDEN_RELOAD_MS = 3 * 60 * 1000; // 3 minutes
             var hiddenAt = null;
+            // True while the user is mid-purchase / mid-top-up: on a checkout
+            // page (game or account purchase, server picker) or with any modal
+            // open (wallet top-up, crypto/Aluu top-up, sell account, support,
+            // profile edit...) or the success screen showing. Reloading then
+            // would wipe typed IDs and picked receipt photos, so skip it.
+            function isCheckoutBusy() {
+                var active = document.querySelector('.page-section.active');
+                var pid = active ? active.id : '';
+                if (pid === 'game-detail' || pid === 'account-detail' || pid === 'server-select') return true;
+                return !!document.querySelector('.modal-overlay.show, .success-overlay.show');
+            }
             document.addEventListener('visibilitychange', function () {
                 if (document.hidden) {
                     hiddenAt = Date.now();
                 } else if (hiddenAt && (Date.now() - hiddenAt) > HIDDEN_RELOAD_MS) {
+                    if (isCheckoutBusy()) { hiddenAt = null; return; } // keep the user's checkout state
                     location.reload();
                 }
             });
@@ -320,12 +332,15 @@
         }
         .onboarding-lang-choices { display: flex; gap: 10px; margin-bottom: 22px; }
         .onboarding-lang-chip {
-            flex: 1; padding: 14px 8px; border-radius: 16px; cursor: pointer;
-            font-size: 14px; font-weight: 600; color: var(--text);
+            flex: 1; height: 36px; padding: 0 8px; border-radius: 11px; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; line-height: 1.5;
+            font-size: 13px; font-weight: 600; color: var(--text);
             background: var(--surface-alt); border: 1.5px solid var(--border);
             transition: transform 0.15s ease, border-color 0.15s ease, background 0.15s ease;
         }
         .onboarding-lang-chip:active { transform: scale(0.96); }
+        /* Myanmar glyphs sit high in the line box of the fallback font - nudge the label down to optically center it */
+        #onboard-lang-my { padding-top: 6px; }
         .onboarding-lang-chip.selected {
             border-color: #7C3AED; background: rgba(124,58,237,0.1); color: #7C3AED;
         }
@@ -393,16 +408,17 @@
         
         /* Header */
         .header { background-color: var(--surface); padding: 12px 20px; display: flex; justify-content: space-between; align-items: center; position: sticky; top: 0; z-index: 100; box-shadow: 0 2px 4px rgba(0,0,0,0.1); }
-        .logo { color: var(--accent); font-size: 19px; font-weight: 500; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+        .logo { color: var(--accent); font-size: 22px; font-weight: 600; display: flex; align-items: center; gap: 10px; cursor: pointer; }
         .logo-icon-wrap {
-            width: 28px; height: 28px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
-            border-radius: 7px; background-color: #FF5A4E;
+            width: 44px; height: 44px; flex-shrink: 0; display: flex; align-items: center; justify-content: center;
+            border-radius: 12px; background-color: #FF5A4E;
             background-image:
                 linear-gradient(rgba(255,255,255,0.16) 1px, transparent 1px),
                 linear-gradient(90deg, rgba(255,255,255,0.16) 1px, transparent 1px);
-            background-size: 7px 7px;
+            background-size: 11px 11px;
         }
-        .logo-icon-wrap img { width: 100%; height: 100%; object-fit: cover; border-radius: 6px; display: block; }
+        .logo-icon-wrap .ui-icon { width: 26px; height: 26px; }
+        .logo-icon-wrap img { width: 100%; height: 100%; object-fit: cover; border-radius: 11px; display: block; }
         .header-icon {
             position: relative; width: 40px; height: 40px; border-radius: 50%;
             display: flex; justify-content: center; align-items: center; cursor: pointer;
@@ -438,21 +454,25 @@
         }
         .drawer-overlay.show { opacity: 1; pointer-events: auto; }
         .side-drawer {
-            position: fixed; top: 0; left: 0; height: 100%;
-            width: 46%; max-width: 240px; min-width: 190px;
+            position: fixed; top: 0; right: 0; height: 100%;
+            width: 30%; max-width: 380px; min-width: 124px;
             background: var(--surface); display: flex; flex-direction: column;
-            transform: translateX(-100%);
+            transform: translateX(100%);
             transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
-            box-shadow: 8px 0 28px rgba(0,0,0,0.2);
-            border-radius: 0 24px 24px 0;
+            box-shadow: -8px 0 28px rgba(0,0,0,0.2);
+            border-radius: 24px 0 0 24px;
             overflow-y: auto;
         }
         .drawer-overlay.show .side-drawer { transform: translateX(0); }
         .drawer-header {
             display: flex; align-items: center; justify-content: space-between;
-            padding: 16px 12px 14px 16px; border-bottom: 1px solid var(--border);
+            padding: 10px 8px; border-bottom: 1px solid var(--border);
             flex-shrink: 0;
         }
+        /* Sidebar header: enlarged logo badge only (text hidden to fit the narrow panel) */
+        .drawer-header .logo { font-size: 0; gap: 0; }
+        .drawer-header .logo-icon-wrap { width: 40px !important; height: 40px !important; border-radius: 11px; background-size: 10px 10px; }
+        .drawer-header .logo-icon-wrap .ui-icon { width: 24px !important; height: 24px !important; }
         .drawer-close {
             width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
             display: flex; align-items: center; justify-content: center;
@@ -460,21 +480,21 @@
             color: var(--text-secondary); cursor: pointer; transition: transform 0.15s ease;
         }
         .drawer-close:active { transform: scale(0.9); }
-        .drawer-nav { padding: 10px 8px; display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+        .drawer-nav { padding: 8px 6px; display: grid; grid-template-columns: 1fr; gap: 5px; }
         .drawer-nav-item {
-            display: flex; flex-direction: column; align-items: center; justify-content: center;
-            gap: 6px; padding: 14px 6px 11px; text-align: center;
+            display: flex; flex-direction: row; align-items: center; justify-content: flex-start;
+            gap: 7px; padding: 10px 8px; text-align: left; position: relative; min-width: 0;
             border-radius: 14px; background: var(--surface-alt); border: 1px solid transparent;
             color: var(--text-secondary);
-            font-size: 11.5px; font-weight: 500; cursor: pointer;
+            font-size: 11px; font-weight: 500; cursor: pointer;
             transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
             /* Resting (pre-animation) state - the drawer itself is fully
                off-screen while closed, so this never flashes; it's just
                where each tab starts from the moment the drawer opens. */
-            opacity: 0; transform: translateX(-18px);
+            opacity: 0; transform: translateX(18px);
         }
-        .drawer-nav-item svg { width: 20px; height: 20px; flex-shrink: 0; }
-        .drawer-nav-item span { overflow: hidden; text-overflow: ellipsis; white-space: normal; line-height: 1.25; max-width: 100%; }
+        .drawer-nav-item svg { width: 26px; height: 26px; flex-shrink: 0; }
+        .drawer-nav-item span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.25; }
         .drawer-nav-item.active { background: var(--accent-soft); color: var(--accent); border-color: rgba(var(--accent-rgb),0.25); }
         .drawer-nav-item:active { transform: scale(0.94); }
         /* Subtle staggered "slide in from the side" entrance for each tab,
@@ -483,7 +503,7 @@
            the class off resets the item back to its pre-animation state,
            and the cascade replays cleanly every time the drawer opens. */
         @keyframes drawerNavItemIn {
-            from { opacity: 0; transform: translateX(-18px); }
+            from { opacity: 0; transform: translateX(18px); }
             to { opacity: 1; transform: translateX(0); }
         }
         .drawer-overlay.show .drawer-nav-item {
@@ -499,14 +519,20 @@
         .drawer-overlay.show .drawer-nav-item:nth-child(8) { animation-delay: 0.32s; }
         .drawer-overlay.show .drawer-nav-item:nth-child(11) { animation-delay: 0.36s; }
         .drawer-overlay.show .drawer-nav-item:nth-child(12) { animation-delay: 0.4s; }
+        .drawer-overlay.show .drawer-nav-item:nth-child(14) { animation-delay: 0.48s; }
         .drawer-section-label {
             grid-column: 1 / -1;
-            padding: 14px 10px 4px; font-size: 10.5px; font-weight: 600;
+            padding: 12px 6px 4px; font-size: 10.5px; font-weight: 600;
             letter-spacing: 0.4px; text-transform: uppercase; color: var(--text-faint);
         }
+        /* Compact language chip: small flag + short label, sized to its
+           content instead of stretching across the full grid row. */
+        .drawer-lang-chip { justify-self: start; max-width: 100%; gap: 6px; padding: 5px 9px 5px 6px; font-size: 11px; border-radius: 999px; }
+        .drawer-lang-chip .lang-toggle-btn { width: 26px; height: 26px; box-shadow: none; }
+        .drawer-lang-chip .lang-toggle-flag { width: 100%; height: 100%; }
         .drawer-divider { grid-column: 1 / -1; height: 1px; background: var(--border); margin: 8px 10px 0; }
         .drawer-footer {
-            margin-top: auto; padding: 14px 16px calc(14px + env(safe-area-inset-bottom));
+            margin-top: auto; padding: 12px 10px calc(12px + env(safe-area-inset-bottom));
             border-top: 1px solid var(--border); font-size: 11px; color: var(--text-faint);
             flex-shrink: 0;
         }
@@ -525,6 +551,10 @@
         .admin-status-dot.online { background: #31A24C; box-shadow: 0 0 0 3px rgba(49,162,76,0.15); }
         .admin-status-dot.offline { background: var(--text-muted); }
         .admin-status-bar.online-text #admin-status-text { color: #31A24C; }
+        /* Compact badge: sized to its content (not a full-width bar); green when Admin is online. */
+        .admin-status-bar { width: fit-content; padding: 3px 10px; font-size: 10.5px; font-weight: 600; gap: 5px; }
+        .admin-status-bar.online-text { background: rgba(49,162,76,0.12); border-color: rgba(49,162,76,0.35); }
+        .admin-status-bar .admin-status-dot { width: 6px; height: 6px; }
         .notif-item { background: var(--surface); padding: 14px; border-radius: 10px; margin-bottom: 10px; border: 1px solid var(--border); }
         .notif-item h5 { font-size: 15px; color: var(--text); margin-bottom: 4px; font-weight: 500; }
         .notif-item p { font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
@@ -1661,6 +1691,12 @@
 
         .id-fail-card { display: flex; align-items: center; gap: 8px; background: #FDF2F2; border: 1px solid #F5C2C2; border-radius: 10px; padding: 9px 12px; font-size: 12.5px; color: #C0392B; font-weight: 500; animation: idResultIn 0.3s ease; }
         .id-checking-text { font-size: 12px; color: var(--text-muted); margin: 0; }
+        /* Profile > Name Check */
+        #name-check-card select, #name-check-card input[type="text"] { margin-top: 8px; }
+        #nc-result { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+        .nc-meta { font-size: 12px; color: var(--text-secondary); font-weight: 500; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .nc-meta b { color: #28a745; font-weight: 600; }
+        .nc-server { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
         .payment-option { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 2px solid var(--border); border-radius: 10px; cursor: pointer; transition: 0.15s; background: var(--surface); }
         .payment-option.selected { border-color: var(--accent); background: var(--accent-soft); }
         .payment-option-icon { width: 38px; height: 38px; border-radius: 8px; background: var(--accent); color: var(--on-color); display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; }
@@ -1865,38 +1901,49 @@
         }
 
         /* ===================== PROFILE PAGE — REDESIGN ===================== */
-        /* Hero card: gradient cover + centered avatar overlapping the bottom edge */
-        .profile-hero { position: relative; border-radius: 24px; overflow: visible; margin-bottom: 40px; box-shadow: var(--glass-shadow); }
-        .profile-hero-cover {
-            height: 96px; width: 100%;
-            background: linear-gradient(120deg, var(--accent) 0%, #8B5CF6 55%, #EC4899 100%);
-            position: relative;
-            border-radius: 24px 24px 0 0;
-        }
-        .profile-hero-cover::after {
-            content: ''; position: absolute; inset: 0;
-            background: radial-gradient(circle at 15% 20%, rgba(255,255,255,0.35), transparent 45%),
-                        radial-gradient(circle at 85% 85%, rgba(255,255,255,0.18), transparent 50%);
-        }
-        .profile-hero-body {
+        /* Profile card (wallet style): identity row, wallet balance + Top up, stats, Edit profile */
+        .profile-card {
             background: var(--glass-bg-strong); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
-            border: 1px solid var(--glass-border); border-top: none;
-            border-radius: 0 0 24px 24px;
-            padding: 56px 18px 20px; text-align: center; position: relative;
+            border: 1px solid var(--glass-border); border-radius: 20px; padding: 16px;
+            box-shadow: var(--glass-shadow-sm);
         }
-        .profile-hero-name { font-size: 18px; font-weight: 400; color: var(--text); margin-top: 4px; }
-        .profile-hero-id { font-size: 12px; color: var(--text-muted); margin-top: 3px; }
-        .profile-hero-id-row { display: flex; align-items: center; justify-content: center; gap: 6px; margin-top: 3px; }
-        .profile-hero-id-row .profile-hero-id { margin-top: 0; }
+        .pc-top { display: flex; align-items: center; gap: 12px; }
+        .pc-avatar-wrap { position: relative; width: 56px; height: 56px; flex-shrink: 0; }
+        .pc-frame-inner { position: absolute; top: 50%; left: 50%; width: 84px; height: 84px; transform: translate(-50%, -50%) scale(0.667); pointer-events: none; }
+        .pc-frame-inner .avatar-tier-frame { top: 50%; }
+        .pc-avatar-wrap .avatar-upload-box { top: 50%; width: 56px; height: 56px; border-width: 2px; }
+        .pc-avatar-wrap .avatar-upload-placeholder svg { width: 24px; height: 24px; }
+        .pc-avatar-wrap .avatar-upload-badge { top: auto; bottom: 0; right: 0; width: 18px; height: 18px; border-width: 0; border-radius: 8px 0 0 0; }
+        .pc-avatar-wrap .avatar-upload-badge svg { width: 10px; height: 10px; }
+        .pc-id-block { flex: 1; min-width: 0; }
+        .pc-name-row { display: flex; align-items: center; gap: 5px; min-width: 0; }
+        .profile-hero-name { font-size: 16px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .pc-id-row { display: flex; align-items: center; gap: 6px; margin-top: 2px; }
+        .profile-hero-id { font-size: 12px; color: var(--text-muted); }
         .profile-id-copy-btn { width: 22px; height: 22px; border-radius: 6px; }
         .profile-id-copy-btn svg { width: 12px; height: 12px; }
-        .profile-hero-tier { display: flex; justify-content: center; margin-top: 10px; }
-        .profile-hero-edit-btn {
-            margin-top: 14px; display: inline-flex; align-items: center; gap: 6px;
-            background: var(--accent-soft); color: var(--accent); border: none; cursor: pointer;
-            font-size: 12.5px; font-weight: 600; padding: 8px 16px; border-radius: 20px; transition: 0.15s;
+        .profile-hero-tier { display: flex; justify-content: flex-end; flex-shrink: 0; }
+        .pc-divider { height: 1px; background: var(--border); margin: 14px 0 12px; }
+        .pc-balance-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .pc-balance-info { min-width: 0; }
+        .pc-label { font-size: 11.5px; color: var(--text-secondary); font-weight: 500; }
+        .pc-balance { font-size: 24px; font-weight: 600; color: var(--text); margin-top: 2px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; font-variant-numeric: tabular-nums; }
+        .pc-topup-btn {
+            display: inline-flex; align-items: center; gap: 5px; flex-shrink: 0;
+            background: var(--accent); color: var(--on-color); border: none; cursor: pointer;
+            font-size: 13px; font-weight: 600; padding: 10px 14px; border-radius: 12px; transition: transform 0.15s ease;
         }
-        .profile-hero-edit-btn:active { transform: scale(0.96); }
+        .pc-topup-btn:active { transform: scale(0.95); }
+        .pc-topup-btn svg { width: 15px; height: 15px; }
+        .pc-stats { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px; margin-top: 12px; }
+        .pc-stat { background: var(--surface-alt); border-radius: 12px; padding: 10px 12px; display: flex; flex-direction: column; gap: 2px; min-width: 0; }
+        .pc-stat b { font-size: 15px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .profile-hero-edit-btn {
+            margin-top: 12px; width: 100%; display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+            background: var(--accent-soft); color: var(--accent); border: none; cursor: pointer;
+            font-size: 12.5px; font-weight: 600; padding: 9px 16px; border-radius: 12px; transition: 0.15s;
+        }
+        .profile-hero-edit-btn:active { transform: scale(0.98); }
         .profile-hero-edit-btn svg { width: 13px; height: 13px; }
 
         /* Profile: circular photo upload control (sits half-in/half-out of the cover).
@@ -1931,7 +1978,7 @@
         .google-account-details .google-account-name-row { display: flex; align-items: center; gap: 5px; min-width: 0; }
         .google-account-details span#google-account-name { display: block; font-size: 14px; font-weight: 600; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .verified-badge { flex-shrink: 0; width: 15px; height: 15px; display: inline-block; filter: drop-shadow(0 1px 1px rgba(0,0,0,0.15)); }
-        #profile-hero-verified-badge { width: 20px; height: 20px; }
+        #profile-hero-verified-badge { width: 16px; height: 16px; }
         .google-account-details small { font-size: 11.5px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
         .google-signout-btn { flex-shrink: 0; background: var(--bg); color: #C0392B; border: none; padding: 7px 12px; border-radius: 8px; font-size: 12.5px; font-weight: 500; cursor: pointer; }
         .google-signout-btn:active { background: var(--border); }
@@ -2519,11 +2566,6 @@
         #support-widget-overlay .modal-close { background: var(--accent-soft); border: 1px solid var(--border); color: var(--accent-dark); }
         #support-widget-overlay .modal-header h3 { color: var(--accent-dark); }
         #support-widget-overlay .support-chat-send { background: var(--accent); }
-        /* Account-mode: this panel serves a single dedicated Account thread
-           (no Guide/Complaint tabs, no order-related FAQ chips - see
-           openSupportWidget('account') in the script below). */
-        #support-widget-overlay.account-mode #support-widget-tabs,
-        #support-widget-overlay.account-mode #support-chat-faq-row { display: none; }
         /* Chat bubbles: admin replies come in solid purple; my own sent
            messages stay white with black text until the admin has seen
            them, then the text turns blue as a read-receipt cue. */
@@ -2657,7 +2699,7 @@
         <symbol id="icon-rocket" viewBox="0 0 24 24"><path d="M4.5 16.5c-1.5 1.26-2 5-2 5s3.74-.5 5-2l.5-.5M12 15l-3-3a22 22 0 0 1 2-3.95A12.88 12.88 0 0 1 22 2c0 2.72-.78 7.5-6 11a22.35 22.35 0 0 1-4 2z"></path></symbol>
         <symbol id="icon-megaphone" viewBox="0 0 24 24"><path d="M11 5L6 9H2v6h4l5 4V5z"></path><path d="M19.07 4.93a10 10 0 0 1 0 14.14M15.54 8.46a5 5 0 0 1 0 7.07"></path></symbol>
         <symbol id="icon-close" viewBox="0 0 24 24"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></symbol>
-        <symbol id="icon-menu" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6"></line><line x1="3" y1="12" x2="21" y2="12"></line><line x1="3" y1="18" x2="21" y2="18"></line></symbol>
+        <symbol id="icon-menu" viewBox="0 0 24 24"><line x1="3" y1="6" x2="21" y2="6" stroke="#FACC15"></line><line x1="3" y1="12" x2="21" y2="12" stroke="#EF4444"></line><line x1="3" y1="18" x2="21" y2="18" stroke="#22C55E"></line></symbol>
         <symbol id="icon-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></symbol>
         <symbol id="icon-plus" viewBox="0 0 24 24"><line x1="12" y1="5" x2="12" y2="19"></line><line x1="5" y1="12" x2="19" y2="12"></line></symbol>
         <symbol id="icon-chevron-right" viewBox="0 0 24 24"><polyline points="9 18 15 12 9 6"></polyline></symbol>
@@ -2723,14 +2765,14 @@
             <div class="pkg-type-tabs" id="support-widget-tabs">
                 <button class="pkg-type-tab active" id="support-tab-guide" onclick="window.switchSupportTab('guide')" data-i18n="tab_guide">Guide</button>
                 <button class="pkg-type-tab" id="support-tab-complaint" onclick="window.switchSupportTab('complaint')" data-i18n="tab_complaint">Complaint</button>
-                <button class="pkg-type-tab" id="support-tab-chat" onclick="window.switchSupportTab('chat')"><span data-i18n="tab_chat">Support Chat</span><span class="support-chat-badge" id="support-chat-badge"></span></button>
+                <button class="pkg-type-tab" id="support-tab-chat" onclick="window.openAdminTelegram()"><span data-i18n="tab_chat">Support Chat</span></button>
             </div>
 
             <!-- User Guide tab -->
             <div class="modal-body" id="support-panel-guide">
                 <div class="support-guide-item" id="guide-item-0">
                     <div class="support-guide-q" onclick="window.toggleGuideItem(this.parentElement)"><span data-i18n="guide_q_about">PCA Store ဆိုတာ ဘာလဲ</span><svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></div>
-                    <div class="support-guide-a" data-i18n="guide_a_about">PCA Store သည် ၂၀၂၆ ခုနှစ်မှစတင်၍ မြန်မာနိုင်ငံရှိ ဂိမ်းသမားများအတွက် Diamond၊ UC စသည့် In-Game Currency နှင့် Top Up ဝန်ဆောင်မှုများကို လျင်မြန်၊ ဘေးကင်း၊ စိတ်ချရစွာ ရရှိနိုင်သော ပလက်ဖောင်းတစ်ခု ဖြစ်ပါသည်။ Wallet၊ VIP အဆင့်များ၊ သူငယ်ချင်းဖိတ်ခေါ်ခြင်း (Referral) နှင့် တိုက်ရိုက် Support Chat တို့ကို ပါဝင်ပေးထားပါသည်။</div>
+                    <div class="support-guide-a" data-i18n="guide_a_about">PCA Store သည် ၂၀၂၆ ခုနှစ်မှစတင်၍ မြန်မာနိုင်ငံရှိ ဂိမ်းသမားများအတွက် Diamond၊ UC စသည့် In-Game Currency နှင့် Top Up ဝန်ဆောင်မှုများကို လျင်မြန်၊ ဘေးကင်း၊ စိတ်ချရစွာ ရရှိနိုင်သော ပလက်ဖောင်းတစ်ခု ဖြစ်ပါသည်။ Wallet၊ VIP အဆင့်များ၊ သူငယ်ချင်းဖိတ်ခေါ်ခြင်း (Referral) နှင့် Admin ထံ တိုက်ရိုက် Telegram ဆက်သွယ်ခွင့် တို့ကို ပါဝင်ပေးထားပါသည်။</div>
                 </div>
                 <div class="support-guide-item" id="guide-item-1">
                     <div class="support-guide-q" onclick="window.toggleGuideItem(this.parentElement)"><span data-i18n="guide_q_order">အော်ဒါ ဘယ်လိုတင်ရမလဲ</span><svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></div>
@@ -2746,7 +2788,7 @@
                 </div>
                 <div class="support-guide-item" id="guide-item-4">
                     <div class="support-guide-q" onclick="window.toggleGuideItem(this.parentElement)"><span data-i18n="guide_q_contact">ပြဿနာရှိရင် ဘယ်လိုဆက်သွယ်ရမလဲ</span><svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></div>
-                    <div class="support-guide-a" data-i18n="guide_a_contact">အသေးစိတ် ရေးရန်ဆိုရင် "တိုင်ကြားရန်" tab ကို သုံးပါ (Ticket အနေနှင့် မှတ်တမ်းတင်ပေးပါမည်)။ တိုက်ရိုက် စကားပြောချင်ရင် "Support Chat" tab ကို သုံးနိုင်ပါသည်။</div>
+                    <div class="support-guide-a" data-i18n="guide_a_contact">အသေးစိတ် ရေးရန်ဆိုရင် "တိုင်ကြားရန်" tab ကို သုံးပါ (Ticket အနေနှင့် မှတ်တမ်းတင်ပေးပါမည်)။ တိုက်ရိုက် ဆက်သွယ်ချင်ရင် "Telegram" tab ကို နှိပ်ပြီး Admin ကို message ပို့နိုင်ပါသည်။</div>
                 </div>
             </div>
 
@@ -2808,18 +2850,6 @@
                 PCA Store
             </div>
         </div>
-        <div style="display:flex; align-items:center; gap:10px;">
-            <div class="theme-toggle" id="theme-toggle" onclick="toggleTheme(event)" role="button" aria-label="Toggle dark mode">
-                <span class="theme-toggle-thumb" id="theme-toggle-thumb">
-                    <svg class="svg-icon" id="theme-toggle-icon" style="stroke:currentColor;"><use href="#icon-sun"></use></svg>
-                </span>
-            </div>
-            <div class="lang-toggle-btn" id="lang-toggle-btn" onclick="toggleLanguage()" role="button" aria-label="Switch language / ဘာသာစကားပြောင်းရန်">
-                <svg class="lang-toggle-flag" id="lang-toggle-flag-en"><use href="#flag-en"></use></svg>
-                <svg class="lang-toggle-flag" id="lang-toggle-flag-mm" style="display:none;"><use href="#flag-mm"></use></svg>
-            </div>
-            <div class="header-icon" onclick="openNotificationsPage()"><svg class="ui-icon" style="width: 20px;"><use href="#icon-bell"></use></svg><span class="notif-dot" id="notif-dot"></span></div>
-        </div>
     </header>
 
     <!-- Side Drawer: hamburger-triggered slide-out nav. Overlay dims the
@@ -2871,9 +2901,20 @@
 
                 <div class="drawer-nav-item" onclick="closeDrawer(); openNotificationsPage();">
                     <svg class="ui-icon"><use href="#icon-bell"></use></svg><span data-i18n="nav_notifications">Notifications</span>
+                    <span class="notif-dot" id="notif-dot"></span>
+                </div>
+                <div class="drawer-nav-item" onclick="window.toggleTheme(event)">
+                    <svg class="ui-icon" id="theme-toggle-icon-drawer"><use href="#icon-sun"></use></svg><span data-i18n="nav_theme">Dark Mode</span>
                 </div>
                 <div class="drawer-nav-item" onclick="closeDrawer(); openTermsPage();">
                     <svg class="ui-icon"><use href="#icon-book"></use></svg><span data-i18n="nav_terms">Terms &amp; Policy</span>
+                </div>
+                <div class="drawer-nav-item drawer-lang-chip" onclick="toggleLanguage()" role="button" aria-label="Switch language / ဘာသာစကားပြောင်းရန်">
+                    <div class="lang-toggle-btn" id="lang-toggle-btn">
+                        <svg class="lang-toggle-flag" id="lang-toggle-flag-en"><use href="#flag-en"></use></svg>
+                        <svg class="lang-toggle-flag" id="lang-toggle-flag-mm" style="display:none;"><use href="#flag-mm"></use></svg>
+                    </div>
+                    <span data-i18n="nav_language">Language</span>
                 </div>
             </nav>
             <div class="drawer-footer" data-i18n="drawer_footer">PCA Store</div>
@@ -3013,10 +3054,9 @@
                 <div class="acct-header-row">
                     <h2 class="title-header" data-i18n="title_game_accounts">Game Accounts</h2>
                     <div style="display:flex;gap:6px;">
-                        <button type="button" class="acct-sell-btn" style="position:relative;" onclick="window.openSupportWidget('account')" aria-label="Account Support">
+                        <button type="button" class="acct-sell-btn" onclick="window.openAdminTelegram()" aria-label="Account Support">
                             <svg class="ui-icon" style="width:13px;height:13px;"><use href="#icon-message-circle"></use></svg>
                             <span data-i18n="btn_account_chat">Support</span>
-                            <span class="account-chat-entry-dot" style="display:none;position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:#EF4444;"></span>
                         </button>
                         <button type="button" class="acct-sell-btn" onclick="openSellAccountModal()">
                             <svg class="ui-icon" style="width:13px;height:13px;"><use href="#icon-plus"></use></svg>
@@ -3143,10 +3183,9 @@
                     <svg class="ui-icon" style="width:18px;"><use href="#icon-chevron-left"></use></svg>
                 </div>
                 <h2 style="font-size:18px; font-weight: 600; color:var(--text);" id="acct-detail-game-name">Account</h2>
-                <button type="button" class="acct-sell-btn" style="margin-left:auto;position:relative;" onclick="window.openAccountListingChat()" aria-label="Ask about this account">
+                <button type="button" class="acct-sell-btn" style="margin-left:auto;" onclick="window.contactAccountAdminOnTelegram()" aria-label="Ask about this account">
                     <svg class="ui-icon" style="width:13px;height:13px;"><use href="#icon-message-circle"></use></svg>
                     <span data-i18n="btn_account_chat">Support</span>
-                    <span class="account-chat-entry-dot" style="display:none;position:absolute;top:-2px;right:-2px;width:8px;height:8px;border-radius:50%;background:#EF4444;"></span>
                 </button>
             </div>
             <div class="detail-layout">
@@ -3561,55 +3600,98 @@
         <div id="profile" class="page-section">
             <h2 class="title-header" data-i18n="title_profile">My Profile</h2>
 
-            <!-- Hero card: gradient cover, avatar overlapping the edge, name/ID/tier
-                 centered below, and a single "Edit Profile" toggle that reveals the
-                 editable fields card underneath instead of always showing raw inputs. -->
-            <div class="profile-hero profile-card-anim" style="animation-delay:0ms;">
-                <div class="profile-hero-cover"></div>
-                <div class="profile-hero-body">
-                    <!-- Tier frame: sits behind the avatar as a same-centered, larger
-                         ring so avatar-upload-box's own overflow:hidden never clips
-                         it. Ring style/animation/particles are switched per VIP tier
-                         by toggling data-tier in loadProfileStats() (see tierFrameHTML). -->
-                    <div class="avatar-tier-frame" id="avatar-tier-frame" data-tier="">
-                        <span class="tier-frame-spark spark-1"></span>
-                        <span class="tier-frame-spark spark-2"></span>
-                        <span class="tier-frame-spark spark-3"></span>
-                        <span class="tier-frame-spark spark-4"></span>
-                        <span class="tier-frame-spark spark-5"></span>
-                        <span class="tier-frame-spark spark-6"></span>
-                        <span class="tier-frame-spark spark-7"></span>
-                        <span class="tier-frame-spark spark-8"></span>
-                    </div>
-                    <label class="avatar-upload-box" id="avatar-upload-box" for="profile-photo-file">
-                        <img id="profile-photo-preview" src="" alt="Profile photo" style="display:none;">
-                        <div class="avatar-upload-placeholder" id="avatar-upload-placeholder">
-                            <svg class="ui-icon" style="width:32px;height:32px;"><use href="#icon-user"></use></svg>
+            <!-- Profile card (wallet style): avatar + name/ID + tier on top, then the
+                 wallet balance with a Top up button, quick stats, and Edit profile.
+                 Element ids (avatar-*, profile-hero-*, vip-tier-badge-hero, profile-card-*)
+                 are what the profile/tier/wallet JS writes into. -->
+            <div class="profile-card profile-card-anim" style="animation-delay:0ms;">
+                <div class="pc-top">
+                    <div class="pc-avatar-wrap">
+                        <!-- Tier frame: scaled-down copy of the per-tier ring, centred behind the avatar.
+                             Ring style/particles switch by data-tier in loadProfileStats(). -->
+                        <div class="pc-frame-inner">
+                            <div class="avatar-tier-frame" id="avatar-tier-frame" data-tier="">
+                                <span class="tier-frame-spark spark-1"></span>
+                                <span class="tier-frame-spark spark-2"></span>
+                                <span class="tier-frame-spark spark-3"></span>
+                                <span class="tier-frame-spark spark-4"></span>
+                                <span class="tier-frame-spark spark-5"></span>
+                                <span class="tier-frame-spark spark-6"></span>
+                                <span class="tier-frame-spark spark-7"></span>
+                                <span class="tier-frame-spark spark-8"></span>
+                            </div>
                         </div>
-                        <span class="avatar-upload-badge"><svg class="ui-icon" style="width:13px;height:13px;"><use href="#icon-camera"></use></svg></span>
-                    </label>
-                    <input type="file" id="profile-photo-file" class="avatar-upload-input" accept="image/*" onchange="previewProfilePhoto(event)">
+                        <label class="avatar-upload-box" id="avatar-upload-box" for="profile-photo-file">
+                            <img id="profile-photo-preview" src="" alt="Profile photo" style="display:none;">
+                            <div class="avatar-upload-placeholder" id="avatar-upload-placeholder">
+                                <svg class="ui-icon"><use href="#icon-user"></use></svg>
+                            </div>
+                            <span class="avatar-upload-badge"><svg class="ui-icon"><use href="#icon-camera"></use></svg></span>
+                        </label>
+                        <input type="file" id="profile-photo-file" class="avatar-upload-input" accept="image/*" onchange="previewProfilePhoto(event)">
+                    </div>
 
-                    <div class="profile-hero-name-row" style="display:flex;align-items:center;justify-content:center;gap:5px;">
-                        <div class="profile-hero-name" id="profile-hero-name">Guest</div>
-                        <svg class="verified-badge" id="profile-hero-verified-badge" viewBox="0 0 24 24" aria-label="Google verified" style="display:none;">
-                            <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" fill="#22C55E" stroke="none"></path>
-                            <path d="m9 12 2 2 4-4" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"></path>
-                        </svg>
+                    <div class="pc-id-block">
+                        <div class="pc-name-row">
+                            <div class="profile-hero-name" id="profile-hero-name">Guest</div>
+                            <svg class="verified-badge" id="profile-hero-verified-badge" viewBox="0 0 24 24" aria-label="Google verified" style="display:none;">
+                                <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" fill="#22C55E" stroke="none"></path>
+                                <path d="m9 12 2 2 4-4" fill="none" stroke="#fff" stroke-width="2.3" stroke-linecap="round" stroke-linejoin="round"></path>
+                            </svg>
+                        </div>
+                        <div class="pc-id-row">
+                            <span class="profile-hero-id" id="profile-hero-id"></span>
+                            <button type="button" class="pm-copy-btn profile-id-copy-btn" id="profile-id-copy-btn" onclick="copyProfileId(this)" title="Copy ID">
+                                <svg class="ui-icon"><use href="#icon-copy"></use></svg>
+                            </button>
+                        </div>
                     </div>
-                    <div class="profile-hero-id-row">
-                        <span class="profile-hero-id" id="profile-hero-id"></span>
-                        <button type="button" class="pm-copy-btn profile-id-copy-btn" id="profile-id-copy-btn" onclick="copyProfileId(this)" title="Copy ID">
-                            <svg class="ui-icon"><use href="#icon-copy"></use></svg>
-                        </button>
-                    </div>
+
                     <div class="profile-hero-tier" id="vip-tier-badge-hero"></div>
+                </div>
 
-                    <button type="button" class="profile-hero-edit-btn" id="profile-edit-toggle-btn" onclick="toggleProfileEditCard()">
-                        <svg class="ui-icon" id="profile-edit-toggle-icon"><use href="#icon-edit"></use></svg>
-                        <span id="profile-edit-toggle-text">Edit Profile</span>
+                <div class="pc-divider"></div>
+
+                <div class="pc-balance-row">
+                    <div class="pc-balance-info">
+                        <div class="pc-label" data-i18n="pc_wallet_balance">Wallet balance</div>
+                        <div class="pc-balance" id="profile-card-balance">0 MMK</div>
+                    </div>
+                    <button type="button" class="pc-topup-btn" onclick="openWalletTopupModal()">
+                        <svg class="ui-icon"><use href="#icon-plus"></use></svg><span data-i18n="pc_topup">Top up</span>
                     </button>
                 </div>
+
+                <div class="pc-stats">
+                    <div class="pc-stat">
+                        <span class="pc-label" data-i18n="pc_orders">Orders</span>
+                        <b id="profile-card-orders">0</b>
+                    </div>
+                    <div class="pc-stat">
+                        <span class="pc-label" data-i18n="pc_total_spent">Total spent</span>
+                        <b id="profile-card-spent">0 MMK</b>
+                    </div>
+                </div>
+
+                <button type="button" class="profile-hero-edit-btn" id="profile-edit-toggle-btn" onclick="toggleProfileEditCard()">
+                    <svg class="ui-icon" id="profile-edit-toggle-icon"><use href="#icon-edit"></use></svg>
+                    <span id="profile-edit-toggle-text" data-i18n="pc_edit">Edit profile</span>
+                </button>
+            </div>
+
+            <!-- Name Check: pick a game, enter the Player ID (+ Server ID only when that
+                 game needs one) and the store looks up the in-game name plus its
+                 region, using the same ID-check providers as the checkout page. -->
+            <div class="detail-form-card profile-card-anim" id="name-check-card" style="margin-top:14px;animation-delay:30ms;">
+                <label style="margin-top:0;" data-i18n="nc_title">Name Check</label>
+                <select id="nc-game" onchange="ncOnGameChange()"><option value="">Select game</option></select>
+                <div id="nc-fields" style="display:none;">
+                    <input type="text" id="nc-player-id" placeholder="Player ID" data-i18n-ph="nc_player_id_ph" autocomplete="off" oninput="sanitizeIdDigitsInput(this); ncOnFieldChange()">
+                    <div id="nc-server-wrap" style="display:none;">
+                        <input type="text" id="nc-server-id" placeholder="Server ID" data-i18n-ph="nc_server_ph" autocomplete="off" oninput="sanitizeIdDigitsInput(this); ncOnFieldChange()">
+                    </div>
+                </div>
+                <div id="nc-result" style="display:none;"></div>
             </div>
 
             <!-- Preferences: mirrors the header's dark mode toggle so it's reachable
@@ -4246,8 +4328,8 @@
             en: {
                 nav_home: 'Home', nav_voucher: 'Voucher', nav_account: 'Game Accounts',
                 nav_history: 'History', nav_leaderboard: 'Leaderboard', nav_wallet: 'Wallet',
-                nav_profile: 'Profile', nav_notifications: 'Notifications',
-                nav_terms: 'Terms & Policy', nav_support: 'Support',
+                nav_profile: 'Profile', nav_notifications: 'Notifications', nav_theme: 'Dark Mode',
+                nav_terms: 'Terms & Policy', nav_support: 'Support', nav_language: 'Language', nc_title: 'Name Check', nc_select_game: 'Select game', nc_player_id_ph: 'Player ID', nc_server_ph: 'Server ID', nc_select_server: 'Select server / region', nc_global: 'Global', nc_server: 'Server', nc_unavailable: "Couldn't check right now. Please try again later.", pc_wallet_balance: 'Wallet balance', pc_topup: 'Top up', pc_orders: 'Orders', pc_total_spent: 'Total spent', pc_edit: 'Edit profile',
                 legal_tab_terms: 'Terms', legal_tab_privacy: 'Privacy', legal_tab_refund: 'Refund',
                 terms_l_about: 'About This Service',
                 terms_b_about: 'PCA Store (operating at daikokuten.my.id) is a game top-up and voucher store. By using this site, browsing, creating an account, or placing an order, you agree to these Terms.',
@@ -4339,9 +4421,9 @@
                 greeting_morning: 'Good Morning', greeting_afternoon: 'Good Afternoon',
                 greeting_evening: 'Good Evening', greeting_night: 'Good Night',
                 drawer_footer: 'PCA Store',
-                support_title: 'Help', support_title_account: 'Account Support', btn_account_chat: 'Support', tab_guide: 'Guide', tab_complaint: 'Complaint', tab_chat: 'Support Chat',
+                support_title: 'Help', support_title_account: 'Account Support', btn_account_chat: 'Support', tab_guide: 'Guide', tab_complaint: 'Complaint', tab_chat: 'Telegram',
                 guide_q_about: 'What is PCA Store?',
-                guide_a_about: 'PCA Store has been Myanmar\'s fast, safe and reliable platform for game top-ups and in-game currency (Diamonds, UC, and more) since 2026. It comes with a Wallet, VIP tiers, a friend referral system, and live Support Chat.',
+                guide_a_about: 'PCA Store has been Myanmar\'s fast, safe and reliable platform for game top-ups and in-game currency (Diamonds, UC, and more) since 2026. It comes with a Wallet, VIP tiers, a friend referral system, and a direct Telegram line to the admin.',
                 guide_q_order: 'How do I place an order?',
                 guide_a_order: 'Pick a game from the Home page. Choose a Package/Currency and enter your In-Game ID (and Server ID if needed). Tap "Confirm ID" to verify it\'s correct. Finally, choose a payment type and confirm.',
                 guide_q_payment: 'How do I pay?',
@@ -4349,7 +4431,7 @@
                 guide_q_status: 'How do I check my order status?',
                 guide_a_status: 'On the History page, each order shows live Pending → Processing → Success/Fail status. If it stays in Processing too long, reach out via the "Complaint" tab.',
                 guide_q_contact: 'How do I get help if there\'s a problem?',
-                guide_a_contact: 'For details, use the "Complaint" tab (logged as a ticket). For a live conversation, use the "Support Chat" tab.',
+                guide_a_contact: 'For details, use the "Complaint" tab (logged as a ticket). To talk directly, tap the "Telegram" tab to message the admin.',
                 complaint_label_title: 'Title', complaint_label_content: 'Details',
                 complaint_ph_title: 'e.g. Order stuck in Processing',
                 complaint_ph_text: 'Describe the issue in detail...',
@@ -4368,8 +4450,8 @@
             my: {
                 nav_home: 'ပင်မ', nav_voucher: 'ဗောက်ချာ', nav_account: 'ဂိမ်းအကောင့်',
                 nav_history: 'မှတ်တမ်း', nav_leaderboard: 'ထိပ်တန်းစာရင်း', nav_wallet: 'ပိုက်ဆံအိတ်',
-                nav_profile: 'ပရိုဖိုင်', nav_notifications: 'အသိပေးချက်များ',
-                nav_terms: 'စည်းမျဉ်းစည်းကမ်း', nav_support: 'အကူအညီ',
+                nav_profile: 'ပရိုဖိုင်', nav_notifications: 'အသိပေးချက်များ', nav_theme: 'အနက်ရောင်မုဒ်',
+                nav_terms: 'စည်းမျဉ်းစည်းကမ်း', nav_support: 'အကူအညီ', nav_language: 'ဘာသာစကား', nc_title: 'အမည်စစ်ဆေးရန်', nc_select_game: 'ဂိမ်းရွေးပါ', nc_player_id_ph: 'Player ID', nc_server_ph: 'Server ID', nc_select_server: 'Server / Region ရွေးပါ', nc_global: 'Global', nc_server: 'Server', nc_unavailable: 'ယခု စစ်ဆေး၍မရပါ၊ ခဏနေမှ ပြန်ကြိုးစားပါ', pc_wallet_balance: 'Wallet လက်ကျန်ငွေ', pc_topup: 'ငွေဖြည့်ရန်', pc_orders: 'အော်ဒါများ', pc_total_spent: 'စုစုပေါင်းသုံးငွေ', pc_edit: 'ပရိုဖိုင်ပြင်ရန်',
                 legal_tab_terms: 'စည်းကမ်းချက်', legal_tab_privacy: 'ကိုယ်ရေးအချက်အလက်', legal_tab_refund: 'ငွေပြန်အမ်း',
                 terms_l_about: 'ဝန်ဆောင်မှုအကြောင်း',
                 terms_b_about: 'PCA Store (daikokuten.my.id တွင် လုပ်ဆောင်သည်) သည် ဂိမ်း top-up နှင့် voucher ရောင်းချသော store တစ်ခု ဖြစ်ပါသည်။ ဤ site ကို အသုံးပြုခြင်း၊ browse လုပ်ခြင်း၊ account ဖွင့်ခြင်း သို့မဟုတ် order တင်ခြင်းဖြင့် ဤစည်းကမ်းချက်များကို သဘောတူလက်ခံရာ ရောက်ပါသည်။',
@@ -4461,9 +4543,9 @@
                 greeting_morning: 'မင်္ဂလာနံနက်ခင်းပါ', greeting_afternoon: 'မင်္ဂလာနေ့လယ်ခင်းပါ',
                 greeting_evening: 'မင်္ဂလာညနေခင်းပါ', greeting_night: 'မင်္ဂလာညချမ်းပါ',
                 drawer_footer: 'PCA Store',
-                support_title: 'အကူအညီ', support_title_account: 'အကောင့်ဆိုင်ရာ အကူအညီ', btn_account_chat: 'အကူအညီ', tab_guide: 'လမ်းညွှန်', tab_complaint: 'တိုင်ကြားရန်', tab_chat: 'Chat ဖြင့်မေးရန်',
+                support_title: 'အကူအညီ', support_title_account: 'အကောင့်ဆိုင်ရာ အကူအညီ', btn_account_chat: 'အကူအညီ', tab_guide: 'လမ်းညွှန်', tab_complaint: 'တိုင်ကြားရန်', tab_chat: 'Telegram',
                 guide_q_about: 'PCA Store ဆိုတာ ဘာလဲ',
-                guide_a_about: 'PCA Store သည် ၂၀၂၆ ခုနှစ်မှစတင်၍ မြန်မာနိုင်ငံရှိ ဂိမ်းသမားများအတွက် Diamond၊ UC စသည့် In-Game Currency နှင့် Top Up ဝန်ဆောင်မှုများကို လျင်မြန်၊ ဘေးကင်း၊ စိတ်ချရစွာ ရရှိနိုင်သော ပလက်ဖောင်းတစ်ခု ဖြစ်ပါသည်။ Wallet၊ VIP အဆင့်များ၊ သူငယ်ချင်းဖိတ်ခေါ်ခြင်း (Referral) နှင့် တိုက်ရိုက် Support Chat တို့ကို ပါဝင်ပေးထားပါသည်။',
+                guide_a_about: 'PCA Store သည် ၂၀၂၆ ခုနှစ်မှစတင်၍ မြန်မာနိုင်ငံရှိ ဂိမ်းသမားများအတွက် Diamond၊ UC စသည့် In-Game Currency နှင့် Top Up ဝန်ဆောင်မှုများကို လျင်မြန်၊ ဘေးကင်း၊ စိတ်ချရစွာ ရရှိနိုင်သော ပလက်ဖောင်းတစ်ခု ဖြစ်ပါသည်။ Wallet၊ VIP အဆင့်များ၊ သူငယ်ချင်းဖိတ်ခေါ်ခြင်း (Referral) နှင့် Admin ထံ တိုက်ရိုက် Telegram ဆက်သွယ်ခွင့် တို့ကို ပါဝင်ပေးထားပါသည်။',
                 guide_q_order: 'အော်ဒါ ဘယ်လိုတင်ရမလဲ',
                 guide_a_order: 'Home စာမျက်နှာမှ ဂိမ်းကို ရွေးပါ။ Package/Currency ကို ရွေးပြီး In-Game ID (နှင့် Server ID လိုအပ်ပါက) ရိုက်ထည့်ပါ။ "Confirm ID" ကို နှိပ်ပြီး ID မှန်ကန်ကြောင်း စစ်ဆေးပါ။ နောက်ဆုံးတွင် ငွေပေးချေမှုအမျိုးအစား ရွေးချယ်ပြီး အတည်ပြုလိုက်ရုံပါပဲ။',
                 guide_q_payment: 'ငွေပေးချေနည်း',
@@ -4471,7 +4553,7 @@
                 guide_q_status: 'အော်ဒါ Status ကို ဘယ်လိုစစ်ရမလဲ',
                 guide_a_status: 'History စာမျက်နှာတွင် အော်ဒါတစ်ခုချင်းစီကို Pending → Processing → Success/Fail အဆင့်ဆင့် အချိန်နှင့်တပြေးညီ ကြည့်ရှုနိုင်ပါသည်။ Processing တွင် ကြာမြင့်နေပါက "တိုင်ကြားရန်" tab ကနေ ပြန်လည်အကြောင်းကြားနိုင်ပါသည်။',
                 guide_q_contact: 'ပြဿနာရှိရင် ဘယ်လိုဆက်သွယ်ရမလဲ',
-                guide_a_contact: 'အသေးစိတ် ရေးရန်ဆိုရင် "တိုင်ကြားရန်" tab ကို သုံးပါ (Ticket အနေနှင့် မှတ်တမ်းတင်ပေးပါမည်)။ တိုက်ရိုက် စကားပြောချင်ရင် "Support Chat" tab ကို သုံးနိုင်ပါသည်။',
+                guide_a_contact: 'အသေးစိတ် ရေးရန်ဆိုရင် "တိုင်ကြားရန်" tab ကို သုံးပါ (Ticket အနေနှင့် မှတ်တမ်းတင်ပေးပါမည်)။ တိုက်ရိုက် ဆက်သွယ်ချင်ရင် "Telegram" tab ကို နှိပ်ပြီး Admin ကို message ပို့နိုင်ပါသည်။',
                 complaint_label_title: 'ခေါင်းစဉ်', complaint_label_content: 'အကြောင်းအရာ',
                 complaint_ph_title: 'ဥပမာ - အော်ဒါ Processing မှာ ကပ်နေသည်',
                 complaint_ph_text: 'ပြဿနာအား အသေးစိတ် ရေးပေးပါ...',
@@ -4635,6 +4717,7 @@
             window.scrollTo(0,0);
             window.currentStorePage = pageId;
             if (pageId === 'history' && window.loadHistory) window.loadHistory();
+            if (pageId === 'profile' && window.ncRenderGameOptions) window.ncRenderGameOptions();
             if (pageId === 'profile' && window.renderProfileFields) window.renderProfileFields();
             if (pageId === 'profile' && window.loadProfileStats) window.loadProfileStats();
             if (pageId === 'profile' && window.renderTierPreviewGrid) window.renderTierPreviewGrid();
@@ -5292,6 +5375,260 @@
         }
         window.runPlayerIdCheck = runPlayerIdCheck;
 
+        // ---------- Profile: Name Check ----------
+        // Standalone version of the checkout page's ID check: the customer
+        // picks any game from a dropdown, and as soon as a game is chosen the
+        // form shows a Server ID box only if that game needs one. It then
+        // auto-checks (debounced) through the same providers as checkout
+        // (G2Bulk / FazerCards / Aluu.in) and shows Player Name + region.
+        // Games sold in several regions are stored as separate entries with
+        // the same name (differing by serverName), so the ID is checked
+        // against every entry of the chosen game and each one that recognises
+        // it is listed with its region label ("Global" when none is set).
+        // Country only shows if a provider's reply actually includes one -
+        // G2Bulk's checkPlayerId itself only returns { valid, name, openid }.
+        let ncGroups = {};      // lower-cased game name -> [game entries]
+        let ncOptionsSig = '';  // avoids rebuilding the dropdown (and losing the selection) on every catalogue snapshot
+        let ncTimer = null;
+        let ncRunId = 0;
+        const ncEsc = (s) => (window.escapeHtml ? window.escapeHtml(String(s)) : String(s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])));
+
+        function ncCheckable(g) {
+            if (!g) return false;
+            if (g.fulfillProvider === 'g2bulk_voucher' || g.fulfillProvider === 'fazercard_giftcard') return false;
+            if (g.playerIdRequired === false) return false;
+            return !!(g.g2bulkCode || g.fazercardCategoryId || g.aluuCode);
+        }
+
+        function ncRenderGameOptions() {
+            const sel = document.getElementById('nc-game');
+            if (!sel || !window.GAMES) return;
+            const groups = {};
+            Object.keys(window.GAMES).forEach(id => {
+                const g = window.GAMES[id];
+                if (!ncCheckable(g)) return;
+                const key = (g.name || '').trim().toLowerCase();
+                if (!key) return;
+                (groups[key] = groups[key] || []).push(g);
+            });
+            ncGroups = groups;
+            const orderOf = (k) => Math.min(...groups[k].map(g => typeof g.order === 'number' ? g.order : Infinity));
+            const keys = Object.keys(groups).sort((a, b) => {
+                const oa = orderOf(a), ob = orderOf(b);
+                if (oa !== ob) return oa - ob;
+                return a.localeCompare(b);
+            });
+            const sig = keys.map(k => k + ':' + groups[k].length).join('|') + '|' + currentLang;
+            if (sig === ncOptionsSig) return;
+            ncOptionsSig = sig;
+            const prev = sel.value;
+            sel.innerHTML = `<option value="">${ncEsc(t('nc_select_game'))}</option>`
+                + keys.map(k => `<option value="${ncEsc(k)}">${ncEsc(groups[k][0].name)}</option>`).join('');
+            if (prev && groups[prev]) sel.value = prev;
+            sel.classList.toggle('has-value', !!sel.value);
+        }
+        window.ncRenderGameOptions = ncRenderGameOptions;
+
+        // Rebuilds #nc-server-id as a <select> when the game's provider gives
+        // a fixed server/region list, otherwise as a plain text input - same
+        // idea as renderServerIdField() on the checkout page.
+        function ncRenderServerField(entries) {
+            const old = document.getElementById('nc-server-id');
+            const opts = entries.map(g =>
+                (g.aluuServerMode === 'select' && g.aluuServerOptions) ||
+                (g.fazercardServerMode === 'select' && g.fazercardServerOptions) ||
+                (g.g2bulkServerMode === 'select' && g.g2bulkServerOptions)
+            ).find(o => Array.isArray(o) && o.length);
+            let el;
+            if (opts) {
+                el = document.createElement('select');
+                el.innerHTML = `<option value="">${ncEsc(t('nc_select_server'))}</option>`
+                    + opts.map(o => `<option value="${ncEsc(o.value)}">${ncEsc(o.label || o.value)}</option>`).join('');
+                el.addEventListener('change', () => { el.classList.toggle('has-value', !!el.value); ncOnFieldChange(); });
+            } else {
+                el = document.createElement('input');
+                el.type = 'text';
+                el.placeholder = t('nc_server_ph');
+                el.setAttribute('data-i18n-ph', 'nc_server_ph');
+                el.autocomplete = 'off';
+                el.setAttribute('oninput', 'sanitizeIdDigitsInput(this); ncOnFieldChange()');
+            }
+            el.id = 'nc-server-id';
+            old.replaceWith(el);
+        }
+
+        function ncOnGameChange() {
+            const sel = document.getElementById('nc-game');
+            const key = sel.value;
+            sel.classList.toggle('has-value', !!key);
+            clearTimeout(ncTimer);
+            ncRunId++;
+            const result = document.getElementById('nc-result');
+            result.style.display = 'none';
+            result.innerHTML = '';
+            const fields = document.getElementById('nc-fields');
+            const entries = ncGroups[key];
+            if (!key || !entries) { fields.style.display = 'none'; return; }
+            // Server ID only when at least one region entry of this game needs it.
+            const needsServer = entries.some(g => g.serverIdRequired !== false);
+            document.getElementById('nc-server-wrap').style.display = needsServer ? 'block' : 'none';
+            ncRenderServerField(entries);
+            if (!needsServer) document.getElementById('nc-server-id').value = '';
+            fields.style.display = 'block';
+            ncOnFieldChange();
+        }
+        window.ncOnGameChange = ncOnGameChange;
+
+        function ncOnFieldChange() {
+            const key = document.getElementById('nc-game').value;
+            const entries = ncGroups[key];
+            const result = document.getElementById('nc-result');
+            clearTimeout(ncTimer);
+            ncRunId++;
+            if (!entries) { result.style.display = 'none'; return; }
+            const idField = document.getElementById('nc-player-id');
+            const serverField = document.getElementById('nc-server-id');
+            // "123456789 (7891)" pasted format: bracketed number is the server/zone ID.
+            const m = idField.value.match(/\(([^)]+)\)/);
+            if (m && serverField.tagName === 'INPUT') {
+                serverField.value = m[1].trim().replace(/[^a-zA-Z0-9]/g, '');
+                idField.value = idField.value.replace(/\s*\([^)]*\)\s*/, '').trim();
+            }
+            const needsServer = entries.some(g => g.serverIdRequired !== false);
+            const playerId = idField.value.trim();
+            const serverId = serverField.value.trim();
+            if (!playerId || (needsServer && !serverId)) { result.style.display = 'none'; result.innerHTML = ''; return; }
+            result.innerHTML = `<p class="id-checking-text">${ncEsc(t('checking_id_text'))}</p>`;
+            result.style.display = 'flex';
+            ncTimer = setTimeout(ncRunCheck, 700);
+        }
+        window.ncOnFieldChange = ncOnFieldChange;
+
+        // Region/country are only shown if the provider's reply carries them.
+        function ncGeo(d) {
+            const out = { region: '', country: '' };
+            if (!d || typeof d !== 'object') return out;
+            const pick = (...ks) => { for (const k of ks) { const v = d[k]; if (typeof v === 'string' && v.trim()) return v.trim(); } return ''; };
+            out.region = pick('region', 'server_name', 'serverName');
+            out.country = pick('country', 'country_name', 'countryName');
+            return out;
+        }
+
+        // One provider check for one game entry -> { outcome: 'valid'|'invalid'|'unknown', name, geo }
+        async function ncCheckEntry(g, playerId, serverId) {
+            const sid = g.serverIdRequired !== false ? serverId : '';
+            let outcome = 'unknown', name = null, geo = {};
+            if (g.g2bulkCode) {
+                const res = await fetch('https://api.g2bulk.com/v1/games/checkPlayerId', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ game: g.g2bulkCode, user_id: playerId, server_id: sid || undefined })
+                });
+                const data = await res.json();
+                if (!res.ok) outcome = 'unknown';
+                else if (data.valid === 'valid') { outcome = 'valid'; name = data.name || null; geo = ncGeo(data); }
+                else outcome = 'invalid';
+            } else if (g.fazercardCategoryId) {
+                const keys = (Array.isArray(g.fazercardFields) && g.fazercardFields.length) ? g.fazercardFields : ['player_id'];
+                if (keys.some(k => /server|zone/i.test(k)) && !sid) return { outcome: 'unknown' };
+                const fields = {};
+                keys.forEach(k => { fields[k] = /server|zone/i.test(k) ? sid : playerId; });
+                const res = await fetch(FAZERCARD_VALIDATE_URL, {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ categoryId: g.fazercardCategoryId, fields })
+                });
+                const data = await res.json();
+                if (!res.ok || !data.ok) outcome = 'unknown';
+                else if (data.valid === true) { outcome = 'valid'; name = data.playerName || null; geo = ncGeo(data); }
+                else outcome = 'invalid';
+                if (outcome === 'unknown' && g.g2bulkIdCheckCode) {
+                    try {
+                        const fb = await fetch('https://api.g2bulk.com/v1/games/checkPlayerId', {
+                            method: 'POST', headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ game: g.g2bulkIdCheckCode, user_id: playerId, server_id: sid || undefined })
+                        });
+                        const fbData = await fb.json();
+                        if (fb.ok && fbData.valid === 'valid') { outcome = 'valid'; name = fbData.name || null; geo = ncGeo(fbData); }
+                    } catch (e) { /* stays unknown */ }
+                }
+            } else if (g.aluuCode) {
+                const res = await fetch(`${ALUU_ID_CHECK_URL}?gameCode=${encodeURIComponent(g.aluuCode)}&playerId=${encodeURIComponent(playerId)}&serverId=${encodeURIComponent(sid || '')}`);
+                const data = await res.json();
+                if (!res.ok) outcome = 'unknown';
+                else if (data.valid === true) { outcome = 'valid'; name = data.name || null; geo = ncGeo(data); }
+                else outcome = 'invalid';
+            }
+            return { outcome, name, geo };
+        }
+
+        async function ncRunCheck() {
+            const myRun = ++ncRunId;
+            const key = document.getElementById('nc-game').value;
+            const entries = ncGroups[key];
+            if (!entries) return;
+            const playerId = document.getElementById('nc-player-id').value.trim();
+            const serverEl = document.getElementById('nc-server-id');
+            const serverId = serverEl.value.trim();
+            const serverLabel = serverEl.tagName === 'SELECT' ? (serverEl.options[serverEl.selectedIndex]?.text || serverId) : serverId;
+            if (!playerId) return;
+            const settled = await Promise.all(entries.map(g =>
+                ncCheckEntry(g, playerId, serverId).catch(() => ({ outcome: 'unknown' })).then(r => ({ g, r }))
+            ));
+            if (myRun !== ncRunId) return; // a newer edit/selection superseded this check
+            const box = document.getElementById('nc-result');
+            box.innerHTML = '';
+            const valid = settled.filter(x => x.r.outcome === 'valid' && x.r.name);
+            if (!valid.length) {
+                const anyInvalid = settled.some(x => x.r.outcome === 'invalid');
+                const card = document.createElement('div');
+                if (anyInvalid) { card.className = 'id-fail-card'; card.textContent = t('id_not_found'); }
+                else { card.className = 'id-checking-text'; card.textContent = t('nc_unavailable'); }
+                box.appendChild(card);
+                box.style.display = 'flex';
+                return;
+            }
+            const seen = new Set();
+            valid.forEach(({ g, r }) => {
+                const region = r.geo.region || g.serverName || t('nc_global');
+                const dedupe = r.name + '|' + region;
+                if (seen.has(dedupe)) return;
+                seen.add(dedupe);
+                const card = document.createElement('div');
+                card.className = 'id-result-card';
+                const avatar = document.createElement('div');
+                avatar.className = 'id-result-avatar';
+                avatar.textContent = r.name.trim().charAt(0).toUpperCase();
+                const info = document.createElement('div');
+                info.className = 'id-result-info';
+                const nameEl = document.createElement('div');
+                nameEl.className = 'id-result-name';
+                nameEl.textContent = r.name;
+                // "Player Name" / "(Region) Country"
+                const meta = document.createElement('div');
+                meta.className = 'nc-meta';
+                const regionB = document.createElement('b');
+                regionB.textContent = `(${region})`;
+                meta.appendChild(regionB);
+                if (r.geo.country) meta.appendChild(document.createTextNode(' ' + r.geo.country));
+                info.appendChild(nameEl);
+                info.appendChild(meta);
+                if (serverLabel && g.serverIdRequired !== false) {
+                    const srv = document.createElement('div');
+                    srv.className = 'nc-server';
+                    srv.textContent = `${t('nc_server')}: ${serverLabel}`;
+                    info.appendChild(srv);
+                }
+                const check = document.createElement('div');
+                check.className = 'id-result-check';
+                check.textContent = '✓';
+                card.appendChild(avatar);
+                card.appendChild(info);
+                card.appendChild(check);
+                box.appendChild(card);
+            });
+            box.style.display = 'flex';
+        }
+        window.ncRunCheck = ncRunCheck;
+
         // Redeem link for whichever game's detail page is currently open (set
         // by renderGameDescCard below, read by openGameRedeemLink on tap).
         // Kept as simple module state rather than re-reading window.GAMES so
@@ -5524,6 +5861,37 @@
                 }
             } catch (e) { /* malformed URL - ignore, act as a normal visit */ }
         })();
+
+        // ---------- Shareable game-account link (?account=<gameAccounts doc id>) ----------
+        // Sent as part of the Telegram message a buyer's "Ask about this
+        // account" button builds (see contactAccountAdminOnTelegram below),
+        // so the admin can tap straight back to the exact listing the
+        // customer is asking about. Resolved once GAME_ACCOUNTS has loaded
+        // (see tryOpenPendingAccountDeepLink, called from listenGameAccounts).
+        let pendingAccountDeepLink = null;
+        (function captureAccountDeepLinkFromURL() {
+            try {
+                const params = new URLSearchParams(window.location.search);
+                if (params.has('account')) pendingAccountDeepLink = params.get('account');
+            } catch (e) { /* malformed URL - ignore, act as a normal visit */ }
+        })();
+        function tryOpenPendingAccountDeepLink() {
+            if (!pendingAccountDeepLink || !gameAccountsLoadedOnce) return;
+            const id = pendingAccountDeepLink;
+            pendingAccountDeepLink = null; // handle exactly once
+            if (!GAME_ACCOUNTS[id]) return; // sold/removed by the time this loaded
+            openAccountDetail(id);
+            try {
+                const clean = new URL(window.location.href);
+                clean.searchParams.delete('account');
+                window.history.replaceState({}, '', clean.toString());
+            } catch (e) { /* ignore */ }
+        }
+        // A plain page load with no other tab active defaults to Home (see
+        // the "no showPage('home') call fires on boot" notes elsewhere) - so
+        // an "?account=" link needs its own explicit jump to the Account tab
+        // to actually start listenGameAccounts() and resolve the link.
+        deferInit(() => { if (pendingAccountDeepLink && window.showPage) window.showPage('account'); });
 
         // Resolves a "?code=<8-digit>" package link against the packageLinks
         // collection (written by buildPackageShareLink) and hands off to the
@@ -7297,9 +7665,11 @@
                     name: profile.name || '',
                     phone: profile.phone || '',
                     photo: profile.photo || '',
-                    googleEmail: (auth.currentUser && auth.currentUser.email) || '',
                     lastSeen: serverTimestamp()
                 };
+                // Only ever write googleEmail while signed in - blanking it while signed
+                // out would erase which Gmail this guest ID belongs to.
+                if (auth.currentUser && auth.currentUser.email) payload.googleEmail = auth.currentUser.email;
                 if (!existing.exists() || !existing.data().createdAt) {
                     payload.createdAt = serverTimestamp();
                 }
@@ -7380,6 +7750,8 @@
                 currentWalletBalance = bal;
                 const el = document.getElementById('wallet-balance-amount');
                 if (el && window.formatMMK) el.innerText = window.formatMMK(bal);
+                const pcBal = document.getElementById('profile-card-balance');
+                if (pcBal && window.formatMMK) pcBal.innerText = window.formatMMK(bal);
                 // If the customer currently has the "pay with Wallet" box open
                 // on a checkout, keep it live too — e.g. an admin approving a
                 // top-up should instantly flip "Not enough balance" to "Enough".
@@ -8516,6 +8888,50 @@
         // *different* device/browser (a fresh guestId), we detect the existing
         // link and pull that device back onto the original guestId instead of
         // quietly running a second, separate account under the same Gmail.
+        // Clears everything on this device that belongs to one customer account
+        // (guest ID, saved profile, cached stats, remembered Player IDs, push
+        // registration marker). Device preferences - language, theme, floating
+        // support button position, onboarding flag - are kept.
+        function resetLocalAccountState() {
+            try {
+                ['gz_profile', 'gz_guest_id', 'gz_member_since', 'gz_stats_cache', 'gz_gid_owner_uid',
+                 'gz_playerId', 'gz_last_seen_notif', 'gz_fcm_token_registered'].forEach((k) => localStorage.removeItem(k));
+                Object.keys(localStorage).forEach((k) => {
+                    if (k.startsWith('gz_playerId:') || k.startsWith('gz_serverId:')) localStorage.removeItem(k);
+                });
+            } catch (e) { /* private browsing */ }
+        }
+
+        // A new random guest ID that no existing users/{id} doc already uses,
+        // so a brand-new Gmail account can never land on someone else's ID.
+        async function generateFreshGuestId() {
+            for (let i = 0; i < 10; i++) {
+                const gid = 'PCA-' + Math.floor(1000 + Math.random() * 9000);
+                try {
+                    const snap = await getDoc(doc(db, "users", gid));
+                    if (!snap.exists()) return gid;
+                } catch (e) { return gid; }
+            }
+            return 'PCA-' + String(Date.now()).slice(-7);
+        }
+
+        // True when this device's current guest ID already belongs to a
+        // DIFFERENT Google account (remembered locally at link time, or - for
+        // devices from before that - recorded on the users doc as googleEmail).
+        async function guestIdBelongsToOtherGoogle(myGid, user) {
+            try {
+                const ownerUid = localStorage.getItem('gz_gid_owner_uid');
+                if (ownerUid && ownerUid !== user.uid) return true;
+            } catch (e) { /* private browsing */ }
+            try {
+                if (!myGid) return false;
+                const snap = await getDoc(doc(db, "users", myGid));
+                const linkedEmail = (snap.exists() && snap.data().googleEmail) || '';
+                if (linkedEmail && user.email && linkedEmail.toLowerCase() !== user.email.toLowerCase()) return true;
+            } catch (e) { /* can't tell - fall through to the normal link */ }
+            return false;
+        }
+
         async function applyGoogleProfile(user) {
             const myGid = window.getGuestId ? window.getGuestId() : null;
             if (await enforceGoogleAccountBan(user, myGid)) return;
@@ -8541,6 +8957,7 @@
                         const d = userSnap.exists() ? userSnap.data() : {};
                         localStorage.setItem('gz_profile', JSON.stringify({ name: d.name || '', phone: d.phone || '', photo: d.photo || '' }));
                         localStorage.setItem('gz_guest_id', linkedGid);
+                        localStorage.setItem('gz_gid_owner_uid', user.uid);
                         if (localStorage.getItem('gz_guest_id') !== linkedGid) throw new Error('guest id did not persist');
                         if (window.showToast) window.showToast('ချိတ်ဆက်ထားသော အကောင့်သို့ ပြန်ခေါ်နေသည်...', 'success');
                         setTimeout(() => location.reload(), 900);
@@ -8551,8 +8968,32 @@
                     return;
                 }
                 if (!linkSnap.exists()) {
+                    // First time this Gmail signs in anywhere. If this device's guest
+                    // ID is already tied to a different Gmail (someone signed out and
+                    // signed in with another account), this Gmail must NOT inherit that
+                    // ID/data - start a separate, brand-new account instead.
+                    if (await guestIdBelongsToOtherGoogle(myGid, user)) {
+                        const newGid = await generateFreshGuestId();
+                        const newProfile = { name: user.displayName || '', phone: '', photo: user.photoURL || '' };
+                        await setDoc(doc(db, "users", newGid), {
+                            guestId: newGid, name: newProfile.name, phone: '', photo: newProfile.photo,
+                            googleEmail: user.email || '', createdAt: serverTimestamp(), lastSeen: serverTimestamp()
+                        }, { merge: true });
+                        await setDoc(linkRef, { guestId: newGid, email: user.email || '' }, { merge: true });
+                        resetLocalAccountState();
+                        try {
+                            localStorage.setItem('gz_guest_id', newGid);
+                            localStorage.setItem('gz_member_since', String(Date.now()));
+                            localStorage.setItem('gz_gid_owner_uid', user.uid);
+                            localStorage.setItem('gz_profile', JSON.stringify(newProfile));
+                        } catch (e) { /* private browsing */ }
+                        if (window.showToast) window.showToast('အကောင့်အသစ် ဖွင့်နေသည်...', 'success');
+                        setTimeout(() => location.reload(), 900);
+                        return;
+                    }
                     await setDoc(linkRef, { guestId: myGid, email: user.email || '' }, { merge: true });
                 }
+                try { localStorage.setItem('gz_gid_owner_uid', user.uid); } catch (e) { /* private browsing */ }
             } catch (e) {
                 console.error('Google account link check failed:', e);
             }
@@ -8623,7 +9064,18 @@
 
         function handleGoogleSignOut() {
             signOut(auth)
-                .then(() => { showPage('account'); }) // jump straight to the Account tab's sign-in gate so the login form is what they land on, not the passive signed-out card
+                .then(() => {
+                    // Signing out ends this customer's session on the device: drop the
+                    // guest ID, profile and cached data so the next Gmail that signs in
+                    // gets its own separate account (the same Gmail signing back in is
+                    // pulled back onto its original ID via googleAccounts/{uid}).
+                    resetLocalAccountState();
+                    // Clear the "already onboarded" flag and reload: every live listener
+                    // (wallet, VIP, orders, chat) drops the old ID, and the app comes back
+                    // up on the very first Login screen (the onboarding sign-in step).
+                    try { localStorage.removeItem('pca_onboarded'); } catch (e) { /* private browsing */ }
+                    location.reload();
+                })
                 .catch((e) => console.error('Google sign out error:', e));
         }
         window.handleGoogleSignOut = handleGoogleSignOut;
@@ -8973,6 +9425,10 @@
                 if (heroTierEl) heroTierEl.innerHTML = tierBadgeHTML(tier);
                 document.getElementById('vip-stat-spent').innerText = formatMMK(total);
                 document.getElementById('vip-stat-orders').innerText = String(count);
+                const pcOrders = document.getElementById('profile-card-orders');
+                if (pcOrders) pcOrders.innerText = String(count);
+                const pcSpent = document.getElementById('profile-card-spent');
+                if (pcSpent) pcSpent.innerText = formatMMK(total);
 
                 let memberSince = '-';
                 try {
@@ -9201,6 +9657,19 @@
         }
         window.contactAdmin = contactAdmin;
 
+        // Support Chat (product mode) and the Account tab's general Support
+        // button both open this directly now — no more live in-app chat
+        // panel. Account Marketplace's per-listing "Ask about this account"
+        // instead opens the posting admin's own Telegram — see
+        // contactAccountAdminOnTelegram(), which falls back to this same
+        // username. Hardcoded rather than SOCIAL_LINKS.telegram (used by
+        // contactAdmin() above) so this specific button always works even
+        // if that setting is unset.
+        function openAdminTelegram() {
+            window.open('https://t.me/pca_gamestore', '_blank', 'noopener');
+        }
+        window.openAdminTelegram = openAdminTelegram;
+
         deferInit(() => onSnapshot(doc(db, "settings", "social"), (docSnap) => {
             renderSocialLinks(docSnap.exists() ? docSnap.data() : {});
         }, (error) => {
@@ -9267,14 +9736,14 @@
                 if (chatText) chatText.innerText = t('chat_checking');
                 return;
             }
-            bar.style.display = 'flex';
+            bar.style.display = 'inline-flex';
             const isOnline = (Date.now() - lastAdminActiveMs) < ADMIN_ONLINE_THRESHOLD_MS;
             dot.className = 'admin-status-dot ' + (isOnline ? 'online' : 'offline');
             bar.classList.toggle('online-text', isOnline);
             bar.title = 'Orders still process automatically either way.';
             let chatStatusStr;
             if (isOnline) {
-                text.innerText = t('chat_admin_online');
+                text.innerText = 'Admin Online';
                 chatStatusStr = 'Online';
             } else {
                 text.innerText = 'Last seen recently';
@@ -10996,6 +11465,7 @@
             });
             GAMES = filtered;
             window.GAMES = GAMES;
+            if (window.ncRenderGameOptions) window.ncRenderGameOptions();
             tryOpenPendingPackageDeepLink();
             runWhenNotTouching(document.querySelector('#all-games-grid')?.closest('.games-grid-scroll'), renderHomeGames);
             // The favorites row filters against window.GAMES too, so it needs
@@ -11645,6 +12115,7 @@
                 snap.forEach(docSnap => { map[docSnap.id] = docSnap.data(); });
                 GAME_ACCOUNTS = map;
                 gameAccountsLoadedOnce = true;
+                tryOpenPendingAccountDeepLink();
                 if (window.currentStorePage === 'account') renderAccountGames();
                 if (window.currentStorePage === 'account-detail' && currentAccountId) renderAccountDetail(currentAccountId);
             }, (error) => {
@@ -13253,7 +13724,7 @@
             const href = theme === 'dark' ? '#icon-moon' : '#icon-sun';
             // Header toggle + Profile page toggle (kept in sync so either one
             // reflects the current theme no matter which was used to switch it).
-            ['theme-toggle-icon', 'theme-toggle-icon-profile'].forEach(id => {
+            ['theme-toggle-icon-drawer', 'theme-toggle-icon-profile'].forEach(id => {
                 const el = document.getElementById(id);
                 const use = el?.querySelector('use');
                 if (use) use.setAttribute('href', href);
@@ -13402,29 +13873,16 @@
         let supportFabDragged = false;
         let supportFabPeekTimer = null;
 
-        // Two independent threads share this one panel UI: 'product' (order/
-        // wallet/general support - default, opened from the Support drawer
-        // item) and 'account' (Game Account marketplace only, opened from the
-        // Game Accounts pages). Each mode points at its own Firestore
-        // collection so admin.html can keep the two inboxes fully separate.
-        let supportChatMode = 'product';
-        const SUPPORT_CHAT_COLLECTIONS = { product: 'supportChats', account: 'supportChatsAccount' };
-        function supportChatCollectionName() { return SUPPORT_CHAT_COLLECTIONS[supportChatMode] || 'supportChats'; }
-
-        // ---------- Account chat: per-admin thread routing ----------
-        // The general "Support" button (Game Accounts page header) has no
-        // listing context yet, so it goes to a shared 'general' thread any
-        // account-role admin can pick up. "Ask about this account" (opened
-        // from a specific listing) instead routes to that listing's own
-        // poster (`postedByAdmin` on the gameAccounts doc), so a buyer
-        // messaging two different admins about two different listings gets
-        // two separate threads instead of one crossed conversation. Doc id
-        // in supportChatsAccount becomes `${guestId}__${adminKey}`; the
-        // product thread is unaffected (still keyed by plain guestId).
-        let supportChatAccountAdminKey = 'general';
-        function supportChatThreadId(guestId) {
-            return (supportChatMode === 'account') ? `${guestId}__${supportChatAccountAdminKey}` : guestId;
-        }
+        // The Support widget panel now only ever serves the 'product' thread
+        // (order/wallet/general support, opened from the Support drawer
+        // item). Game Account marketplace support was moved to a direct
+        // Telegram deep-link (see contactAccountAdminOnTelegram) instead of
+        // a live in-app thread, so the 'account' mode this used to also
+        // serve was removed - supportChatMode/supportChatThreadId are kept
+        // as fixed pass-throughs rather than ripping out every call site.
+        const supportChatMode = 'product';
+        function supportChatCollectionName() { return 'supportChats'; }
+        function supportChatThreadId(guestId) { return guestId; }
 
         // ---------- Support Chat: FAQ quick-replies + auto-answer ----------
         // The FAQ list itself lives in Firestore (settings/supportChatFaq,
@@ -13706,59 +14164,27 @@
             });
 
             scheduleSupportFabPeek();
-            listenSupportChatSummary('product');
-            listenSupportChatSummary('account');
+            // No summary listener started here anymore — both Product
+            // Support Chat and Account "Ask about this account" now open a
+            // direct Telegram link (see openAdminTelegram / 
+            // contactAccountAdminOnTelegram) instead of a live in-app
+            // thread, so there's no admin-reply unread dot to maintain.
         }
 
-        function openSupportWidget(mode, adminKey) {
-            const newMode = (mode === 'account') ? 'account' : 'product';
-            const newAdminKey = (newMode === 'account') ? (adminKey || 'general') : null;
-            // Switching modes, OR staying in account mode but jumping to a
-            // different listing's admin thread, both need the old thread's
-            // live message listener dropped first, so the panel never
-            // streams the other thread's messages in mid-transition.
-            const threadChanged = (newMode !== supportChatMode) || (newMode === 'account' && newAdminKey !== supportChatAccountAdminKey);
-            if (threadChanged && supportChatMsgUnsub) {
-                supportChatMsgUnsub();
-                supportChatMsgUnsub = null;
-                // Also drop whatever the OLD thread last rendered. Without
-                // this, if the Chat tab happens to already be the active
-                // panel (left that way from a previous Account-mode visit),
-                // its bubbles stay on screen under the new thread's header —
-                // looking exactly like Account and Product chats are mixed
-                // together — until something else happens to trigger a
-                // fresh render.
-                const box = document.getElementById('support-chat-messages');
-                if (box) box.innerHTML = '';
-            }
-            supportChatMode = newMode;
-            if (newMode === 'account') supportChatAccountAdminKey = newAdminKey;
+        function openSupportWidget() {
             const overlay = document.getElementById('support-widget-overlay');
-            if (overlay) {
-                overlay.classList.add('show');
-                overlay.classList.toggle('account-mode', newMode === 'account');
-            }
+            if (overlay) overlay.classList.add('show');
             // Header avatar listener: only needs to be live while the widget
             // is actually open, not from app boot onward.
             listenSupportChatAvatar();
             const title = document.getElementById('support-widget-title');
-            if (title) title.textContent = newMode === 'account' ? t('support_title_account') : t('support_title');
+            if (title) title.textContent = t('support_title');
             const dot = document.getElementById('support-fab-dot');
             if (dot) dot.style.display = 'none';
-            // Account mode is a single dedicated thread - skip straight to it
-            // (no Guide/Complaint tabs shown; see the .account-mode CSS rule).
-            if (newMode === 'account') {
-                switchSupportTab('chat');
-            } else if (threadChanged) {
-                // Coming back to (or freshly opening) Product mode: if the
-                // Chat tab happens to already be the active panel (left that
-                // way from an earlier Account-mode visit), re-run its setup
-                // for the NEW (Product) thread instead of leaving the old
-                // Account thread's listener/messages sitting there. Guide/
-                // Complaint stay untouched if that's what was showing.
-                const chatPanel = document.getElementById('support-panel-chat');
-                if (chatPanel && chatPanel.style.display !== 'none') switchSupportTab('chat');
-            }
+            // If the Chat tab happens to already be the active panel from an
+            // earlier visit, re-run its setup rather than leaving it stale.
+            const chatPanel = document.getElementById('support-panel-chat');
+            if (chatPanel && chatPanel.style.display !== 'none') switchSupportTab('chat');
             // Push a history entry so the device's physical/gesture Back button
             // closes this overlay (handled by the popstate listener below)
             // instead of navigating the browser away from the site entirely.
@@ -13777,15 +14203,34 @@
         }
         window.openSupportWidget = openSupportWidget;
         window.closeSupportWidget = closeSupportWidget;
-        // "Ask about this account" (account-detail header icon) needs the
-        // currently-open listing's poster, which is only known here as a
-        // module-scoped var - inline onclick can't read GAME_ACCOUNTS
-        // directly, so this small wrapper is exposed on window instead.
-        function openAccountListingChat() {
+
+        // "Ask about this account" (account-detail header's Support button):
+        // opens the Telegram of whichever admin actually posted that
+        // listing (gameAccounts.postedByAdminTelegram, set by admin.html at
+        // creation time), pre-filled with the account's details plus a
+        // link back to it (see pendingAccountDeepLink/tryOpenPendingAccountDeepLink
+        // above) - so the customer never has to type anything, and the
+        // admin can tap the link to see exactly which account is being
+        // asked about instead of having to ask back. Falls back to the
+        // store's shared Telegram if that admin hasn't linked one yet.
+        function contactAccountAdminOnTelegram() {
             const listing = GAME_ACCOUNTS[currentAccountId] || {};
-            openSupportWidget('account', listing.postedByAdmin);
+            const username = listing.postedByAdminTelegram || 'pca_gamestore';
+            const link = `${window.location.origin}${window.location.pathname}?account=${encodeURIComponent(currentAccountId || '')}`;
+            const lines = [
+                `👉 ဒီ Account အကြောင်း စုံစမ်းချင်ပါတယ်`,
+                ``,
+                `🎮 Game: ${listing.gameName || ''}`,
+                `📌 Title: ${listing.title || ''}`,
+                `💰 Price: ${Number(listing.price || 0).toLocaleString()} MMK`
+            ];
+            if (listing.rank) lines.push(`🏆 Rank: ${listing.rank}`);
+            if (listing.server) lines.push(`🌐 Server: ${listing.server}`);
+            lines.push(``, `🔗 ${link}`);
+            const url = `https://t.me/${username}?text=${encodeURIComponent(lines.join('\n'))}`;
+            window.open(url, '_blank', 'noopener');
         }
-        window.openAccountListingChat = openAccountListingChat;
+        window.contactAccountAdminOnTelegram = contactAccountAdminOnTelegram;
         window.addEventListener('popstate', () => {
             const overlay = document.getElementById('support-widget-overlay');
             if (overlay && overlay.classList.contains('show')) closeSupportWidget(true);
@@ -13991,86 +14436,6 @@
             el.classList.toggle('show', isTyping);
         }
 
-        // Toggles the small unread dot shown on the Game Accounts entry
-        // points (account-list header button + account-detail button) for a
-        // new Account-thread admin reply, mirroring the product FAB dot.
-        function setAccountChatUnreadDot(show) {
-            document.querySelectorAll('.account-chat-entry-dot').forEach(el => {
-                el.style.display = show ? 'block' : 'none';
-            });
-        }
-
-        // Per-thread sound/seen state for the account collection, keyed by
-        // the full thread doc id (`${guestId}__${adminKey}`) - a buyer can
-        // have several account threads open (one per admin) at once, and
-        // each needs its own de-dupe so switching between them doesn't
-        // replay or drop a receive sound.
-        const accountChatThreadState = {};
-
-        function processSupportSummaryDoc(m, docId, data, guestId) {
-            // "Active" means: this is the product doc, or (for account) this
-            // doc's id matches whichever admin-thread is currently selected.
-            const isActiveThread = (m === 'product') || (docId === supportChatThreadId(guestId));
-            const state = (m === 'product') ? supportChatSummaryState.product
-                : (accountChatThreadState[docId] || (accountChatThreadState[docId] = { seenFirst: false, lastPlayedMs: 0 }));
-            const overlay = document.getElementById('support-widget-overlay');
-            const chatTabBtn = document.getElementById('support-tab-chat');
-            const panelOpen = overlay && overlay.classList.contains('show') && supportChatMode === m && isActiveThread;
-            const chatTabActive = chatTabBtn && chatTabBtn.classList.contains('active');
-            if (data.lastSender === 'admin' && !(panelOpen && chatTabActive)) {
-                if (m === 'product') {
-                    const dot = document.getElementById('support-fab-dot');
-                    const badge = document.getElementById('support-chat-badge');
-                    if (dot) dot.style.display = 'block';
-                    if (badge) badge.style.display = 'inline-block';
-                } else {
-                    setAccountChatUnreadDot(true);
-                }
-            }
-            if (data.lastSender === 'admin' && data.lastMessageAt && data.lastMessageAt.toMillis) {
-                const msgMs = data.lastMessageAt.toMillis();
-                if (state.seenFirst && msgMs > state.lastPlayedMs && supportChatMode === m && isActiveThread) {
-                    playSupportChatReceiveSound();
-                }
-                state.lastPlayedMs = Math.max(state.lastPlayedMs, msgMs);
-            }
-            state.seenFirst = true;
-            if (m === 'account') accountChatThreadState[docId] = state;
-            if (supportChatMode === m && isActiveThread) {
-                supportChatSummaryState[m].lastAdminAvatar = data.lastAdminAvatar || null;
-                renderSupportChatHeaderAvatar();
-                supportChatSummaryState[m].adminTypingAtMs = (data.adminTypingAt && data.adminTypingAt.toMillis) ? data.adminTypingAt.toMillis() : null;
-                renderSupportChatTypingIndicator();
-            }
-        }
-
-        function listenSupportChatSummary(mode) {
-            const m = (mode === 'account') ? 'account' : 'product';
-            const guestId = window.getGuestId ? window.getGuestId() : '';
-            if (!guestId) return;
-            if (m === 'product') {
-                onSnapshot(doc(db, SUPPORT_CHAT_COLLECTIONS.product, guestId), (snap) => {
-                    if (!snap.exists()) return;
-                    processSupportSummaryDoc('product', guestId, snap.data(), guestId);
-                }, (error) => console.error("Support chat summary listen error:", error));
-            } else {
-                // Account mode: one buyer can have several admin threads at
-                // once (general + one per listing's admin), so this listens
-                // across ALL of them (not a single fixed doc) and lets
-                // processSupportSummaryDoc figure out per-thread state.
-                const q = query(collection(db, SUPPORT_CHAT_COLLECTIONS.account), where("userId", "==", guestId));
-                onSnapshot(q, (snap) => {
-                    snap.docChanges().forEach((change) => {
-                        if (change.type === 'removed') return;
-                        processSupportSummaryDoc('account', change.doc.id, change.doc.data(), guestId);
-                    });
-                }, (error) => console.error("Support chat summary listen error:", error));
-            }
-            // Re-checks staleness even with no new snapshot, so the "Admin is
-            // typing..." row disappears on its own ~3s after they pause.
-            setInterval(renderSupportChatTypingIndicator, 1000);
-        }
-
         // Wired to the chat input's oninput. Throttled while there's text,
         // cleared immediately once the box is emptied (see
         // sendSupportChatMessage for the clear-on-send path).
@@ -14131,10 +14496,6 @@
                 await setDoc(doc(db, supportChatCollectionName(), threadId), {
                     userId: guestId,
                     userName: (savedProfile.name && savedProfile.name.trim()) ? savedProfile.name.trim() : guestId,
-                    // adminKey routes this thread to a specific account-role
-                    // admin ('general' = shared, unassigned inbox any of them
-                    // can answer); only meaningful for the account collection.
-                    ...(supportChatMode === 'account' ? { adminKey: supportChatAccountAdminKey } : {}),
                     lastMessage: text,
                     lastMessageAt: serverTimestamp(),
                     lastSender: 'user',
@@ -14143,9 +14504,8 @@
                 }, { merge: true });
                 // Auto-reply: a tapped FAQ chip already knows its answer
                 // (presetAutoAnswer); a hand-typed message gets matched
-                // against the same FAQ keyword list. Either way the bot
-                // answer lands a beat later so it doesn't feel instant/robotic.
-                const autoAnswer = supportChatMode === 'product' ? (presetAutoAnswer || (matchSupportFaq(text) || {}).a) : null;
+                // against the same FAQ keyword list.
+                const autoAnswer = presetAutoAnswer || (matchSupportFaq(text) || {}).a;
                 if (autoAnswer) {
                     setTimeout(() => sendSupportFaqAutoReply(guestId, autoAnswer), 900);
                 }
@@ -14230,7 +14590,6 @@
                 await setDoc(doc(db, supportChatCollectionName(), threadId), {
                     userId: guestId,
                     userName: (savedProfile.name && savedProfile.name.trim()) ? savedProfile.name.trim() : guestId,
-                    ...(supportChatMode === 'account' ? { adminKey: supportChatAccountAdminKey } : {}),
                     lastMessage: urls.length > 1 ? `📷 ${urls.length} Photos` : '📷 Photo',
                     lastMessageAt: serverTimestamp(),
                     lastSender: 'user',
