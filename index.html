@@ -199,7 +199,9 @@
            tints (badges, focus states, status cards). Without these they show
            up as stray near-white blocks on the dark navy surface. */
         html[data-theme="dark"] .history-card:active { background: rgba(76,147,255,0.1); border-color: rgba(76,147,255,0.35); }
-        html[data-theme="dark"] .badge-warning { background: rgba(34,197,94,0.16); color: #4ADE80; }
+        html[data-theme="dark"] .badge-success { background: rgba(34,197,94,0.16); color: #4ADE80; }
+        html[data-theme="dark"] .badge-warning { background: rgba(250,204,21,0.16); color: #FACC15; }
+        html[data-theme="dark"] .badge-processing { background: rgba(76,147,255,0.16); color: #6FA8FF; }
         html[data-theme="dark"] .badge-danger { background: rgba(239,68,68,0.16); color: #FF8A8A; }
         html[data-theme="dark"] .id-fail-card { background: rgba(239,68,68,0.12); border-color: rgba(239,68,68,0.35); color: #FF9B9B; }
         html[data-theme="dark"] .success-check { background: rgba(34,197,94,0.16); }
@@ -839,9 +841,9 @@
             position: absolute; right: 0; top: 50%; transform: translateY(-50%);
             display: flex; align-items: center;
             background: var(--glass-bg-strong); -webkit-backdrop-filter: var(--blur); backdrop-filter: var(--blur);
-            border: 1.5px solid var(--glass-border); border-radius: 999px;
+            border: 1.5px solid var(--glass-border); border-radius: 10px;
             box-shadow: var(--glass-shadow-sm);
-            width: 36px; height: 36px; overflow: hidden;
+            box-sizing: border-box; width: 36px; height: 36px; overflow: hidden;
             transition: width 0.36s cubic-bezier(.34,1.1,.4,1), border-color 0.2s ease, box-shadow 0.2s ease;
             will-change: width; contain: layout style;
         }
@@ -855,10 +857,10 @@
             border-color: var(--accent);
             box-shadow: 0 0 0 4px rgba(var(--accent-rgb),0.14), var(--glass-shadow-sm);
         }
-        .game-search-icon { position: absolute; left: 9px; width: 18px; height: 18px; color: var(--text-muted); cursor: pointer; transition: color 0.2s ease; z-index: 2; }
+        .game-search-icon { position: absolute; left: 7.5px; top: 50%; margin-top: -9px; width: 18px; height: 18px; display: block; color: var(--text-muted); cursor: pointer; transition: color 0.2s ease; z-index: 2; }
         .game-search-wrap.expanded .game-search-icon { pointer-events: none; color: var(--accent); }
         .game-search-input {
-            width: 100%; height: 36px; padding: 0 36px 0 36px; border-radius: 999px;
+            width: 100%; height: 36px; padding: 0 36px 0 36px; border-radius: 10px;
             border: none; background: transparent; color: var(--text);
             font-size: 14.5px; outline: none; opacity: 0; transition: opacity 0.2s ease;
         }
@@ -866,7 +868,7 @@
         .game-search-wrap.expanded .game-search-input { opacity: 1; transition-delay: 0.15s; }
         .game-search-input::placeholder { color: var(--text-muted); }
         .game-search-clear {
-            position: absolute; right: 9px; width: 20px; height: 20px; padding: 5px; border-radius: 50%;
+            position: absolute; right: 7px; top: 50%; margin-top: -15px; width: 20px; height: 20px; padding: 5px; border-radius: 8px;
             color: var(--text-secondary); cursor: pointer; box-sizing: content-box;
             background: var(--glass-bg); border: 1px solid var(--glass-border);
             transition: transform 0.12s ease, background 0.12s ease;
@@ -1006,16 +1008,16 @@
         .history-date-header:first-of-type { margin-top: 2px; }
 
         .badge { padding: 4px 10px; border-radius: 12px; font-size: 12px; font-weight: 500; display: inline-flex; align-items: center; }
-        .badge-success { background: var(--accent-soft); color: var(--accent); }
-        .badge-warning { background: #E6F7EC; color: #1E8E4F; }
+        .badge-success { background: #E6F7EC; color: #1E8E4F; }
+        .badge-warning { background: #FFF4CC; color: #9A6B00; }
         .badge-danger { background: #FDE8E8; color: #C0392B; }
-        .badge-processing { background: var(--border); color: #405DE6; }
+        .badge-processing { background: #E7F0FF; color: #1877F2; }
         .badge-sold { background: var(--border); color: var(--text-muted); }
 
         /* Small live-status animations shown at the top of each History card */
-        .status-anim-pulse { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #856404; margin-right: 5px; animation: statusPulse 1.1s ease-in-out infinite; }
+        .status-anim-pulse { display: inline-block; width: 7px; height: 7px; border-radius: 50%; background: #EAB308; margin-right: 5px; animation: statusPulse 1.1s ease-in-out infinite; }
         @keyframes statusPulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.35; transform: scale(0.55); } }
-        .status-anim-spin { display: inline-block; width: 9px; height: 9px; margin-right: 5px; border: 2px solid #C7CCE0; border-top-color: #405DE6; border-radius: 50%; animation: statusSpin 0.7s linear infinite; }
+        .status-anim-spin { display: inline-block; width: 9px; height: 9px; margin-right: 5px; border: 2px solid rgba(24,119,242,0.25); border-top-color: #1877F2; border-radius: 50%; animation: statusSpin 0.7s linear infinite; }
         @keyframes statusSpin { to { transform: rotate(360deg); } }
         .status-anim-check { display: inline-block; margin-right: 3px; font-weight: 800; animation: statusPop 0.35s ease; }
         @keyframes statusPop { 0% { transform: scale(0); } 60% { transform: scale(1.3); } 100% { transform: scale(1); } }
@@ -1302,6 +1304,40 @@
             width: 34px; height: 34px; border: 3px solid rgba(var(--accent-rgb),0.15);
             border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite;
         }
+
+        /* ===================== LOADERS (one style per place) =====================
+           bars: button | dots: wallet | flip: vouchers | bar: chat photo upload |
+           ripple: startup | grid: games. PCA label animates letter by letter. */
+        .ld-bars { display: inline-flex; align-items: center; gap: 2px; height: 28px; }
+        .ld-bars i { width: 5px; height: 100%; border-radius: 2px; background: var(--accent); animation: ldBar 1s ease-in-out infinite; }
+        .ld-bars i:nth-child(2) { animation-delay: .15s; } .ld-bars i:nth-child(3) { animation-delay: .3s; } .ld-bars i:nth-child(4) { animation-delay: .45s; }
+        @keyframes ldBar { 0%, 100% { transform: scaleY(.35); } 50% { transform: scaleY(1); } }
+        .ld-dots { display: inline-flex; align-items: center; gap: 6px; height: 28px; }
+        .ld-dots i { width: 10px; height: 10px; border-radius: 50%; background: var(--accent); animation: ldBounce .9s ease-in-out infinite; }
+        .ld-dots i:nth-child(2) { animation-delay: .15s; } .ld-dots i:nth-child(3) { animation-delay: .3s; }
+        @keyframes ldBounce { 0%, 100% { transform: translateY(5px); opacity: .4; } 50% { transform: translateY(-7px); opacity: 1; } }
+        .ld-flip { width: 30px; height: 30px; border-radius: 6px; background: var(--accent); animation: ldFlip 1.4s ease-in-out infinite; }
+        @keyframes ldFlip { 0% { transform: perspective(120px) rotateX(0) rotateY(0); } 50% { transform: perspective(120px) rotateX(-180deg) rotateY(0); } 100% { transform: perspective(120px) rotateX(-180deg) rotateY(-180deg); } }
+        .ld-bar { position: relative; width: 70px; height: 5px; border-radius: 3px; background: var(--border); overflow: hidden; }
+        .ld-bar i { position: absolute; top: 0; left: 0; height: 100%; width: 35%; border-radius: 3px; background: var(--accent); animation: ldSlide 1.2s ease-in-out infinite; }
+        @keyframes ldSlide { 0% { left: -35%; } 100% { left: 100%; } }
+        .ld-ripple { position: relative; display: inline-block; width: 44px; height: 44px; margin: 10px 0; }
+        .ld-ripple i { position: absolute; inset: 0; border: 2px solid var(--accent); border-radius: 8px; opacity: 0; animation: ldRipple 1.6s ease-out infinite; }
+        .ld-ripple i:nth-child(2) { animation-delay: .8s; }
+        @keyframes ldRipple { 0% { transform: scale(.3); opacity: 1; } 100% { transform: scale(1); opacity: 0; } }
+        .ld-grid { display: inline-grid; grid-template-columns: repeat(3, 10px); gap: 4px; }
+        .ld-grid i { width: 10px; height: 10px; border-radius: 2px; background: var(--accent); animation: ldGrid 1.2s ease-in-out infinite; }
+        .ld-grid i:nth-child(2), .ld-grid i:nth-child(4) { animation-delay: .1s; }
+        .ld-grid i:nth-child(3), .ld-grid i:nth-child(5), .ld-grid i:nth-child(7) { animation-delay: .2s; }
+        .ld-grid i:nth-child(6), .ld-grid i:nth-child(8) { animation-delay: .3s; }
+        .ld-grid i:nth-child(9) { animation-delay: .4s; }
+        @keyframes ldGrid { 0%, 100% { opacity: .2; transform: scale(.6); } 50% { opacity: 1; transform: scale(1); } }
+        /* Animated "PCA" wordmark: letters rise and glow in sequence */
+        .pca-anim { display: inline-flex; gap: 3px; margin-top: 14px; font-size: 15px; font-weight: 800; letter-spacing: 2px; }
+        .pca-anim span { color: var(--text-muted); animation: pcaLetter 1.2s ease-in-out infinite; }
+        .pca-anim span:nth-child(2) { animation-delay: .15s; } .pca-anim span:nth-child(3) { animation-delay: .3s; }
+        @keyframes pcaLetter { 0%, 60%, 100% { transform: translateY(0); color: var(--text-muted); } 30% { transform: translateY(-5px); color: var(--accent); } }
+        @media (prefers-reduced-motion: reduce) { .ld-bars i, .ld-dots i, .ld-flip, .ld-bar i, .ld-ripple i, .ld-grid i, .pca-anim span { animation: none; } }
         .page-loading-label {
             margin-top: 12px; font-size: 12px; font-weight: 700; letter-spacing: 1.5px;
             color: var(--text-muted);
@@ -1802,8 +1838,10 @@
         .confirm-id-btn:disabled { cursor: default; }
         .confirm-id-btn.checking { background: linear-gradient(90deg, var(--accent) 0%, #5AA0FF 50%, var(--accent) 100%); background-size: 200% 100%; animation: confirmIdShimmer 1.4s linear infinite; }
         .confirm-id-btn.confirmed { background: #28a745; animation: confirmIdPop 0.4s ease; }
-        .confirm-id-spinner { display: none; width: 15px; height: 15px; border: 2px solid rgba(255,255,255,0.45); border-top-color: var(--on-color); border-radius: 50%; animation: confirmIdSpin 0.6s linear infinite; }
-        .confirm-id-btn.checking .confirm-id-spinner { display: inline-block; }
+        .confirm-id-spinner { display: none; align-items: center; gap: 2px; height: 15px; }
+        .confirm-id-spinner i { width: 3px; height: 100%; border-radius: 1px; background: var(--on-color); animation: ldBar .8s ease-in-out infinite; }
+        .confirm-id-spinner i:nth-child(2) { animation-delay: .15s; } .confirm-id-spinner i:nth-child(3) { animation-delay: .3s; }
+        .confirm-id-btn.checking .confirm-id-spinner { display: inline-flex; }
         @keyframes confirmIdShimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
         @keyframes confirmIdSpin { to { transform: rotate(360deg); } }
         @keyframes confirmIdPop { 0% { transform: scale(0.94); } 55% { transform: scale(1.04); } 100% { transform: scale(1); } }
@@ -2045,9 +2083,10 @@
         .pc-avatar-wrap { position: relative; width: 56px; height: 56px; flex-shrink: 0; }
         .pc-frame-inner { position: absolute; top: 50%; left: 50%; width: 84px; height: 84px; transform: translate(-50%, -50%) scale(0.667); pointer-events: none; }
         .pc-frame-inner .avatar-tier-frame { top: 50%; }
-        .pc-avatar-wrap .avatar-upload-box { top: 50%; width: 56px; height: 56px; border-width: 2px; }
+        .pc-avatar-wrap .avatar-upload-box { top: 50%; width: 56px; height: 56px; }
+        .pc-avatar-wrap .avatar-upload-circle { border-width: 2px; }
         .pc-avatar-wrap .avatar-upload-placeholder svg { width: 24px; height: 24px; }
-        .pc-avatar-wrap .avatar-upload-badge { top: auto; bottom: 0; right: 0; width: 18px; height: 18px; border-width: 0; border-radius: 8px 0 0 0; }
+        .pc-avatar-wrap .avatar-upload-badge { width: 20px; height: 20px; bottom: -3px; right: -3px; border-width: 1.5px; }
         .pc-avatar-wrap .avatar-upload-badge svg { width: 10px; height: 10px; }
         .pc-id-block { flex: 1; min-width: 0; }
         .pc-name-row { display: flex; align-items: center; gap: 5px; min-width: 0; }
@@ -2080,18 +2119,22 @@
         .profile-hero-edit-btn:active { transform: scale(0.98); }
         .profile-hero-edit-btn svg { width: 13px; height: 13px; }
 
-        /* Profile: circular photo upload control (sits half-in/half-out of the cover).
-           Positioned relative to the cover only (not the whole card), with a fixed
-           pixel offset from its center so the body's top padding can reliably clear
-           it — this is what keeps the tier badge / edit button from ever sitting
-           underneath the photo, regardless of font-size or browser differences. */
+        /* Profile: circular photo upload control. The camera badge used to be
+           a child of this box, which had overflow:hidden for the circular
+           photo crop — that clipped half the badge off at the circle's edge.
+           Now the crop lives on the inner .avatar-upload-circle only, so the
+           outer .avatar-upload-box (unclipped) can host the badge fully
+           visible, sitting slightly below/outside the circle's edge. */
         .avatar-upload-input { display: none; }
         .avatar-upload-box {
             position: absolute; left: 50%; top: 0; transform: translate(-50%, -50%);
-            width: 84px; height: 84px; border-radius: 50%; background: var(--accent-soft);
-            display: flex; align-items: center; justify-content: center; cursor: pointer; overflow: hidden;
-            border: 4px solid var(--surface); flex-shrink: 0; box-shadow: 0 6px 18px rgba(0,0,0,0.18);
+            width: 84px; height: 84px; border-radius: 50%; cursor: pointer; flex-shrink: 0;
             z-index: 2;
+        }
+        .avatar-upload-circle {
+            width: 100%; height: 100%; border-radius: 50%; background: var(--accent-soft);
+            display: flex; align-items: center; justify-content: center; overflow: hidden;
+            border: 4px solid var(--surface); box-shadow: 0 6px 18px rgba(0,0,0,0.18);
         }
         .avatar-upload-box img { width: 100%; height: 100%; object-fit: cover; display: block; }
         .avatar-upload-placeholder { color: var(--accent); display: flex; align-items: center; justify-content: center; width: 100%; height: 100%; }
@@ -2116,7 +2159,7 @@
         .google-account-details small { font-size: 11.5px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; display: block; }
         .google-signout-btn { flex-shrink: 0; background: var(--bg); color: #C0392B; border: none; padding: 7px 12px; border-radius: 8px; font-size: 12.5px; font-weight: 500; cursor: pointer; }
         .google-signout-btn:active { background: var(--border); }
-        .avatar-upload-badge { position: absolute; top: 0px; right: 0px; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--on-color); display: flex; align-items: center; justify-content: center; border: 2px solid var(--surface); }
+        .avatar-upload-badge { position: absolute; bottom: -2px; right: -2px; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--on-color); display: flex; align-items: center; justify-content: center; border: 2px solid var(--surface); }
         .avatar-upload-badge svg { width: 13px; height: 13px; }
 
         /* ===================== TIER FRAMES — per-VIP-tier avatar rings =====================
@@ -2572,6 +2615,23 @@
         .package-card { border-radius: 20px; }
         .game-card { border-radius: 20px; }
         .list-card, .detail-form-card, .stat-box, .vip-card, .mini-profile-bar { border-radius: 20px; }
+        /* Status-colored left edge on History cards (inset shadow follows the rounded corners) */
+        .history-card.st-pending    { --st: #EAB308; }
+        .history-card.st-processing { --st: #1877F2; }
+        .history-card.st-success    { --st: #22C55E; }
+        .history-card.st-fail       { --st: #EF4444; }
+        .list-card.history-card[class*="st-"] { box-shadow: inset 4px 0 0 var(--st), var(--glass-shadow-sm); }
+
+        /* Order Detail — receipt / ticket style */
+        .od-receipt { padding: 16px 16px 18px; gap: 0; }
+        .od-receipt-head { display: flex; align-items: center; gap: 12px; }
+        .od-receipt .order-timeline { margin: 16px 0 6px; }
+        .od-rows { margin-top: 6px; }
+        .od-rows .od-row:last-of-type { border-bottom: none; }
+        .od-divider { border-top: 2px dashed var(--border); margin: 8px 0 14px; }
+        .od-total { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .od-total span { font-size: 13px; color: var(--text-secondary); }
+        .od-total b { font-size: 22px; font-weight: 700; color: var(--accent); letter-spacing: -0.3px; font-variant-numeric: tabular-nums; }
         .payment-option, .history-date-chip, .cat-filter-chip { border-radius: 18px; }
         .upload-shot-box { border-radius: 20px; }
 
@@ -2817,7 +2877,7 @@
             <!-- Step 0: waiting to see if a session already exists, so a
                  returning device doesn't flash the login step first. -->
             <div class="onboarding-step" id="onboard-step-checking">
-                <span class="onboarding-spinner"></span>
+                <span class="ld-ripple"><i></i><i></i></span>
             </div>
 
             <!-- Step 1: Google sign-in -->
@@ -3825,10 +3885,12 @@
                             </div>
                         </div>
                         <label class="avatar-upload-box" id="avatar-upload-box" for="profile-photo-file">
-                            <img id="profile-photo-preview" src="" alt="Profile photo" style="display:none;">
-                            <div class="avatar-upload-placeholder" id="avatar-upload-placeholder">
-                                <svg class="ui-icon"><use href="#icon-user"></use></svg>
-                            </div>
+                            <span class="avatar-upload-circle">
+                                <img id="profile-photo-preview" src="" alt="Profile photo" style="display:none;">
+                                <div class="avatar-upload-placeholder" id="avatar-upload-placeholder">
+                                    <svg class="ui-icon"><use href="#icon-user"></use></svg>
+                                </div>
+                            </span>
                             <span class="avatar-upload-badge"><svg class="ui-icon"><use href="#icon-camera"></use></svg></span>
                         </label>
                         <input type="file" id="profile-photo-file" class="avatar-upload-input" accept="image/*" onchange="previewProfilePhoto(event)">
@@ -4343,7 +4405,7 @@
                     <div class="recent-ids-row" id="recent-ids-row"></div>
                 </div>
                 <button type="button" id="confirm-id-btn" class="confirm-id-btn" onclick="confirmPlayerIdManual()" style="display:none;">
-                    <span class="confirm-id-spinner" id="confirm-id-spinner"></span>
+                    <span class="confirm-id-spinner" id="confirm-id-spinner"><i></i><i></i><i></i></span>
                     <span id="confirm-id-btn-text" data-i18n="btn_confirm_id">Confirm ID</span>
                 </button>
                 <div id="detail-id-status" style="margin-top:8px;display:none;"></div>
@@ -4672,6 +4734,7 @@
                 empty_signin_title: 'Sign in to browse accounts',
                 empty_signin_sub: 'Game accounts are high value, so please sign in with Google first.',
                 tap_view_profile: 'Tap to view profile', guest: 'Guest',
+                sign_in_for_tier: 'Sign in with Google to see your tier',
                 greeting_morning: 'Good Morning', greeting_afternoon: 'Good Afternoon',
                 greeting_evening: 'Good Evening', greeting_night: 'Good Night',
                 drawer_footer: 'PCA Store',
@@ -4800,6 +4863,7 @@
                 empty_signin_title: 'အကောင့်များကြည့်ရန် အကောင့်ဝင်ပါ',
                 empty_signin_sub: 'ဂိမ်းအကောင့်များသည် တန်ဖိုးမြင့်သောကြောင့် Google ဖြင့် အကောင့်ဝင်ပါ။',
                 tap_view_profile: 'ပရိုဖိုင်ကြည့်ရန် နှိပ်ပါ', guest: 'ဧည့်သည်',
+                sign_in_for_tier: 'Tier ကြည့်ရန် Google ဖြင့် Login ဝင်ပါ',
                 greeting_morning: 'မင်္ဂလာနံနက်ခင်းပါ', greeting_afternoon: 'မင်္ဂလာနေ့လယ်ခင်းပါ',
                 greeting_evening: 'မင်္ဂလာညနေခင်းပါ', greeting_night: 'မင်္ဂလာညချမ်းပါ',
                 drawer_footer: 'PCA Store',
@@ -4909,8 +4973,17 @@
         // icon/message — used for the first render of a list/grid before its
         // Firestore listener has returned any data yet, so the page never
         // flashes a misleading "No X yet" empty-state ahead of real data.
-        function loadingStateHTML() {
-            return `<div class="empty-state page-loading"><div class="page-loading-spinner"></div><div class="page-loading-label">PCA</div></div>`;
+        const LOADER_MARKUP = {
+            bars:   '<span class="ld-bars"><i></i><i></i><i></i><i></i></span>',
+            dots:   '<span class="ld-dots"><i></i><i></i><i></i></span>',
+            flip:   '<div class="ld-flip"></div>',
+            bar:    '<div class="ld-bar"><i></i></div>',
+            ripple: '<span class="ld-ripple"><i></i><i></i></span>',
+            grid:   '<span class="ld-grid"><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i></span>'
+        };
+        window.LOADER_MARKUP = LOADER_MARKUP;
+        function loadingStateHTML(type = 'grid') {
+            return `<div class="empty-state page-loading">${LOADER_MARKUP[type] || LOADER_MARKUP.grid}<div class="pca-anim"><span>P</span><span>C</span><span>A</span></div></div>`;
         }
         window.loadingStateHTML = loadingStateHTML;
 
@@ -9080,7 +9153,7 @@
                 // neutral loading state, not the "No top up requests" empty
                 // state (which would misleadingly flash before real data).
                 list.innerHTML = '';
-                empty.innerHTML = emptyStateHTML('icon-wallet', 'Loading...', '', '');
+                empty.innerHTML = `<div class="empty-state page-loading" style="min-height:30vh;">${LOADER_MARKUP.dots}<div class="pca-anim"><span>P</span><span>C</span><span>A</span></div></div>`;
                 empty.style.display = 'block';
                 return;
             }
@@ -9618,6 +9691,7 @@
             }
             renderGoogleAccountUI(user);
             if (window.renderAccountAccessGate) window.renderAccountAccessGate();
+            if (window.loadProfileStats) window.loadProfileStats();
             handleOnboardAuthState(user);
             if (user && walletGatePending) {
                 walletGatePending = false;
@@ -9970,6 +10044,25 @@
         async function loadProfileStats() {
             const guestId = window.getGuestId ? window.getGuestId() : '';
             if (!guestId) return;
+
+            // VIP tier is tied to a verified Google account — a guest's
+            // spend/order history lives under a local device ID that resets
+            // the moment storage is cleared, so a tier shown to a guest
+            // wouldn't be trustworthy. Hide the tier UI entirely until they
+            // sign in with Google instead of showing progress that isn't real.
+            if (!(auth.currentUser)) {
+                const miniTierEl = document.getElementById('mini-profile-tier');
+                const miniHintEl = document.getElementById('mini-profile-hint');
+                if (miniTierEl) miniTierEl.style.display = 'none';
+                if (miniHintEl) {
+                    miniHintEl.setAttribute('data-i18n', 'sign_in_for_tier');
+                    miniHintEl.textContent = t('sign_in_for_tier');
+                    miniHintEl.style.display = 'block';
+                }
+                const vipCard = document.getElementById('vip-card');
+                if (vipCard) vipCard.style.display = 'none';
+                return;
+            }
 
             const cached = getCachedUserStats(guestId);
             if (cached) renderProfileStatsUI(cached.total, cached.count, cached.games);
@@ -10805,6 +10898,7 @@
         // there are announcements to show, instead of playing once and staying
         // hidden until the next Firestore update.
         let bulletChatLoopTimer = null;
+        let bulletChatAnimEndHandler = null; // see playBulletChatPass()
         const BULLET_CHAT_PAUSE_MS = 4000; // pause between each pass of the ticker
 
         function renderBulletChat() {
@@ -10814,6 +10908,7 @@
             // Cancel any pending "play again" from a previous run so we don't
             // end up with two loops racing each other after a data update.
             if (bulletChatLoopTimer) { clearTimeout(bulletChatLoopTimer); bulletChatLoopTimer = null; }
+            if (bulletChatAnimEndHandler) { track.removeEventListener('animationend', bulletChatAnimEndHandler); bulletChatAnimEndHandler = null; }
 
             if (latestAnnouncements.length === 0) {
                 wrapper.classList.remove('show');
@@ -10843,6 +10938,19 @@
             }
             wrapper.classList.add('show');
 
+            // If a previous pass got interrupted (re-rendered mid-animation by
+            // a new admin ticker update) its animationend listener never fired
+            // and was left attached. Without removing it here, every
+            // interrupted pass leaves one more listener stacked on the track,
+            // and they'd all fire together the next time a pass actually
+            // completes — spawning several overlapping loops that raced each
+            // other and made the ticker visibly speed up/glitch every so
+            // often. Only ever one listener alive at a time now.
+            if (bulletChatAnimEndHandler) {
+                track.removeEventListener('animationend', bulletChatAnimEndHandler);
+                bulletChatAnimEndHandler = null;
+            }
+
             // Restart the marquee from the beginning for this pass. Duration is
             // derived from the actual distance traveled (viewport width + track
             // width) at a fixed, moderate speed, so the crawl always feels like
@@ -10857,11 +10965,13 @@
             track.style.animation = '';
             track.style.animationDuration = duration + 's';
             track.classList.add('bullet-chat');
-            track.addEventListener('animationend', () => {
+            bulletChatAnimEndHandler = () => {
+                bulletChatAnimEndHandler = null;
                 bulletChatLoopTimer = setTimeout(() => {
                     if (latestAnnouncements.length > 0) playBulletChatPass();
                 }, BULLET_CHAT_PAUSE_MS);
-            }, { once: true });
+            };
+            track.addEventListener('animationend', bulletChatAnimEndHandler, { once: true });
         }
 
         let latestAnnouncements = [];
@@ -11109,6 +11219,13 @@
             return 'badge-warning'; // Pending
         }
 
+        function historyStatusClassFor(status) {
+            if (status === 'Success') return 'st-success';
+            if (status === 'Processing') return 'st-processing';
+            if (status === 'Fail') return 'st-fail';
+            return 'st-pending';
+        }
+
         // Small animated icon shown at the front of each status badge - a pulsing
         // dot while Pending, a spinner while Processing, a pop-in check on Success.
         function historyStatusIconHTML(status) {
@@ -11302,7 +11419,7 @@
                 ? `<p class="hc-order-id">Order ID: ${providerOrderId}</p>`
                 : '';
             return `
-                <div class="list-card history-card" style="animation-delay:${Math.min(pos, 8) * 0.03}s" onclick="openOrderDetail(${index})">
+                <div class="list-card history-card ${historyStatusClassFor(data.status)}" style="animation-delay:${Math.min(pos, 8) * 0.03}s" onclick="openOrderDetail(${index})">
                     <div class="hc-left">
                         <div class="hc-thumb">${gameImg ? `<img src="${gameImg}" alt="" onerror="this.style.display='none'">` : ''}</div>
                         <div class="list-info">
@@ -11445,34 +11562,34 @@
                 : '';
             document.getElementById('order-detail-body').innerHTML = `
                 ${voucherCodeBlockHTML(data, data.id)}
-                <div style="display:flex;align-items:center;gap:12px;">
-                    <div class="hc-thumb" style="width:52px;height:52px;">${gameImg ? `<img src="${gameImg}" alt="" onerror="this.style.display='none'">` : ''}</div>
-                    <div style="flex:1;min-width:0;">
-                        <h4 style="font-size:17px;font-weight: 600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${data.game}</h4>
-                        <p style="font-size:12px;color:var(--text-muted);margin-top:2px;">${dateStr}</p>
+                <div class="detail-form-card od-receipt" style="gap:0;">
+                    <div class="od-receipt-head">
+                        <div class="hc-thumb" style="width:52px;height:52px;">${gameImg ? `<img src="${gameImg}" alt="" onerror="this.style.display='none'">` : ''}</div>
+                        <div style="flex:1;min-width:0;">
+                            <h4 style="font-size:17px;font-weight: 600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${data.game}</h4>
+                            <p style="font-size:12px;color:var(--text-muted);margin-top:2px;">${dateStr}</p>
+                        </div>
+                        <span class="badge ${badgeClass}">${historyStatusIconHTML(data.status)}${orderStatusLabel(data.status)}</span>
                     </div>
-                    <span class="badge ${badgeClass}">${historyStatusIconHTML(data.status)}${orderStatusLabel(data.status)}</span>
-                </div>
 
-                ${orderTimelineHTML(data)}
+                    ${orderTimelineHTML(data)}
 
-                <div class="detail-form-card" style="gap:0;">
-                    <div class="od-row"><span>Package</span><b>${data.itemAmount || '-'}</b></div>
-                    <div class="od-row"><span>Amount Paid</span><b style="color:var(--accent);font-size:15px;">${Number(data.price).toLocaleString()} MMK</b></div>
-                    <div class="od-row"><span>Payment Method</span><b>${data.paymentMethod || '-'}</b></div>
-                    ${data.transactionId ? `<div class="od-row"><span>Transaction ID</span><b style="font-family:monospace;">${escapeHtml(data.transactionId)}</b></div>` : ''}
-                </div>
+                    <div class="od-rows">
+                        <div class="od-row"><span>Package</span><b>${data.itemAmount || '-'}</b></div>
+                        <div class="od-row"><span>Payment Method</span><b>${data.paymentMethod || '-'}</b></div>
+                        ${data.transactionId ? `<div class="od-row"><span>Transaction ID</span><b style="font-family:monospace;">${escapeHtml(data.transactionId)}</b></div>` : ''}
+                        <div class="od-row"><span>In-Game ID</span><b>${escapeHtml(data.playerId || '-')}</b></div>
+                        ${inGameNameRow}
+                        ${serverIdRow}
+                        ${serverRegionRow}
+                        ${orderedAtRow}
+                        ${completedAtRow}
+                        ${orderIdRow}
+                        ${durationRow}
+                    </div>
 
-                <p class="detail-section-title" style="margin:16px 0 8px;">Order Info</p>
-                <div class="detail-form-card" style="gap:0;">
-                    <div class="od-row"><span>In-Game ID</span><b>${escapeHtml(data.playerId || '-')}</b></div>
-                    ${inGameNameRow}
-                    ${serverIdRow}
-                    ${serverRegionRow}
-                    ${orderedAtRow}
-                    ${completedAtRow}
-                    ${orderIdRow}
-                    ${durationRow}
+                    <div class="od-divider"></div>
+                    <div class="od-total"><span>Amount Paid</span><b>${Number(data.price).toLocaleString()} MMK</b></div>
                 </div>
 
                 ${data.receiptUrl ? `
@@ -12579,7 +12696,7 @@
             if (signature === lastHomeGamesSignature && grid.children.length > 0) return;
             lastHomeGamesSignature = signature;
             if (ids.length === 0) {
-                grid.innerHTML = gamesLoadedOnce ? '<p class="empty-msg">No games available yet.</p>' : loadingStateHTML();
+                grid.innerHTML = gamesLoadedOnce ? '<p class="empty-msg">No games available yet.</p>' : loadingStateHTML('grid');
                 popularSection.style.display = 'none';
                 popularScroll.innerHTML = '';
                 if (countEl) countEl.textContent = '';
@@ -12704,7 +12821,7 @@
             if (ids.length === 0) {
                 grid.innerHTML = gamesLoadedOnce
                     ? emptyStateHTML('icon-gift', 'No vouchers yet', 'Gift cards & vouchers will show up here once added.')
-                    : loadingStateHTML();
+                    : loadingStateHTML('flip');
                 if (popularSection) popularSection.style.display = 'none';
                 if (popularScroll) popularScroll.innerHTML = '';
                 return;
@@ -15301,12 +15418,8 @@
             // earlier visit, re-run its setup rather than leaving it stale.
             const chatPanel = document.getElementById('support-panel-chat');
             if (chatPanel && chatPanel.style.display !== 'none') switchSupportTab('chat');
-            // Push a history entry so the device's physical/gesture Back button
-            // closes this overlay (handled by the popstate listener below)
-            // instead of navigating the browser away from the site entirely.
-            try { history.pushState({ supportWidget: true }, ''); } catch (e) { /* ignore */ }
         }
-        function closeSupportWidget(fromPopstate) {
+        function closeSupportWidget() {
             const overlay = document.getElementById('support-widget-overlay');
             if (overlay) overlay.classList.remove('show');
             scheduleSupportFabPeek();
@@ -15317,11 +15430,6 @@
             // whole widget is closed. Re-attaches instantly next time the
             // Chat tab is opened.
             if (window.stopListenSupportChatMessages) window.stopListenSupportChatMessages();
-            // Closed via the X/overlay tap rather than Back - unwind the history
-            // entry we pushed on open so Back doesn't just reopen it.
-            if (!fromPopstate) {
-                try { if (history.state && history.state.supportWidget) history.back(); } catch (e) { /* ignore */ }
-            }
         }
         window.openSupportWidget = openSupportWidget;
         window.closeSupportWidget = closeSupportWidget;
@@ -15353,10 +15461,54 @@
             window.open(url, '_blank', 'noopener');
         }
         window.contactAccountAdminOnTelegram = contactAccountAdminOnTelegram;
+
+        // ---------- Phone Back button: keep it inside the app ----------
+        // This store page has no browser history of its own, so the device's
+        // physical/gesture Back button used to exit the site on the very
+        // first press - whether that was a deliberate tap to close a modal,
+        // an attempt to step back a tab, or a mis-tap while typing. Fix: one
+        // guard entry is kept pushed onto history at all times. Every Back
+        // press pops it (firing 'popstate' below); that's handled entirely
+        // in-app - closing whichever modal/overlay is open (most specific
+        // one first), or stepping back from a sub-page/tab to Home - and
+        // then a fresh guard entry is pushed right away, so the next Back
+        // press is caught the same way. Back can never actually navigate the
+        // browser away from the page.
+        function pushBackGuard() {
+            try { history.pushState({ backGuard: true }, ''); } catch (e) { /* ignore */ }
+        }
+        function handleBackButton() {
+            const isShown = (id) => document.getElementById(id)?.classList.contains('show');
+            if (isShown('chat-img-viewer-overlay')) return closeChatImageViewer();
+            if (isShown('support-widget-overlay')) return closeSupportWidget();
+            if (isShown('order-detail-overlay')) return closeOrderDetail();
+            if (isShown('wallet-topup-detail-overlay')) return closeWalletTopupDetail();
+            if (isShown('wallet-crypto-overlay')) return closeCryptoTopupModal();
+            if (isShown('wallet-aluu-overlay')) return closeAluuTopupModal();
+            if (isShown('wallet-google-gate-overlay')) return closeWalletGoogleGate();
+            if (isShown('wallet-topup-overlay')) return closeWalletTopupModal();
+            if (isShown('profile-edit-overlay')) return closeProfileEditModal();
+            if (isShown('sell-account-overlay')) return closeSellAccountModal();
+            if (isShown('drawer-overlay')) return closeDrawer();
+            // Sub-pages reached via showPage() rather than an overlay - back
+            // out of these to wherever they were opened from.
+            const page = window.currentStorePage;
+            if (page === 'game-detail' && window.closeGameDetail) return closeGameDetail();
+            if (page === 'account-detail' && window.closeAccountDetail) return closeAccountDetail();
+            if (page === 'notif-detail' && window.closeNotificationDetail) return closeNotificationDetail();
+            if (page === 'notif-page' && window.closeNotificationsPage) return closeNotificationsPage();
+            if (page === 'terms' && window.closeTermsPage) return closeTermsPage();
+            // Otherwise, step back to the Home tab instead of exiting.
+            if (page && page !== 'home' && window.showPage) return showPage('home');
+            // Already on Home with nothing open - nothing left to unwind
+            // in-app; the guard entry re-pushed below just keeps the app open.
+        }
         window.addEventListener('popstate', () => {
-            const overlay = document.getElementById('support-widget-overlay');
-            if (overlay && overlay.classList.contains('show')) closeSupportWidget(true);
+            handleBackButton();
+            pushBackGuard();
         });
+        pushBackGuard();
+
 
         function switchSupportTab(tab) {
             ['guide', 'complaint', 'chat'].forEach(t => {
@@ -15675,7 +15827,7 @@
             bubble.className = 'support-chat-bubble image-bubble mine';
             bubble.id = 'sc-img-pending-' + Date.now();
             const label = count > 1 ? `<span style="position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:11px;color:var(--text-secondary);">${count} photos</span>` : '';
-            bubble.innerHTML = `<div class="support-chat-image-spinner-wrap" style="position:relative;"><div class="support-chat-image-spinner"></div>${label}</div>`;
+            bubble.innerHTML = `<div class="support-chat-image-spinner-wrap" style="position:relative;"><div class="ld-bar"><i></i></div>${label}</div>`;
             box.appendChild(bubble);
             box.scrollTop = box.scrollHeight;
             return bubble.id;
