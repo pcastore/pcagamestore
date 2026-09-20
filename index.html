@@ -1247,7 +1247,9 @@
         .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; font-weight: 500; color: var(--text-secondary); cursor: pointer; flex: 1; min-width: 0; }
         .nav-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .nav-item.active { color: var(--accent); }
-        .nav-icon-wrap { width: 40px; height: 40px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+        .nav-icon-wrap { width: 32px; height: 32px; border-radius: 7px; display: flex; align-items: center; justify-content: center; }
+        .nav-icon-wrap .ui-icon { width: 19px; height: 19px; }
+        .nav-label { font-size: 10px; }
         .nav-item.active .ui-icon { stroke: var(--accent); }
         
         /* Toast — pastel status card: icon circle, message, dismiss ×.
@@ -2410,7 +2412,7 @@
             border: 1px solid var(--glass-border);
             border-top: 1px solid var(--glass-border);
             border-radius: 16px;
-            padding: 8px 6px calc(8px + env(safe-area-inset-bottom, 0px));
+            padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px));
             box-shadow: 0 16px 40px -10px rgba(20,30,60,0.35), inset 0 1px 1px rgba(255,255,255,0.5), inset 0 -1px 8px rgba(0,0,0,0.04);
             position: fixed;
             transform: translateZ(0);
@@ -2460,6 +2462,37 @@
         }
         .nav-item.active .nav-icon-wrap::before { opacity: 1; }
         .nav-item.active .nav-icon-wrap .ui-icon { filter: drop-shadow(0 1px 1px rgba(0,0,0,0.12)); }
+
+        /* Wallet tab: always-on glowing bubble that floats above the dock,
+           like a FAB, so it reads as the shortcut to add/manage money even
+           when it isn't the active tab. Stays lit (not just on .active) so
+           it's never mistaken for a disabled/inactive icon. */
+        .nav-item-wallet { overflow: visible; }
+        .nav-icon-wrap-wallet {
+            width: 42px; height: 42px; border-radius: 50%;
+            background: linear-gradient(150deg, var(--accent), var(--accent-dark));
+            transform: translateY(-12px);
+            box-shadow:
+                0 6px 16px -2px rgba(var(--accent-rgb),0.65),
+                0 0 0 4px var(--bg), 0 0 14px 2px rgba(var(--accent-rgb),0.55),
+                inset 0 1px 1px rgba(255,255,255,0.5);
+            animation: walletGlowPulse 2.4s ease-in-out infinite;
+        }
+        .nav-icon-wrap-wallet .ui-icon { width: 21px; height: 21px; stroke: #fff; }
+        .nav-item-wallet:active .nav-icon-wrap-wallet { transform: translateY(-12px) scale(0.92); }
+        .nav-item-wallet.active .nav-icon-wrap-wallet,
+        .nav-item.active .nav-icon-wrap-wallet {
+            background: linear-gradient(150deg, var(--accent), var(--accent-dark));
+            transform: translateY(-12px) scale(1.06);
+        }
+        .nav-item-wallet .nav-label { color: var(--accent); font-weight: 600; }
+        @keyframes walletGlowPulse {
+            0%, 100% { box-shadow: 0 6px 16px -2px rgba(var(--accent-rgb),0.65), 0 0 0 4px var(--bg), 0 0 14px 2px rgba(var(--accent-rgb),0.55), inset 0 1px 1px rgba(255,255,255,0.5); }
+            50% { box-shadow: 0 6px 18px -2px rgba(var(--accent-rgb),0.85), 0 0 0 4px var(--bg), 0 0 22px 6px rgba(var(--accent-rgb),0.8), inset 0 1px 1px rgba(255,255,255,0.5); }
+        }
+        @media (prefers-reduced-motion: reduce) {
+            .nav-icon-wrap-wallet { animation: none; }
+        }
 
         /* Cards
            IMPORTANT (perf): these repeat many times per screen (every game
@@ -4405,19 +4438,19 @@
     <nav class="bottom-nav" id="bottom-nav" aria-label="Main navigation">
         <div class="nav-item active" id="btn-home" onclick="showPage('home')" role="button">
             <div class="nav-icon-wrap"><svg class="ui-icon"><use href="#icon-home"></use></svg></div>
-            <span class="nav-label" data-i18n="nav_home">Home</span>
+            <span class="nav-label" data-i18n="nav_topup">Top Up</span>
         </div>
         <div class="nav-item" id="btn-voucher" onclick="showPage('voucher')" role="button">
             <div class="nav-icon-wrap"><svg class="ui-icon"><use href="#icon-gift"></use></svg></div>
             <span class="nav-label" data-i18n="nav_voucher">Voucher</span>
         </div>
-        <div class="nav-item" id="btn-name-check" onclick="showPage('name-check')" role="button">
-            <div class="nav-icon-wrap"><svg class="ui-icon"><use href="#icon-search"></use></svg></div>
-            <span class="nav-label" data-i18n="nc_title">Name Check</span>
+        <div class="nav-item nav-item-wallet" id="btn-wallet" onclick="showPage('wallet')" role="button">
+            <div class="nav-icon-wrap nav-icon-wrap-wallet"><svg class="ui-icon"><use href="#icon-wallet"></use></svg></div>
+            <span class="nav-label" data-i18n="nav_wallet">Wallet</span>
         </div>
-        <div class="nav-item" id="btn-history" onclick="showPage('history')" role="button">
-            <div class="nav-icon-wrap"><svg class="ui-icon"><use href="#icon-history"></use></svg></div>
-            <span class="nav-label" data-i18n="nav_history">History</span>
+        <div class="nav-item" id="btn-account" onclick="showPage('account')" role="button">
+            <div class="nav-icon-wrap"><svg class="ui-icon"><use href="#icon-shield"></use></svg></div>
+            <span class="nav-label" data-i18n="nav_gameacc">Game Acc</span>
         </div>
         <div class="nav-item" id="btn-profile" onclick="showPage('profile')" role="button">
             <div class="nav-icon-wrap"><svg class="ui-icon"><use href="#icon-user"></use></svg></div>
@@ -4485,6 +4518,7 @@
         const I18N = {
             en: {
                 nav_home: 'Home', nav_voucher: 'Voucher', nav_account: 'Game Accounts',
+                nav_topup: 'Top Up', nav_gameacc: 'Game Acc',
                 nav_history: 'History', nav_leaderboard: 'Leaderboard', nav_wallet: 'Wallet',
                 nav_profile: 'Profile', nav_notifications: 'Notifications', nav_theme: 'Dark Mode',
                 nav_terms: 'Terms & Policy', nav_support: 'Support', nav_language: 'Language', acct_soon_title: 'Coming Soon', acct_soon_sub: "Game Accounts isn't open yet. We're getting it ready - check back soon.", nc_title: 'Name Check', nc_clear: 'Clear', nc_select_game: 'Select game', nc_player_id_ph: 'Player ID', nc_server_ph: 'Server ID', nc_select_server: 'Select server / region', nc_global: 'Global', nc_server: 'Server', nc_unavailable: "Couldn't check right now. Please try again later.", pc_wallet_balance: 'Wallet balance', pc_topup: 'Top up', pc_orders: 'Orders', pc_total_spent: 'Total spent', pc_edit: 'Edit profile',
@@ -4612,6 +4646,7 @@
             },
             my: {
                 nav_home: 'ပင်မ', nav_voucher: 'ဗောက်ချာ', nav_account: 'ဂိမ်းအကောင့်',
+                nav_topup: 'ငွေဖြည့်', nav_gameacc: 'အကောင့်',
                 nav_history: 'မှတ်တမ်း', nav_leaderboard: 'ထိပ်တန်းစာရင်း', nav_wallet: 'ပိုက်ဆံအိတ်',
                 nav_profile: 'ပရိုဖိုင်', nav_notifications: 'အသိပေးချက်များ', nav_theme: 'အနက်ရောင်မုဒ်',
                 nav_terms: 'စည်းမျဉ်းစည်းကမ်း', nav_support: 'အကူအညီ', nav_language: 'ဘာသာစကား', acct_soon_title: 'မကြာမီ လာမည်', acct_soon_sub: 'Game Account ဝန်ဆောင်မှုကို ပြင်ဆင်နေပါသည်။ မကြာမီ ပြန်လာကြည့်ပါ။', nc_title: 'အမည်စစ်ဆေးရန်', nc_clear: 'ရှင်းမည်', nc_select_game: 'ဂိမ်းရွေးပါ', nc_player_id_ph: 'Player ID', nc_server_ph: 'Server ID', nc_select_server: 'Server / Region ရွေးပါ', nc_global: 'Global', nc_server: 'Server', nc_unavailable: 'ယခု စစ်ဆေး၍မရပါ၊ ခဏနေမှ ပြန်ကြိုးစားပါ', pc_wallet_balance: 'Wallet လက်ကျန်ငွေ', pc_topup: 'ငွေဖြည့်ရန်', pc_orders: 'အော်ဒါများ', pc_total_spent: 'စုစုပေါင်းသုံးငွေ', pc_edit: 'ပရိုဖိုင်ပြင်ရန်',
@@ -5021,7 +5056,7 @@
         // whose swipe-left/swipe-right animation slides the next page in
         // the rest of the way from off-screen.
         (function initTabSwipe() {
-            const TAB_ORDER = ['home', 'voucher', 'account', 'name-check', 'history', 'leaderboard', 'wallet', 'profile'];
+            const TAB_ORDER = ['home', 'voucher', 'wallet', 'account', 'name-check', 'history', 'leaderboard', 'profile'];
             const content = document.querySelector('main.content-area');
             if (!content) return;
 
