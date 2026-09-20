@@ -184,11 +184,14 @@
            and this app uses it on ~30 elements (header, bottom nav, cards,
            modals, toggle, tabs...) all driven by the single --blur variable
            above. blur(16px) is heavy on low-end phones — every element using
-           it forces a GPU compositing pass. Narrow (mobile) viewports get a
-           lighter blur + no saturate boost, which is visually close but far
-           cheaper to render; desktop keeps the original. */
+           it forces a GPU compositing pass, and .modal-box in particular
+           blurs a full-screen area behind it. PERF (perf audit): narrow
+           (mobile) viewports drop backdrop-filter entirely - every element
+           above falls back to its plain translucent background tint
+           (still visually a "glass" surface, just without the live blur
+           sampling behind it); desktop keeps the original blur.  */
         @media (max-width: 600px) {
-            :root, html[data-theme="dark"] { --blur: blur(8px); }
+            :root, html[data-theme="dark"] { --blur: none; }
         }
         /* Dark-mode recolors for elements that were designed as light pastel
            tints (badges, focus states, status cards). Without these they show
@@ -735,23 +738,14 @@
         .game-card.pinned .game-card-pin-badge { display: flex; animation: pinBadgePop 0.3s cubic-bezier(.4,1.6,.4,1); }
         @keyframes pinBadgePop { 0% { transform: scale(0); } 70% { transform: scale(1.2); } 100% { transform: scale(1); } }
 
-        /* Entrance motion for game/order cards: each card fades + rises + settles
-           into place with a slight overshoot, staggered card-by-card so the whole
-           grid feels like it "unrolls" in whenever it appears (on load, category
-           switch, search, or scroll) instead of popping in flat. */
-        /* Cards start hidden and only play the entrance keyframe once the
-           scroll-reveal observer (see revealCardsIn() in JS) marks them
-           ".in-view" - i.e. as the user actually drags the page up/down and
-           each card scrolls into the viewport, rather than all firing at once
-           on render. Cards already on-screen at render time reveal almost
-           immediately (staggered by the existing per-card animation-delay). */
-        .game-card-anim { opacity: 0; }
-        .game-card-anim.in-view { animation: gameCardIn 0.26s cubic-bezier(.22,1.12,.36,1) both; }
-        @keyframes gameCardIn {
-            0%   { opacity: 0; transform: translateY(14px) scale(0.94); }
-            60%  { opacity: 1; transform: translateY(-1px) scale(1.01); }
-            100% { opacity: 1; transform: translateY(0) scale(1); }
-        }
+        /* Entrance motion for game/order cards. PERF/UX: this used to be
+           gated behind a scroll-triggered IntersectionObserver (see the old
+           revealCardsIn()) so cards stayed invisible until the user actually
+           scrolled them into view, then faded in one-by-one while dragging -
+           removed per feedback. Cards now render fully visible immediately;
+           no animation, no scroll-linked reveal, no opacity delay. */
+        .game-card-anim { opacity: 1; }
+        .game-card-anim.in-view { animation: none; }
         @media (prefers-reduced-motion: reduce) {
             .game-card-anim, .game-card-anim.in-view { animation: none; opacity: 1; }
         }
@@ -1347,6 +1341,14 @@
         .games-grid-scroll {
             margin: 0 -2px; padding: 2px;
         }
+        /* "Load More" under the Home All-Games grid (PERF: paginated grid). */
+        .load-more-games-btn {
+            display: block; width: 100%; margin: 12px 0 4px; padding: 12px;
+            border-radius: 14px; border: 1px solid var(--glass-border);
+            background: var(--glass-bg-strong); color: var(--text);
+            font-size: 13.5px; font-weight: 600; cursor: pointer;
+        }
+        .load-more-games-btn:active { transform: scale(0.98); }
 
         /* Game Account Marketplace (Account tab) — game-folder grid reuses
            .game-card; these are the extra bits specific to browsing/buying
@@ -3132,6 +3134,7 @@
                     <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
                 </div>
             </div>
+            <button type="button" class="load-more-games-btn" id="home-games-load-more-btn" style="display:none;" onclick="loadMoreHomeGames()">Load More</button>
         </div>
 
         <!-- VOUCHER PAGE — games/servers whose packages are fulfilled via the
@@ -6336,28 +6339,41 @@
             // packages into (Currency/Package built-ins plus any custom tab
             // like "Wow"), not just the two hardcoded types — otherwise a
             // custom tab's packages are invisible as their own section here.
-            const tabsEl = document.getElementById('pkg-type-tabs');
-            const seenTabs = [];
-            gamePackages.forEach(pkg => {
-                const t = pkgTabOf(pkg);
-                if (!seenTabs.includes(t)) seenTabs.push(t);
-            });
-            // Keep a stable, familiar order: built-ins first (Currency before
-            // Package, matching the admin panel's tab bar), then custom tabs
-            // in the order the admin created them.
-            const orderedTabs = ['currency', 'package', ...seenTabs.filter(t => t !== 'package' && t !== 'currency')]
-                .filter(t => seenTabs.includes(t));
-            if (orderedTabs.length > 1) {
-                tabsEl.style.display = 'flex';
-                activePackageTab = orderedTabs.includes('currency') ? 'currency' : orderedTabs[0];
-            } else {
-                tabsEl.style.display = 'none';
-                activePackageTab = orderedTabs[0] || 'currency';
+            // Wrapped in try/catch: a bad package entry for this one game
+            // (missing price/amount etc.) used to throw here and silently
+            // abort the whole function before showPage('game-detail') below
+            // ever ran - so tapping that game card (or a server card for a
+            // multi-server game) looked like it just did nothing / left the
+            // user stuck on whatever page they tapped from. Now it logs the
+            // error and still opens the page instead of losing navigation.
+            try {
+                const tabsEl = document.getElementById('pkg-type-tabs');
+                const seenTabs = [];
+                gamePackages.forEach(pkg => {
+                    const t = pkgTabOf(pkg);
+                    if (!seenTabs.includes(t)) seenTabs.push(t);
+                });
+                // Keep a stable, familiar order: built-ins first (Currency before
+                // Package, matching the admin panel's tab bar), then custom tabs
+                // in the order the admin created them.
+                const orderedTabs = ['currency', 'package', ...seenTabs.filter(t => t !== 'package' && t !== 'currency')]
+                    .filter(t => seenTabs.includes(t));
+                if (orderedTabs.length > 1) {
+                    tabsEl.style.display = 'flex';
+                    activePackageTab = orderedTabs.includes('currency') ? 'currency' : orderedTabs[0];
+                } else {
+                    tabsEl.style.display = 'none';
+                    activePackageTab = orderedTabs[0] || 'currency';
+                }
+                tabsEl.innerHTML = orderedTabs.map(t => `
+                    <button type="button" class="pkg-type-tab ${t === activePackageTab ? 'active' : ''}" data-type="${t}" onclick="switchPackageTab('${t.replace(/'/g, "\\'")}')">${pkgTabLabel(t)}</button>
+                `).join('');
+                renderDetailPackageList();
+            } catch (err) {
+                console.error('openGameDetail: package list render failed for', gameId, err);
+                const list = document.getElementById('detail-package-list');
+                if (list) list.innerHTML = '<p class="empty-msg">Could not load packages for this game.</p>';
             }
-            tabsEl.innerHTML = orderedTabs.map(t => `
-                <button type="button" class="pkg-type-tab ${t === activePackageTab ? 'active' : ''}" data-type="${t}" onclick="switchPackageTab('${t.replace(/'/g, "\\'")}')">${pkgTabLabel(t)}</button>
-            `).join('');
-            renderDetailPackageList();
 
             document.getElementById('detail-payment-section').style.display = 'none';
             document.getElementById('detail-payment-info').style.display = 'none';
@@ -6543,10 +6559,10 @@
                 const bodyHTML = isVoucher
                     ? `<div class="pc-amount-badge">${pkg.amount}</div>
                     <div class="pc-img-wrap">${imgTag}</div>
-                    <div class="pc-price-bar"><span class="pc-price">${pkg.price.toLocaleString()}<span class="pc-cur">MMK</span></span></div>${tagHtml}`
+                    <div class="pc-price-bar"><span class="pc-price">${Number(pkg.price || 0).toLocaleString()}<span class="pc-cur">MMK</span></span></div>${tagHtml}`
                     : `<div class="pc-img-wrap">${imgTag}</div>
                     <div class="pc-label-wrap${tagHtml ? ' has-tag' : ''}"><span class="pc-label${pcLabelSizeClass(String(pkg.amount))}">${pkg.amount}</span>${tagHtml}</div>
-                    <div class="pc-price-bar"><span class="pc-price">${pkg.price.toLocaleString()}<span class="pc-cur">MMK</span></span></div>`;
+                    <div class="pc-price-bar"><span class="pc-price">${Number(pkg.price || 0).toLocaleString()}<span class="pc-cur">MMK</span></span></div>`;
                 return `
                 <div class="package-card ${cardTypeClass} game-card-anim${outOfStock ? ' out-of-stock' : ''}" style="animation-delay:${Math.min(pos * 18, 120)}ms" data-index="${i}" onclick="${outOfStock ? '' : `selectPackageOption(${i})`}">
                     ${stockBadge}<span class="pc-selected-check"><svg class="ui-icon"><use href="#icon-check"></use></svg></span>
@@ -8106,7 +8122,7 @@
                 return `
                     <div class="game-card popular-card game-card-anim pinned" data-game-id="${id}" style="animation-delay:${Math.min(i * 18, 120)}ms" onclick="openGameDetail('${id}')">
                         <div class="game-card-img-wrap">
-                            <img src="${g.image}" alt="${g.name}" loading="lazy" decoding="async">
+                            <img src="${optimizedGameImg(g.image, 200)}" alt="${g.name}" loading="lazy" decoding="async">
                             ${pinBadgeHtml()}
                         </div>
                         <div class="game-card-name">${g.serverName || g.name}</div>
@@ -11976,6 +11992,18 @@
         // it actually renders (name/image/category/popular/order) against the last
         // render and skips the rebuild entirely when nothing visible changed.
         let lastHomeGamesSignature = null;
+        // PERF: Home used to render all ~177 game cards (and their ~177
+        // images) into the DOM at once on first load. Now it renders a
+        // first page of HOME_GAMES_INITIAL_BATCH, then HOME_GAMES_LOAD_STEP
+        // more each time "Load More" is tapped - far fewer DOM nodes/images
+        // exist at once, and the ones that do are still viewport-lazy-loaded
+        // (loading="lazy" on the <img>). Resets back to the first page
+        // whenever the category chip or search box changes.
+        const HOME_GAMES_INITIAL_BATCH = 9;
+        const HOME_GAMES_LOAD_STEP = 18;
+        let homeGamesVisibleCount = HOME_GAMES_INITIAL_BATCH;
+        let lastHomeGamesFilterKey = null;
+        let HOME_VISIBLE_GROUPS = [];
 
         // Whether each import source is currently turned on in the admin panel
         // (Dashboard → that provider's Settings → "Enabled" toggle). Mirrors
@@ -12089,6 +12117,24 @@
             return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
         }
         window.escapeHtml = escapeHtml;
+
+        // PERF: game images are uploaded to whatever external host the admin
+        // used, at whatever original size/format that host serves - some are
+        // multi-MB JPEGs/PNGs, which is what made a few cards visibly slow to
+        // load. Routes them through wsrv.nl's free image proxy/resizer
+        // instead, requesting a WebP re-encode sized for the slot it's
+        // actually shown in - far less bytes over the wire, no server-side
+        // work needed on our end. Falls back to the original URL untouched
+        // for anything that isn't a normal http(s) image link (data: URIs,
+        // already-proxied URLs, missing image, etc.) so nothing ever breaks
+        // because of this.
+        function optimizedGameImg(url, width) {
+            if (!url || typeof url !== 'string') return url;
+            if (!/^https?:\/\//i.test(url) || url.includes('wsrv.nl')) return url;
+            const w = width || 200;
+            return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=${w}&h=${w}&fit=cover&output=webp&q=78`;
+        }
+        window.optimizedGameImg = optimizedGameImg;
 
         function filterGamesBySearch(value) {
             gameSearchQuery = (value || '').trim().toLowerCase();
@@ -12209,7 +12255,7 @@
                 return `
                     <div class="game-card game-card-anim" style="animation-delay:${Math.min(i * 18, 120)}ms" onclick="openGameDetail('${id}')">
                         <div class="game-card-img-wrap">
-                            <img src="${g.image}" alt="${label}" loading="lazy" decoding="async">
+                            <img src="${optimizedGameImg(g.image, 200)}" alt="${label}" loading="lazy" decoding="async">
                         </div>
                         <div class="game-card-name">${label}</div>
                     </div>
@@ -12243,40 +12289,25 @@
         }
         window.closeTermsPage = closeTermsPage;
 
-        // Scroll-reveal for .game-card-anim elements: instead of every card
-        // animating in the instant it's rendered, each card stays invisible
-        // until it actually scrolls into view, then plays the entrance
-        // animation - so dragging the page up/down reveals cards one by one.
-        const cardRevealObserver = ('IntersectionObserver' in window)
-            ? new IntersectionObserver((entries) => {
-                entries.forEach(entry => {
-                    if (entry.isIntersecting) {
-                        entry.target.classList.add('in-view');
-                        cardRevealObserver.unobserve(entry.target);
-                    }
-                });
-            }, { root: null, rootMargin: '0px', threshold: 0.15 })
-            : null;
-
         // Popular Games row perf: rendering every popular-flagged game (and
         // fetching every card's image) up front was wasted work on phones
         // that never scroll the row to the end. Render an initial batch,
         // then load more in batches as the row's end sentinel scrolls into
-        // view (also fed by the auto-scroll loop above, so it works even
-        // without the user touching the row).
+        // view.
         const POPULAR_INITIAL_BATCH = 8;
         const POPULAR_LOAD_STEP = 8;
         let popularLoadMoreObserver = null;
 
+        // revealCardsIn() used to gate .game-card-anim cards behind an
+        // IntersectionObserver so each card only faded in once scrolled
+        // into view (the "cards slowly appear while you drag the page"
+        // effect) - removed per feedback. Cards are opacity:1 with no
+        // animation now (see .game-card-anim CSS above), so this just marks
+        // them all in-view immediately; kept as a function (rather than
+        // deleted) since it's still called from every card-grid render site.
         function revealCardsIn(container) {
             if (!container) return;
-            const cards = container.querySelectorAll('.game-card-anim:not(.in-view)');
-            if (!cardRevealObserver) {
-                // No IntersectionObserver support - just show them.
-                cards.forEach(el => el.classList.add('in-view'));
-                return;
-            }
-            cards.forEach(el => cardRevealObserver.observe(el));
+            container.querySelectorAll('.game-card-anim:not(.in-view)').forEach(el => el.classList.add('in-view'));
         }
         window.revealCardsIn = revealCardsIn;
 
@@ -12294,53 +12325,14 @@
         // tiny scrollLeft change that isn't a real user gesture, so the drift
         // never visibly moved even though scrollLeft was being updated every
         // frame. Removed the snap CSS so the auto-scroll actually shows.
+        // PERF: the endless rAF scroll loop below used to run 60x/second for
+        // as long as the Home tab was open, purely to nudge this row a
+        // fraction of a pixel every frame - real work every frame even when
+        // nothing else on the page changed. Disabled per perf audit; the row
+        // is still a normal horizontal-scroll strip the user can swipe by
+        // hand, it just no longer auto-drifts on its own.
         (function initPopularAutoScroll() {
-            const el = document.getElementById('popular-games-scroll');
-            if (!el) return;
-            let dir = 1;          // 1 = scrolling right, -1 = scrolling left
-            let paused = false;
-            let resumeTimer = null;
-            let rowVisible = false;
-            const SPEED = 0.7;    // px per frame (~42px/sec) — slow but clearly visible drift
-
-            const visibilityObserver = ('IntersectionObserver' in window)
-                ? new IntersectionObserver((entries) => {
-                    entries.forEach(entry => { rowVisible = entry.isIntersecting; });
-                }, { threshold: 0.01 })
-                : null;
-            if (visibilityObserver) visibilityObserver.observe(el);
-            else rowVisible = true; // no IntersectionObserver support — fall back to always-on
-
-            // Measured only when the row's size/content changes - reading
-            // scrollWidth/clientWidth inside the per-frame loop forced a
-            // synchronous layout 60x/second.
-            let max = 0;
-            const measure = () => { max = el.scrollWidth - el.clientWidth; };
-            if ('ResizeObserver' in window) new ResizeObserver(measure).observe(el);
-            if ('MutationObserver' in window) new MutationObserver(measure).observe(el, { childList: true });
-            measure();
-
-            function step() {
-                const onHome = window.currentStorePage === 'home' || !window.currentStorePage;
-                if (!paused && onHome && rowVisible) {
-                    if (max > 0) {
-                        el.scrollLeft += dir * SPEED;
-                        if (el.scrollLeft >= max - 1) dir = -1;
-                        else if (el.scrollLeft <= 1) dir = 1;
-                    }
-                }
-                requestAnimationFrame(step);
-            }
-            requestAnimationFrame(step);
-
-            function pauseThenResume() {
-                paused = true;
-                clearTimeout(resumeTimer);
-                resumeTimer = setTimeout(() => { paused = false; }, 2500);
-            }
-            ['pointerdown', 'touchstart', 'wheel'].forEach(evt => {
-                el.addEventListener(evt, pauseThenResume, { passive: true });
-            });
+            return;
         })();
 
         function popularGameCardHtml(gr, i) {
@@ -12348,7 +12340,7 @@
             return `
                 <div class="game-card popular-card game-card-anim${isGamePinned(gr.repId) ? ' pinned' : ''}" data-game-id="${gr.repId}" style="animation-delay:${Math.min(i * 18, 120)}ms" onclick="openGameEntry(${gr.idx})">
                     <div class="game-card-img-wrap">
-                        <img src="${g.image}" alt="${g.name}" loading="lazy" decoding="async">
+                        <img src="${optimizedGameImg(g.image, 200)}" alt="${g.name}" loading="lazy" decoding="async">
                         ${categoryBadgeHtml(g.category)}
                         ${serverCountBadgeHtml(gr)}
                         ${pinBadgeHtml()}
@@ -12411,8 +12403,16 @@
             // Signature over only the fields this function renders - a price/cost/
             // stock-only edit elsewhere in the doc leaves this identical, so the
             // expensive rebuild below (and its animation replay) gets skipped.
+            // Pagination resets to the first page whenever the category chip
+            // or search box changes, but stays put across an unrelated
+            // re-render (e.g. a price update ticking in) or a "Load More" tap.
+            const filterKey = selectedGameCategory + '|' + gameSearchQuery;
+            if (filterKey !== lastHomeGamesFilterKey) {
+                homeGamesVisibleCount = HOME_GAMES_INITIAL_BATCH;
+                lastHomeGamesFilterKey = filterKey;
+            }
             const signature = JSON.stringify([
-                gamesLoadedOnce, selectedGameCategory, gameSearchQuery,
+                gamesLoadedOnce, selectedGameCategory, gameSearchQuery, homeGamesVisibleCount,
                 ids.map(id => { const g = GAMES[id]; return [id, g.name, g.image, g.category, g.serverName, g.order, !!g.popular]; })
             ]);
             if (signature === lastHomeGamesSignature && grid.children.length > 0) return;
@@ -12465,18 +12465,21 @@
             if (gameSearchQuery) {
                 visibleGroups = visibleGroups.filter(gr => (gr.name || '').toLowerCase().includes(gameSearchQuery));
             }
+            HOME_VISIBLE_GROUPS = visibleGroups;
             if (visibleGroups.length === 0) {
                 grid.innerHTML = gameSearchQuery
                     ? `<p class="empty-msg">No games found for "${escapeHtml(gameSearchQuery)}".</p>`
                     : `<p class="empty-msg">No games in this category yet.</p>`;
+                updateHomeLoadMoreBtn(0, 0);
                 return;
             }
-            grid.innerHTML = visibleGroups.map((gr, i) => {
+            const shownCount = Math.min(homeGamesVisibleCount, visibleGroups.length);
+            grid.innerHTML = visibleGroups.slice(0, shownCount).map((gr, i) => {
                 const g = GAMES[gr.repId];
                 return `
                     <div class="game-card game-card-anim${isGamePinned(gr.repId) ? ' pinned' : ''}" data-game-id="${gr.repId}" style="animation-delay:${Math.min(i * 18, 120)}ms" onclick="openGameEntry(${gr.idx})">
                         <div class="game-card-img-wrap">
-                            <img src="${g.image}" alt="${g.name}" loading="lazy" decoding="async">
+                            <img src="${optimizedGameImg(g.image, 200)}" alt="${g.name}" loading="lazy" decoding="async">
                             ${categoryBadgeHtml(g.category)}
                             ${serverCountBadgeHtml(gr)}
                             ${pinBadgeHtml()}
@@ -12486,7 +12489,23 @@
                 `;
             }).join('');
             revealCardsIn(grid);
+            updateHomeLoadMoreBtn(shownCount, visibleGroups.length);
         }
+
+        // "Load More" button under the Home All-Games grid (see
+        // HOME_GAMES_INITIAL_BATCH/HOME_GAMES_LOAD_STEP above).
+        function updateHomeLoadMoreBtn(shownCount, totalCount) {
+            const btn = document.getElementById('home-games-load-more-btn');
+            if (!btn) return;
+            const remaining = totalCount - shownCount;
+            btn.style.display = remaining > 0 ? '' : 'none';
+            if (remaining > 0) btn.textContent = `Load More (${remaining} left)`;
+        }
+        function loadMoreHomeGames() {
+            homeGamesVisibleCount = Math.min(homeGamesVisibleCount + HOME_GAMES_LOAD_STEP, HOME_VISIBLE_GROUPS.length);
+            renderHomeGames();
+        }
+        window.loadMoreHomeGames = loadMoreHomeGames;
 
         // ---------- Voucher tab: same card grid / purchase flow as Home,
         // pre-filtered to games whose packages are fulfilled via G2Bulk's
@@ -12551,7 +12570,7 @@
                             <div class="voucher-card popular-voucher-card game-card-anim" style="animation-delay:${Math.min(i * 18, 120)}ms" onclick="openVoucherGameEntry(${gr.idx})">
                                 <span class="voucher-card-tag">Gift Card</span>
                                 <div class="voucher-card-stack">
-                                    <img src="${g.image}" alt="${g.name}" loading="lazy" decoding="async">
+                                    <img src="${optimizedGameImg(g.image, 200)}" alt="${g.name}" loading="lazy" decoding="async">
                                 </div>
                                 <div class="voucher-card-name">${g.name}</div>
                             </div>
@@ -12570,7 +12589,7 @@
                     <div class="voucher-card game-card-anim" style="animation-delay:${Math.min(i * 18, 120)}ms" onclick="openVoucherGameEntry(${i})">
                         <span class="voucher-card-tag">Gift Card</span>
                         <div class="voucher-card-stack">
-                            <img src="${g.image}" alt="${g.name}" loading="lazy" decoding="async">
+                            <img src="${optimizedGameImg(g.image, 200)}" alt="${g.name}" loading="lazy" decoding="async">
                         </div>
                         <div class="voucher-card-name">${g.name}</div>
                     </div>
@@ -15129,6 +15148,12 @@
             if (overlay) overlay.classList.remove('show');
             scheduleSupportFabPeek();
             stopListenSupportChatAvatar();
+            // PERF: the messages listener (supportChatMsgUnsub) is only ever
+            // started once the Chat tab is opened; stop it here too so it
+            // doesn't keep streaming for the rest of the session after the
+            // whole widget is closed. Re-attaches instantly next time the
+            // Chat tab is opened.
+            if (window.stopListenSupportChatMessages) window.stopListenSupportChatMessages();
             // Closed via the X/overlay tap rather than Back - unwind the history
             // entry we pushed on open so Back doesn't just reopen it.
             if (!fromPopstate) {
@@ -15326,8 +15351,11 @@
             box.scrollTop = box.scrollHeight;
         }
 
-        // Lazily attached the first time the Support Chat tab is opened, then
-        // left running so replies still render live if the user switches tabs.
+        // Attached when the Support Chat tab is opened, and left running while
+        // the widget stays open (so replies still render live if the user
+        // flips to the Guide/Complaint tab and back). Torn down in
+        // closeSupportWidget() once the whole widget closes, instead of
+        // staying subscribed for the rest of the session (PERF).
         function listenSupportChatMessages() {
             if (supportChatMsgUnsub) return;
             const guestId = window.getGuestId ? window.getGuestId() : '';
@@ -15337,6 +15365,10 @@
                 renderSupportChatMessages(snap.docs.map(d => d.data()));
             }, (error) => console.error("Support chat listen error:", error));
         }
+        function stopListenSupportChatMessages() {
+            if (supportChatMsgUnsub) { supportChatMsgUnsub(); supportChatMsgUnsub = null; }
+        }
+        window.stopListenSupportChatMessages = stopListenSupportChatMessages;
 
         // Runs from app start (not just once the Chat tab is opened) purely to
         // light up the FAB dot / tab badge the moment an admin reply lands while
