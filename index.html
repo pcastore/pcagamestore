@@ -9679,7 +9679,16 @@
         // via the onboardAuthChecked flag).
         setTimeout(() => { if (!onboardAuthChecked) handleOnboardAuthState(null); }, 2500);
 
+        // Auth state known (or 5s passed): History may now subscribe and is
+        // allowed to show a real result instead of the loader.
+        function markAuthResolved() {
+            if (window.authResolvedOnce) return;
+            window.authResolvedOnce = true;
+            if (window.currentStorePage === 'history' && window.loadHistory) window.loadHistory();
+        }
+        setTimeout(markAuthResolved, 5000);
         onAuthStateChanged(auth, async (user) => {
+            markAuthResolved();
             // Catches a persisted Google session (returning device) whose
             // linked guest account was banned after the last time they
             // actually signed in - without this, they'd stay "signed in"
@@ -12174,6 +12183,13 @@
                 return;
             }
 
+            // Sign-in state not restored yet: keep the loader up (never the empty
+            // state). The auth handler calls loadHistory() again once it resolves.
+            if (!window.authResolvedOnce) {
+                container.innerHTML = loadingStateHTML('bars');
+                return;
+            }
+
             // Already listening for this exact account - nothing to do, it's live.
             if (historyUnsubscribe && historyListenerGuestId === guestId) return;
 
@@ -12181,7 +12197,7 @@
             historyListenerGuestId = guestId;
             HISTORY_FILTER_DATE = null;
             HISTORY_FILTER_STATUS = 'all';
-            container.innerHTML = historySkeletonHTML();
+            container.innerHTML = loadingStateHTML('bars');
 
             const q = query(collection(db, "orders"), where("userId", "==", guestId));
             historyUnsubscribe = onSnapshot(q, { includeMetadataChanges: true }, (snap) => {
@@ -13246,7 +13262,7 @@
                 if (filterBar) filterBar.innerHTML = '';
                 grid.innerHTML = gameAccountsLoadedOnce
                     ? emptyStateHTML('icon-shield', 'No accounts yet', 'Game accounts for sale will show up here once added.')
-                    : acctListSkeletonHTML(3);
+                    : loadingStateHTML('bar');
                 return;
             }
 
@@ -14290,6 +14306,7 @@
         // ---------- Notifications: admin broadcasts + this customer's own order updates ----------
         let NOTIFICATIONS = [];
         let notifListenerAttached = false;
+        let notifLoadedOnce = false;
         let notifReturnPage = 'home';
         let notifTab = 'unread'; // 'unread' | 'read'
 
@@ -14759,6 +14776,7 @@
                 const myGuestId = window.getGuestId ? window.getGuestId() : '';
                 const isMine = (data) => !data.targetUserId || data.targetUserId === myGuestId;
                 NOTIFICATIONS = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(isMine);
+                if (!(snap.empty && snap.metadata.fromCache)) notifLoadedOnce = true;
                 refreshNotifUI();
                 // Only the *first* snapshot is existing history — skip firing OS
                 // notifications for it. Every "added" change after that is a
@@ -14772,6 +14790,7 @@
                 initialLoad = false;
             }, (error) => {
                 console.error("Notifications listener error:", error);
+                notifLoadedOnce = true; refreshNotifUI();
             });
         }
 
@@ -14849,6 +14868,10 @@
             if (markAll) markAll.style.display = (notifTab === 'unread' && unread.length) ? '' : 'none';
 
             const shown = notifTab === 'unread' ? unread : read;
+            if (shown.length === 0 && !notifLoadedOnce) {
+                list.innerHTML = loadingStateHTML('ripple');
+                return;
+            }
             if (shown.length === 0) {
                 list.innerHTML = notifTab === 'unread'
                     ? emptyStateHTML('icon-bell', t('notif_empty_unread_t'), t('notif_empty_unread_s'))
