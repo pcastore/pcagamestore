@@ -1241,9 +1241,9 @@
         .nav-item { display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; font-weight: 500; color: var(--text-secondary); cursor: pointer; flex: 1; min-width: 0; }
         .nav-label { max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
         .nav-item.active { color: var(--accent); }
-        .nav-icon-wrap { width: 32px; height: 32px; border-radius: 7px; display: flex; align-items: center; justify-content: center; }
-        .nav-icon-wrap .ui-icon { width: 19px; height: 19px; }
-        .nav-label { font-size: 10px; }
+        .nav-icon-wrap { width: 27px; height: 27px; border-radius: 7px; display: flex; align-items: center; justify-content: center; }
+        .nav-icon-wrap .ui-icon { width: 16px; height: 16px; }
+        .nav-label { font-size: 9px; }
         .nav-item.active .ui-icon { stroke: var(--accent); }
         
         /* Toast — pastel status card: icon circle, message, dismiss ×.
@@ -2414,14 +2414,14 @@
             border: 1px solid var(--glass-border);
             border-top: 1px solid var(--glass-border);
             border-radius: 16px;
-            padding: 6px 6px calc(6px + env(safe-area-inset-bottom, 0px));
+            padding: 4px 4px calc(4px + env(safe-area-inset-bottom, 0px));
             box-shadow: 0 16px 40px -10px rgba(20,30,60,0.35), inset 0 1px 1px rgba(255,255,255,0.5), inset 0 -1px 8px rgba(0,0,0,0.04);
             position: fixed;
             transform: translateZ(0);
             will-change: transform;
         }
         html[data-theme="dark"] .bottom-nav { box-shadow: 0 16px 40px -10px rgba(0,0,10,0.6), inset 0 1px 1px rgba(255,255,255,0.06), inset 0 -1px 8px rgba(0,0,0,0.3); }
-        .nav-item { border-radius: 8px; padding: 5px 0 4px; transition: color 0.2s ease; position: relative; }
+        .nav-item { border-radius: 8px; padding: 3px 0 2px; transition: color 0.2s ease; position: relative; }
         .nav-label { transition: transform 0.2s ease, opacity 0.2s ease; }
         .nav-item.active .nav-label { transform: translateY(-1px); font-weight: 600; }
 
@@ -2445,7 +2445,7 @@
                 0 2px 4px rgba(0,0,0,0.08),
                 inset 0 1px 1px rgba(255,255,255,0.75),
                 inset 0 -4px 8px rgba(0,0,0,0.12);
-            transform: translateY(-9px) scale(1.08);
+            transform: translateY(-7px) scale(1.08);
         }
         html[data-theme="dark"] .nav-item.active .nav-icon-wrap {
             box-shadow:
@@ -2471,21 +2471,21 @@
            it's never mistaken for a disabled/inactive icon. */
         .nav-item-wallet { overflow: visible; }
         .nav-icon-wrap-wallet {
-            width: 42px; height: 42px; border-radius: 50%;
+            width: 36px; height: 36px; border-radius: 50%;
             background: linear-gradient(150deg, var(--accent), var(--accent-dark));
-            transform: translateY(-12px);
+            transform: translateY(-9px);
             box-shadow:
                 0 6px 16px -2px rgba(var(--accent-rgb),0.65),
-                0 0 0 4px var(--bg), 0 0 14px 2px rgba(var(--accent-rgb),0.55),
+                0 0 0 3px var(--bg), 0 0 12px 2px rgba(var(--accent-rgb),0.55),
                 inset 0 1px 1px rgba(255,255,255,0.5);
             animation: walletGlowPulse 2.4s ease-in-out infinite;
         }
-        .nav-icon-wrap-wallet .ui-icon { width: 21px; height: 21px; stroke: #fff; }
-        .nav-item-wallet:active .nav-icon-wrap-wallet { transform: translateY(-12px) scale(0.92); }
+        .nav-icon-wrap-wallet .ui-icon { width: 18px; height: 18px; stroke: #fff; }
+        .nav-item-wallet:active .nav-icon-wrap-wallet { transform: translateY(-9px) scale(0.92); }
         .nav-item-wallet.active .nav-icon-wrap-wallet,
         .nav-item.active .nav-icon-wrap-wallet {
             background: linear-gradient(150deg, var(--accent), var(--accent-dark));
-            transform: translateY(-12px) scale(1.06);
+            transform: translateY(-9px) scale(1.06);
         }
         .nav-item-wallet .nav-label { color: var(--accent); font-weight: 600; }
         @keyframes walletGlowPulse {
@@ -15597,5 +15597,11 @@
         <div class="chat-img-viewer-nav next" id="chat-img-viewer-next" onclick="chatImageViewerNext()">›</div>
         <div class="chat-img-viewer-counter" id="chat-img-viewer-counter" style="display:none;"></div>
     </div>
+
+    <!-- TEMP DEBUG TOOL: Eruda mobile console (tap the floating icon bottom-right
+         to open console/elements/network panels). Remove this <script> block
+         once the price-card / game-card tap issue is diagnosed and fixed. -->
+    <script src="https://cdn.jsdelivr.net/npm/eruda"></script>
+    <script>eruda.init();</script>
 </body>
 </html>
