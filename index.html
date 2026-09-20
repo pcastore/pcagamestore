@@ -5213,7 +5213,7 @@
         // feature) may not have one, so fall back to `type` — which itself
         // defaults to 'currency' — so nothing that worked before regresses.
         function pkgTabOf(pkg) {
-            return pkg.tab || pkg.type || 'currency';
+            return (pkg && (pkg.tab || pkg.type)) || 'currency';
         }
         let selectedGameName = null;
         // The store never calls FazerCards directly (see the comment on
@@ -6310,7 +6310,10 @@
             selectedPaymentType = null;
             editingReceiptFile = null;
             receiptOcrPromise = null;
-            const gamePackages = Array.isArray(game.packages) ? game.packages : [];
+            // Filters out any malformed entry (null/non-object - can happen
+            // from a bad admin edit leaving a hole in the array) so one bad
+            // package can never take down the whole list/page again.
+            const gamePackages = (Array.isArray(game.packages) ? game.packages : []).filter(pkg => pkg && typeof pkg === 'object');
             window.currentGamePackages = gamePackages;
             // Drives which price-card layout renderDetailPackageList uses:
             // voucher/giftcard games keep the gift-card style; every other
@@ -6515,7 +6518,7 @@
                 return '';
             }
             const list = document.getElementById('detail-package-list');
-            const packages = window.currentGamePackages || [];
+            const packages = (window.currentGamePackages || []).filter(pkg => pkg && typeof pkg === 'object');
             // Both tabs now share the same compact grid look — no more separate
             // wide-banner layout for "package" type items.
             list.classList.remove('layout-package');
