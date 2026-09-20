@@ -154,6 +154,7 @@
             --accent-soft: #E7F3FF;
             --accent-rgb: 24,119,242;
             --blur: blur(16px) saturate(180%);
+            --skel-shine: #EDEFF2;
             color-scheme: light;
         }
         /* Dark theme — deep blue "liquid glass" palette */
@@ -178,6 +179,7 @@
             --accent-soft: rgba(76,147,255,0.16);
             --accent-rgb: 76,147,255;
             --blur: blur(16px) saturate(180%);
+            --skel-shine: rgba(255,255,255,0.13);
             color-scheme: dark;
         }
         /* Backdrop-filter blur is one of the most GPU-expensive CSS effects,
@@ -538,9 +540,11 @@
         .drawer-overlay.show .drawer-nav-item:nth-child(6) { animation-delay: 0.24s; }
         .drawer-overlay.show .drawer-nav-item:nth-child(7) { animation-delay: 0.28s; }
         .drawer-overlay.show .drawer-nav-item:nth-child(8) { animation-delay: 0.32s; }
-        .drawer-overlay.show .drawer-nav-item:nth-child(11) { animation-delay: 0.36s; }
-        .drawer-overlay.show .drawer-nav-item:nth-child(12) { animation-delay: 0.4s; }
-        .drawer-overlay.show .drawer-nav-item:nth-child(14) { animation-delay: 0.48s; }
+        .drawer-overlay.show .drawer-nav-item:nth-child(9) { animation-delay: 0.36s; } /* Support */
+        .drawer-overlay.show .drawer-nav-item:nth-child(12) { animation-delay: 0.4s; } /* Notifications */
+        .drawer-overlay.show .drawer-nav-item:nth-child(13) { animation-delay: 0.44s; } /* Theme */
+        .drawer-overlay.show .drawer-nav-item:nth-child(14) { animation-delay: 0.48s; } /* Terms */
+        .drawer-overlay.show .drawer-nav-item:nth-child(15) { animation-delay: 0.52s; } /* Language */
         .drawer-section-label {
             grid-column: 1 / -1;
             padding: 10px 6px 3px; font-size: 9.5px; font-weight: 600;
@@ -769,7 +773,7 @@
            games/packages/history are being fetched, so the layout doesn't jump once
            real content arrives. */
         @keyframes skeletonShimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
-        .skel { background: linear-gradient(90deg, var(--border) 25%, #EDEFF2 37%, var(--border) 63%); background-size: 400% 100%; animation: skeletonShimmer 1.4s ease-in-out infinite; }
+        .skel { background: linear-gradient(90deg, var(--border) 25%, var(--skel-shine) 37%, var(--border) 63%); background-size: 400% 100%; animation: skeletonShimmer 1.4s ease-in-out infinite; }
         .skel-game-card { display: block; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
         .skel-game-card .skel-img { aspect-ratio: 1 / 1; }
         .skel-game-card .skel-name { height: 30px; margin-top: 0; }
@@ -839,6 +843,7 @@
             box-shadow: var(--glass-shadow-sm);
             width: 36px; height: 36px; overflow: hidden;
             transition: width 0.36s cubic-bezier(.34,1.1,.4,1), border-color 0.2s ease, box-shadow 0.2s ease;
+            will-change: width; contain: layout style;
         }
         /* width:auto can't be CSS-transitioned (browsers can't interpolate
            to "auto"), which is why this used to snap open/closed instead
@@ -3043,7 +3048,8 @@
             <div class="drawer-header">
                 <div class="logo" style="font-size:16px;">
                     <span class="logo-icon-wrap" style="width:24px;height:24px;">
-                        <svg class="ui-icon" style="color:#fff;width:14px;"><use href="#icon-gamepad"></use></svg>
+                        <svg class="ui-icon" id="drawer-logo-default-icon" style="color:#fff;width:14px;"><use href="#icon-gamepad"></use></svg>
+                        <img id="drawer-logo-img" src="" alt="" style="display:none;width:100%;height:100%;object-fit:cover;border-radius:inherit;">
                     </span>
                     PCA Store
                 </div>
@@ -5112,7 +5118,13 @@
         // whose swipe-left/swipe-right animation slides the next page in
         // the rest of the way from off-screen.
         (function initTabSwipe() {
-            const TAB_ORDER = ['home', 'voucher', 'wallet', 'account', 'name-check', 'history', 'leaderboard', 'profile'];
+            // Only the 5 pages actually shown in the bottom nav bar - keeps
+            // left/right swipe in sync with what's visibly highlighted down
+            // there. Name Check / History / Leaderboard are drawer-only
+            // pages (no bottom-nav tab), so they're deliberately excluded -
+            // swiping past Wallet/Profile used to land on one of them with
+            // no nav item lit up, which looked like the swipe "went nowhere".
+            const TAB_ORDER = ['home', 'voucher', 'wallet', 'account', 'profile'];
             const content = document.querySelector('main.content-area');
             if (!content) return;
 
@@ -6239,6 +6251,19 @@
         // the "no showPage('home') call fires on boot" notes elsewhere) - so
         // an "?account=" link needs its own explicit jump to the Account tab
         // to actually start listenGameAccounts() and resolve the link.
+        // Defined here (not just in the module script below) because this
+        // classic <script> block calls it before the module script has
+        // run — module-scope declarations aren't visible to classic
+        // scripts, so without this the call below threw "deferInit is not
+        // defined" and silently killed the rest of this script block
+        // (Profile name/ID, slide-to-confirm buttons, etc. never got set).
+        if (typeof window.deferInit !== 'function') {
+            window.deferInit = function (fn) {
+                if (window.requestIdleCallback) requestIdleCallback(fn, { timeout: 1500 });
+                else setTimeout(fn, 200);
+            };
+        }
+        var deferInit = window.deferInit;
         deferInit(() => { if (pendingAccountDeepLink && window.showPage) window.showPage('account'); });
 
         // Resolves a "?code=<8-digit>" package link against the packageLinks
@@ -10166,11 +10191,15 @@
             const defaultIcon = document.getElementById('header-logo-default-icon');
             const obImg = document.getElementById('onboarding-logo-img');
             const obDefaultIcon = document.getElementById('onboarding-logo-default-icon');
+            const drImg = document.getElementById('drawer-logo-img');
+            const drDefaultIcon = document.getElementById('drawer-logo-default-icon');
             img.src = url;
             img.style.display = 'block';
             defaultIcon.style.display = 'none';
             if (obImg) { obImg.src = url; obImg.style.display = 'block'; }
             if (obDefaultIcon) obDefaultIcon.style.display = 'none';
+            if (drImg) { drImg.src = url; drImg.style.display = 'block'; }
+            if (drDefaultIcon) drDefaultIcon.style.display = 'none';
             logoAppliedUrl = url;
             setLogoLoading(null);
         }
@@ -10180,10 +10209,14 @@
             const defaultIcon = document.getElementById('header-logo-default-icon');
             const obImg = document.getElementById('onboarding-logo-img');
             const obDefaultIcon = document.getElementById('onboarding-logo-default-icon');
+            const drImg = document.getElementById('drawer-logo-img');
+            const drDefaultIcon = document.getElementById('drawer-logo-default-icon');
             img.style.display = 'none';
             defaultIcon.style.display = '';
             if (obImg) obImg.style.display = 'none';
             if (obDefaultIcon) obDefaultIcon.style.display = '';
+            if (drImg) drImg.style.display = 'none';
+            if (drDefaultIcon) drDefaultIcon.style.display = '';
             logoAppliedUrl = '';
             setLogoLoading(null);
         }
@@ -12254,7 +12287,19 @@
             } else {
                 wrap.classList.add('expanded');
                 row.classList.add('search-expanded');
-                setTimeout(() => input.focus(), 150);
+                // Wait for the width expand to actually finish before opening
+                // the keyboard - focusing mid-transition made the keyboard's
+                // slide-up collide with the still-animating search box.
+                const onExpandDone = (e) => {
+                    if (e.target !== wrap || e.propertyName !== 'width') return;
+                    wrap.removeEventListener('transitionend', onExpandDone);
+                    input.focus();
+                };
+                wrap.addEventListener('transitionend', onExpandDone);
+                setTimeout(() => { // fallback in case transitionend never fires
+                    wrap.removeEventListener('transitionend', onExpandDone);
+                    input.focus();
+                }, 420);
             }
         }
         window.toggleGameSearch = toggleGameSearch;
