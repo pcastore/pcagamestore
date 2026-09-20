@@ -2623,6 +2623,36 @@
         .history-card.st-fail       { --st: #EF4444; }
         .list-card.history-card[class*="st-"] { box-shadow: inset 4px 0 0 var(--st), var(--glass-shadow-sm); }
 
+        /* ===================== APP-LIKE MOTION =====================
+           Smoother tab changes, sheets that glide (fast, decelerating close),
+           a springy success pop and press feedback. All of it switches off for
+           people who prefer reduced motion. */
+        :root { --ease-out: cubic-bezier(.22,1,.36,1); --ease-spring: cubic-bezier(.34,1.56,.64,1); }
+        .page-section { animation: pageIn 0.32s var(--ease-out); }
+        @keyframes pageIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .modal-overlay { transition: opacity 0.28s ease; }
+        .modal-box { transition: transform 0.38s var(--ease-out); }
+        .modal-overlay:not(.show) .modal-box { transition-duration: 0.22s; transition-timing-function: cubic-bezier(.4, 0, 1, 1); }
+        #order-detail-overlay .modal-box, #profile-edit-overlay .modal-box { transition: transform 0.34s var(--ease-out), opacity 0.22s ease; }
+        .success-box { opacity: 0; transition: transform 0.42s var(--ease-spring), opacity 0.2s ease; }
+        .success-overlay.show .success-box { opacity: 1; }
+        .btn { transition: transform 0.12s ease, background-color 0.2s ease, box-shadow 0.2s ease, opacity 0.2s ease; -webkit-tap-highlight-color: transparent; }
+        .btn:active:not(:disabled) { transform: scale(0.97); }
+        .package-card, .payment-option { transition-property: transform, border-color, box-shadow, background-color; transition-duration: 0.15s; -webkit-tap-highlight-color: transparent; }
+        .package-card:active, .payment-option:active { transform: scale(0.97); }
+        @media (prefers-reduced-motion: reduce) {
+            .page-section, .modal-overlay, .modal-box, .success-box, .btn, .package-card, .payment-option { animation: none !important; transition: none !important; }
+            .success-box { opacity: 1; }
+        }
+
+        /* Game card entrance: first cards POP in; cards that arrive while scrolling down ride a diagonal WAVE.
+           fill-mode is 'backwards' (not 'both') so the finished card is free to take :active / long-press transforms. */
+        .game-card.card-pop, .voucher-card.card-pop { animation: cardPop 0.5s var(--ease-spring) backwards; animation-delay: calc(var(--i, 0) * 55ms); }
+        .game-card.card-wave { animation: cardWave 0.5s var(--ease-out) backwards; animation-delay: calc((var(--r, 0) + var(--c, 0)) * 90ms); }
+        @keyframes cardPop { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: none; } }
+        @keyframes cardWave { from { opacity: 0; transform: translateY(12px) scale(0.85); } to { opacity: 1; transform: none; } }
+        @media (prefers-reduced-motion: reduce) { .card-pop, .card-wave { animation: none !important; } }
+
         /* Order Detail — receipt / ticket style */
         .od-receipt { padding: 16px 16px 18px; gap: 0; }
         .od-receipt-head { display: flex; align-items: center; gap: 12px; }
@@ -8436,7 +8466,7 @@
             scroll.innerHTML = ids.map((id, i) => {
                 const g = window.GAMES[id];
                 return `
-                    <div class="game-card popular-card game-card-anim pinned" data-game-id="${id}" style="animation-delay:${Math.min(i * 18, 120)}ms" onclick="openGameDetail('${id}')">
+                    <div class="game-card popular-card game-card-anim card-pop pinned" data-game-id="${id}" style="--i:${Math.min(i, 8)}" onclick="openGameDetail('${id}')">
                         <div class="game-card-img-wrap">
                             <img src="${optimizedGameImg(g.image, 200)}" alt="${g.name}" loading="lazy" decoding="async">
                             ${pinBadgeHtml()}
@@ -12698,7 +12728,7 @@
                 const g = GAMES[id];
                 const label = g.serverName || g.name;
                 return `
-                    <div class="game-card game-card-anim" style="animation-delay:${Math.min(i * 18, 120)}ms" onclick="openGameDetail('${id}')">
+                    <div class="game-card game-card-anim card-pop" style="--i:${Math.min(i, 8)}" onclick="openGameDetail('${id}')">
                         <div class="game-card-img-wrap">
                             <img src="${optimizedGameImg(g.image, 200)}" alt="${label}" loading="lazy" decoding="async">
                         </div>
@@ -12783,7 +12813,7 @@
         function popularGameCardHtml(gr, i) {
             const g = GAMES[gr.repId];
             return `
-                <div class="game-card popular-card game-card-anim${isGamePinned(gr.repId) ? ' pinned' : ''}" data-game-id="${gr.repId}" style="animation-delay:${Math.min(i * 18, 120)}ms" onclick="openGameEntry(${gr.idx})">
+                <div class="game-card popular-card game-card-anim card-pop${isGamePinned(gr.repId) ? ' pinned' : ''}" data-game-id="${gr.repId}" style="--i:${Math.min(i, 8)}" onclick="openGameEntry(${gr.idx})">
                     <div class="game-card-img-wrap">
                         <img src="${optimizedGameImg(g.image, 200)}" alt="${g.name}" loading="lazy" decoding="async">
                         ${categoryBadgeHtml(g.category)}
@@ -12924,10 +12954,14 @@
             updateHomeLoadMoreBtn(shownCount, visibleGroups.length);
         }
 
-        function homeGameCardHTML(gr, i) {
+        // wave = { r, c } grid row/column of a card appended during scroll (diagonal ripple);
+        // omitted for the first render, where cards pop in one by one.
+        function homeGameCardHTML(gr, i, wave) {
             const g = GAMES[gr.repId];
+            const motionCls = wave ? 'card-wave' : 'card-pop';
+            const motionVars = wave ? `--r:${wave.r};--c:${wave.c}` : `--i:${Math.min(i, 12)}`;
             return `
-                    <div class="game-card game-card-anim${isGamePinned(gr.repId) ? ' pinned' : ''}" data-game-id="${gr.repId}" style="animation-delay:${Math.min(i * 18, 120)}ms" onclick="openGameEntry(${gr.idx})">
+                    <div class="game-card game-card-anim ${motionCls}${isGamePinned(gr.repId) ? ' pinned' : ''}" data-game-id="${gr.repId}" style="${motionVars}" onclick="openGameEntry(${gr.idx})">
                         <div class="game-card-img-wrap">
                             <img src="${optimizedGameImg(g.image, 200)}" alt="${g.name}" loading="lazy" decoding="async">
                             ${categoryBadgeHtml(g.category)}
@@ -12972,7 +13006,8 @@
             const to = Math.min(from + HOME_GAMES_LOAD_STEP, total);
             if (!grid || to <= from) return;
             homeGamesVisibleCount = to;
-            grid.insertAdjacentHTML('beforeend', HOME_VISIBLE_GROUPS.slice(from, to).map((gr, k) => homeGameCardHTML(gr, k)).join(''));
+            const cols = Math.max(1, (getComputedStyle(grid).gridTemplateColumns || '').split(' ').filter(Boolean).length || 3);
+            grid.insertAdjacentHTML('beforeend', HOME_VISIBLE_GROUPS.slice(from, to).map((gr, k) => homeGameCardHTML(gr, k, { r: Math.floor(k / cols), c: k % cols })).join(''));
             revealCardsIn(grid);
             lastHomeGamesSignature = null; // the count changed; next full render rebuilds against the new count
             updateHomeLoadMoreBtn(to, total);
@@ -13039,7 +13074,7 @@
                     popularScroll.innerHTML = popularGroups.map((gr, i) => {
                         const g = GAMES[gr.repId];
                         return `
-                            <div class="voucher-card popular-voucher-card game-card-anim" style="animation-delay:${Math.min(i * 18, 120)}ms" onclick="openVoucherGameEntry(${gr.idx})">
+                            <div class="voucher-card popular-voucher-card game-card-anim card-pop" style="--i:${Math.min(i, 8)}" onclick="openVoucherGameEntry(${gr.idx})">
                                 <span class="voucher-card-tag">Gift Card</span>
                                 <div class="voucher-card-stack">
                                     <img src="${optimizedGameImg(g.image, 200)}" alt="${g.name}" loading="lazy" decoding="async">
@@ -13058,7 +13093,7 @@
             grid.innerHTML = groups.map((gr, i) => {
                 const g = GAMES[gr.repId];
                 return `
-                    <div class="voucher-card game-card-anim" style="animation-delay:${Math.min(i * 18, 120)}ms" onclick="openVoucherGameEntry(${i})">
+                    <div class="voucher-card game-card-anim card-pop" style="--i:${Math.min(i, 12)}" onclick="openVoucherGameEntry(${i})">
                         <span class="voucher-card-tag">Gift Card</span>
                         <div class="voucher-card-stack">
                             <img src="${optimizedGameImg(g.image, 200)}" alt="${g.name}" loading="lazy" decoding="async">
