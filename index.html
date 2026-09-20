@@ -419,6 +419,16 @@
         }
         .logo-icon-wrap .ui-icon { width: 26px; height: 26px; }
         .logo-icon-wrap img { width: 100%; height: 100%; object-fit: cover; border-radius: 11px; display: block; }
+        /* Logo loading state: a shimmer badge + "Connecting… / Updating…" stands in
+           until the logo is ready, then the real logo replaces it. Only the
+           header logo (#header-logo) carries the .logo-loading class. */
+        .logo .logo-status { display: none; align-items: center; gap: 10px; }
+        .logo.logo-loading .logo-status { display: flex; }
+        .logo.logo-loading .logo-icon-wrap { display: none; }
+        .logo-status-skel { width: 44px; height: 44px; border-radius: 12px; flex-shrink: 0; }
+        .logo-status-text { font-size: 12.5px; font-weight: 500; color: var(--text-secondary); animation: logoStatusPulse 1.2s ease-in-out infinite; }
+        .onboarding-logo-status { font-size: 12.5px; font-weight: 500; color: var(--text-secondary); margin: -6px 0 14px; animation: logoStatusPulse 1.2s ease-in-out infinite; }
+        @keyframes logoStatusPulse { 0%, 100% { opacity: 0.45; } 50% { opacity: 1; } }
         .header-icon {
             position: relative; width: 40px; height: 40px; border-radius: 50%;
             display: flex; justify-content: center; align-items: center; cursor: pointer;
@@ -428,14 +438,45 @@
             transition: transform 0.15s ease;
         }
         .header-icon:active { transform: scale(0.92); }
-        .notif-dot {
-            position: absolute; top: 5px; right: 5px; width: 11px; height: 11px; border-radius: 50%;
-            background: radial-gradient(circle at 30% 30%, #FF6B6B, #E53935);
-            border: 2px solid var(--surface); box-shadow: 0 0 0 2px rgba(229,57,53,0.25);
-            display: none;
-        }
-        .notif-dot.show { display: block; animation: notifPulse 1.8s ease-in-out infinite; }
         @keyframes notifPulse { 0%, 100% { box-shadow: 0 0 0 2px rgba(229,57,53,0.25); } 50% { box-shadow: 0 0 0 6px rgba(229,57,53,0); } }
+        /* Notification count badge - sits on the corner of the header menu
+           button and on the bell icon in the drawer. Hidden at 0, shows
+           "99+" past 99. */
+        .notif-badge {
+            position: absolute; display: none; min-width: 18px; height: 18px; padding: 0 4px; box-sizing: border-box;
+            border-radius: 9px; background: #E53935; color: #fff; border: 2px solid var(--surface);
+            font-size: 10px; font-weight: 700; line-height: 14px; text-align: center; pointer-events: none;
+        }
+        .notif-badge.show { display: block; animation: notifPulse 1.8s ease-in-out infinite; }
+        .header-icon .notif-badge { top: -5px; right: -5px; }
+        .drawer-nav-item .notif-badge { top: 0; left: 20px; min-width: 16px; height: 16px; padding: 0 3px; font-size: 9.5px; line-height: 12px; overflow: visible; text-overflow: clip; }
+        /* Order Success flash modal: green grid card, centered, auto-closes after 1s */
+        .order-ok-overlay {
+            position: fixed; inset: 0; z-index: 950; display: flex; align-items: center; justify-content: center;
+            background: rgba(0,0,0,0.32); opacity: 0; pointer-events: none; transition: opacity 0.2s ease;
+        }
+        .order-ok-overlay.show { opacity: 1; }
+        .order-ok-box {
+            position: relative; width: 78%; max-width: 280px; padding: 30px 22px 26px; border-radius: 22px;
+            text-align: center; color: #fff; overflow: hidden;
+            background:
+                linear-gradient(rgba(255,255,255,0.14) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.14) 1px, transparent 1px),
+                linear-gradient(150deg, #34D27B 0%, #16A34A 100%);
+            background-size: 16px 16px, 16px 16px, 100% 100%;
+            box-shadow: 0 18px 50px rgba(22,163,74,0.45), inset 0 1px 0 rgba(255,255,255,0.35);
+            transform: scale(0.8); transition: transform 0.28s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .order-ok-overlay.show .order-ok-box { transform: scale(1); }
+        .order-ok-check {
+            width: 68px; height: 68px; margin: 0 auto 14px; border-radius: 50%; background: #fff; color: #16A34A;
+            display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 8px rgba(255,255,255,0.22);
+        }
+        .order-ok-check .ui-icon { width: 34px; height: 34px; stroke-width: 3; }
+        .order-ok-overlay.show .order-ok-check { animation: orderOkPop 0.5s cubic-bezier(0.34, 1.56, 0.64, 1) 0.08s both; }
+        @keyframes orderOkPop { from { transform: scale(0); } to { transform: scale(1); } }
+        .order-ok-title { font-size: 20px; font-weight: 700; letter-spacing: 0.2px; }
+        .order-ok-sub { margin-top: 6px; font-size: 13px; opacity: 0.92; word-break: break-word; }
         /* Favorite (star) toggle on the game detail page header - filled gold
            when this game is in the customer's favorites, outline otherwise. */
         .favorite-game-btn svg { transition: transform 0.15s ease; }
@@ -455,7 +496,7 @@
         .drawer-overlay.show { opacity: 1; pointer-events: auto; }
         .side-drawer {
             position: fixed; top: 0; right: 0; height: 100%;
-            width: 30%; max-width: 380px; min-width: 124px;
+            width: 43%; max-width: 380px; min-width: 160px;
             background: var(--surface); display: flex; flex-direction: column;
             transform: translateX(100%);
             transition: transform 0.3s cubic-bezier(0.32, 0.72, 0, 1);
@@ -471,29 +512,29 @@
         }
         /* Sidebar header: enlarged logo badge only (text hidden to fit the narrow panel) */
         .drawer-header .logo { font-size: 0; gap: 0; }
-        .drawer-header .logo-icon-wrap { width: 40px !important; height: 40px !important; border-radius: 11px; background-size: 10px 10px; }
-        .drawer-header .logo-icon-wrap .ui-icon { width: 24px !important; height: 24px !important; }
+        .drawer-header .logo-icon-wrap { width: 34px !important; height: 34px !important; border-radius: 10px; background-size: 9px 9px; }
+        .drawer-header .logo-icon-wrap .ui-icon { width: 20px !important; height: 20px !important; }
         .drawer-close {
-            width: 32px; height: 32px; border-radius: 50%; flex-shrink: 0;
+            width: 28px; height: 28px; border-radius: 50%; flex-shrink: 0;
             display: flex; align-items: center; justify-content: center;
             background: var(--glass-bg-strong); border: 1px solid var(--glass-border);
             color: var(--text-secondary); cursor: pointer; transition: transform 0.15s ease;
         }
         .drawer-close:active { transform: scale(0.9); }
-        .drawer-nav { padding: 8px 6px; display: grid; grid-template-columns: 1fr; gap: 5px; }
+        .drawer-nav { padding: 8px 6px; display: grid; grid-template-columns: 1fr; gap: 4px; }
         .drawer-nav-item {
             display: flex; flex-direction: row; align-items: center; justify-content: flex-start;
-            gap: 7px; padding: 10px 8px; text-align: left; position: relative; min-width: 0;
+            gap: 6px; padding: 8px 8px; text-align: left; position: relative; min-width: 0;
             border-radius: 14px; background: var(--surface-alt); border: 1px solid transparent;
             color: var(--text-secondary);
-            font-size: 11px; font-weight: 500; cursor: pointer;
+            font-size: 10px; font-weight: 500; cursor: pointer;
             transition: background-color 0.15s ease, color 0.15s ease, border-color 0.15s ease, transform 0.12s ease;
             /* Resting (pre-animation) state - the drawer itself is fully
                off-screen while closed, so this never flashes; it's just
                where each tab starts from the moment the drawer opens. */
             opacity: 0; transform: translateX(18px);
         }
-        .drawer-nav-item svg { width: 26px; height: 26px; flex-shrink: 0; }
+        .drawer-nav-item svg { width: 20px; height: 20px; flex-shrink: 0; }
         .drawer-nav-item span { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; line-height: 1.25; }
         .drawer-nav-item.active { background: var(--accent-soft); color: var(--accent); border-color: rgba(var(--accent-rgb),0.25); }
         .drawer-nav-item:active { transform: scale(0.94); }
@@ -522,18 +563,18 @@
         .drawer-overlay.show .drawer-nav-item:nth-child(14) { animation-delay: 0.48s; }
         .drawer-section-label {
             grid-column: 1 / -1;
-            padding: 12px 6px 4px; font-size: 10.5px; font-weight: 600;
+            padding: 10px 6px 3px; font-size: 9.5px; font-weight: 600;
             letter-spacing: 0.4px; text-transform: uppercase; color: var(--text-faint);
         }
         /* Compact language chip: small flag + short label, sized to its
            content instead of stretching across the full grid row. */
-        .drawer-lang-chip { justify-self: start; max-width: 100%; gap: 6px; padding: 5px 9px 5px 6px; font-size: 11px; border-radius: 999px; }
-        .drawer-lang-chip .lang-toggle-btn { width: 26px; height: 26px; box-shadow: none; }
+        .drawer-lang-chip { justify-self: start; max-width: 100%; gap: 5px; padding: 4px 8px 4px 5px; font-size: 10px; border-radius: 999px; }
+        .drawer-lang-chip .lang-toggle-btn { width: 22px; height: 22px; box-shadow: none; }
         .drawer-lang-chip .lang-toggle-flag { width: 100%; height: 100%; }
         .drawer-divider { grid-column: 1 / -1; height: 1px; background: var(--border); margin: 8px 10px 0; }
         .drawer-footer {
             margin-top: auto; padding: 12px 10px calc(12px + env(safe-area-inset-bottom));
-            border-top: 1px solid var(--border); font-size: 11px; color: var(--text-faint);
+            border-top: 1px solid var(--border); font-size: 10px; color: var(--text-faint);
             flex-shrink: 0;
         }
         /* While the drawer's slide/fade transition runs, suppress its own
@@ -559,6 +600,32 @@
         .notif-item h5 { font-size: 15px; color: var(--text); margin-bottom: 4px; font-weight: 500; }
         .notif-item p { font-size: 13px; color: var(--text-secondary); margin-bottom: 6px; }
         .notif-item span { font-size: 11px; color: var(--text-muted); }
+        .notif-item { position: relative; }
+        /* Unread marker: red dot in the card's top-right corner */
+        .notif-item.unread::before { content: ''; position: absolute; top: 14px; right: 14px; width: 9px; height: 9px; border-radius: 50%; background: #E53935; box-shadow: 0 0 0 3px rgba(229,57,53,0.15); }
+        .notif-item.unread h5 { padding-right: 18px; }
+        /* Order update cards: status icon + game/package, then the order details */
+        .notif-order-head { display: flex; align-items: center; gap: 12px; margin-bottom: 10px; }
+        .notif-order-head h5 { margin-bottom: 0; }
+        .notif-order-head p { margin: 2px 0 0; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .notif-order-ic { width: 38px; height: 38px; border-radius: 50%; flex-shrink: 0; display: flex; align-items: center; justify-content: center; color: #fff; }
+        .notif-order-ic.ok { background: #22C55E; }
+        .notif-order-ic.fail { background: #EF4444; }
+        .notif-order-ic svg { width: 20px; height: 20px; }
+        .notif-kv-wrap { border-top: 1px dashed var(--border); padding-top: 6px; margin-bottom: 8px; }
+        .notif-item .notif-kv { display: flex; justify-content: space-between; align-items: baseline; gap: 12px; padding: 4px 0; }
+        .notif-item .notif-kv .k { font-size: 12.5px; color: var(--text-secondary); flex-shrink: 0; }
+        .notif-item .notif-kv .v { font-size: 12.5px; color: var(--text); font-weight: 500; text-align: right; min-width: 0; word-break: break-all; }
+        .notif-item .notif-kv .v.mono { font-family: ui-monospace, Menlo, Consolas, monospace; }
+        /* Unread count inside the "Unread" tab + "Mark all read" link */
+        .notif-tab-count { display: inline-block; min-width: 18px; height: 18px; padding: 0 5px; box-sizing: border-box; border-radius: 9px; background: #E53935; color: #fff; font-size: 10.5px; font-weight: 700; line-height: 18px; text-align: center; }
+        .notif-markall { margin-left: auto; flex-shrink: 0; background: none; border: none; padding: 6px 2px; font-size: 12.5px; font-weight: 600; color: var(--accent); cursor: pointer; }
+        .notif-markall:active { opacity: 0.6; }
+        /* Unread <-> Read switch (tap or swipe): the list slides in from the side the finger moved towards */
+        #notif-page-list.notif-slide-l { animation: notifSlideL 0.26s cubic-bezier(0.22, 1, 0.36, 1) both; }
+        #notif-page-list.notif-slide-r { animation: notifSlideR 0.26s cubic-bezier(0.22, 1, 0.36, 1) both; }
+        @keyframes notifSlideL { from { opacity: 0; transform: translateX(32px); } to { opacity: 1; transform: none; } }
+        @keyframes notifSlideR { from { opacity: 0; transform: translateX(-32px); } to { opacity: 1; transform: none; } }
         
         /* Live Ticker (real top-up activity, only shows when real orders exist) */
         .bullet-chat-wrapper {
@@ -772,6 +839,9 @@
            the cover art and read as clutter. */
         .game-cat-badge { position: absolute; top: 5px; left: 5px; display: flex; align-items: center; gap: 2px; padding: 2px 6px 2px 5px; border-radius: 7px; font-size: 8px; font-weight: 600; color: var(--on-color); box-shadow: 0 1px 3px rgba(0,0,0,0.22); }
         .game-cat-badge svg { width: 8px; height: 8px; }
+        /* Server / region count pill, top-right corner of a game card (only for games with 2+ servers) */
+        .game-server-badge { position: absolute; top: 5px; right: 5px; z-index: 1; display: flex; align-items: center; gap: 2px; padding: 2px 6px 2px 5px; border-radius: 7px; font-size: 9px; font-weight: 600; line-height: 1.2; color: #fff; background: rgba(0,0,0,0.58); box-shadow: 0 1px 3px rgba(0,0,0,0.22); }
+        .game-server-badge svg { width: 9px; height: 9px; }
 
         /* Category filter chips row, above the All Games grid */
         .cat-filter-scroll { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 12px; -webkit-overflow-scrolling: touch; }
@@ -815,6 +885,11 @@
         .cat-filter-chip:active { transform: scale(0.95); }
         .cat-filter-chip.active { color: var(--on-color); border-color: transparent; background: var(--cat-color, var(--accent)); box-shadow: 0 4px 14px -3px var(--cat-color, var(--accent)); }
         .cat-filter-chip.active svg { opacity: 1; }
+        /* Home page game-category chips (All / MOBA / ...): compact size. Scoped to
+           the home row so the Game Accounts filter chips keep their own size. */
+        .cat-filter-scroll { gap: 6px; padding-bottom: 10px; }
+        .cat-filter-scroll .cat-filter-chip { gap: 4px; padding: 6px 11px 6px 8px; font-size: 11.5px; }
+        .cat-filter-scroll .cat-filter-chip svg { width: 12px; height: 12px; }
 
         /* Popular Games: horizontal scroll row (separate from the All Games grid) */
         .section-title-spaced { margin-top: 20px; }
@@ -914,6 +989,13 @@
         .history-date-chip { flex: 0 0 auto; padding: 7px 14px; border-radius: 16px; background: var(--surface); border: 1px solid var(--border); color: var(--text-secondary); font-size: 13px; font-weight: 500; cursor: pointer; white-space: nowrap; transition: 0.12s; }
         .history-date-chip:active { transform: scale(0.96); }
         .history-date-chip.active { background: var(--accent); border-color: var(--accent); color: var(--on-color); }
+        /* Order History: status tabs (All / Pending / Processing / Success / Fail), each with its live count */
+        .history-status-tabs { display: flex; gap: 4px; background: var(--bg); border-radius: 12px; padding: 4px; margin-bottom: 12px; overflow-x: auto; -webkit-overflow-scrolling: touch; }
+        .history-status-tabs::-webkit-scrollbar { display: none; }
+        .history-status-tab { flex: 1 0 auto; display: flex; align-items: center; justify-content: center; gap: 5px; padding: 8px 10px; border: none; background: transparent; border-radius: 9px; font-size: 12.5px; font-weight: 500; color: var(--text-secondary); white-space: nowrap; cursor: pointer; transition: 0.15s; }
+        .history-status-tab.active { background: var(--surface); color: var(--accent); box-shadow: 0 1px 3px rgba(0,0,0,0.12); }
+        .history-status-count { min-width: 16px; height: 16px; padding: 0 4px; border-radius: 8px; background: var(--border); color: var(--text-secondary); font-size: 10px; font-weight: 600; line-height: 16px; text-align: center; }
+        .history-status-tab.active .history-status-count { background: var(--accent-soft); color: var(--accent); }
         .history-date-header { font-size: 13px; font-weight: 600; color: var(--text-secondary); margin: 16px 2px 8px; }
         .history-date-header:first-of-type { margin-top: 2px; }
 
@@ -1536,6 +1618,34 @@
         .pc-price-bar { margin-top: 8px; padding: 8px 10px; border-top: 1px solid var(--border); background: var(--surface-alt); text-align: center; }
         .package-card.selected .pc-price-bar { background: var(--accent-soft); border-top-color: var(--accent); }
         .pc-price { font-size: 14px; font-weight: 600; color: var(--accent); }
+        /* Package price = small blue grid "button". Purely visual: pointer-events
+           are off, so a tap goes straight through to the card (selects the
+           package exactly like before) and the pill itself never reacts. */
+        .package-card.type-topup .pc-price, .package-card.type-currency .pc-price {
+            display: inline-flex; align-items: baseline; justify-content: center; gap: 2px;
+            box-sizing: border-box; min-width: 88px; max-width: 100%;
+            padding: 3px 6px; border-radius: 8px; color: #fff; font-size: 12px; font-weight: 700; line-height: 1.3;
+            background:
+                linear-gradient(rgba(255,255,255,0.12) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(255,255,255,0.12) 1px, transparent 1px),
+                linear-gradient(135deg, #3D8DFF 0%, #1666D9 100%);
+            background-size: 8px 8px, 8px 8px, 100% 100%;
+            box-shadow: 0 2px 6px -1px rgba(24,119,242,0.5), inset 0 1px 0 rgba(255,255,255,0.35);
+            text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+            pointer-events: none; cursor: inherit;
+        }
+        /* Voucher cards sit on a blue gradient, so their price button is white with blue text and a faint blue grid */
+        .package-card.type-currency .pc-price {
+            color: #1666D9; text-shadow: none; border: none;
+            background-color: #fff;
+            background-image:
+                linear-gradient(rgba(24,119,242,0.12) 1px, transparent 1px),
+                linear-gradient(90deg, rgba(24,119,242,0.12) 1px, transparent 1px);
+            background-size: 8px 8px, 8px 8px;
+            box-shadow: 0 2px 6px -1px rgba(0,0,0,0.25);
+        }
+        .pc-price .pc-cur { font-size: 9px; font-weight: 600; opacity: 0.92; letter-spacing: 0.2px; }
+        .package-card.type-topup .pc-price-bar, .package-card.type-currency .pc-price-bar { padding-top: 5px; padding-bottom: 5px; }
         .modal-footer { padding-top: 16px; }
         .modal-footer .btn:disabled { background: var(--text-faint); cursor: not-allowed; }
 
@@ -1694,6 +1804,11 @@
         /* Profile > Name Check */
         #name-check-card select, #name-check-card input[type="text"] { margin-top: 8px; }
         #nc-result { margin-top: 12px; display: flex; flex-direction: column; gap: 8px; }
+        /* "Clear" chip above the result: hides the result and empties the ID fields */
+        .nc-clear-row { display: flex; justify-content: flex-end; margin-bottom: -2px; }
+        .nc-clear-btn { display: inline-flex; align-items: center; gap: 4px; padding: 4px 11px 4px 8px; border-radius: 999px; border: 1px solid var(--border); background: var(--surface-alt); color: var(--text-secondary); font-size: 12px; font-weight: 500; cursor: pointer; transition: transform 0.12s ease; }
+        .nc-clear-btn svg { width: 12px; height: 12px; }
+        .nc-clear-btn:active { transform: scale(0.94); }
         .nc-meta { font-size: 12px; color: var(--text-secondary); font-weight: 500; margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
         .nc-meta b { color: #28a745; font-weight: 600; }
         .nc-server { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
@@ -2626,6 +2741,7 @@
                 <svg class="ui-icon" id="onboarding-logo-default-icon" style="width:32px;height:32px;color:#fff;display:none;"><use href="#icon-gamepad"></use></svg>
                 <img id="onboarding-logo-img" src="" alt="" style="display:none;">
             </div>
+            <div class="onboarding-logo-status" id="onboarding-logo-status">Connecting…</div>
             <div class="onboarding-title">PCA Store</div>
 
             <!-- Step 0: waiting to see if a session already exists, so a
@@ -2727,6 +2843,7 @@
         <symbol id="icon-external-link" viewBox="0 0 24 24"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"></path><polyline points="15 3 21 3 21 9"></polyline><line x1="10" y1="14" x2="21" y2="3"></line></symbol>
         <symbol id="icon-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></symbol>
         <symbol id="icon-message-circle" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"></circle><circle cx="8" cy="12" r="1.15" fill="currentColor" stroke="none"></circle><circle cx="12" cy="12" r="1.15" fill="currentColor" stroke="none"></circle><circle cx="16" cy="12" r="1.15" fill="currentColor" stroke="none"></circle></symbol>
+        <symbol id="icon-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="10"></circle><line x1="2" y1="12" x2="22" y2="12"></line><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path></symbol>
         <symbol id="icon-flag" viewBox="0 0 24 24"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"></path><line x1="4" y1="22" x2="4" y2="15"></line></symbol>
         <symbol id="icon-pin" viewBox="0 0 24 24"><path d="M12 2a7 7 0 0 0-7 7c0 5.25 7 13 7 13s7-7.75 7-13a7 7 0 0 0-7-7z"></path><circle cx="12" cy="9" r="2.5"></circle></symbol>
         <symbol id="icon-book" viewBox="0 0 24 24"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></symbol>
@@ -2838,17 +2955,19 @@
 
     <!-- Header -->
     <header class="header">
-        <div style="display:flex; align-items:center; gap:10px;">
-            <div class="header-icon" id="drawer-toggle-btn" onclick="openDrawer()" role="button" aria-label="Open menu">
-                <svg class="ui-icon" style="width: 20px;"><use href="#icon-menu"></use></svg>
-            </div>
-            <div class="logo" onclick="window.open('https://t.me/pcagamepage','_blank')" role="button" aria-label="Open PCA Store Telegram channel">
-                <span class="logo-icon-wrap">
-                    <svg class="ui-icon" id="header-logo-default-icon" style="color:#fff;"><use href="#icon-gamepad"></use></svg>
-                    <img id="header-logo-img" src="" alt="PCA Store" style="display:none;">
-                </span>
-                PCA Store
-            </div>
+        <div class="logo logo-loading" id="header-logo" onclick="window.open('https://t.me/pcagamepage','_blank')" role="button" aria-label="Open PCA Store Telegram channel">
+            <span class="logo-icon-wrap">
+                <svg class="ui-icon" id="header-logo-default-icon" style="color:#fff;"><use href="#icon-gamepad"></use></svg>
+                <img id="header-logo-img" src="" alt="PCA Store" style="display:none;">
+            </span>
+            <span class="logo-status" id="header-logo-status">
+                <span class="logo-status-skel skel"></span>
+                <span class="logo-status-text" id="header-logo-status-text">Connecting…</span>
+            </span>
+        </div>
+        <div class="header-icon" id="drawer-toggle-btn" onclick="openDrawer()" role="button" aria-label="Open menu">
+            <svg class="ui-icon" style="width: 20px;"><use href="#icon-menu"></use></svg>
+            <span class="notif-badge" id="notif-badge-header"></span>
         </div>
     </header>
 
@@ -2901,7 +3020,7 @@
 
                 <div class="drawer-nav-item" onclick="closeDrawer(); openNotificationsPage();">
                     <svg class="ui-icon"><use href="#icon-bell"></use></svg><span data-i18n="nav_notifications">Notifications</span>
-                    <span class="notif-dot" id="notif-dot"></span>
+                    <span class="notif-badge" id="notif-dot"></span>
                 </div>
                 <div class="drawer-nav-item" onclick="window.toggleTheme(event)">
                     <svg class="ui-icon" id="theme-toggle-icon-drawer"><use href="#icon-sun"></use></svg><span data-i18n="nav_theme">Dark Mode</span>
@@ -4257,7 +4376,12 @@
                 <div class="header-icon" style="width:36px;height:36px;" onclick="closeNotificationsPage()">
                     <svg class="ui-icon" style="width:18px;"><use href="#icon-chevron-left"></use></svg>
                 </div>
-                <h2 style="font-size:18px; font-weight: 600; color:var(--text);">Notifications</h2>
+                <h2 style="font-size:18px; font-weight: 600; color:var(--text);" data-i18n="nav_notifications">Notifications</h2>
+                <button type="button" class="notif-markall" id="notif-mark-all" onclick="markAllNotifsRead()" data-i18n="notif_mark_all" style="display:none;">Mark all read</button>
+            </div>
+            <div class="pkg-type-tabs" id="notif-tabs">
+                <button type="button" class="pkg-type-tab active" id="notif-tab-unread" onclick="switchNotifTab('unread')">Unread</button>
+                <button type="button" class="pkg-type-tab" id="notif-tab-read" onclick="switchNotifTab('read')">Read</button>
             </div>
             <div id="notif-page-list"></div>
         </div>
@@ -4270,10 +4394,11 @@
                 </div>
                 <h2 style="font-size:18px; font-weight: 600; color:var(--text); flex:1; overflow:hidden; text-overflow:ellipsis; white-space:nowrap;" id="notif-detail-title">Notification</h2>
             </div>
-            <div class="notif-item">
+            <div class="notif-item" id="notif-detail-text-wrap">
                 <span id="notif-detail-date"></span>
                 <p id="notif-detail-body" style="white-space:pre-wrap; margin-top:8px;"></p>
             </div>
+            <div id="notif-detail-order" style="display:none;"></div>
         </div>
 
     </main>
@@ -4294,6 +4419,17 @@
             </button>
             <button class="btn btn-primary" id="success-go-history-btn" onclick="goToHistoryFromSuccess()" data-i18n="btn_go_history">Go to History</button>
             <button class="btn btn-primary" id="success-go-admin-btn" onclick="goToAdminFromSuccess()" style="display:none;" data-i18n="btn_go_admin">Go to Admin</button>
+        </div>
+    </div>
+
+    <!-- Order Success flash modal: green grid card in the middle of the screen, closes itself after 1 second -->
+    <div class="order-ok-overlay" id="order-ok-overlay" aria-live="polite">
+        <div class="order-ok-box">
+            <div class="order-ok-check">
+                <svg class="ui-icon"><use href="#icon-check"></use></svg>
+            </div>
+            <div class="order-ok-title" id="order-ok-title">Order Success</div>
+            <div class="order-ok-sub" id="order-ok-sub" style="display:none;"></div>
         </div>
     </div>
 
@@ -4329,7 +4465,7 @@
                 nav_home: 'Home', nav_voucher: 'Voucher', nav_account: 'Game Accounts',
                 nav_history: 'History', nav_leaderboard: 'Leaderboard', nav_wallet: 'Wallet',
                 nav_profile: 'Profile', nav_notifications: 'Notifications', nav_theme: 'Dark Mode',
-                nav_terms: 'Terms & Policy', nav_support: 'Support', nav_language: 'Language', nc_title: 'Name Check', nc_select_game: 'Select game', nc_player_id_ph: 'Player ID', nc_server_ph: 'Server ID', nc_select_server: 'Select server / region', nc_global: 'Global', nc_server: 'Server', nc_unavailable: "Couldn't check right now. Please try again later.", pc_wallet_balance: 'Wallet balance', pc_topup: 'Top up', pc_orders: 'Orders', pc_total_spent: 'Total spent', pc_edit: 'Edit profile',
+                nav_terms: 'Terms & Policy', nav_support: 'Support', nav_language: 'Language', nc_title: 'Name Check', nc_clear: 'Clear', nc_select_game: 'Select game', nc_player_id_ph: 'Player ID', nc_server_ph: 'Server ID', nc_select_server: 'Select server / region', nc_global: 'Global', nc_server: 'Server', nc_unavailable: "Couldn't check right now. Please try again later.", pc_wallet_balance: 'Wallet balance', pc_topup: 'Top up', pc_orders: 'Orders', pc_total_spent: 'Total spent', pc_edit: 'Edit profile',
                 legal_tab_terms: 'Terms', legal_tab_privacy: 'Privacy', legal_tab_refund: 'Refund',
                 terms_l_about: 'About This Service',
                 terms_b_about: 'PCA Store (operating at daikokuten.my.id) is a game top-up and voucher store. By using this site, browsing, creating an account, or placing an order, you agree to these Terms.',
@@ -4401,7 +4537,7 @@
                 sell_err_game: 'Please enter the game name.', sell_err_title: 'Please enter a title for the account.',
                 sell_err_price: 'Please enter your asking price.', sell_err_contact: 'Please enter a way to contact you.',
                 sell_success: 'Submitted! Our team will review it and reach out to you.',
-                title_history: 'Transaction History', title_leaderboard: 'Top Spenders',
+                title_history: 'Transaction History', logo_connecting: 'Connecting…', logo_updating: 'Updating…', hist_status_all: 'All', hist_no_status_t: 'No {status} orders', hist_no_status_s: 'Try a different status or date.', title_leaderboard: 'Top Spenders',
                 title_wallet: 'My Wallet', title_profile: 'My Profile',
                 sec_account_info: 'Account Info', lbl_rank: 'Rank', lbl_server: 'Server', sec_description: 'Description',
                 sec_skins_included: 'Skins Included', sec_how_pay: 'How do you want to pay?',
@@ -4446,12 +4582,17 @@
                 success_completed_title: 'Order Completed!', success_completed_sub: 'Your top up has been delivered. Thanks for ordering with us.',
                 success_failed_title: 'Order Failed', success_failed_sub: 'Something went wrong with this order. Check the details in History or contact support.',
                 success_confirmed_title: 'Order Confirmed',
+                order_ok_title: 'Order Success',
+                notif_tab_unread: 'Unread', notif_tab_read: 'Read', notif_mark_all: 'Mark all read',
+                notif_order_success: 'Order Success', notif_order_failed: 'Order Failed', notif_view_history: 'View in History',
+                notif_empty_unread_t: "You're all caught up", notif_empty_unread_s: 'New order updates and announcements will show up here.',
+                notif_empty_read_t: 'Nothing here yet', notif_empty_read_s: 'Notifications you have opened are kept here.',
             },
             my: {
                 nav_home: 'ပင်မ', nav_voucher: 'ဗောက်ချာ', nav_account: 'ဂိမ်းအကောင့်',
                 nav_history: 'မှတ်တမ်း', nav_leaderboard: 'ထိပ်တန်းစာရင်း', nav_wallet: 'ပိုက်ဆံအိတ်',
                 nav_profile: 'ပရိုဖိုင်', nav_notifications: 'အသိပေးချက်များ', nav_theme: 'အနက်ရောင်မုဒ်',
-                nav_terms: 'စည်းမျဉ်းစည်းကမ်း', nav_support: 'အကူအညီ', nav_language: 'ဘာသာစကား', nc_title: 'အမည်စစ်ဆေးရန်', nc_select_game: 'ဂိမ်းရွေးပါ', nc_player_id_ph: 'Player ID', nc_server_ph: 'Server ID', nc_select_server: 'Server / Region ရွေးပါ', nc_global: 'Global', nc_server: 'Server', nc_unavailable: 'ယခု စစ်ဆေး၍မရပါ၊ ခဏနေမှ ပြန်ကြိုးစားပါ', pc_wallet_balance: 'Wallet လက်ကျန်ငွေ', pc_topup: 'ငွေဖြည့်ရန်', pc_orders: 'အော်ဒါများ', pc_total_spent: 'စုစုပေါင်းသုံးငွေ', pc_edit: 'ပရိုဖိုင်ပြင်ရန်',
+                nav_terms: 'စည်းမျဉ်းစည်းကမ်း', nav_support: 'အကူအညီ', nav_language: 'ဘာသာစကား', nc_title: 'အမည်စစ်ဆေးရန်', nc_clear: 'ရှင်းမည်', nc_select_game: 'ဂိမ်းရွေးပါ', nc_player_id_ph: 'Player ID', nc_server_ph: 'Server ID', nc_select_server: 'Server / Region ရွေးပါ', nc_global: 'Global', nc_server: 'Server', nc_unavailable: 'ယခု စစ်ဆေး၍မရပါ၊ ခဏနေမှ ပြန်ကြိုးစားပါ', pc_wallet_balance: 'Wallet လက်ကျန်ငွေ', pc_topup: 'ငွေဖြည့်ရန်', pc_orders: 'အော်ဒါများ', pc_total_spent: 'စုစုပေါင်းသုံးငွေ', pc_edit: 'ပရိုဖိုင်ပြင်ရန်',
                 legal_tab_terms: 'စည်းကမ်းချက်', legal_tab_privacy: 'ကိုယ်ရေးအချက်အလက်', legal_tab_refund: 'ငွေပြန်အမ်း',
                 terms_l_about: 'ဝန်ဆောင်မှုအကြောင်း',
                 terms_b_about: 'PCA Store (daikokuten.my.id တွင် လုပ်ဆောင်သည်) သည် ဂိမ်း top-up နှင့် voucher ရောင်းချသော store တစ်ခု ဖြစ်ပါသည်။ ဤ site ကို အသုံးပြုခြင်း၊ browse လုပ်ခြင်း၊ account ဖွင့်ခြင်း သို့မဟုတ် order တင်ခြင်းဖြင့် ဤစည်းကမ်းချက်များကို သဘောတူလက်ခံရာ ရောက်ပါသည်။',
@@ -4523,7 +4664,7 @@
                 sell_err_game: 'ဂိမ်းအမည်ထည့်ပါ။', sell_err_title: 'အကောင့်ခေါင်းစဉ်ထည့်ပါ။',
                 sell_err_price: 'ရောင်းလိုသောစျေးနှုန်းထည့်ပါ။', sell_err_contact: 'ဆက်သွယ်ရန်အချက်အလက်ထည့်ပါ။',
                 sell_success: 'ပို့ပြီးပါပြီ! ကျွန်ုပ်တို့အဖွဲ့မှ စစ်ဆေးပြီး ဆက်သွယ်ပါမည်။',
-                title_history: 'ငွေလွှဲမှတ်တမ်း', title_leaderboard: 'အများဆုံးသုံးစွဲသူများ',
+                title_history: 'ငွေလွှဲမှတ်တမ်း', logo_connecting: 'Connecting…', logo_updating: 'Updating…', hist_status_all: 'အားလုံး', hist_no_status_t: '{status} အော်ဒါ မရှိပါ', hist_no_status_s: 'တခြား status သို့မဟုတ် ရက်စွဲကို ရွေးကြည့်ပါ။', title_leaderboard: 'အများဆုံးသုံးစွဲသူများ',
                 title_wallet: 'ကျွန်ုပ်၏ပိုက်ဆံအိတ်', title_profile: 'ကျွန်ုပ်၏ပရိုဖိုင်',
                 sec_account_info: 'အကောင့်အချက်အလက်', lbl_rank: 'အဆင့်', lbl_server: 'ဆာဗာ', sec_description: 'ဖော်ပြချက်',
                 sec_skins_included: 'ပါဝင်သောစကင်များ', sec_how_pay: 'ဘယ်လိုငွေပေးချေမလဲ?',
@@ -4568,6 +4709,11 @@
                 success_completed_title: 'အော်ဒါ ပြီးမြောက်ပါပြီ!', success_completed_sub: 'သင့်ရဲ့ top up ကို ပေးပို့ပြီးပါပြီ။ ကျွန်ုပ်တို့နှင့် အော်ဒါတင်သည့်အတွက် ကျေးဇူးတင်ပါသည်။',
                 success_failed_title: 'အော်ဒါ မအောင်မြင်ပါ', success_failed_sub: 'ဒီအော်ဒါမှာ တစ်ခုခုမှားယွင်းသွားပါသည်။ History တွင်စစ်ဆေးပါ (သို့) Support ကိုဆက်သွယ်ပါ။',
                 success_confirmed_title: 'အော်ဒါ အတည်ပြုပြီး',
+                order_ok_title: 'Order Success',
+                notif_tab_unread: 'မဖတ်ရသေး', notif_tab_read: 'ဖတ်ပြီး', notif_mark_all: 'အားလုံး ဖတ်ပြီးပြုမည်',
+                notif_order_success: 'Order Success', notif_order_failed: 'Order Failed', notif_view_history: 'History တွင်ကြည့်မည်',
+                notif_empty_unread_t: 'အသစ်မရှိတော့ပါ', notif_empty_unread_s: 'အော်ဒါ အခြေအနေနှင့် ကြေညာချက်အသစ်များ ဤနေရာတွင် ပေါ်လာပါမည်။',
+                notif_empty_read_t: 'ဖတ်ပြီးသားမရှိသေးပါ', notif_empty_read_s: 'ဖွင့်ကြည့်ပြီးသော အသိပေးချက်များ ဤနေရာတွင် သိမ်းထားပါမည်။',
             }
         };
         let currentLang = localStorage.getItem('gz_lang') || 'my';
@@ -4594,6 +4740,7 @@
                 if (mmFlag) mmFlag.style.display = showEn ? 'none' : 'block';
             });
             if (window.renderMiniProfileGreeting) window.renderMiniProfileGreeting();
+            if (window.onNotifLangChange) window.onNotifLangChange();
         }
         // Small time-of-day greeting shown next to the name in the mini
         // profile strip (Home page). Based on the device's local hour, so
@@ -4718,6 +4865,7 @@
             window.currentStorePage = pageId;
             if (pageId === 'history' && window.loadHistory) window.loadHistory();
             if (pageId === 'profile' && window.ncRenderGameOptions) window.ncRenderGameOptions();
+            if (pageId === 'profile' && window.ncResetScrollBaseline) window.ncResetScrollBaseline();
             if (pageId === 'profile' && window.renderProfileFields) window.renderProfileFields();
             if (pageId === 'profile' && window.loadProfileStats) window.loadProfileStats();
             if (pageId === 'profile' && window.renderTierPreviewGrid) window.renderTierPreviewGrid();
@@ -5463,6 +5611,7 @@
             sel.classList.toggle('has-value', !!key);
             clearTimeout(ncTimer);
             ncRunId++;
+            ncShownAt = null;
             const result = document.getElementById('nc-result');
             result.style.display = 'none';
             result.innerHTML = '';
@@ -5485,6 +5634,7 @@
             const result = document.getElementById('nc-result');
             clearTimeout(ncTimer);
             ncRunId++;
+            ncShownAt = null;
             if (!entries) { result.style.display = 'none'; return; }
             const idField = document.getElementById('nc-player-id');
             const serverField = document.getElementById('nc-server-id');
@@ -5560,6 +5710,57 @@
             return { outcome, name, geo };
         }
 
+        // Hides the result (and, for the Clear button, empties the Player ID /
+        // Server ID fields too; the selected game stays). Bumping ncRunId
+        // cancels any check still in flight so it can't re-open the box.
+        let ncShownAt = null;      // when the final result appeared (null = nothing to auto-close)
+        let ncShownScrollY = 0;
+        function ncDismissResult(clearInputs) {
+            clearTimeout(ncTimer);
+            ncRunId++;
+            ncShownAt = null;
+            const result = document.getElementById('nc-result');
+            if (result) { result.style.display = 'none'; result.innerHTML = ''; }
+            if (clearInputs) {
+                const idField = document.getElementById('nc-player-id');
+                if (idField) idField.value = '';
+                const serverField = document.getElementById('nc-server-id');
+                if (serverField) { serverField.value = ''; serverField.classList.remove('has-value'); }
+            }
+        }
+        window.ncDismissResult = ncDismissResult;
+
+        // Called once the final result (valid / not found / unavailable) is on
+        // screen: adds the Clear chip on top and starts the scroll auto-close.
+        function ncFinishResult(box) {
+            const row = document.createElement('div');
+            row.className = 'nc-clear-row';
+            const btn = document.createElement('button');
+            btn.type = 'button';
+            btn.className = 'nc-clear-btn';
+            btn.setAttribute('aria-label', t('nc_clear'));
+            btn.innerHTML = `<svg class="ui-icon"><use href="#icon-close"></use></svg><span>${ncEsc(t('nc_clear'))}</span>`;
+            btn.addEventListener('click', () => ncDismissResult(true));
+            row.appendChild(btn);
+            box.insertBefore(row, box.firstChild);
+            box.style.display = 'flex';
+            ncShownAt = Date.now();
+            ncShownScrollY = window.scrollY;
+        }
+
+        // Scrolling the page away from where the result appeared closes it
+        // (the IDs stay). The first ~0.8s is ignored so keyboard / layout
+        // adjustments right after typing don't close it by accident.
+        window.addEventListener('scroll', () => {
+            if (ncShownAt === null || window.currentStorePage !== 'profile') return;
+            if (Date.now() - ncShownAt < 800) return;
+            if (Math.abs(window.scrollY - ncShownScrollY) > 50) ncDismissResult(false);
+        }, { passive: true });
+        // Entering Profile scrolls to the top; re-baseline so that alone doesn't count as a scroll.
+        window.ncResetScrollBaseline = () => {
+            if (ncShownAt !== null) { ncShownAt = Date.now(); ncShownScrollY = window.scrollY; }
+        };
+
         async function ncRunCheck() {
             const myRun = ++ncRunId;
             const key = document.getElementById('nc-game').value;
@@ -5583,7 +5784,7 @@
                 if (anyInvalid) { card.className = 'id-fail-card'; card.textContent = t('id_not_found'); }
                 else { card.className = 'id-checking-text'; card.textContent = t('nc_unavailable'); }
                 box.appendChild(card);
-                box.style.display = 'flex';
+                ncFinishResult(box);
                 return;
             }
             const seen = new Set();
@@ -5625,7 +5826,7 @@
                 card.appendChild(check);
                 box.appendChild(card);
             });
-            box.style.display = 'flex';
+            ncFinishResult(box);
         }
         window.ncRunCheck = ncRunCheck;
 
@@ -6275,10 +6476,10 @@
                 const bodyHTML = isVoucher
                     ? `<div class="pc-amount-badge">${pkg.amount}</div>
                     <div class="pc-img-wrap">${imgTag}</div>
-                    <div class="pc-price-bar"><span class="pc-price">${pkg.price.toLocaleString()} MMK</span></div>${tagHtml}`
+                    <div class="pc-price-bar"><span class="pc-price">${pkg.price.toLocaleString()}<span class="pc-cur">MMK</span></span></div>${tagHtml}`
                     : `<div class="pc-img-wrap">${imgTag}</div>
                     <div class="pc-label-wrap${tagHtml ? ' has-tag' : ''}"><span class="pc-label${pcLabelSizeClass(String(pkg.amount))}">${pkg.amount}</span>${tagHtml}</div>
-                    <div class="pc-price-bar"><span class="pc-price">${pkg.price.toLocaleString()} MMK</span></div>`;
+                    <div class="pc-price-bar"><span class="pc-price">${pkg.price.toLocaleString()}<span class="pc-cur">MMK</span></span></div>`;
                 return `
                 <div class="package-card ${cardTypeClass} game-card-anim${outOfStock ? ' out-of-stock' : ''}" style="animation-delay:${Math.min(pos * 18, 120)}ms" data-index="${i}" onclick="${outOfStock ? '' : `selectPackageOption(${i})`}">
                     ${stockBadge}<span class="pc-selected-check"><svg class="ui-icon"><use href="#icon-check"></use></svg></span>
@@ -8895,7 +9096,7 @@
         function resetLocalAccountState() {
             try {
                 ['gz_profile', 'gz_guest_id', 'gz_member_since', 'gz_stats_cache', 'gz_gid_owner_uid',
-                 'gz_playerId', 'gz_last_seen_notif', 'gz_fcm_token_registered'].forEach((k) => localStorage.removeItem(k));
+                 'gz_playerId', 'gz_last_seen_notif', 'gz_notif_read', 'gz_notif_baseline', 'gz_order_notifs', 'gz_fcm_token_registered'].forEach((k) => localStorage.removeItem(k));
                 Object.keys(localStorage).forEach((k) => {
                     if (k.startsWith('gz_playerId:') || k.startsWith('gz_serverId:')) localStorage.removeItem(k);
                 });
@@ -9682,35 +9883,84 @@
         // hardcoded sample - and clears that screen's loading skeleton once
         // this first resolves, whichever way it resolves.
         let APP_LOGO_URL = '';
-        function renderHeaderLogo(data) {
+
+        // Loading states before the logo shows (header + onboarding screen):
+        //   "Connecting…" - waiting for the branding settings to arrive
+        //   "Updating…"   - connected, now downloading the logo image
+        // then the logo replaces the loader. Which state you see, and for
+        // how long, follows the connection speed. With no custom logo (or if
+        // it can't load) the default gamepad badge is shown instead.
+        let logoLoadSeq = 0;        // bumps on every branding snapshot; stale image loads are ignored
+        let logoAppliedUrl = null;  // the custom logo URL currently on screen ('' = default badge)
+
+        function setLogoLoading(phase) { // 'connecting' | 'updating' | null (= done)
+            const text = phase ? t(phase === 'updating' ? 'logo_updating' : 'logo_connecting') : '';
+            const hdr = document.getElementById('header-logo');
+            if (hdr) hdr.classList.toggle('logo-loading', !!phase);
+            const hdrText = document.getElementById('header-logo-status-text');
+            if (hdrText && phase) hdrText.textContent = text;
+            const obStatus = document.getElementById('onboarding-logo-status');
+            if (obStatus) { obStatus.style.display = phase ? '' : 'none'; if (phase) obStatus.textContent = text; }
+            const obSkeleton = document.getElementById('onboarding-logo-skeleton');
+            if (obSkeleton) obSkeleton.style.display = phase ? '' : 'none';
+        }
+
+        function applyLogoImage(url) {
             const img = document.getElementById('header-logo-img');
             const defaultIcon = document.getElementById('header-logo-default-icon');
-            const favicon = document.getElementById('favicon-link');
-            const obSkeleton = document.getElementById('onboarding-logo-skeleton');
             const obImg = document.getElementById('onboarding-logo-img');
             const obDefaultIcon = document.getElementById('onboarding-logo-default-icon');
-            if (data && data.logoUrl) {
-                APP_LOGO_URL = data.logoUrl;
-                img.src = data.logoUrl;
-                img.style.display = 'block';
-                defaultIcon.style.display = 'none';
-                if (favicon) favicon.href = data.logoUrl;
-                if (obImg) { obImg.src = data.logoUrl; obImg.style.display = 'block'; }
-                if (obDefaultIcon) obDefaultIcon.style.display = 'none';
-            } else {
-                APP_LOGO_URL = '';
-                img.style.display = 'none';
-                defaultIcon.style.display = '';
-                if (obImg) obImg.style.display = 'none';
-                if (obDefaultIcon) obDefaultIcon.style.display = '';
-            }
-            if (obSkeleton) obSkeleton.style.display = 'none';
+            img.src = url;
+            img.style.display = 'block';
+            defaultIcon.style.display = 'none';
+            if (obImg) { obImg.src = url; obImg.style.display = 'block'; }
+            if (obDefaultIcon) obDefaultIcon.style.display = 'none';
+            logoAppliedUrl = url;
+            setLogoLoading(null);
         }
+
+        function applyDefaultLogo() {
+            const img = document.getElementById('header-logo-img');
+            const defaultIcon = document.getElementById('header-logo-default-icon');
+            const obImg = document.getElementById('onboarding-logo-img');
+            const obDefaultIcon = document.getElementById('onboarding-logo-default-icon');
+            img.style.display = 'none';
+            defaultIcon.style.display = '';
+            if (obImg) obImg.style.display = 'none';
+            if (obDefaultIcon) obDefaultIcon.style.display = '';
+            logoAppliedUrl = '';
+            setLogoLoading(null);
+        }
+
+        function renderHeaderLogo(data) {
+            const seq = ++logoLoadSeq;
+            const url = (data && data.logoUrl) || '';
+            if (!url) {
+                APP_LOGO_URL = '';
+                applyDefaultLogo();
+                return;
+            }
+            APP_LOGO_URL = url;
+            const favicon = document.getElementById('favicon-link');
+            if (favicon) favicon.href = url;
+            if (url === logoAppliedUrl) { setLogoLoading(null); return; } // same logo already showing (e.g. an unrelated branding edit)
+            setLogoLoading('updating');
+            const probe = new Image();
+            probe.onload = () => { if (seq === logoLoadSeq) applyLogoImage(url); };
+            probe.onerror = () => { if (seq === logoLoadSeq) applyDefaultLogo(); };
+            probe.src = url;
+        }
+
+        // Safety net: on a dead connection don't leave "Connecting…" up
+        // forever - fall back to the default badge after 8s. If the settings
+        // do arrive later, the snapshot below still swaps in the real logo.
+        setTimeout(() => { if (logoLoadSeq === 0) applyDefaultLogo(); }, 8000);
 
         onSnapshot(doc(db, "settings", "branding"), (docSnap) => {
             renderHeaderLogo(docSnap.exists() ? docSnap.data() : {});
         }, (error) => {
             console.error("Branding fetch error:", error);
+            renderHeaderLogo({});
         });
 
         // ---------- Admin online/offline status ----------
@@ -10446,6 +10696,13 @@
                 snap.docChanges().forEach((change) => {
                     const data = change.doc.data();
                     const orderId = change.doc.id;
+                    // Feed the Notifications page (order details + unread count).
+                    if (change.type === 'removed') {
+                        delete ORDER_NOTIF_SRC[orderId];
+                    } else {
+                        ORDER_NOTIF_SRC[orderId] = { id: orderId, ...data };
+                        registerOrderNotif(orderId, data, change.type === 'added');
+                    }
                     const prevStatus = orderStatusKnown[orderId];
                     orderStatusKnown[orderId] = data.status;
                     if (change.type === 'added') return; // don't replay history on load
@@ -10453,7 +10710,7 @@
                         const label = `${data.game || ''}${data.itemAmount ? ' - ' + data.itemAmount : ''}`.trim();
                         if (data.status === 'Success' && !orderStatusNotified.has(orderId + ':success')) {
                             orderStatusNotified.add(orderId + ':success');
-                            window.showToast(`Your Order Is Successfully ${label ? '(' + label + ')' : ''}`.trim(), 'success');
+                            showOrderSuccessModal(label);
                             creditLeaderboardStats(orderId, guestId);
                         } else if (data.status === 'Fail' && !orderStatusNotified.has(orderId + ':fail')) {
                             orderStatusNotified.add(orderId + ':fail');
@@ -10461,11 +10718,31 @@
                         }
                     }
                 });
+                refreshNotifUI();
             }, (error) => {
                 console.error("Order status listener error:", error);
             });
         }
         listenOwnOrderStatus();
+
+        // Green grid "Order Success" modal: pops in the middle of the screen
+        // the moment one of this customer's orders flips to Success and
+        // closes itself after 1 second. Never blocks taps (pointer-events: none).
+        let orderOkTimer = null;
+        function showOrderSuccessModal(label) {
+            const ov = document.getElementById('order-ok-overlay');
+            if (!ov) return;
+            document.getElementById('order-ok-title').textContent = t('order_ok_title');
+            const sub = document.getElementById('order-ok-sub');
+            sub.textContent = label || '';
+            sub.style.display = label ? '' : 'none';
+            // Restart the pop-in if a second order lands while it's still up.
+            ov.classList.remove('show');
+            void ov.offsetWidth;
+            ov.classList.add('show');
+            clearTimeout(orderOkTimer);
+            orderOkTimer = setTimeout(() => ov.classList.remove('show'), 1000);
+        }
 
         // Four possible order states: Pending, Processing, Success, Fail
         function historyBadgeClassFor(status) {
@@ -10528,6 +10805,39 @@
             renderHistoryOrders(HISTORY_ORDERS);
         }
         window.setHistoryDateFilter = setHistoryDateFilter;
+
+        // Status tab: 'all' or one of Pending / Processing / Success / Fail.
+        // Odd legacy values fall in with the group their label maps to
+        // (see ORDER_STATUS_DISPLAY_LABELS): Completed -> Success, Rejected -> Fail,
+        // anything unrecognised -> Pending (same fallback as the card badge).
+        let HISTORY_FILTER_STATUS = 'all';
+        function historyStatusGroup(status) {
+            if (status === 'Success' || status === 'Completed') return 'Success';
+            if (status === 'Fail' || status === 'Rejected') return 'Fail';
+            if (status === 'Processing') return 'Processing';
+            return 'Pending';
+        }
+        function setHistoryStatusFilter(key) {
+            HISTORY_FILTER_STATUS = key;
+            renderHistoryOrders(HISTORY_ORDERS);
+        }
+        window.setHistoryStatusFilter = setHistoryStatusFilter;
+
+        // Tab labels use the same customer-facing names as the status badges
+        // on the cards (orderStatusLabel), so a tab always matches what you
+        // see on the orders under it. Counts follow the selected day chip.
+        function historyStatusTabsHTML(orders) {
+            const counts = { all: 0, Pending: 0, Processing: 0, Success: 0, Fail: 0 };
+            orders.forEach(o => {
+                if (HISTORY_FILTER_DATE && yangonDateKey(o.timestamp?.toMillis() || Date.now()) !== HISTORY_FILTER_DATE) return;
+                counts.all++;
+                counts[historyStatusGroup(o.status)]++;
+            });
+            const tabs = [['all', t('hist_status_all')]].concat(['Pending', 'Processing', 'Success', 'Fail'].map(k => [k, orderStatusLabel(k)]));
+            return `<div class="history-status-tabs">${tabs.map(([key, label]) =>
+                `<button type="button" class="history-status-tab${HISTORY_FILTER_STATUS === key ? ' active' : ''}" onclick="setHistoryStatusFilter('${key}')">${escapeHtml(label)}${counts[key] ? `<span class="history-status-count">${counts[key]}</span>` : ''}</button>`
+            ).join('')}</div>`;
+        }
 
         function historyDateChipsHTML(orders) {
             // Unique Yangon day-keys present in the orders, newest first.
@@ -10718,10 +11028,16 @@
                 entries = entries.filter(e => yangonDateKey(e.data.timestamp?.toMillis() || Date.now()) === HISTORY_FILTER_DATE);
             }
 
-            const chipsHTML = historyDateChipsHTML(orders);
+            if (HISTORY_FILTER_STATUS !== 'all') {
+                entries = entries.filter(e => historyStatusGroup(e.data.status) === HISTORY_FILTER_STATUS);
+            }
+
+            const chipsHTML = historyStatusTabsHTML(orders) + historyDateChipsHTML(orders);
 
             if (entries.length === 0) {
-                container.innerHTML = chipsHTML + emptyStateHTML('icon-history', 'No orders on this day', 'Try a different date, or tap "All" to see everything.');
+                container.innerHTML = chipsHTML + (HISTORY_FILTER_STATUS !== 'all'
+                    ? emptyStateHTML('icon-history', t('hist_no_status_t').replace('{status}', orderStatusLabel(HISTORY_FILTER_STATUS)), t('hist_no_status_s'))
+                    : emptyStateHTML('icon-history', 'No orders on this day', 'Try a different date, or tap "All" to see everything.'));
                 return;
             }
 
@@ -11390,6 +11706,7 @@
             if (historyUnsubscribe) { historyUnsubscribe(); historyUnsubscribe = null; }
             historyListenerGuestId = guestId;
             HISTORY_FILTER_DATE = null;
+            HISTORY_FILTER_STATUS = 'all';
             container.innerHTML = historySkeletonHTML();
 
             const q = query(collection(db, "orders"), where("userId", "==", guestId));
@@ -11567,6 +11884,14 @@
             input.focus();
         }
         window.clearGameSearch = clearGameSearch;
+
+        // Top-right pill: how many servers / regions a game has (the grouped
+        // variants behind one card). Hidden for single-server games.
+        function serverCountBadgeHtml(group) {
+            const n = group && group.ids ? group.ids.length : 0;
+            if (n < 2) return '';
+            return `<span class="game-server-badge" title="${n} servers / regions"><svg class="ui-icon"><use href="#icon-globe"></use></svg>${n}</span>`;
+        }
 
         function categoryBadgeHtml(categoryId) {
             const c = findCategory(categoryId);
@@ -11789,6 +12114,7 @@
                     <div class="game-card-img-wrap">
                         <img src="${g.image}" alt="${g.name}" loading="lazy" decoding="async">
                         ${categoryBadgeHtml(g.category)}
+                        ${serverCountBadgeHtml(gr)}
                         ${pinBadgeHtml()}
                     </div>
                     <div class="game-card-name">${g.name}</div>
@@ -11916,6 +12242,7 @@
                         <div class="game-card-img-wrap">
                             <img src="${g.image}" alt="${g.name}" loading="lazy" decoding="async">
                             ${categoryBadgeHtml(g.category)}
+                            ${serverCountBadgeHtml(gr)}
                             ${pinBadgeHtml()}
                         </div>
                         <div class="game-card-name">${g.name}</div>
@@ -13340,25 +13667,210 @@
         }
         window.submitAccountWalletOrder = submitAccountWalletOrder;
 
-        // ---------- Notifications (broadcast messages from admin) ----------
+        // ---------- Notifications: admin broadcasts + this customer's own order updates ----------
         let NOTIFICATIONS = [];
         let notifListenerAttached = false;
         let notifReturnPage = 'home';
+        let notifTab = 'unread'; // 'unread' | 'read'
 
+        // Order updates: every own order that reaches Success or Fail becomes
+        // one entry in the Notifications list. Only its timestamp is kept
+        // locally (gz_order_notifs: { "<orderId>:<Status>": ms }); the details
+        // shown come from the live order docs (ORDER_NOTIF_SRC, filled by
+        // listenOwnOrderStatus), so they always match Order History.
+        const ORDER_NOTIF_SRC = {};
+        const ORDER_NOTIF_KEY = 'gz_order_notifs';
+        let ORDER_NOTIF_STORE = null;
+        let ORDER_NOTIF_FIRST_RUN = false;
+
+        function getOrderNotifStore() {
+            if (ORDER_NOTIF_STORE) return ORDER_NOTIF_STORE;
+            let raw = null;
+            try { raw = localStorage.getItem(ORDER_NOTIF_KEY); } catch (e) { /* private browsing - ignore */ }
+            try { ORDER_NOTIF_STORE = raw ? JSON.parse(raw) : {}; } catch (e) { ORDER_NOTIF_STORE = {}; }
+            if (!ORDER_NOTIF_STORE || typeof ORDER_NOTIF_STORE !== 'object') ORDER_NOTIF_STORE = {};
+            // First run on this device: orders that are already Success/Fail
+            // are history, not news - they start out as read.
+            ORDER_NOTIF_FIRST_RUN = (raw === null);
+            if (ORDER_NOTIF_FIRST_RUN) saveOrderNotifStore();
+            return ORDER_NOTIF_STORE;
+        }
+        function saveOrderNotifStore() {
+            try { localStorage.setItem(ORDER_NOTIF_KEY, JSON.stringify(ORDER_NOTIF_STORE || {})); }
+            catch (e) { /* private browsing - ignore */ }
+        }
+        function registerOrderNotif(orderId, data, isAdded) {
+            if (data.status !== 'Success' && data.status !== 'Fail') return;
+            const store = getOrderNotifStore();
+            const key = orderId + ':' + data.status;
+            if (store[key] !== undefined) return;
+            const confMs = (data.confirmedAt && data.confirmedAt.toMillis) ? data.confirmedAt.toMillis() : 0;
+            const createdMs = (data.timestamp && data.timestamp.toMillis) ? data.timestamp.toMillis() : 0;
+            store[key] = confMs || (isAdded ? createdMs : 0) || Date.now();
+            if (ORDER_NOTIF_FIRST_RUN && isAdded) { getNotifReadSet().add('order:' + key); saveNotifReadSet(); }
+            const keys = Object.keys(store);
+            if (keys.length > 100) keys.sort((a, b) => store[a] - store[b]).slice(0, keys.length - 100).forEach(k => delete store[k]);
+            saveOrderNotifStore();
+        }
+
+        // Read state: ids of opened notifications (admin broadcast doc ids and
+        // "order:<orderId>:<Status>" keys). Broadcasts the customer had
+        // already opened before Unread/Read tabs existed (gz_last_seen_notif),
+        // or that predate this device's first visit, count as read.
+        const NOTIF_READ_KEY = 'gz_notif_read';
+        let NOTIF_READ_SET = null;
+        let NOTIF_BASELINE = null;
+        function getNotifReadSet() {
+            if (NOTIF_READ_SET) return NOTIF_READ_SET;
+            try { NOTIF_READ_SET = new Set(JSON.parse(localStorage.getItem(NOTIF_READ_KEY) || '[]')); }
+            catch (e) { NOTIF_READ_SET = new Set(); }
+            return NOTIF_READ_SET;
+        }
+        function saveNotifReadSet() {
+            try { localStorage.setItem(NOTIF_READ_KEY, JSON.stringify(Array.from(getNotifReadSet()).slice(-500))); }
+            catch (e) { /* private browsing - ignore */ }
+        }
         function getLastSeenNotifTime() {
             try { return Number(localStorage.getItem('gz_last_seen_notif')) || 0; }
             catch (e) { return 0; }
         }
-        function setLastSeenNotifTime(ms) {
-            try { localStorage.setItem('gz_last_seen_notif', String(ms)); }
-            catch (e) { /* private browsing - ignore */ }
+        function getNotifBaseline() {
+            if (NOTIF_BASELINE !== null) return NOTIF_BASELINE;
+            let v = getLastSeenNotifTime();
+            if (!v) {
+                try {
+                    v = Number(localStorage.getItem('gz_notif_baseline')) || 0;
+                    if (!v) { v = Date.now(); localStorage.setItem('gz_notif_baseline', String(v)); }
+                } catch (e) { v = Date.now(); }
+            }
+            NOTIF_BASELINE = v;
+            return v;
+        }
+        function isNotifRead(item) {
+            if (getNotifReadSet().has(item.id)) return true;
+            return item.kind === 'broadcast' && item.ts <= getNotifBaseline();
         }
 
-        function updateNotifDot() {
-            const lastSeen = getLastSeenNotifTime();
-            const hasUnread = NOTIFICATIONS.some(n => (n.timestamp?.toMillis() || 0) > lastSeen);
-            document.getElementById('notif-dot').classList.toggle('show', hasUnread);
+        // Broadcasts + order updates merged into one newest-first list.
+        function buildNotifItems() {
+            const items = NOTIFICATIONS.map(n => ({
+                kind: 'broadcast', id: n.id, ts: (n.timestamp && n.timestamp.toMillis) ? n.timestamp.toMillis() : Date.now(), raw: n
+            }));
+            const store = getOrderNotifStore();
+            Object.keys(store).forEach(key => {
+                const cut = key.lastIndexOf(':');
+                const orderId = key.slice(0, cut), status = key.slice(cut + 1);
+                const d = ORDER_NOTIF_SRC[orderId];
+                if (!d || d.status !== status) return; // order left the live window, or moved on to another status
+                items.push({ kind: 'order', id: 'order:' + key, ts: store[key], raw: d, status });
+            });
+            items.sort((a, b) => b.ts - a.ts);
+            return items;
         }
+
+        // Red count badge on the header menu button and on the drawer's bell.
+        function updateNotifBadge() {
+            const count = buildNotifItems().filter(i => !isNotifRead(i)).length;
+            ['notif-dot', 'notif-badge-header'].forEach(id => {
+                const el = document.getElementById(id);
+                if (!el) return;
+                el.textContent = count ? (count > 99 ? '99+' : String(count)) : '';
+                el.classList.toggle('show', count > 0);
+            });
+        }
+        function refreshNotifUI() {
+            updateNotifBadge();
+            if (window.currentStorePage === 'notif-page') renderNotificationList();
+        }
+        function markNotifRead(id) {
+            const set = getNotifReadSet();
+            if (set.has(id)) return;
+            set.add(id);
+            saveNotifReadSet();
+            updateNotifBadge();
+        }
+        function markAllNotifsRead() {
+            const set = getNotifReadSet();
+            buildNotifItems().forEach(i => set.add(i.id));
+            saveNotifReadSet();
+            refreshNotifUI();
+        }
+        function switchNotifTab(tab) {
+            const next = tab === 'read' ? 'read' : 'unread';
+            const changed = next !== notifTab;
+            notifTab = next;
+            renderNotificationList();
+            if (!changed) return;
+            // Slide the new list in: Read comes from the right, Unread from the left.
+            const list = document.getElementById('notif-page-list');
+            if (!list) return;
+            list.classList.remove('notif-slide-l', 'notif-slide-r');
+            void list.offsetWidth; // restart the animation if it was mid-way
+            list.classList.add(next === 'read' ? 'notif-slide-l' : 'notif-slide-r');
+        }
+
+        // Swipe left/right on the Notifications page to switch Unread <-> Read
+        // (swipe left = Read, swipe right = Unread). The list follows the
+        // finger while dragging and snaps back if the swipe is too short.
+        // Same gesture rules as the main page-tab swipe (clearly horizontal,
+        // quick enough), and a mostly-vertical drag is left to normal
+        // scrolling. That handler ignores this page (it isn't one of its
+        // tabs), so the two never fight.
+        (function initNotifTabSwipe() {
+            const content = document.querySelector('main.content-area') || document.getElementById('notif-page');
+            const list = document.getElementById('notif-page-list');
+            if (!content || !list) return;
+            const THRESHOLD = 60, DRAG_START_PX = 10, DIRECTION_LOCK_RATIO = 1.3, MAX_TIME = 700;
+            const DRAG_RESISTANCE = 0.45, EDGE_RESISTANCE = 0.25;
+            let startX = 0, startY = 0, startTime = 0, active = false, dragging = false, verticalIntent = false;
+
+            function snapBack() {
+                list.style.transition = 'transform 0.22s cubic-bezier(0.22, 1, 0.36, 1)';
+                list.style.transform = '';
+                setTimeout(() => { list.style.transition = ''; }, 240);
+            }
+
+            content.addEventListener('touchstart', (e) => {
+                active = window.currentStorePage === 'notif-page' && e.touches.length === 1;
+                if (!active) return;
+                startX = e.touches[0].clientX; startY = e.touches[0].clientY; startTime = Date.now();
+                dragging = false; verticalIntent = false;
+            }, { passive: true });
+
+            content.addEventListener('touchmove', (e) => {
+                if (!active || verticalIntent || e.touches.length !== 1) return;
+                const dx = e.touches[0].clientX - startX;
+                const dy = e.touches[0].clientY - startY;
+                if (!dragging) {
+                    if (Math.abs(dx) < DRAG_START_PX && Math.abs(dy) < DRAG_START_PX) return;
+                    if (Math.abs(dx) < Math.abs(dy) * DIRECTION_LOCK_RATIO) { verticalIntent = true; return; }
+                    dragging = true;
+                }
+                // Nothing further left of Unread / right of Read: extra resistance there.
+                const edge = (dx > 0 && notifTab === 'unread') || (dx < 0 && notifTab === 'read');
+                list.style.transition = 'none';
+                list.style.transform = `translateX(${dx * (edge ? EDGE_RESISTANCE : 1) * DRAG_RESISTANCE}px)`;
+            }, { passive: true });
+
+            content.addEventListener('touchend', (e) => {
+                if (!active) return;
+                active = false;
+                const wasDragging = dragging;
+                dragging = false;
+                const dx = e.changedTouches[0].clientX - startX;
+                const dt = Date.now() - startTime;
+                if (!wasDragging || verticalIntent || dt > MAX_TIME || Math.abs(dx) < THRESHOLD) { if (wasDragging) snapBack(); return; }
+                if (dx < 0 && notifTab === 'unread') { list.style.transform = ''; list.style.transition = ''; switchNotifTab('read'); }
+                else if (dx > 0 && notifTab === 'read') { list.style.transform = ''; list.style.transition = ''; switchNotifTab('unread'); }
+                else snapBack();
+            }, { passive: true });
+
+            content.addEventListener('touchcancel', () => {
+                if (active && dragging) snapBack();
+                active = false; dragging = false;
+            }, { passive: true });
+        })();
+        window.onNotifLangChange = () => { if (window.currentStorePage === 'notif-page') renderNotificationList(); };
 
         // ---------- Real OS/device push notifications ----------
         // No server (Cloud Function / Blaze plan) involved: this fires a native
@@ -13627,8 +14139,7 @@
                 const myGuestId = window.getGuestId ? window.getGuestId() : '';
                 const isMine = (data) => !data.targetUserId || data.targetUserId === myGuestId;
                 NOTIFICATIONS = snap.docs.map(d => ({ id: d.id, ...d.data() })).filter(isMine);
-                updateNotifDot();
-                if (window.currentStorePage === 'notif-page') renderNotificationList();
+                refreshNotifUI();
                 // Only the *first* snapshot is existing history — skip firing OS
                 // notifications for it. Every "added" change after that is a
                 // genuinely new admin broadcast that just came in live.
@@ -13644,65 +14155,192 @@
             });
         }
 
-        // Notification list: only title + a short intro. Tap a card to open
-        // the full details as its own page (see openNotificationDetail) — but
-        // only if the admin wrote details; otherwise the card isn't tappable.
+        // Two kinds of card share the list: admin broadcasts (title + short
+        // intro; tap for the full details if the admin wrote any) and this
+        // customer's own order updates (Success / Fail) that show the order
+        // details right on the card. Tapping any card marks it read, which
+        // moves it from the Unread tab to the Read tab.
+        function orderNotifTitle(status) {
+            return status === 'Success' ? t('notif_order_success') : t('notif_order_failed');
+        }
+        function orderProviderId(d) {
+            return d.g2bulkOrderId || d.jcplaysOrderId || d.fazercardOrderId || '';
+        }
+
+        function orderNotifCardHTML(item, unreadCls) {
+            const d = item.raw;
+            const ok = item.status === 'Success';
+            const label = [d.game, d.itemAmount].filter(Boolean).join(' - ');
+            const price = Number(d.price);
+            const providerId = ok ? orderProviderId(d) : '';
+            const kv = (k, v, mono) => v ? `<div class="notif-kv"><span class="k">${k}</span><span class="v${mono ? ' mono' : ''}">${v}</span></div>` : '';
+            return `
+                <div class="notif-item notif-order${unreadCls}" onclick="onNotifCardClick('${item.id}')" style="cursor:pointer;">
+                    <div class="notif-order-head">
+                        <div class="notif-order-ic ${ok ? 'ok' : 'fail'}"><svg class="ui-icon"><use href="#${ok ? 'icon-check' : 'icon-close'}"></use></svg></div>
+                        <div style="min-width:0;flex:1;">
+                            <h5>${orderNotifTitle(item.status)}</h5>
+                            <p>${escapeHtml(label)}</p>
+                        </div>
+                    </div>
+                    <div class="notif-kv-wrap">
+                        ${isNaN(price) ? '' : kv('Amount', `${price.toLocaleString()} MMK`)}
+                        ${kv('In-Game ID', d.playerId ? escapeHtml(d.playerId) : '')}
+                        ${kv('Order ID', providerId ? escapeHtml(providerId) : '', true)}
+                    </div>
+                    <span>${historyDateTimeFmt.format(new Date(item.ts))}</span>
+                </div>
+            `;
+        }
+
+        function notifCardHTML(item) {
+            const unreadCls = isNotifRead(item) ? '' : ' unread';
+            if (item.kind === 'order') return orderNotifCardHTML(item, unreadCls);
+            const n = item.raw;
+            const dateStr = n.timestamp ? n.timestamp.toDate().toLocaleString() : 'Just now';
+            const preview = n.intro || n.message || '';
+            return `
+                <div class="notif-item${unreadCls}" onclick="onNotifCardClick('${item.id}')" style="cursor:pointer;">
+                    <h5>${n.title || ''}</h5>
+                    <p>${preview}</p>
+                    <span>${dateStr}</span>
+                </div>
+            `;
+        }
+
         function renderNotificationList() {
             const list = document.getElementById('notif-page-list');
             if (!list) return;
-            if (NOTIFICATIONS.length === 0) {
-                list.innerHTML = emptyStateHTML('icon-bell', 'No notifications yet', 'Announcements from the team will show up here.');
+            const items = buildNotifItems();
+            const unread = items.filter(i => !isNotifRead(i));
+            const read = items.filter(i => isNotifRead(i));
+
+            const tabUnread = document.getElementById('notif-tab-unread');
+            const tabRead = document.getElementById('notif-tab-read');
+            if (tabUnread) {
+                tabUnread.innerHTML = escapeHtml(t('notif_tab_unread')) + (unread.length ? `<span class="notif-tab-count">${unread.length > 99 ? '99+' : unread.length}</span>` : '');
+                tabUnread.classList.toggle('active', notifTab === 'unread');
+            }
+            if (tabRead) {
+                tabRead.textContent = t('notif_tab_read');
+                tabRead.classList.toggle('active', notifTab === 'read');
+            }
+            const markAll = document.getElementById('notif-mark-all');
+            if (markAll) markAll.style.display = (notifTab === 'unread' && unread.length) ? '' : 'none';
+
+            const shown = notifTab === 'unread' ? unread : read;
+            if (shown.length === 0) {
+                list.innerHTML = notifTab === 'unread'
+                    ? emptyStateHTML('icon-bell', t('notif_empty_unread_t'), t('notif_empty_unread_s'))
+                    : emptyStateHTML('icon-bell', t('notif_empty_read_t'), t('notif_empty_read_s'));
                 return;
             }
-            list.innerHTML = NOTIFICATIONS.map(n => {
-                const dateStr = n.timestamp ? n.timestamp.toDate().toLocaleString() : 'Just now';
-                const preview = n.intro || n.message || '';
-                const openable = notifHasDetails(n);
-                const clickAttrs = openable
-                    ? `onclick="openNotificationDetail('${n.id}')" style="cursor:pointer;"`
-                    : `style="cursor:default;"`;
-                return `
-                    <div class="notif-item" ${clickAttrs}>
-                        <h5>${n.title || ''}</h5>
-                        <p>${preview}</p>
-                        <span>${dateStr}</span>
-                    </div>
-                `;
-            }).join('');
+            list.innerHTML = shown.map(notifCardHTML).join('');
+        }
+
+        function onNotifCardClick(id) {
+            const item = buildNotifItems().find(i => i.id === id);
+            if (!item) return;
+            if (item.kind === 'order') openOrderNotificationDetail(item);
+            else if (notifHasDetails(item.raw)) openNotificationDetail(item.raw.id);
+            else { markNotifRead(item.id); refreshNotifUI(); }
         }
 
         // Opens the notifications list as a real page (not a bottom sheet).
         // Remembers whichever page the user was on so the back arrow returns
-        // them there instead of always going Home.
+        // them there instead of always going Home. Lands on the Unread tab,
+        // or on Read when there's nothing unread.
         function openNotificationsPage() {
             if (window.currentStorePage && window.currentStorePage !== 'notif-page' && window.currentStorePage !== 'notif-detail') {
                 notifReturnPage = window.currentStorePage;
             }
+            notifTab = buildNotifItems().some(i => !isNotifRead(i)) ? 'unread' : 'read';
             renderNotificationList();
             showPage('notif-page');
-            const latest = NOTIFICATIONS.reduce((max, n) => Math.max(max, n.timestamp?.toMillis() || 0), 0);
-            if (latest > 0) setLastSeenNotifTime(latest);
-            document.getElementById('notif-dot').classList.remove('show');
         }
 
         function closeNotificationsPage() {
             showPage(notifReturnPage || 'home');
         }
 
-        // Full-detail page for a single notification: title, intro, and the
+        // Full-detail page for a single admin broadcast: title, intro, and the
         // complete details text, reached by tapping a card in the list.
         // Guarded again here in case something (e.g. an OS notification click)
         // tries to open one that has no details.
         function openNotificationDetail(id) {
             const n = NOTIFICATIONS.find(x => x.id === id);
             if (!n || !notifHasDetails(n)) return;
+            markNotifRead(n.id);
             document.getElementById('notif-detail-title').textContent = n.title || 'Notification';
             document.getElementById('notif-detail-date').textContent = n.timestamp ? n.timestamp.toDate().toLocaleString() : 'Just now';
             document.getElementById('notif-detail-body').textContent = n.details || n.message || n.intro || '';
+            document.getElementById('notif-detail-text-wrap').style.display = '';
+            document.getElementById('notif-detail-order').style.display = 'none';
+            showPage('notif-detail');
+        }
+
+        // Full order details for an order-update notification (same fields as
+        // the History "Order Details" sheet, minus voucher codes and the
+        // receipt image which stay in History).
+        function orderNotifDetailHTML(item) {
+            const d = item.raw;
+            const ok = item.status === 'Success';
+            const gameImg = findGameImage(d.game, d.serverRegion);
+            const providerId = ok ? orderProviderId(d) : '';
+            const price = Number(d.price);
+            const orderedAt = (d.timestamp && d.timestamp.toDate) ? historyDateTimeFmt.format(d.timestamp.toDate()) : '';
+            const doneAt = (d.confirmedAt && d.confirmedAt.toDate) ? historyDateTimeFmt.format(d.confirmedAt.toDate()) : '';
+            const row = (label, value, style) => value ? `<div class="od-row"><span>${label}</span><b${style ? ` style="${style}"` : ''}>${value}</b></div>` : '';
+            return `
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
+                    <div class="hc-thumb" style="width:52px;height:52px;">${gameImg ? `<img src="${gameImg}" alt="" onerror="this.style.display='none'">` : ''}</div>
+                    <div style="flex:1;min-width:0;">
+                        <h4 style="font-size:17px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(d.game || '')}</h4>
+                        <p style="font-size:12px;color:var(--text-muted);margin-top:2px;">${historyDateTimeFmt.format(new Date(item.ts))}</p>
+                    </div>
+                    <span class="badge ${historyBadgeClassFor(item.status)}">${historyStatusIconHTML(item.status)}${orderStatusLabel(item.status)}</span>
+                </div>
+
+                <div class="detail-form-card" style="gap:0;">
+                    ${row('Package', escapeHtml(d.itemAmount || '-'))}
+                    ${isNaN(price) ? '' : row('Amount Paid', `${price.toLocaleString()} MMK`, 'color:var(--accent);font-size:15px;')}
+                    ${row('Payment Method', escapeHtml(d.paymentMethod || '-'))}
+                    ${row('Transaction ID', d.transactionId ? escapeHtml(d.transactionId) : '', 'font-family:monospace;')}
+                </div>
+
+                <p class="detail-section-title" style="margin:16px 0 8px;">Order Info</p>
+                <div class="detail-form-card" style="gap:0;">
+                    ${row('In-Game ID', escapeHtml(d.playerId || '-'))}
+                    ${row('In-Game Name', d.inGameName ? escapeHtml(d.inGameName) : '')}
+                    ${row('Server ID', d.serverId ? escapeHtml(d.serverId) : '')}
+                    ${row('Server', d.serverRegion ? escapeHtml(d.serverRegion) : '')}
+                    ${row('Ordered At', orderedAt)}
+                    ${row(ok ? 'Success At' : 'Failed At', doneAt, ok ? 'color:#1E8E4F;' : '')}
+                    ${row('Order ID', providerId ? escapeHtml(providerId) : '', 'font-family:monospace;')}
+                </div>
+
+                ${d.statusNote ? `
+                    <p class="detail-section-title" style="margin:16px 0 8px;">${ok ? 'Note' : 'Reason'}</p>
+                    <p style="font-size:13px;line-height:1.5;color:var(--text);background:var(--surface-alt);border-radius:10px;padding:10px 12px;white-space:pre-wrap;">${escapeHtml(d.statusNote)}</p>
+                ` : ''}
+
+                <button type="button" class="btn btn-primary" style="width:100%;margin-top:18px;" onclick="showPage('history')">${escapeHtml(t('notif_view_history'))}</button>
+            `;
+        }
+
+        function openOrderNotificationDetail(item) {
+            markNotifRead(item.id);
+            document.getElementById('notif-detail-title').textContent = orderNotifTitle(item.status);
+            document.getElementById('notif-detail-text-wrap').style.display = 'none';
+            const wrap = document.getElementById('notif-detail-order');
+            wrap.innerHTML = orderNotifDetailHTML(item);
+            wrap.style.display = '';
             showPage('notif-detail');
         }
 
         function closeNotificationDetail() {
+            renderNotificationList(); // the card you just opened has moved to the Read tab
+            updateNotifBadge();
             showPage('notif-page');
         }
 
@@ -13858,6 +14496,9 @@
         window.closeNotificationsPage = closeNotificationsPage;
         window.openNotificationDetail = openNotificationDetail;
         window.closeNotificationDetail = closeNotificationDetail;
+        window.switchNotifTab = switchNotifTab;
+        window.markAllNotifsRead = markAllNotifsRead;
+        window.onNotifCardClick = onNotifCardClick;
         window.getSavedContact = getSavedContact;
         window.submitOrder = submitOrder;
         window.loadHistory = loadHistory;
