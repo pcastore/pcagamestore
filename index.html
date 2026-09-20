@@ -838,9 +838,14 @@
             border: 1.5px solid var(--glass-border); border-radius: 999px;
             box-shadow: var(--glass-shadow-sm);
             width: 36px; height: 36px; overflow: hidden;
-            transition: width 0.28s cubic-bezier(.4,0,.2,1), border-color 0.2s ease, box-shadow 0.2s ease;
+            transition: width 0.36s cubic-bezier(.34,1.1,.4,1), border-color 0.2s ease, box-shadow 0.2s ease;
         }
-        .game-search-wrap.expanded { left: 0; width: auto; }
+        /* width:auto can't be CSS-transitioned (browsers can't interpolate
+           to "auto"), which is why this used to snap open/closed instead
+           of sliding. Animating to an explicit 100% (of the row, a definite
+           length) fixes that; right:0 stays put so it visibly grows
+           leftward over the title. */
+        .game-search-wrap.expanded { width: 100%; }
         .game-search-wrap:focus-within, .game-search-wrap.expanded {
             border-color: var(--accent);
             box-shadow: 0 0 0 4px rgba(var(--accent-rgb),0.14), var(--glass-shadow-sm);
@@ -850,10 +855,10 @@
         .game-search-input {
             width: 100%; height: 36px; padding: 0 36px 0 36px; border-radius: 999px;
             border: none; background: transparent; color: var(--text);
-            font-size: 14.5px; outline: none; opacity: 0; transition: opacity 0.15s ease;
+            font-size: 14.5px; outline: none; opacity: 0; transition: opacity 0.2s ease;
         }
         .game-search-wrap:not(.expanded) .game-search-input { pointer-events: none; }
-        .game-search-wrap.expanded .game-search-input { opacity: 1; }
+        .game-search-wrap.expanded .game-search-input { opacity: 1; transition-delay: 0.15s; }
         .game-search-input::placeholder { color: var(--text-muted); }
         .game-search-clear {
             position: absolute; right: 9px; width: 20px; height: 20px; padding: 5px; border-radius: 50%;
@@ -2432,7 +2437,11 @@
             box-shadow: 0 16px 40px -10px rgba(20,30,60,0.35), inset 0 1px 1px rgba(255,255,255,0.5), inset 0 -1px 8px rgba(0,0,0,0.04);
             transform: translateZ(0); will-change: transform;
             padding: 10px 16px;
+            transition: transform 0.32s cubic-bezier(.4,0,.2,1);
         }
+        /* Applied by JS on scroll-down, removed on scroll-up (see the
+           header-hide scroll listener near the other scroll listeners). */
+        .header.header-hidden { transform: translateY(calc(-100% - 24px)) translateZ(0); pointer-events: none; }
         html[data-theme="dark"] .header { box-shadow: 0 16px 40px -10px rgba(0,0,10,0.6), inset 0 1px 1px rgba(255,255,255,0.06), inset 0 -1px 8px rgba(0,0,0,0.3); }
         /* Header is now fixed (out of flow), so push page content down by
            roughly its floating height + top gap, same idea as the bottom
@@ -5855,6 +5864,36 @@
             ncShownAt = Date.now();
             ncShownScrollY = window.scrollY;
         }
+
+        // Hide the floating header on scroll-down, reveal it on scroll-up
+        // (RAF-throttled so fast scrolling on low-end phones doesn't run
+        // this on every scroll event). Always shown near the very top so
+        // it doesn't flicker while the page is still settling there.
+        (function () {
+            let lastY = window.scrollY;
+            let ticking = false;
+            const headerEl = document.querySelector('.header');
+            function applyHeaderVisibility() {
+                const y = window.scrollY;
+                if (headerEl) {
+                    if (y < 40) {
+                        headerEl.classList.remove('header-hidden');
+                    } else if (y > lastY + 4) {
+                        headerEl.classList.add('header-hidden');
+                    } else if (y < lastY - 4) {
+                        headerEl.classList.remove('header-hidden');
+                    }
+                }
+                lastY = y;
+                ticking = false;
+            }
+            window.addEventListener('scroll', () => {
+                if (!ticking) {
+                    requestAnimationFrame(applyHeaderVisibility);
+                    ticking = true;
+                }
+            }, { passive: true });
+        })();
 
         // Scrolling the page away from where the result appeared closes it
         // (the IDs stay). The first ~0.8s is ignored so keyboard / layout
