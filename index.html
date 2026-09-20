@@ -715,8 +715,18 @@
         @media (hover: none) and (pointer: coarse) {
             .game-card:active { transition-delay: 80ms; }
         }
-        .game-card-img-wrap { position: relative; aspect-ratio: 1 / 1; background: var(--border); }
+        /* Game logo slot shows the shimmering skeleton until the real image has loaded,
+           then the image fades in over it (class .img-ready is added by the load listener). */
+        .game-card-img-wrap {
+            position: relative; aspect-ratio: 1 / 1; overflow: hidden;
+            background: linear-gradient(90deg, var(--border) 25%, var(--skel-shine) 37%, var(--border) 63%);
+            background-size: 400% 100%; animation: skeletonShimmer 1.4s ease-in-out infinite;
+        }
+        .game-card-img-wrap.img-ready { animation: none; background: var(--border); }
         .game-card img { width: 100%; height: 100%; object-fit: cover; display: block; }
+        .game-card-img-wrap > img { opacity: 0; transition: opacity 0.25s ease; }
+        .game-card-img-wrap.img-ready > img { opacity: 1; }
+        @media (prefers-reduced-motion: reduce) { .game-card-img-wrap { animation: none; } }
         .game-card-name { margin: 0; padding: 5px 4px; background: transparent; border: none; border-top: 1px solid var(--border); box-shadow: none; color: var(--text); font-size: 11px; font-weight: 400; text-align: center; line-height: 1.25; }
 
         /* Long-press-to-pin: holding a card for ~2s toggles it into Favorites.
@@ -821,7 +831,7 @@
         .game-server-badge svg { width: 9px; height: 9px; }
 
         /* Category filter chips row, above the All Games grid */
-        .cat-filter-scroll { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 12px; -webkit-overflow-scrolling: touch; }
+        .cat-filter-scroll { display: flex; gap: 8px; overflow-x: auto; padding: 2px 2px 12px; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; touch-action: pan-x pan-y; }
         .cat-filter-scroll::-webkit-scrollbar { display: none; }
 
         /* Game search — collapses to a small round icon button beside the
@@ -902,7 +912,7 @@
         /* Popular Games: horizontal scroll row (separate from the All Games grid) */
         .section-title-spaced { margin-top: 20px; }
         .games-count-badge { font-size: 12.5px; font-weight: 500; color: var(--text-muted); }
-        .popular-scroll-wrap { display: flex; gap: 12px; overflow-x: auto; padding: 2px 2px 10px; -webkit-overflow-scrolling: touch; }
+        .popular-scroll-wrap { display: flex; gap: 12px; overflow-x: auto; padding: 2px 2px 10px; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; touch-action: pan-x pan-y; }
         .popular-scroll-wrap::-webkit-scrollbar { display: none; }
         .popular-card { flex: 0 0 108px; }
         .popular-card .game-card-img-wrap { width: 108px; height: 108px; }
@@ -1406,10 +1416,9 @@
         }
         /* "Load More" under the Home All-Games grid (PERF: paginated grid). */
         .load-more-games-btn {
-            display: block; width: 100%; margin: 12px 0 4px; padding: 12px;
-            border-radius: 14px; border: 1px solid var(--glass-border);
-            background: var(--glass-bg-strong); color: var(--text);
-            font-size: 13.5px; font-weight: 600; cursor: pointer;
+            display: flex; align-items: center; justify-content: center; width: 100%; min-height: 48px; margin: 8px 0 4px; padding: 10px;
+            border: none; background: transparent; color: var(--text-muted);
+            font-size: 13px; font-weight: 600; cursor: pointer;
         }
         .load-more-games-btn:active { transform: scale(0.98); }
 
@@ -1673,31 +1682,23 @@
         .pc-price-bar { margin-top: 8px; padding: 8px 10px; border-top: 1px solid var(--border); background: var(--surface-alt); text-align: center; }
         .package-card.selected .pc-price-bar { background: var(--accent-soft); border-top-color: var(--accent); }
         .pc-price { font-size: 14px; font-weight: 600; color: var(--accent); }
-        /* Package price = small blue grid "button". Purely visual: pointer-events
+        /* Package price = small flat blue "button". Purely visual: pointer-events
            are off, so a tap goes straight through to the card (selects the
            package exactly like before) and the pill itself never reacts. */
         .package-card.type-topup .pc-price, .package-card.type-currency .pc-price {
             display: inline-flex; align-items: baseline; justify-content: center; gap: 2px;
             box-sizing: border-box; min-width: 88px; max-width: 100%;
             padding: 3px 6px; border-radius: 8px; color: #fff; font-size: 12px; font-weight: 700; line-height: 1.3;
-            background:
-                linear-gradient(rgba(255,255,255,0.12) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(255,255,255,0.12) 1px, transparent 1px),
-                linear-gradient(135deg, #3D8DFF 0%, #1666D9 100%);
-            background-size: 8px 8px, 8px 8px, 100% 100%;
-            box-shadow: 0 2px 6px -1px rgba(24,119,242,0.5), inset 0 1px 0 rgba(255,255,255,0.35);
-            text-shadow: 0 1px 1px rgba(0,0,0,0.2);
+            background: #1877F2;
+            box-shadow: none;
+            text-shadow: none;
             pointer-events: none; cursor: inherit;
         }
-        /* Voucher cards sit on a blue gradient, so their price button is white with blue text and a faint blue grid */
+        /* Voucher cards sit on a blue gradient, so their price button is white with blue text and no pattern */
         .package-card.type-currency .pc-price {
             color: #1666D9; text-shadow: none; border: none;
-            background-color: #fff;
-            background-image:
-                linear-gradient(rgba(24,119,242,0.12) 1px, transparent 1px),
-                linear-gradient(90deg, rgba(24,119,242,0.12) 1px, transparent 1px);
-            background-size: 8px 8px, 8px 8px;
-            box-shadow: 0 2px 6px -1px rgba(0,0,0,0.25);
+            background: #fff;
+            box-shadow: none;
         }
         .pc-price .pc-cur { font-size: 9px; font-weight: 600; opacity: 0.92; letter-spacing: 0.2px; }
         .package-card.type-topup .pc-price-bar, .package-card.type-currency .pc-price-bar { padding-top: 5px; padding-bottom: 5px; }
@@ -2631,6 +2632,21 @@
         .od-divider { border-top: 2px dashed var(--border); margin: 8px 0 14px; }
         .od-total { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .od-total span { font-size: 13px; color: var(--text-secondary); }
+        /* Order review sheet (shown after the slide-to-confirm, before anything is submitted) */
+        #order-review-overlay { z-index: 260; }
+        .or-head { display: flex; align-items: center; gap: 12px; margin-bottom: 6px; }
+        .or-head .hc-thumb { width: 48px; height: 48px; }
+        .or-game { font-size: 16px; font-weight: 600; color: var(--text); }
+        .or-sub { font-size: 12px; color: var(--text-muted); margin-top: 2px; }
+        .or-note { display: flex; align-items: flex-start; gap: 8px; font-size: 12px; line-height: 1.45; padding: 10px 12px; border-radius: 12px; margin: 10px 0 4px; background: var(--accent-soft); color: var(--text-secondary); }
+        .or-note.ok { background: rgba(34,197,94,0.12); color: #1E8E4F; }
+        .or-note.warn { background: rgba(250,204,21,0.16); color: #9A6B00; }
+        html[data-theme="dark"] .or-note.ok { color: #4ADE80; }
+        html[data-theme="dark"] .or-note.warn { color: #FACC15; }
+        .or-actions { display: flex; gap: 10px; margin-top: 16px; }
+        .or-actions .btn { flex: 1; margin: 0; }
+        .or-btn-edit { background: var(--surface-alt); color: var(--text); border: 1px solid var(--border); }
+        .or-id-val { font-family: monospace; font-size: 14px; letter-spacing: 0.3px; }
         .od-total b { font-size: 22px; font-weight: 700; color: var(--accent); letter-spacing: -0.3px; font-variant-numeric: tabular-nums; }
         .payment-option, .history-date-chip, .cat-filter-chip { border-radius: 18px; }
         .upload-shot-box { border-radius: 20px; }
@@ -4624,6 +4640,53 @@
             <div class="modal-body" id="order-detail-body"></div>
         </div>
     </div>
+
+    <!-- Order review: last look at Game / Package / ID / price before anything is submitted -->
+    <div class="modal-overlay" id="order-review-overlay" onclick="if(event.target===this) closeOrderReview(false)">
+        <div class="modal-box">
+            <div class="modal-header">
+                <h3>Review your order</h3>
+                <div class="modal-close" onclick="closeOrderReview(false)">
+                    <svg class="ui-icon" style="width:18px;height:18px;"><use href="#icon-close"></use></svg>
+                </div>
+            </div>
+            <div class="modal-body" id="order-review-body"></div>
+        </div>
+    </div>
+
+    <script>
+        /* Marks a game-logo slot as ready once its image has actually loaded (load events don't bubble, so listen in the capture phase). */
+        (function () {
+            function ready(img) { var w = img.parentNode; if (w && w.classList && w.classList.contains('game-card-img-wrap')) w.classList.add('img-ready'); }
+            document.addEventListener('load', function (e) { if (e.target && e.target.tagName === 'IMG') ready(e.target); }, true);
+            /* whenUiIdle(key, fn): run fn once the finger is up and scrolling has settled, so a
+               live Firestore update never rebuilds cards/tabs in the middle of a swipe. Calls with
+               the same key are coalesced (only the latest runs); gives up waiting after 2.5s. */
+            var ui = { touching: false, lastScroll: 0 }, pending = {};
+            document.addEventListener('touchstart', function () { ui.touching = true; }, { passive: true, capture: true });
+            document.addEventListener('touchend', function () { ui.touching = false; }, { passive: true, capture: true });
+            document.addEventListener('touchcancel', function () { ui.touching = false; }, { passive: true, capture: true });
+            document.addEventListener('scroll', function () { ui.lastScroll = Date.now(); }, { passive: true, capture: true });
+            window.whenUiIdle = function (key, fn) {
+                var started = Date.now();
+                if (pending[key]) { pending[key].fn = fn; return; }
+                var job = pending[key] = { fn: fn };
+                (function tick() {
+                    var busy = ui.touching || (Date.now() - ui.lastScroll) < 160;
+                    if (busy && Date.now() - started < 2500) { setTimeout(tick, 120); return; }
+                    delete pending[key];
+                    requestAnimationFrame(function () { try { job.fn(); } catch (e) { console.error(e); } });
+                })();
+            };
+            new MutationObserver(function (muts) {
+                muts.forEach(function (m) { m.addedNodes.forEach(function (n) {
+                    if (n.nodeType !== 1) return;
+                    var imgs = n.matches && n.matches('.game-card-img-wrap > img') ? [n] : (n.querySelectorAll ? n.querySelectorAll('.game-card-img-wrap > img') : []);
+                    Array.prototype.forEach.call(imgs, function (im) { if (im.complete && im.naturalWidth > 0) ready(im); });
+                }); });
+            }).observe(document.documentElement, { childList: true, subtree: true });
+        })();
+    </script>
 
     <!-- Vanilla JS for Navigation & Toast -->
     <script>
@@ -7533,6 +7596,72 @@
             showPage('history');
         }
 
+        // ---------- Order review sheet ----------
+        // Shows everything the customer is about to pay for and only resolves
+        // true when they tap "Confirm order" - so a wrong ID / package is
+        // caught BEFORE money moves. Resolves false on Edit / close / tap-out.
+        let orderReviewResolve = null;
+        function closeOrderReview(result) {
+            document.getElementById('order-review-overlay').classList.remove('show');
+            const r = orderReviewResolve;
+            orderReviewResolve = null;
+            if (r) r(!!result);
+        }
+        window.closeOrderReview = closeOrderReview;
+
+        // Generic review sheet. cfg: { game, sub, img, noteHTML, rows:[[label, valueHTML]], totalLabel, total }
+        function openReviewSheet(cfg) {
+            const esc = (v) => (window.escapeHtml ? window.escapeHtml(String(v)) : String(v));
+            const rows = (cfg.rows || []).filter(Boolean).map(r => `<div class="od-row"><span>${r[0]}</span><b>${r[1]}</b></div>`).join('');
+            document.getElementById('order-review-body').innerHTML = `
+                <div class="or-head">
+                    <div class="hc-thumb">${cfg.img ? `<img src="${cfg.img}" alt="" onerror="this.style.display='none'">` : ''}</div>
+                    <div style="min-width:0;">
+                        <div class="or-game">${esc(cfg.game || '')}</div>
+                        ${cfg.sub ? `<div class="or-sub">${esc(cfg.sub)}</div>` : ''}
+                    </div>
+                </div>
+                ${cfg.noteHTML || ''}
+                <div class="od-rows">${rows}</div>
+                <div class="od-divider"></div>
+                <div class="od-total"><span>${cfg.totalLabel || 'Total'}</span><b>${Number(cfg.total).toLocaleString()} MMK</b></div>
+                <div class="or-actions">
+                    <button type="button" class="btn or-btn-edit" onclick="closeOrderReview(false)">Edit</button>
+                    <button type="button" class="btn btn-primary" onclick="closeOrderReview(true)">${cfg.confirmLabel || 'Confirm order'}</button>
+                </div>
+            `;
+            document.getElementById('order-review-overlay').classList.add('show');
+            return new Promise((resolve) => {
+                if (orderReviewResolve) orderReviewResolve(false);
+                orderReviewResolve = resolve;
+            });
+        }
+        window.openReviewSheet = openReviewSheet;
+
+        function showOrderReview(inGameId, serverId) {
+            const esc = (v) => (window.escapeHtml ? window.escapeHtml(String(v)) : String(v));
+            const qty = selectedPackageQty || 1;
+            const total = getOrderTotal();
+            const fmt = (n) => Number(n).toLocaleString() + ' MMK';
+            const isWallet = selectedPaymentType === 'wallet';
+            const img = window.findGameImage ? window.findGameImage(selectedGameName, selectedGameServerName) : '';
+
+            const rows = [['Package', esc(selectedPackage.amount) + (qty > 1 ? ' x ' + qty : '')]];
+            let note = '';
+            if (selectedGameNeedsPlayerId) {
+                rows.push(['In-Game ID', `<span class="or-id-val">${esc(inGameId)}${serverId ? ' (' + esc(serverId) + ')' : ''}</span>`]);
+                if (playerIdVerified === true && verifiedPlayerName) rows.push(['Player Name', esc(verifiedPlayerName)]);
+                if (playerIdVerified === true) note = '<div class="or-note ok"><svg class="ui-icon" style="width:16px;height:16px;flex-shrink:0;"><use href="#icon-check"></use></svg><span>ID verified. Please double-check it is your account.</span></div>';
+                else if (playerIdVerified === false) note = '<div class="or-note warn"><span>We could not find this ID on the server. Make sure it is correct before paying.</span></div>';
+                else note = '<div class="or-note"><span>Check your In-Game ID carefully. Top ups cannot be moved to another account after delivery.</span></div>';
+            }
+            rows.push(['Payment', isWallet ? 'Wallet Balance' : esc(selectedPaymentMethod ? selectedPaymentMethod.name : '-')]);
+            if (appliedCoupon && appliedCoupon.discountAmount) rows.push(['Discount (' + esc(appliedCoupon.code) + ')', '- ' + fmt(appliedCoupon.discountAmount)]);
+            if (isWallet) rows.push(['Balance after', fmt(Math.max(0, currentWalletBalance - total))]);
+
+            return openReviewSheet({ game: selectedGameName, sub: selectedGameServerName, img, noteHTML: note, rows, total });
+        }
+
         async function confirmPackagePurchase(btnElement) {
             if (!selectedPackage) return;
 
@@ -7579,12 +7708,20 @@
                     if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb();
                     return;
                 }
+                if (!(await showOrderReview(inGameId, serverId))) {
+                    if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb();
+                    return;
+                }
                 await doSubmitWalletOrder(inGameId, serverId, btnElement);
                 return;
             }
 
             if (!selectedPaymentMethod) { window.showToast('Please select a payment method', 'fail'); if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb(); return; }
             if (!editingReceiptFile) { window.showToast('Please upload your payment receipt', 'fail'); if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb(); return; }
+            if (!(await showOrderReview(inGameId, serverId))) {
+                if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb();
+                return;
+            }
             // Transaction ID is auto-detected from the receipt (see previewReceiptImage);
             // wait for that to finish rather than asking the customer to type it in.
             if (receiptOcrPromise) { try { await receiptOcrPromise; } catch (e) { /* detectTransactionId already falls back to "None" internally */ } }
@@ -9113,6 +9250,19 @@
 
             const guestId = window.getGuestId ? window.getGuestId() : null;
             if (!guestId) { window.showToast('Could not identify your account. Please reload.', 'fail'); if (window.resetWalletSlideConfirmThumb) window.resetWalletSlideConfirmThumb(); return; }
+
+            const topupOk = await window.openReviewSheet({
+                game: 'Wallet Top Up',
+                sub: 'Added after we confirm your payment',
+                noteHTML: '<div class="or-note"><span>Your balance is updated once our team verifies the receipt.</span></div>',
+                rows: [
+                    ['Payment', window.escapeHtml ? window.escapeHtml(selectedWalletPaymentMethod.name) : selectedWalletPaymentMethod.name],
+                    ['Balance now', Number(currentWalletBalance).toLocaleString() + ' MMK'],
+                    ['Balance after', (Number(currentWalletBalance) + amount).toLocaleString() + ' MMK']
+                ],
+                totalLabel: 'Top up amount', total: amount, confirmLabel: 'Confirm top up'
+            });
+            if (!topupOk) { if (window.resetWalletSlideConfirmThumb) window.resetWalletSlideConfirmThumb(); return; }
 
             const originalText = btnEl.innerText;
             btnEl.disabled = true;
@@ -12368,6 +12518,7 @@
             return String(str).replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
         }
         window.escapeHtml = escapeHtml;
+        window.findGameImage = findGameImage;
 
         // PERF: game images are uploaded to whatever external host the admin
         // used, at whatever original size/format that host serves - some are
@@ -12768,9 +12919,14 @@
                 return;
             }
             const shownCount = Math.min(homeGamesVisibleCount, visibleGroups.length);
-            grid.innerHTML = visibleGroups.slice(0, shownCount).map((gr, i) => {
-                const g = GAMES[gr.repId];
-                return `
+            grid.innerHTML = visibleGroups.slice(0, shownCount).map((gr, i) => homeGameCardHTML(gr, i)).join('');
+            revealCardsIn(grid);
+            updateHomeLoadMoreBtn(shownCount, visibleGroups.length);
+        }
+
+        function homeGameCardHTML(gr, i) {
+            const g = GAMES[gr.repId];
+            return `
                     <div class="game-card game-card-anim${isGamePinned(gr.repId) ? ' pinned' : ''}" data-game-id="${gr.repId}" style="animation-delay:${Math.min(i * 18, 120)}ms" onclick="openGameEntry(${gr.idx})">
                         <div class="game-card-img-wrap">
                             <img src="${optimizedGameImg(g.image, 200)}" alt="${g.name}" loading="lazy" decoding="async">
@@ -12781,23 +12937,45 @@
                         <div class="game-card-name">${g.name}</div>
                     </div>
                 `;
-            }).join('');
-            revealCardsIn(grid);
-            updateHomeLoadMoreBtn(shownCount, visibleGroups.length);
         }
 
-        // "Load More" button under the Home All-Games grid (see
-        // HOME_GAMES_INITIAL_BATCH/HOME_GAMES_LOAD_STEP above).
+        // Infinite scroll for the Home All-Games grid: the bottom "loading" strip is
+        // watched, and when it comes within ~400px of the screen the next batch is
+        // appended (only the NEW cards are added - nothing already on screen is rebuilt).
+        // The strip is still tappable as a fallback.
+        let homeMoreObserver = null;
         function updateHomeLoadMoreBtn(shownCount, totalCount) {
             const btn = document.getElementById('home-games-load-more-btn');
             if (!btn) return;
             const remaining = totalCount - shownCount;
             btn.style.display = remaining > 0 ? '' : 'none';
-            if (remaining > 0) btn.textContent = `Load More (${remaining} left)`;
+            if (remaining > 0) {
+                if (!btn.dataset.ready) { btn.innerHTML = (window.LOADER_MARKUP && window.LOADER_MARKUP.dots) || 'Loading...'; btn.dataset.ready = '1'; }
+                if ('IntersectionObserver' in window) {
+                    if (!homeMoreObserver) {
+                        homeMoreObserver = new IntersectionObserver((entries) => {
+                            if (entries.some(en => en.isIntersecting)) loadMoreHomeGames();
+                        }, { rootMargin: '0px 0px 400px 0px' });
+                    }
+                    // unobserve + observe re-fires the callback even if the strip is still in range after an append
+                    homeMoreObserver.unobserve(btn);
+                    homeMoreObserver.observe(btn);
+                }
+            } else if (homeMoreObserver) {
+                homeMoreObserver.unobserve(btn);
+            }
         }
         function loadMoreHomeGames() {
-            homeGamesVisibleCount = Math.min(homeGamesVisibleCount + HOME_GAMES_LOAD_STEP, HOME_VISIBLE_GROUPS.length);
-            renderHomeGames();
+            const grid = document.getElementById('all-games-grid');
+            const total = HOME_VISIBLE_GROUPS.length;
+            const from = Math.min(homeGamesVisibleCount, total);
+            const to = Math.min(from + HOME_GAMES_LOAD_STEP, total);
+            if (!grid || to <= from) return;
+            homeGamesVisibleCount = to;
+            grid.insertAdjacentHTML('beforeend', HOME_VISIBLE_GROUPS.slice(from, to).map((gr, k) => homeGameCardHTML(gr, k)).join(''));
+            revealCardsIn(grid);
+            lastHomeGamesSignature = null; // the count changed; next full render rebuilds against the new count
+            updateHomeLoadMoreBtn(to, total);
         }
         window.loadMoreHomeGames = loadMoreHomeGames;
 
@@ -12908,13 +13086,25 @@
                 // flashed the empty-state. Ignore it; includeMetadataChanges brings the
                 // server-confirmed snapshot (empty or not) right after.
                 if (snap.empty && snap.metadata.fromCache) return;
+                // Cache -> server hand-off with identical data (metadata-only change):
+                // nothing to redraw, so skip the whole re-render.
+                if (gamesLoadedOnce && snap.docChanges().length === 0) return;
                 const newGames = {};
                 snap.forEach(docSnap => { newGames[docSnap.id] = docSnap.data(); });
                 RAW_GAMES = newGames;
-                gamesLoadedOnce = true;
-                applyProviderFilterAndRerender();
-                if (historyUnsubscribe) {
-                    runWhenNotTouching(document.querySelector('#history-container .order-list-scroll'), () => renderHistoryOrders(HISTORY_ORDERS));
+                const rerenderAll = () => {
+                    applyProviderFilterAndRerender();
+                    if (historyUnsubscribe) {
+                        runWhenNotTouching(document.querySelector('#history-container .order-list-scroll'), () => renderHistoryOrders(HISTORY_ORDERS));
+                    }
+                };
+                if (!gamesLoadedOnce) {
+                    // First data: draw straight away.
+                    gamesLoadedOnce = true;
+                    rerenderAll();
+                } else {
+                    // Live update: wait until the user's finger/scroll is idle.
+                    window.whenUiIdle('games-rerender', rerenderAll);
                 }
             }, (error) => {
                 console.error("Games listener error:", error);
@@ -12997,13 +13187,17 @@
                 // flashed the empty-state. Ignore it; includeMetadataChanges brings the
                 // server-confirmed snapshot (empty or not) right after.
                 if (snap.empty && snap.metadata.fromCache) return;
+                if (gameAccountsLoadedOnce && snap.docChanges().length === 0) return; // metadata-only: nothing changed
                 const map = {};
                 snap.forEach(docSnap => { map[docSnap.id] = docSnap.data(); });
                 GAME_ACCOUNTS = map;
-                gameAccountsLoadedOnce = true;
-                tryOpenPendingAccountDeepLink();
-                if (window.currentStorePage === 'account') renderAccountGames();
-                if (window.currentStorePage === 'account-detail' && currentAccountId) renderAccountDetail(currentAccountId);
+                const rerenderAccounts = () => {
+                    tryOpenPendingAccountDeepLink();
+                    if (window.currentStorePage === 'account') renderAccountGames();
+                    if (window.currentStorePage === 'account-detail' && currentAccountId) renderAccountDetail(currentAccountId);
+                };
+                if (!gameAccountsLoadedOnce) { gameAccountsLoadedOnce = true; rerenderAccounts(); }
+                else window.whenUiIdle('accounts-rerender', rerenderAccounts);
             }, (error) => {
                 console.error("Game accounts listener error:", error);
             });
@@ -14077,7 +14271,29 @@
                 if (window.resetAccountSlideConfirmThumb) window.resetAccountSlideConfirmThumb();
                 return;
             }
+            // Last look before any money moves. Only checks that don't need a
+            // toast (missing method / receipt) are left to the branches below,
+            // so the sheet is shown once those pass.
+            const acctReview = async (methodLabel, isWallet) => {
+                const price = Number(a.price || 0);
+                const rows = [
+                    ['Account', window.escapeHtml ? window.escapeHtml(a.title || 'Game Account') : (a.title || 'Game Account')],
+                    ['Payment', methodLabel]
+                ];
+                if (isWallet) rows.push(['Balance after', Math.max(0, currentWalletBalance - price).toLocaleString() + ' MMK']);
+                const note = '<div class="or-note"><span>Game accounts are handed over manually. Check the details before paying.</span></div>';
+                return window.openReviewSheet({
+                    game: a.gameName || 'Game Account',
+                    sub: a.title || '',
+                    img: window.findGameImage ? window.findGameImage(a.gameName, '') : '',
+                    noteHTML: note, rows, total: price
+                });
+            };
             if (acctSelectedPaymentType === 'wallet') {
+                if (!(await acctReview('Wallet Balance', true))) {
+                    if (window.resetAccountSlideConfirmThumb) window.resetAccountSlideConfirmThumb();
+                    return;
+                }
                 await submitAccountWalletOrder(btnElement);
             } else if (acctSelectedPaymentType === 'payment') {
                 if (!acctSelectedPaymentMethod) {
@@ -14087,6 +14303,10 @@
                 }
                 if (!acctEditingReceiptFile) {
                     window.showToast('Please upload your payment receipt.', 'fail');
+                    if (window.resetAccountSlideConfirmThumb) window.resetAccountSlideConfirmThumb();
+                    return;
+                }
+                if (!(await acctReview(acctSelectedPaymentMethod.name, false))) {
                     if (window.resetAccountSlideConfirmThumb) window.resetAccountSlideConfirmThumb();
                     return;
                 }
