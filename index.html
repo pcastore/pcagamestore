@@ -3819,6 +3819,11 @@
                     </div>
                 </div>
 
+                <div id="profile-completion-badge" style="display:none;align-items:center;gap:8px;background:rgba(250,180,50,0.12);border:1px solid rgba(250,180,50,0.35);color:#c8891a;border-radius:10px;padding:9px 12px;margin-bottom:10px;font-size:12.5px;font-weight:600;cursor:pointer;" onclick="toggleProfileEditCard()">
+                    <svg class="ui-icon" style="width:15px;height:15px;flex-shrink:0;"><use href="#icon-user"></use></svg>
+                    <span>Complete your profile to personalize your account</span>
+                </div>
+
                 <button type="button" class="profile-hero-edit-btn" id="profile-edit-toggle-btn" onclick="toggleProfileEditCard()">
                     <svg class="ui-icon" id="profile-edit-toggle-icon"><use href="#icon-edit"></use></svg>
                     <span id="profile-edit-toggle-text" data-i18n="pc_edit">Edit profile</span>
@@ -7640,12 +7645,18 @@
                 preview.style.display = 'none';
                 placeholder.style.display = 'flex';
             }
-            // First-time visitors (no name saved yet) get the edit modal open by
-            // default so they aren't stuck looking at a "Guest" hero with no
-            // obvious way to set their name.
-            if (!p.name) {
-                openProfileEditModal();
-            }
+            // Profile modal no longer auto-opens for first-time visitors — it was
+            // covering the whole screen and blocking game card clicks. Incomplete
+            // profiles are now surfaced with a non-blocking badge/message instead
+            // (see updateProfileCompletionBadge), and the modal only opens when
+            // the user explicitly clicks "Edit Profile".
+            updateProfileCompletionBadge(p);
+        }
+
+        function updateProfileCompletionBadge(p) {
+            const badge = document.getElementById('profile-completion-badge');
+            if (!badge) return;
+            badge.style.display = (!p || !p.name) ? 'flex' : 'none';
         }
 
         function previewProfilePhoto(e) {
