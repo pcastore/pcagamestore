@@ -11076,7 +11076,11 @@
                 console.error("Order status listener error:", error);
             });
         }
-        listenOwnOrderStatus();
+        // Deferred (not critical for first paint - only drives order status
+        // toasts and the notification badge) so it doesn't pile onto the
+        // games/wallet/branding listeners already opening in this same tick
+        // on slow connections. See the deferInit note near its definition.
+        deferInit(listenOwnOrderStatus);
 
         // Green grid "Order Success" modal: pops in the middle of the screen
         // the moment one of this customer's orders flips to Success and
@@ -14953,9 +14957,11 @@
         updateThemeAutoNote();
         window.toggleTheme = toggleTheme;
 
-        listenNotifications();
-        syncUserToFirestore();
-        loadProfileStats();
+        // Deferred: notifications badge, profile sync/stats aren't needed
+        // for Home's first paint (loadProfileStats re-runs anyway when the
+        // Profile tab is opened) - spreads these out instead of adding to
+        // the burst of listeners already opening on page load.
+        deferInit(() => { listenNotifications(); syncUserToFirestore(); loadProfileStats(); });
         renderTierPreviewGrid();
         renderPushToggleUI();
         if (pushEnabled()) registerFcmToken();
