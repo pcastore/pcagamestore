@@ -2810,8 +2810,9 @@
             filter: drop-shadow(0 0 5px rgba(139,92,246,0.9));
         }
         .support-guide-item { border: 1px solid var(--border); border-radius: 12px; margin-bottom: 10px; overflow: hidden; }
-        .support-guide-q { display: flex; align-items: center; justify-content: space-between; padding: 13px 14px; font-size: 14px; font-weight: 500; color: var(--text); cursor: pointer; gap: 10px; }
-        .support-guide-q svg { width: 16px; height: 16px; color: var(--text-secondary); transition: transform 0.2s ease; flex-shrink: 0; }
+        .support-guide-q { display: flex; align-items: flex-start; justify-content: space-between; padding: 13px 14px; font-size: 14px; font-weight: 500; color: var(--text); cursor: pointer; gap: 10px; }
+        .support-guide-q span { min-width: 0; overflow-wrap: break-word; line-height: 1.45; padding-top: 1px; }
+        .support-guide-q svg { width: 16px; height: 16px; color: var(--text-secondary); transition: transform 0.2s ease; flex-shrink: 0; margin-top: 2px; }
         .support-guide-item.open .support-guide-q svg { transform: rotate(90deg); }
         .support-guide-a { display: none; padding: 0 14px 14px; font-size: 13px; color: var(--text-secondary); line-height: 1.55; }
         .support-guide-item.open .support-guide-a { display: block; }
@@ -2819,77 +2820,6 @@
         .support-complaint-field label { display: block; font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
         .support-complaint-field input, .support-complaint-field textarea { width: 100%; padding: 11px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 14px; font-family: inherit; box-sizing: border-box; }
         .support-complaint-field textarea { min-height: 100px; resize: vertical; }
-        .support-chat-wrap { display: flex; flex-direction: column; height: 48vh; }
-        .support-chat-messages { flex: 1; overflow-y: auto; -webkit-overflow-scrolling: touch; padding: 4px 2px; display: flex; flex-direction: column; gap: 8px; }
-        .support-chat-bubble { position: relative; max-width: 78%; padding: 9px 13px 16px; border-radius: 14px; font-size: 13.5px; line-height: 1.45; word-break: break-word; }
-        .support-chat-bubble.mine { align-self: flex-end; background: var(--accent); color: #fff; border-bottom-right-radius: 4px; }
-        .support-chat-bubble.theirs { align-self: flex-start; background: var(--bg); color: var(--text); border: 1px solid var(--border); border-bottom-left-radius: 4px; }
-        .support-chat-msg-avatar { position: absolute; bottom: -6px; left: -6px; width: 18px; height: 18px; border-radius: 50%; overflow: hidden; border: 2px solid var(--surface); background: var(--accent); display: flex; align-items: center; justify-content: center; font-size: 9px; font-weight: 700; color: #fff; line-height: 1; }
-        .support-chat-msg-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .support-chat-bubble-time { position: absolute; right: 12px; bottom: 4px; font-size: 9.5px; opacity: 0.7; }
-        .support-chat-faq-row { display: flex; gap: 6px; overflow-x: auto; padding: 2px 1px 2px; flex-shrink: 0; -webkit-overflow-scrolling: touch; scrollbar-width: none; }
-        .support-chat-faq-row::-webkit-scrollbar { display: none; }
-        .support-chat-faq-chip { flex-shrink: 0; white-space: nowrap; font-size: 11.5px; font-weight: 500; padding: 6px 12px; border-radius: 999px; background: var(--accent-soft); color: var(--accent); border: 1px solid transparent; cursor: pointer; }
-        .support-chat-faq-chip:active { background: var(--accent); color: #fff; }
-        .support-chat-msg-avatar.bot-avatar { background: var(--surface-alt); font-size: 11px; }
-        .support-chat-bubble-bot-label { display: block; font-size: 10px; color: var(--text-muted); margin: -2px 0 3px; }
-        .support-chat-inputrow { display: flex; gap: 8px; padding-top: 10px; border-top: 1px solid var(--border); margin-top: 8px; flex-shrink: 0; }
-        .support-chat-inputrow input { flex: 1; padding: 11px 14px; border-radius: 22px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 14px; min-width: 0; }
-        .support-chat-send { width: 42px; height: 42px; border-radius: 50%; background: var(--accent); color: #fff; display: flex; align-items: center; justify-content: center; border: none; cursor: pointer; flex-shrink: 0; }
-        .support-chat-camera-btn { width: 42px; height: 42px; border-radius: 50%; background: var(--bg); color: var(--text-secondary); display: flex; align-items: center; justify-content: center; border: 1px solid var(--border); cursor: pointer; flex-shrink: 0; }
-        .support-chat-camera-btn:active { background: var(--surface-alt); }
-        .support-chat-bubble.image-bubble { padding: 4px; background: transparent !important; border: none !important; }
-        .support-chat-bubble.image-bubble img { display: block; max-width: 190px; max-height: 240px; width: 100%; border-radius: 12px; cursor: pointer; }
-        .support-chat-image-spinner-wrap { width: 150px; height: 110px; border-radius: 12px; background: var(--bg); border: 1px solid var(--border); display: flex; align-items: center; justify-content: center; }
-        .support-chat-image-spinner { width: 26px; height: 26px; border-radius: 50%; border: 3px solid var(--border); border-top-color: var(--accent); animation: spin 0.7s linear infinite; }
-        .support-chat-bubble.image-bubble .support-chat-bubble-time { position: static; display: block; text-align: right; margin-top: 2px; font-size: 9.5px; color: var(--text-muted); opacity: 1; }
-        .support-chat-img-uploading { opacity: 0.55; }
-
-        /* Multi-photo "collage" bubble — several photos picked and sent
-           together render as one grid (like Messenger/WhatsApp albums)
-           instead of one full-size bubble per photo, which used to eat a
-           lot of vertical space in the thread. Tapping any tile opens the
-           full-screen viewer below, already scrolled to that photo, with
-           prev/next to flip through the rest of the set. */
-        .chat-img-collage { display: grid; gap: 3px; width: 190px; border-radius: 12px; overflow: hidden; }
-        .chat-img-collage.n1 { width: auto; }
-        .chat-img-collage.n1 .chat-img-tile { border-radius: 12px; }
-        .chat-img-collage.n1 .chat-img-tile img { max-width: 190px; max-height: 240px; width: 100%; }
-        .chat-img-collage.n2 { grid-template-columns: 1fr 1fr; height: 130px; }
-        .chat-img-collage.n3 { grid-template-columns: 1.2fr 1fr; grid-template-rows: 1fr 1fr; height: 190px; }
-        .chat-img-collage.n3 .chat-img-tile:first-child { grid-row: 1 / 3; }
-        .chat-img-collage.n4up { grid-template-columns: 1fr 1fr; grid-template-rows: 1fr 1fr; height: 190px; }
-        .chat-img-tile { position: relative; cursor: pointer; overflow: hidden; background: var(--bg); }
-        .chat-img-tile img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .chat-img-tile .chat-img-more { position: absolute; inset: 0; background: rgba(0,0,0,0.5); color: #fff; display: flex; align-items: center; justify-content: center; font-size: 18px; font-weight: 700; }
-
-        /* Full-screen single/multi-photo viewer, opened from a chat bubble
-           or a collage tile. */
-        .chat-img-viewer-overlay { display: none; position: fixed; inset: 0; z-index: 4000; background: rgba(0,0,0,0.92); align-items: center; justify-content: center; }
-        .chat-img-viewer-overlay.show { display: flex; }
-        .chat-img-viewer-overlay img { max-width: 92vw; max-height: 78vh; object-fit: contain; border-radius: 6px; }
-        .chat-img-viewer-close { position: absolute; top: 18px; right: 18px; width: 38px; height: 38px; border-radius: 50%; background: rgba(255,255,255,0.14); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; }
-        .chat-img-viewer-nav { position: absolute; top: 50%; transform: translateY(-50%); width: 42px; height: 42px; border-radius: 50%; background: rgba(255,255,255,0.14); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 20px; user-select: none; }
-        .chat-img-viewer-nav.prev { left: 12px; }
-        .chat-img-viewer-nav.next { right: 12px; }
-        .chat-img-viewer-counter { position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%); color: #fff; font-size: 13px; background: rgba(255,255,255,0.14); padding: 4px 12px; border-radius: 20px; }
-        .support-chat-empty { text-align: center; color: var(--text-secondary); font-size: 13px; padding: 30px 10px; }
-        .support-chat-badge { display: none; width: 8px; height: 8px; border-radius: 50%; background: #FF3B30; margin-left: 5px; vertical-align: middle; }
-        .support-chat-header { display: flex; align-items: center; gap: 10px; padding: 0 2px 10px; border-bottom: 1px solid var(--border); margin-bottom: 8px; flex-shrink: 0; }
-        .support-chat-header-avatar { width: 38px; height: 38px; border-radius: 50%; background: linear-gradient(135deg, var(--accent), var(--accent-dark)); color: #fff; display: flex; align-items: center; justify-content: center; font-weight: 600; font-size: 15px; flex-shrink: 0; overflow: hidden; }
-        .support-chat-header-avatar img { width: 100%; height: 100%; object-fit: cover; display: block; }
-        .support-chat-header-info { display: flex; flex-direction: column; min-width: 0; gap: 1px; }
-        .support-chat-header-name { font-weight: 600; font-size: 14.5px; color: var(--text); }
-        .support-chat-header-status { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text-secondary); }
-        .support-chat-header-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--text-faint); flex-shrink: 0; }
-        .support-chat-header-dot.online { background: #31A24C; box-shadow: 0 0 0 3px rgba(49,162,76,0.15); }
-        .support-chat-typing { display: none; align-items: center; gap: 6px; font-size: 12px; color: var(--text-secondary); padding: 0 2px 6px; flex-shrink: 0; }
-        .support-chat-typing.show { display: flex; }
-        .support-chat-typing-dots { display: inline-flex; gap: 3px; }
-        .support-chat-typing-dots span { width: 5px; height: 5px; border-radius: 50%; background: currentColor; opacity: 0.4; animation: supportChatTypingBounce 1.2s infinite ease-in-out; }
-        .support-chat-typing-dots span:nth-child(2) { animation-delay: 0.15s; }
-        .support-chat-typing-dots span:nth-child(3) { animation-delay: 0.3s; }
-        @keyframes supportChatTypingBounce { 0%, 60%, 100% { transform: translateY(0); opacity: 0.4; } 30% { transform: translateY(-3px); opacity: 1; } }
 
         /* ===== Support Widget: centered white+purple modal card =====
            Scoped entirely to #support-widget-overlay so no other modal in
@@ -2933,14 +2863,6 @@
         #support-widget-overlay .pkg-type-tabs { background: var(--bg); }
         #support-widget-overlay .modal-close { background: var(--accent-soft); border: 1px solid var(--border); color: var(--accent-dark); }
         #support-widget-overlay .modal-header h3 { color: var(--accent-dark); }
-        #support-widget-overlay .support-chat-send { background: var(--accent); }
-        /* Chat bubbles: admin replies come in solid purple; my own sent
-           messages stay white with black text until the admin has seen
-           them, then the text turns blue as a read-receipt cue. */
-        #support-widget-overlay .support-chat-bubble.theirs { background: var(--accent); color: #fff; border: none; }
-        #support-widget-overlay .support-chat-bubble.theirs .support-chat-bubble-time { color: rgba(255,255,255,0.85); }
-        #support-widget-overlay .support-chat-bubble.mine { background: #fff; color: #1B1023; border: 1.5px solid var(--accent-soft); }
-        #support-widget-overlay .support-chat-bubble.mine.seen { color: #2563EB; }
         /* Smaller, tighter tab row + close button so the 3 tabs
            (လမ်းညွှန် / တိုင်ကြားရန် / Support Chat) fit comfortably
            instead of looking oversized/cramped on narrow screens. */
@@ -2972,12 +2894,6 @@
             --glass-bg-strong: #150F28;
             --glass-border: rgba(255,255,255,0.12);
         }
-        html[data-theme="dark"] #support-widget-overlay .support-chat-bubble.mine {
-            background: var(--surface-alt);
-            color: var(--text);
-            border: 1.5px solid var(--border);
-        }
-        html[data-theme="dark"] #support-widget-overlay .support-chat-bubble.mine.seen { color: #7CA8FF; }
     </style>
 </head>
 <body>
@@ -3153,6 +3069,31 @@
                     <div class="support-guide-q" onclick="window.toggleGuideItem(this.parentElement)"><span data-i18n="guide_q_contact">ပြဿနာရှိရင် ဘယ်လိုဆက်သွယ်ရမလဲ</span><svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></div>
                     <div class="support-guide-a" data-i18n="guide_a_contact">အသေးစိတ် ရေးရန်ဆိုရင် "တိုင်ကြားရန်" tab ကို သုံးပါ (Ticket အနေနှင့် မှတ်တမ်းတင်ပေးပါမည်)။ တိုက်ရိုက် ဆက်သွယ်ချင်ရင် "Telegram" tab ကို နှိပ်ပြီး Admin ကို message ပို့နိုင်ပါသည်။</div>
                 </div>
+
+                <!-- Beginner walkthrough: a longer, fully spelled-out version for
+                     first-time / less tech-savvy users, on top of the short FAQ
+                     items above. Kept as separate accordion items rather than
+                     lengthening the short ones, so the quick answers stay quick. -->
+                <div class="support-guide-item" id="guide-item-5">
+                    <div class="support-guide-q" onclick="window.toggleGuideItem(this.parentElement)"><span data-i18n="guide_q_getstarted">App ကို ပထမဆုံးအကြိမ် ဘယ်လိုစသုံးရမလဲ</span><svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></div>
+                    <div class="support-guide-a" data-i18n="guide_a_getstarted">App ကို ပထမဆုံး ဖွင့်လိုက်တဲ့အခါ Google account နဲ့ Sign in လုပ်ဖို့ တောင်းဆိုပါလိမ့်မယ် - သင့် Gmail အကောင့်ကို ရွေးလိုက်ရုံပါပဲ၊ Password ထပ်ရိုက်စရာ မလိုပါ။ ပြီးရင် ဘာသာစကား (မြန်မာ / English) ရွေးပါ၊ နောက်ပိုင်း Drawer ထဲက "Language" ကနေ ပြန်ပြောင်းလို့ရပါတယ်။ "Get Started" ကို နှိပ်လိုက်ရင် Home page ရောက်ပါပြီ။ Screen အောက်ခြေမှာ tab ၅ ခု တွေ့ရမယ် - "Top Up" (ဂိမ်း Diamond/UC ဝယ်ရန်)၊ "Voucher" (Gift card များ)၊ "Wallet" (မိမိရဲ့ လက်ကျန်ငွေ)၊ "Game Acc" (ရောင်းရန်/ဝယ်ရန် ဂိမ်း Account များ)၊ "Profile" (မိမိ အချက်အလက်)။ ဒါ့အပြင် ဖန်သားပြင် ဘယ်ဘက်အပေါ် icon ကို နှိပ်ရင် Drawer menu ထဲမှာ History, Name Check, Leaderboard, Support စတာတွေကိုပါ ရှာတွေ့နိုင်ပါတယ်။</div>
+                </div>
+                <div class="support-guide-item" id="guide-item-6">
+                    <div class="support-guide-q" onclick="window.toggleGuideItem(this.parentElement)"><span data-i18n="guide_q_orderfull">Order တင်ခြင်း - အစအဆုံး အသေးစိတ် လမ်းညွှန်</span><svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></div>
+                    <div class="support-guide-a" data-i18n="guide_a_orderfull">၁) Home page ("Top Up" tab) မှာ သင်ဝယ်ချင်တဲ့ ဂိမ်းကို ရွှေ့ကြည့်ပြီး နှိပ်ပါ။ ၂) ဂိမ်းစာမျက်နှာပေါ်မှာ Package/Currency (ဥပမာ - Diamond ဘယ်နှစ်ခု) ကို ရွေးပါ။ ၃) "In-Game ID" ကွက်ထဲမှာ သင့်ဂိမ်းရဲ့ Player ID ကို ရိုက်ထည့်ပါ (တချို့ဂိမ်းတွေဆို Server ID ပါ ထပ်ထည့်ရပါမယ်) - ID ကို ဂိမ်းထဲက Profile page မှာ ရှာတွေ့နိုင်ပါတယ်။ ၄) "Confirm ID" ခလုတ်ကို နှိပ်ပါ - system က အလိုအလျောက် သင့် Account နာမည်ကို ပြပေးပါလိမ့်မယ်၊ မှန်မမှန် ပြန်စစ်ပါ (နာမည်မှားရင် ID ပြန်ပြင်ပါ)။ ၅) ငွေပေးချေမှု အမျိုးအစား ရွေးပါ - Wallet ထဲမှာ လက်ကျန်ငွေ ရှိရင် တိုက်ရိုက် နှိပ်ပေးလို့ရသလို၊ Payment Method (ဘဏ်လွှဲ/KBZPay/Wave စသည်) ရွေးပြီး ငွေလွှဲပြေစာ ဓာတ်ပုံတင်ပြီးလည်း ပေးချေနိုင်ပါတယ်။ ၆) အောက်ခြေက Slide ခလုတ်ကို ဆွဲပြီး အတည်ပြုလိုက်ရင် Order တင်ပြီးပါပြီ။ ၇) Order ရဲ့ အခြေအနေကို "History" (Drawer ထဲမှာ ရှိပါတယ်) မှာ အချိန်နှင့်တပြေးညီ ပြန်ကြည့်နိုင်ပါတယ်။</div>
+                </div>
+                <div class="support-guide-item" id="guide-item-7">
+                    <div class="support-guide-q" onclick="window.toggleGuideItem(this.parentElement)"><span data-i18n="guide_q_wallettopup">Wallet ထဲ ငွေဖြည့်နည်း - အသေးစိတ်</span><svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></div>
+                    <div class="support-guide-a" data-i18n="guide_a_wallettopup">၁) အောက်ခြေ tab က "Wallet" ကို နှိပ်ပါ။ ၂) "Top Up" ခလုတ်ကို နှိပ်ပါ။ ၃) ဖြည့်ချင်တဲ့ ပမာဏ (ငွေပမာဏ) ကို ရိုက်ထည့်ပါ။ ၄) Payment Method (ဘဏ်လွှဲ၊ Crypto၊ Aluu, FazerCard စသည်) ထဲက တစ်ခုကို ရွေးပါ - ရွေးလိုက်တဲ့ Method အလိုက် ငွေလွှဲရမယ့် အကောင့်အချက်အလက် ပေါ်လာပါလိမ့်မယ်။ ၅) ပြင်ပက ငွေလွှဲပြီးရင် ပြေစာ (Receipt) ဓာတ်ပုံ သို့ Transaction ID ကို တင်ပြီး Submit နှိပ်ပါ။ ၆) Admin မှ စစ်ဆေးပြီးပါက Wallet ထဲ ငွေအလိုအလျောက် ဝင်ပါလိမ့်မယ် (ပုံမှန်အားဖြင့် မိနစ်အနည်းငယ်မှ နာရီအနည်းငယ်အတွင်း)။ Wallet ထဲရှိငွေကို နောက်ပိုင်း Order တင်တိုင်း တိုက်ရိုက် အသုံးပြုနိုင်ပါတယ်၊ ငွေလွှဲပြေစာ ထပ်တင်စရာ မလိုတော့ပါ။</div>
+                </div>
+                <div class="support-guide-item" id="guide-item-8">
+                    <div class="support-guide-q" onclick="window.toggleGuideItem(this.parentElement)"><span data-i18n="guide_q_historyfull">Order History ကြည့်နည်းနှင့် ပြဿနာ ဖြစ်ရင်</span><svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></div>
+                    <div class="support-guide-a" data-i18n="guide_a_historyfull">ဖန်သားပြင် ဘယ်ဘက်အပေါ် icon ကို နှိပ်ပြီး Drawer ဖွင့်ပါ၊ "History" ကို ရွေးပါ။ Order တစ်ခုချင်းစီရဲ့ Status ကို ဒီနေရာမှာ ကြည့်နိုင်ပါတယ် - "Pending" (စောင့်ဆိုင်းနေဆဲ)၊ "Processing" (လုပ်ဆောင်နေဆဲ)၊ "Success" (ပြီးမြောက်ပြီ) သို့မဟုတ် "Fail" (မအောင်မြင်)။ Order တစ်ခုကို နှိပ်ရင် အသေးစိတ် အချက်အလက်တွေ ဖြစ်တဲ့ ID, ပမာဏ, အချိန် စတာတွေ ပြပါလိမ့်မယ်။ Processing မှာ အချိန်ကြာနေရင် (သို့) တခြား ပြဿနာ ရှိရင် Support widget ထဲက "Complaint" tab ကနေ တိုင်ကြားနိုင်ပါတယ်၊ Admin က Ticket အနေနဲ့ လက်ခံပြီး ပြန်ကြည့်ပေးပါလိမ့်မယ်။ တိုက်ရိုက် အမြန်ဆက်သွယ်ချင်ရင် "Telegram" tab ကို အသုံးပြုနိုင်ပါတယ်။</div>
+                </div>
+                <div class="support-guide-item" id="guide-item-9">
+                    <div class="support-guide-q" onclick="window.toggleGuideItem(this.parentElement)"><span data-i18n="guide_q_otherfeatures">App ထဲက အခြား features တွေ ဘာတွေရှိလဲ</span><svg class="ui-icon"><use href="#icon-chevron-right"></use></svg></div>
+                    <div class="support-guide-a" data-i18n="guide_a_otherfeatures">"Voucher" tab - Gift card နှင့် Top-up voucher များကို ချက်ချင်း ဝယ်ယူနိုင်ပါတယ်။ "Game Acc" tab - တခြားသူတွေရောင်းထားတဲ့ ဂိမ်း Account များကို ဝယ်နိုင်သလို၊ ကိုယ်ပိုင် Account ရောင်းလည်း တင်နိုင်ပါတယ် (ဒီ feature ကို ဖွင့်/ပိတ် Admin ဆီမှာ မူတည်ပါတယ်)။ Drawer ထဲက "Name Check" - Order မတင်ခင် ဂိမ်းနဲ့ ID ရိုက်ထည့်ပြီး Account နာမည် မှန်မမှန် ကြိုတင်စစ်ကြည့်နိုင်ပါတယ်။ "Leaderboard" - အများဆုံး ဝယ်ယူသူများကို ကြည့်ရှုနိုင်ပါတယ်။ "Profile" ထဲမှာ VIP Tier, စုစုပေါင်း သုံးငွေ၊ Referral code (သူငယ်ချင်း ဖိတ်ခေါ်ပြီး Wallet ဆုကြေးငွေ ရယူနိုင်တာ) တွေကို တွေ့နိုင်ပါတယ်။ Theme (Dark/Light Mode) နှင့် ဘာသာစကား ကိုလည်း Drawer ထဲကနေ ပြောင်းလို့ရပါတယ်။</div>
+                </div>
             </div>
 
             <!-- Complaint tab -->
@@ -3170,32 +3111,6 @@
                 </button>
             </div>
 
-            <!-- Support Chat tab -->
-            <div class="modal-body support-chat-wrap" id="support-panel-chat" style="display:none;">
-                <div class="support-chat-header" id="support-chat-header">
-                    <div class="support-chat-header-avatar" id="support-chat-header-avatar">A</div>
-                    <div class="support-chat-header-info">
-                        <div class="support-chat-header-name">Admin</div>
-                        <div class="support-chat-header-status">
-                            <span class="support-chat-header-dot" id="support-chat-header-dot"></span>
-                            <span id="support-chat-header-status-text" data-i18n="chat_checking">Checking...</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="support-chat-messages" id="support-chat-messages"></div>
-                <div class="support-chat-typing" id="support-chat-typing-indicator">
-                    <span class="support-chat-typing-dots"><span></span><span></span><span></span></span> <span data-i18n="chat_admin_typing">Admin is typing...</span>
-                </div>
-                <div class="support-chat-faq-row" id="support-chat-faq-row"></div>
-                <div class="support-chat-inputrow">
-                    <input type="file" id="support-chat-image-input" accept="image/*" multiple style="display:none;" onchange="window.handleSupportChatImageSelect(this)">
-                    <button type="button" class="support-chat-camera-btn" onclick="document.getElementById('support-chat-image-input').click()" aria-label="Send a photo">
-                        <svg class="ui-icon" style="width:19px;height:19px;"><use href="#icon-camera"></use></svg>
-                    </button>
-                    <input type="text" id="support-chat-input" placeholder="မက်ဆေ့ချ် ရိုက်ပါ..." data-i18n-ph="chat_input_ph" oninput="window.handleSupportChatTyping()" onkeydown="if(event.key==='Enter'){event.preventDefault();window.sendSupportChatMessage();}">
-                    <button type="button" class="support-chat-send" onclick="window.sendSupportChatMessage()"><svg class="ui-icon" style="width:18px;height:18px;"><use href="#icon-send"></use></svg></button>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -3211,13 +3126,18 @@
                 <span class="logo-status-text" id="header-logo-status-text">Connecting…</span>
             </span>
         </div>
-        <div class="header-icon header-menu-btn" id="drawer-toggle-btn" onclick="openDrawer()" role="button" aria-label="Open menu">
-            <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
-                <line x1="3" y1="6" x2="21" y2="6" stroke="#FBC02D" stroke-width="2.4" stroke-linecap="round"></line>
-                <line x1="3" y1="12" x2="21" y2="12" stroke="#43A047" stroke-width="2.4" stroke-linecap="round"></line>
-                <line x1="3" y1="18" x2="21" y2="18" stroke="#E53935" stroke-width="2.4" stroke-linecap="round"></line>
-            </svg>
-            <span class="notif-badge" id="notif-badge-header"></span>
+        <div class="header-icons-group" style="display:flex;align-items:center;">
+            <div class="header-icon" id="header-guide-btn" onclick="window.openSupportWidget(); window.switchSupportTab('guide');" role="button" aria-label="Open User Guide" style="margin-right:8px;">
+                <svg class="ui-icon" style="width:19px;height:19px;"><use href="#icon-book"></use></svg>
+            </div>
+            <div class="header-icon header-menu-btn" id="drawer-toggle-btn" onclick="openDrawer()" role="button" aria-label="Open menu">
+                <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
+                    <line x1="3" y1="6" x2="21" y2="6" stroke="#FBC02D" stroke-width="2.4" stroke-linecap="round"></line>
+                    <line x1="3" y1="12" x2="21" y2="12" stroke="#43A047" stroke-width="2.4" stroke-linecap="round"></line>
+                    <line x1="3" y1="18" x2="21" y2="18" stroke="#E53935" stroke-width="2.4" stroke-linecap="round"></line>
+                </svg>
+                <span class="notif-badge" id="notif-badge-header"></span>
+            </div>
         </div>
     </header>
 
@@ -4906,9 +4826,16 @@
                 complaint_ph_title: 'e.g. Order stuck in Processing',
                 complaint_ph_text: 'Describe the issue in detail...',
                 btn_send_complaint: 'Send Complaint',
-                chat_admin_typing: 'Admin is typing...', chat_input_ph: 'Type a message...',
-                chat_checking: 'Checking...', chat_admin_online: 'Admin Online',
-                chat_empty: 'No messages yet. Type below to send one.',
+                guide_q_getstarted: 'How do I get started the very first time?',
+                guide_a_getstarted: 'The first time you open the app, it asks you to sign in with your Google account - just pick your Gmail account, no password to type. Then choose a language (Myanmar / English); you can switch it later from "Language" in the Drawer menu. Tap "Get Started" to reach the Home page. Along the bottom you\'ll see 5 tabs - "Top Up" (buy game Diamonds/UC), "Voucher" (gift cards), "Wallet" (your balance), "Game Acc" (buy/sell game accounts), and "Profile" (your info). There\'s also a menu icon at the top-left that opens the Drawer, with History, Name Check, Leaderboard, Support and more.',
+                guide_q_orderfull: 'Placing an order - a full step-by-step guide',
+                guide_a_orderfull: '1) On the Home page ("Top Up" tab), scroll to the game you want and tap it. 2) On the game\'s page, choose a Package/Currency (e.g. how many Diamonds). 3) In the "In-Game ID" field, enter your Player ID (some games also need a Server ID) - you can find this on your profile inside the game. 4) Tap "Confirm ID" - the system automatically shows your account name; double-check it\'s correct (re-enter the ID if the name looks wrong). 5) Choose a payment type - pay instantly from your Wallet balance if you have enough, or pick a Payment Method (bank transfer, KBZPay, Wave, etc.) and upload a photo of your transfer receipt. 6) Drag the slide button at the bottom to confirm and your order is placed. 7) Track its status any time under "History" in the Drawer menu.',
+                guide_q_wallettopup: 'How to top up your Wallet - in detail',
+                guide_a_wallettopup: '1) Tap "Wallet" in the bottom tabs. 2) Tap "Top Up". 3) Enter the amount you want to add. 4) Choose a Payment Method (bank transfer, Crypto, Aluu, FazerCard, etc.) - the account details to send money to will appear based on what you pick. 5) After transferring outside the app, upload a photo of the receipt or the transaction ID and tap Submit. 6) Once an admin verifies it, the money is added to your Wallet automatically (usually within a few minutes to a few hours). From then on, you can pay for orders instantly from your Wallet balance without uploading a receipt each time.',
+                guide_q_historyfull: 'Checking Order History, and what to do if there\'s a problem',
+                guide_a_historyfull: 'Open the Drawer from the top-left menu icon and choose "History". You can see each order\'s status here - "Pending", "Processing", "Success" or "Fail". Tap an order to see its details such as ID, amount and time. If Processing takes too long, or you run into any other issue, use the "Complaint" tab in the Support widget - the admin logs it as a ticket and gets back to you. For a faster, direct line, use the "Telegram" tab instead.',
+                guide_q_otherfeatures: 'What else can I do in the app?',
+                guide_a_otherfeatures: '"Voucher" tab - buy gift cards and top-up vouchers instantly. "Game Acc" tab - buy game accounts other people are selling, or list your own for sale (this may be switched on or off by the admin). "Name Check" in the Drawer - check whether a game ID is valid before placing an order. "Leaderboard" - see the top spenders. Your "Profile" shows your VIP tier, total spend, and your referral code (invite friends and earn Wallet rewards). Theme (Dark/Light Mode) and language can also be changed from the Drawer.',
                 btn_confirm_id: 'Confirm ID', btn_confirmed_id: 'Confirmed ✓', btn_checking_id: 'Checking...',
                 checking_id_text: 'Checking ID...', id_not_found: 'ID not found — please double-check it.',
                 verified_prefix: 'Verified', player_verified: 'Player verified',
@@ -5035,9 +4962,16 @@
                 complaint_ph_title: 'ဥပမာ - အော်ဒါ Processing မှာ ကပ်နေသည်',
                 complaint_ph_text: 'ပြဿနာအား အသေးစိတ် ရေးပေးပါ...',
                 btn_send_complaint: 'တိုင်ကြားစာ ပို့မည်',
-                chat_admin_typing: 'အက်ဒမင် စာရိုက်နေသည်...', chat_input_ph: 'မက်ဆေ့ချ် ရိုက်ပါ...',
-                chat_checking: 'စစ်ဆေးနေသည်...', chat_admin_online: 'အက်ဒမင် အွန်လိုင်းရှိသည်',
-                chat_empty: 'မက်ဆေ့ချ် မရှိသေးပါ။ အောက်မှာ စာရိုက်ပြီး ပို့လိုက်ပါ။',
+                guide_q_getstarted: 'App ကို ပထမဆုံးအကြိမ် ဘယ်လိုစသုံးရမလဲ',
+                guide_a_getstarted: 'App ကို ပထမဆုံး ဖွင့်လိုက်တဲ့အခါ Google account နဲ့ Sign in လုပ်ဖို့ တောင်းဆိုပါလိမ့်မယ် - သင့် Gmail အကောင့်ကို ရွေးလိုက်ရုံပါပဲ၊ Password ထပ်ရိုက်စရာ မလိုပါ။ ပြီးရင် ဘာသာစကား (မြန်မာ / English) ရွေးပါ၊ နောက်ပိုင်း Drawer ထဲက "Language" ကနေ ပြန်ပြောင်းလို့ရပါတယ်။ "Get Started" ကို နှိပ်လိုက်ရင် Home page ရောက်ပါပြီ။ Screen အောက်ခြေမှာ tab ၅ ခု တွေ့ရမယ် - "Top Up" (ဂိမ်း Diamond/UC ဝယ်ရန်)၊ "Voucher" (Gift card များ)၊ "Wallet" (မိမိရဲ့ လက်ကျန်ငွေ)၊ "Game Acc" (ရောင်းရန်/ဝယ်ရန် ဂိမ်း Account များ)၊ "Profile" (မိမိ အချက်အလက်)။ ဒါ့အပြင် ဖန်သားပြင် ဘယ်ဘက်အပေါ် icon ကို နှိပ်ရင် Drawer menu ထဲမှာ History, Name Check, Leaderboard, Support စတာတွေကိုပါ ရှာတွေ့နိုင်ပါတယ်။',
+                guide_q_orderfull: 'Order တင်ခြင်း - အစအဆုံး အသေးစိတ် လမ်းညွှန်',
+                guide_a_orderfull: '၁) Home page ("Top Up" tab) မှာ သင်ဝယ်ချင်တဲ့ ဂိမ်းကို ရွှေ့ကြည့်ပြီး နှိပ်ပါ။ ၂) ဂိမ်းစာမျက်နှာပေါ်မှာ Package/Currency (ဥပမာ - Diamond ဘယ်နှစ်ခု) ကို ရွေးပါ။ ၃) "In-Game ID" ကွက်ထဲမှာ သင့်ဂိမ်းရဲ့ Player ID ကို ရိုက်ထည့်ပါ (တချို့ဂိမ်းတွေဆို Server ID ပါ ထပ်ထည့်ရပါမယ်) - ID ကို ဂိမ်းထဲက Profile page မှာ ရှာတွေ့နိုင်ပါတယ်။ ၄) "Confirm ID" ခလုတ်ကို နှိပ်ပါ - system က အလိုအလျောက် သင့် Account နာမည်ကို ပြပေးပါလိမ့်မယ်၊ မှန်မမှန် ပြန်စစ်ပါ (နာမည်မှားရင် ID ပြန်ပြင်ပါ)။ ၅) ငွေပေးချေမှု အမျိုးအစား ရွေးပါ - Wallet ထဲမှာ လက်ကျန်ငွေ ရှိရင် တိုက်ရိုက် နှိပ်ပေးလို့ရသလို၊ Payment Method (ဘဏ်လွှဲ/KBZPay/Wave စသည်) ရွေးပြီး ငွေလွှဲပြေစာ ဓာတ်ပုံတင်ပြီးလည်း ပေးချေနိုင်ပါတယ်။ ၆) အောက်ခြေက Slide ခလုတ်ကို ဆွဲပြီး အတည်ပြုလိုက်ရင် Order တင်ပြီးပါပြီ။ ၇) Order ရဲ့ အခြေအနေကို "History" (Drawer ထဲမှာ ရှိပါတယ်) မှာ အချိန်နှင့်တပြေးညီ ပြန်ကြည့်နိုင်ပါတယ်။',
+                guide_q_wallettopup: 'Wallet ထဲ ငွေဖြည့်နည်း - အသေးစိတ်',
+                guide_a_wallettopup: '၁) အောက်ခြေ tab က "Wallet" ကို နှိပ်ပါ။ ၂) "Top Up" ခလုတ်ကို နှိပ်ပါ။ ၃) ဖြည့်ချင်တဲ့ ပမာဏ (ငွေပမာဏ) ကို ရိုက်ထည့်ပါ။ ၄) Payment Method (ဘဏ်လွှဲ၊ Crypto၊ Aluu, FazerCard စသည်) ထဲက တစ်ခုကို ရွေးပါ - ရွေးလိုက်တဲ့ Method အလိုက် ငွေလွှဲရမယ့် အကောင့်အချက်အလက် ပေါ်လာပါလိမ့်မယ်။ ၅) ပြင်ပက ငွေလွှဲပြီးရင် ပြေစာ (Receipt) ဓာတ်ပုံ သို့ Transaction ID ကို တင်ပြီး Submit နှိပ်ပါ။ ၆) Admin မှ စစ်ဆေးပြီးပါက Wallet ထဲ ငွေအလိုအလျောက် ဝင်ပါလိမ့်မယ် (ပုံမှန်အားဖြင့် မိနစ်အနည်းငယ်မှ နာရီအနည်းငယ်အတွင်း)။ Wallet ထဲရှိငွေကို နောက်ပိုင်း Order တင်တိုင်း တိုက်ရိုက် အသုံးပြုနိုင်ပါတယ်၊ ငွေလွှဲပြေစာ ထပ်တင်စရာ မလိုတော့ပါ။',
+                guide_q_historyfull: 'Order History ကြည့်နည်းနှင့် ပြဿနာ ဖြစ်ရင်',
+                guide_a_historyfull: 'ဖန်သားပြင် ဘယ်ဘက်အပေါ် icon ကို နှိပ်ပြီး Drawer ဖွင့်ပါ၊ "History" ကို ရွေးပါ။ Order တစ်ခုချင်းစီရဲ့ Status ကို ဒီနေရာမှာ ကြည့်နိုင်ပါတယ် - "Pending" (စောင့်ဆိုင်းနေဆဲ)၊ "Processing" (လုပ်ဆောင်နေဆဲ)၊ "Success" (ပြီးမြောက်ပြီ) သို့မဟုတ် "Fail" (မအောင်မြင်)။ Order တစ်ခုကို နှိပ်ရင် အသေးစိတ် အချက်အလက်တွေ ဖြစ်တဲ့ ID, ပမာဏ, အချိန် စတာတွေ ပြပါလိမ့်မယ်။ Processing မှာ အချိန်ကြာနေရင် (သို့) တခြား ပြဿနာ ရှိရင် Support widget ထဲက "Complaint" tab ကနေ တိုင်ကြားနိုင်ပါတယ်၊ Admin က Ticket အနေနဲ့ လက်ခံပြီး ပြန်ကြည့်ပေးပါလိမ့်မယ်။ တိုက်ရိုက် အမြန်ဆက်သွယ်ချင်ရင် "Telegram" tab ကို အသုံးပြုနိုင်ပါတယ်။',
+                guide_q_otherfeatures: 'App ထဲက အခြား features တွေ ဘာတွေရှိလဲ',
+                guide_a_otherfeatures: '"Voucher" tab - Gift card နှင့် Top-up voucher များကို ချက်ချင်း ဝယ်ယူနိုင်ပါတယ်။ "Game Acc" tab - တခြားသူတွေရောင်းထားတဲ့ ဂိမ်း Account များကို ဝယ်နိုင်သလို၊ ကိုယ်ပိုင် Account ရောင်းလည်း တင်နိုင်ပါတယ် (ဒီ feature ကို ဖွင့်/ပိတ် Admin ဆီမှာ မူတည်ပါတယ်)။ Drawer ထဲက "Name Check" - Order မတင်ခင် ဂိမ်းနဲ့ ID ရိုက်ထည့်ပြီး Account နာမည် မှန်မမှန် ကြိုတင်စစ်ကြည့်နိုင်ပါတယ်။ "Leaderboard" - အများဆုံး ဝယ်ယူသူများကို ကြည့်ရှုနိုင်ပါတယ်။ "Profile" ထဲမှာ VIP Tier, စုစုပေါင်း သုံးငွေ၊ Referral code (သူငယ်ချင်း ဖိတ်ခေါ်ပြီး Wallet ဆုကြေးငွေ ရယူနိုင်တာ) တွေကို တွေ့နိုင်ပါတယ်။ Theme (Dark/Light Mode) နှင့် ဘာသာစကား ကိုလည်း Drawer ထဲကနေ ပြောင်းလို့ရပါတယ်။',
                 btn_confirm_id: 'Confirm ID', btn_confirmed_id: 'Confirmed ✓', btn_checking_id: 'စစ်ဆေးနေသည်...',
                 checking_id_text: 'ID စစ်ဆေးနေသည်...', id_not_found: 'ID မတွေ့ပါ — ပြန်စစ်ကြည့်ပါ။',
                 verified_prefix: 'အတည်ပြုပြီး', player_verified: 'ကစားသမား အတည်ပြုပြီး',
@@ -5568,6 +5502,21 @@
         // approval bot (telegram-worker.js's /validate-coupon and
         // /redeem-coupon routes). Fill in the actual deployed subdomain.
         const COUPON_WORKER_URL = 'https://telegram-order.pca-game-store.workers.dev';
+        // Fire-and-forget "wake up now" ping to the Worker's /ping route, sent
+        // right after an order / wallet top-up is saved so Telegram + wallet
+        // auto-fulfil happen instantly instead of on the next cron tick.
+        // text/plain keeps it a "simple" CORS request (no preflight). Never
+        // throws and never blocks checkout - the cron is the safety net.
+        function pingWorker(type, id) {
+            try {
+                fetch(`${COUPON_WORKER_URL}/ping`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'text/plain' },
+                    body: JSON.stringify({ type, id }),
+                    keepalive: true
+                }).catch(() => {});
+            } catch (e) { /* cron will pick it up */ }
+        }
         let selectedGameServerName = '';
 
         // Shown for any package that doesn't have an admin-uploaded image, so the
@@ -9358,7 +9307,7 @@
             try {
                 const receiptUrl = await uploadWalletReceiptToImgBB(editingWalletReceiptFile);
                 const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
-                await addDoc(collection(db, "walletTopups"), {
+                const topupRef = await addDoc(collection(db, "walletTopups"), {
                     amount: amount,
                     paymentMethod: selectedWalletPaymentMethod.name,
                     receiptUrl: receiptUrl,
@@ -9368,6 +9317,7 @@
                     userName: (savedProfile.name && savedProfile.name.trim()) ? savedProfile.name.trim() : guestId,
                     userPhone: (savedProfile.phone && savedProfile.phone.trim()) ? savedProfile.phone.trim() : ''
                 });
+                pingWorker('topup', topupRef.id);
                 window.showToast('Top up request sent! We will confirm it shortly.');
                 closeWalletTopupModal();
             } catch (error) {
@@ -10656,13 +10606,8 @@
             const bar = document.getElementById('admin-status-bar');
             const dot = document.getElementById('admin-status-dot');
             const text = document.getElementById('admin-status-text');
-            // Support Chat tab's own iOS-Messages-style header (avatar + name +
-            // Online/last-seen line) mirrors the same lastAdminActiveMs reading.
-            const chatDot = document.getElementById('support-chat-header-dot');
-            const chatText = document.getElementById('support-chat-header-status-text');
             if (lastAdminActiveMs === null) {
                 bar.style.display = 'none';
-                if (chatText) chatText.innerText = t('chat_checking');
                 return;
             }
             bar.style.display = 'inline-flex';
@@ -10670,16 +10615,11 @@
             dot.className = 'admin-status-dot ' + (isOnline ? 'online' : 'offline');
             bar.classList.toggle('online-text', isOnline);
             bar.title = 'Orders still process automatically either way.';
-            let chatStatusStr;
             if (isOnline) {
                 text.innerText = 'Admin Online';
-                chatStatusStr = 'Online';
             } else {
                 text.innerText = 'Last seen recently';
-                chatStatusStr = 'Last seen recently';
             }
-            if (chatDot) chatDot.classList.toggle('online', isOnline);
-            if (chatText) chatText.innerText = chatStatusStr;
         }
         deferInit(() => {
             onSnapshot(doc(db, "settings", "presence"), (docSnap) => {
@@ -10973,6 +10913,7 @@
                     }
                 }
                 if (!alreadyPlaced) await setDoc(orderRef, receiptOrderPayload);
+                pingWorker('order', orderRef.id);
 
                 saveContact(inGameId, selectedGameId, serverId);
                 appliedCoupon = null; // consumed by /redeem-coupon above
@@ -11110,7 +11051,7 @@
                     tx.set(userRef, { walletBalance: increment(-chargeAmount) }, { merge: true });
                     tx.set(orderRef, orderPayload);
                 });
-
+                pingWorker('order', orderRef.id);
 
                 saveContact(inGameId, selectedGameId, serverId);
                 appliedCoupon = null; // consumed by /redeem-coupon above
@@ -14561,6 +14502,7 @@
                     userPhone: (savedProfile.phone && savedProfile.phone.trim()) ? savedProfile.phone.trim() : '',
                     ...(location ? { location } : {})
                 });
+                pingWorker('order', orderRef.id);
                 btnElement.innerText = "Order Sent";
                 btnElement.style.backgroundColor = "#28a745";
                 window.openSuccessOverlay(orderRef.id, { status: 'Pending', timestamp: { toDate: () => new Date() } }, 'account');
@@ -14647,6 +14589,7 @@
                     tx.set(userRef, { walletBalance: increment(-chargeAmount) }, { merge: true });
                     tx.set(orderRef, orderPayload);
                 });
+                pingWorker('order', orderRef.id);
 
                 btnElement.innerText = "Order Sent";
                 btnElement.style.backgroundColor = "#28a745";
@@ -15492,145 +15435,8 @@
         // `messages` subcollection (sender: 'user' | 'admin'). Getting these to
         // actually reach Telegram / an admin.html inbox needs matching worker-side
         // and admin-side code that isn't part of this pass - see chat notes.
-        let supportChatMsgUnsub = null;
         let supportFabDragged = false;
         let supportFabPeekTimer = null;
-
-        // The Support widget panel now only ever serves the 'product' thread
-        // (order/wallet/general support, opened from the Support drawer
-        // item). Game Account marketplace support was moved to a direct
-        // Telegram deep-link (see contactAccountAdminOnTelegram) instead of
-        // a live in-app thread, so the 'account' mode this used to also
-        // serve was removed - supportChatMode/supportChatThreadId are kept
-        // as fixed pass-throughs rather than ripping out every call site.
-        const supportChatMode = 'product';
-        function supportChatCollectionName() { return 'supportChats'; }
-        function supportChatThreadId(guestId) { return guestId; }
-
-        // ---------- Support Chat: FAQ quick-replies + auto-answer ----------
-        // The FAQ list itself lives in Firestore (settings/supportChatFaq,
-        // field "items": [{q,a,keywords}]) and is edited from admin.html's
-        // Settings > Support Chat FAQ panel - so admins can add/edit/remove
-        // questions without touching this file. Falls back to a small
-        // built-in default list if that doc hasn't been created yet.
-        // Tapping a chip sends that exact question and the matching answer
-        // comes back instantly as a bot reply (sender: 'admin', isBot: true)
-        // - no admin needs to be online. The same keyword match also runs
-        // on anything the customer types by hand.
-        let SUPPORT_FAQ_LIST = [
-            {
-                q: 'အော်ဒါ ဘယ်လိုတင်ရမလဲ',
-                keywords: ['အော်ဒါ', 'order', 'တင်ရ'],
-                a: 'Home စာမျက်နှာမှ ဂိမ်းကို ရွေးပါ။ Package/Currency ကို ရွေးပြီး In-Game ID (နှင့် Server ID လိုအပ်ပါက) ရိုက်ထည့်ပါ။ "Confirm ID" ကို နှိပ်ပြီး ID မှန်ကန်ကြောင်း စစ်ဆေးပါ။ နောက်ဆုံးတွင် ငွေပေးချေမှုအမျိုးအစား ရွေးချယ်ပြီး အတည်ပြုလိုက်ရုံပါပဲ။'
-            },
-            {
-                q: 'ငွေပေးချေနည်း ဘယ်လိုလုပ်ရမလဲ',
-                keywords: ['ငွေပေးချေ', 'payment', 'ပေးချေ'],
-                a: 'Wallet ထဲက လက်ကျန်ငွေဖြင့် တိုက်ရိုက်ပေးချေနိုင်သလို၊ Payment Method တစ်ခုကို ရွေးပြီး ငွေလွှဲပြေစာ (Receipt) တင်၍လည်း ပေးချေနိုင်ပါသည်။ Wallet ထဲသို့ ငွေဖြည့်ရန် Wallet စာမျက်နှာမှ "Top Up" ကို သုံးပါ။'
-            },
-            {
-                q: 'အော်ဒါ Status ဘယ်လိုစစ်ရမလဲ',
-                keywords: ['status', 'အခြေအနေ', 'စစ်ဆေး'],
-                a: 'History စာမျက်နှာတွင် အော်ဒါတစ်ခုချင်းစီကို Pending → Processing → Success/Fail အဆင့်ဆင့် အချိန်နှင့်တပြေးညီ ကြည့်ရှုနိုင်ပါသည်။ Processing တွင် ကြာမြင့်နေပါက "တိုင်ကြားရန်" tab ကနေ ပြန်လည်အကြောင်းကြားနိုင်ပါသည်။'
-            },
-            {
-                q: 'ID မှားထည့်မိရင် ဘယ်လိုလုပ်ရမလဲ',
-                keywords: ['id မှား', 'id ပြင်', 'wrong id'],
-                a: 'ID မှားထည့်မိပါက ဖြစ်နိုင်သမျှ မြန်မြန် Support Chat မှတစ်ဆင့် ပြောပြပေးပါ။ အော်ဒါ "Processing" မဖြစ်သေးလျှင် ပြင်ဆင်ပေးနိုင်ပါသည်၊ Processing ပြီးသွားပါက ပြင်ဆင်ရန် ခက်ခဲနိုင်တဲ့အတွက် ID ကို ထပ်စစ်ပြီးမှ Confirm နှိပ်ဖို့ အကြံပြုပါသည်။'
-            },
-            {
-                q: 'Wallet ငွေဖြည့်ထားတာ ဘယ်လောက်ကြာမှ ဝင်မလဲ',
-                keywords: ['wallet', 'ငွေဖြည့်', 'top up', 'topup'],
-                a: 'Wallet Top Up Receipt တင်ပြီးပါက ပုံမှန်အားဖြင့် မိနစ်အနည်းငယ်မှ နာရီအနည်းငယ်အတွင်း admin မှ စစ်ဆေးပြီး Wallet ထဲ ငွေဖြည့်ပေးပါမည်။ အလုပ်ချိန်ပြင်ပ ဖြစ်ပါက အနည်းငယ်ပိုကြာနိုင်ပါသည်။'
-            }
-        ];
-        let supportFaqListenerAttached = false;
-
-        // One-time live listener: whenever admin.html saves the FAQ editor,
-        // this doc updates and the chips + keyword matching refresh here
-        // immediately, even for a chat panel that's already open.
-        function listenSupportChatFaq() {
-            if (supportFaqListenerAttached) return;
-            supportFaqListenerAttached = true;
-            onSnapshot(doc(db, "settings", "supportChatFaq"), (snap) => {
-                if (snap.exists() && Array.isArray(snap.data().items) && snap.data().items.length) {
-                    SUPPORT_FAQ_LIST = snap.data().items.map(it => ({
-                        q: it.q || '',
-                        a: it.a || '',
-                        keywords: Array.isArray(it.keywords) ? it.keywords : String(it.keywords || '').split(',').map(k => k.trim()).filter(Boolean)
-                    }));
-                    renderSupportChatFaqChips();
-                }
-            }, (error) => console.error("Support FAQ listen error:", error));
-        }
-
-        function renderSupportChatFaqChips() {
-            const row = document.getElementById('support-chat-faq-row');
-            if (!row) return;
-            row.innerHTML = SUPPORT_FAQ_LIST.map((f, i) =>
-                `<button type="button" class="support-chat-faq-chip" onclick="window.sendFaqQuestion(${i})">${f.q}</button>`
-            ).join('');
-        }
-
-        // Finds the first FAQ whose keyword shows up inside the given text.
-        function matchSupportFaq(text) {
-            if (!text) return null;
-            const lower = text.toLowerCase();
-            return SUPPORT_FAQ_LIST.find(f => f.keywords.some(k => lower.includes(k.toLowerCase()))) || null;
-        }
-
-        // Writes the bot's answer straight to Firestore (sender: 'admin',
-        // isBot: true) so it renders through the normal message listener on
-        // both Store.html and admin.html, just tagged as an auto-reply.
-        async function sendSupportFaqAutoReply(guestId, answerText) {
-            try {
-                const threadId = supportChatThreadId(guestId);
-                await addDoc(collection(db, supportChatCollectionName(), threadId, "messages"), {
-                    sender: 'admin', text: answerText, timestamp: serverTimestamp(), isBot: true, seenByAdmin: true
-                });
-                await setDoc(doc(db, supportChatCollectionName(), threadId), {
-                    lastMessage: answerText, lastMessageAt: serverTimestamp(), lastSender: 'admin'
-                }, { merge: true });
-            } catch (error) {
-                console.error("Support chat auto-reply error:", error);
-            }
-        }
-
-        // Tapping a quick-reply chip: sends the exact FAQ question as the
-        // customer's own message, then answers it immediately - no need to
-        // wait for keyword matching since we already know which FAQ it is.
-        function sendFaqQuestion(index) {
-            const faq = SUPPORT_FAQ_LIST[index];
-            if (!faq) return;
-            const input = document.getElementById('support-chat-input');
-            if (input) input.value = faq.q;
-            sendSupportChatMessage(faq.a);
-        }
-        window.sendFaqQuestion = sendFaqQuestion;
-
-        // ---------- Support Chat: 7-day auto-cleanup ----------
-        // Messages older than 7 days are deleted so the thread doesn't grow
-        // forever. There's no backend job here, so this runs opportunistically
-        // whenever the customer opens the chat tab (best-effort, client-side).
-        const SUPPORT_CHAT_RETENTION_MS = 7 * 24 * 60 * 60 * 1000;
-        const supportChatCleanupDoneByMode = {};
-        async function cleanupOldSupportChatMessages(guestId) {
-            if (!guestId) return;
-            const threadId = supportChatThreadId(guestId);
-            if (supportChatCleanupDoneByMode[threadId]) return;
-            supportChatCleanupDoneByMode[threadId] = true;
-            try {
-                const cutoff = new Date(Date.now() - SUPPORT_CHAT_RETENTION_MS);
-                const q = query(collection(db, supportChatCollectionName(), threadId, "messages"), where("timestamp", "<", cutoff));
-                const snap = await getDocs(q);
-                if (snap.empty) return;
-                const batch = writeBatch(db);
-                snap.docs.forEach(d => batch.delete(d.ref));
-                await batch.commit();
-            } catch (error) {
-                console.error("Support chat cleanup error:", error);
-            }
-        }
 
         // Which screen edge the bubble is currently docked nearest to,
         // based on its live `right` offset (the fab is always positioned
@@ -15655,44 +15461,6 @@
             if (fab) fab.classList.remove('fab-peek', 'peek-left', 'peek-right');
         }
 
-        // ---------- Support Chat sound effects (iOS Messages-style) ----------
-        // Synthesized with the Web Audio API (no external sound files needed):
-        // a short two-pop rising chime for incoming admin replies, and a
-        // quick upward "swoosh" for messages the customer sends - the same
-        // shape as the classic iPhone Messages tones.
-        let gzChatAudioCtx = null;
-        function getChatAudioCtx() {
-            try {
-                if (!gzChatAudioCtx) gzChatAudioCtx = new (window.AudioContext || window.webkitAudioContext)();
-                if (gzChatAudioCtx.state === 'suspended') gzChatAudioCtx.resume();
-                return gzChatAudioCtx;
-            } catch (e) { return null; }
-        }
-        function playChatTone(freqStart, freqEnd, duration, volume) {
-            const ctx = getChatAudioCtx();
-            if (!ctx) return;
-            const now = ctx.currentTime;
-            const osc = ctx.createOscillator();
-            const gain = ctx.createGain();
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(freqStart, now);
-            osc.frequency.exponentialRampToValueAtTime(freqEnd, now + duration);
-            gain.gain.setValueAtTime(volume, now);
-            gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
-            osc.connect(gain).connect(ctx.destination);
-            osc.start(now);
-            osc.stop(now + duration);
-        }
-        function playSupportChatSendSound() {
-            try { playChatTone(700, 1000, 0.12, 0.12); } catch (e) { /* ignore */ }
-        }
-        function playSupportChatReceiveSound() {
-            try {
-                playChatTone(900, 1300, 0.14, 0.14);
-                setTimeout(() => playChatTone(1150, 1550, 0.14, 0.12), 90);
-            } catch (e) { /* ignore */ }
-        }
-
         function loadSupportFabPos() {
             try {
                 const saved = JSON.parse(localStorage.getItem('gz_support_fab_pos') || 'null');
@@ -15702,32 +15470,6 @@
                 fab.style.bottom = saved.bottom + 'px';
             } catch (e) { /* private browsing - ignore */ }
         }
-
-        // Support chat header avatar: shows whichever admin most recently
-        // replied (adminUsernames/{username}.avatarUrl, denormalized onto
-        // supportChats/{guestId}.lastAdminAvatar by admin.html's
-        // sendSupportChatReply), so different admins show up as different
-        // faces. Falls back to the legacy shared settings/supportChat photo
-        // (for stores with just one admin who hasn't replied yet), then "A".
-        function renderSupportChatHeaderAvatar() {
-            const el = document.getElementById('support-chat-header-avatar');
-            if (!el) return;
-            const url = supportChatSummaryState[supportChatMode].lastAdminAvatar || window.__supportChatFallbackAvatar || null;
-            el.innerHTML = url ? `<img src="${url}" alt="Admin">` : 'A';
-        }
-
-        let supportChatAvatarUnsub = null;
-        function listenSupportChatAvatar() {
-            if (supportChatAvatarUnsub) return;
-            supportChatAvatarUnsub = onSnapshot(doc(db, "settings", "supportChat"), (snap) => {
-                window.__supportChatFallbackAvatar = snap.exists() ? (snap.data().adminAvatar || null) : null;
-                renderSupportChatHeaderAvatar();
-            }, (error) => console.error("Support chat avatar listener error:", error));
-        }
-        function stopListenSupportChatAvatar() {
-            if (supportChatAvatarUnsub) { supportChatAvatarUnsub(); supportChatAvatarUnsub = null; }
-        }
-        window.stopListenSupportChatAvatar = stopListenSupportChatAvatar;
 
         function initSupportWidget() {
             const fab = document.getElementById('support-fab');
@@ -15797,29 +15539,15 @@
         function openSupportWidget() {
             const overlay = document.getElementById('support-widget-overlay');
             if (overlay) overlay.classList.add('show');
-            // Header avatar listener: only needs to be live while the widget
-            // is actually open, not from app boot onward.
-            listenSupportChatAvatar();
             const title = document.getElementById('support-widget-title');
             if (title) title.textContent = t('support_title');
             const dot = document.getElementById('support-fab-dot');
             if (dot) dot.style.display = 'none';
-            // If the Chat tab happens to already be the active panel from an
-            // earlier visit, re-run its setup rather than leaving it stale.
-            const chatPanel = document.getElementById('support-panel-chat');
-            if (chatPanel && chatPanel.style.display !== 'none') switchSupportTab('chat');
         }
         function closeSupportWidget() {
             const overlay = document.getElementById('support-widget-overlay');
             if (overlay) overlay.classList.remove('show');
             scheduleSupportFabPeek();
-            stopListenSupportChatAvatar();
-            // PERF: the messages listener (supportChatMsgUnsub) is only ever
-            // started once the Chat tab is opened; stop it here too so it
-            // doesn't keep streaming for the rest of the session after the
-            // whole widget is closed. Re-attaches instantly next time the
-            // Chat tab is opened.
-            if (window.stopListenSupportChatMessages) window.stopListenSupportChatMessages();
         }
         window.openSupportWidget = openSupportWidget;
         window.closeSupportWidget = closeSupportWidget;
@@ -15869,7 +15597,6 @@
         }
         function handleBackButton() {
             const isShown = (id) => document.getElementById(id)?.classList.contains('show');
-            if (isShown('chat-img-viewer-overlay')) return closeChatImageViewer();
             if (isShown('support-widget-overlay')) return closeSupportWidget();
             if (isShown('order-detail-overlay')) return closeOrderDetail();
             if (isShown('wallet-topup-detail-overlay')) return closeWalletTopupDetail();
@@ -15901,20 +15628,12 @@
 
 
         function switchSupportTab(tab) {
-            ['guide', 'complaint', 'chat'].forEach(t => {
+            ['guide', 'complaint'].forEach(t => {
                 const tabBtn = document.getElementById(`support-tab-${t}`);
                 const panel = document.getElementById(`support-panel-${t}`);
                 if (tabBtn) tabBtn.classList.toggle('active', t === tab);
                 if (panel) panel.style.display = t === tab ? '' : 'none';
             });
-            if (tab === 'chat') {
-                const badge = document.getElementById('support-chat-badge');
-                if (badge) badge.style.display = 'none';
-                listenSupportChatFaq();
-                renderSupportChatFaqChips();
-                listenSupportChatMessages();
-                cleanupOldSupportChatMessages(window.getGuestId ? window.getGuestId() : '');
-            }
         }
         window.switchSupportTab = switchSupportTab;
 
@@ -15968,315 +15687,6 @@
         }
         window.submitComplaint = submitComplaint;
 
-        // ---------- Chat photo collage + full-screen viewer ----------
-        // Several photos sent together render as one grid bubble instead of
-        // one full-size bubble per photo (which used to eat a lot of
-        // vertical space). Tapping any tile opens the viewer at that photo,
-        // with prev/next to flip through the rest of the set.
-        const CHAT_IMG_GROUPS = {};
-        let chatImgGroupCounter = 0;
-        let chatImgViewerUrls = [];
-        let chatImgViewerIndex = 0;
-
-        function chatImageCollageHTML(urls, mineOrTheirs, extraBubbleClasses) {
-            if (!urls || !urls.length) return '';
-            const groupId = 'cig' + (chatImgGroupCounter++);
-            CHAT_IMG_GROUPS[groupId] = urls;
-            const n = urls.length;
-            const shown = urls.slice(0, 4);
-            const extra = n - 4;
-            const layoutClass = n === 1 ? 'n1' : n === 2 ? 'n2' : n === 3 ? 'n3' : 'n4up';
-            const tiles = shown.map((url, i) => {
-                const overlay = (i === 3 && extra > 0) ? `<span class="chat-img-more">+${extra}</span>` : '';
-                return `<div class="chat-img-tile" onclick="event.stopPropagation();openChatImageViewer('${groupId}',${i})"><img src="${url}" alt="Photo" loading="lazy">${overlay}</div>`;
-            }).join('');
-            return `<div class="chat-img-collage ${layoutClass}">${tiles}</div>`;
-        }
-
-        function openChatImageViewer(groupId, index) {
-            const urls = CHAT_IMG_GROUPS[groupId] || [];
-            if (!urls.length) return;
-            chatImgViewerUrls = urls;
-            chatImgViewerIndex = index;
-            renderChatImageViewer();
-            document.getElementById('chat-img-viewer-overlay').classList.add('show');
-        }
-        window.openChatImageViewer = openChatImageViewer;
-
-        function renderChatImageViewer() {
-            document.getElementById('chat-img-viewer-img').src = chatImgViewerUrls[chatImgViewerIndex];
-            const counter = document.getElementById('chat-img-viewer-counter');
-            const multi = chatImgViewerUrls.length > 1;
-            counter.style.display = multi ? 'block' : 'none';
-            counter.textContent = `${chatImgViewerIndex + 1} / ${chatImgViewerUrls.length}`;
-            document.getElementById('chat-img-viewer-prev').style.visibility = (multi && chatImgViewerIndex > 0) ? 'visible' : 'hidden';
-            document.getElementById('chat-img-viewer-next').style.visibility = (multi && chatImgViewerIndex < chatImgViewerUrls.length - 1) ? 'visible' : 'hidden';
-        }
-
-        function chatImageViewerPrev() { if (chatImgViewerIndex > 0) { chatImgViewerIndex--; renderChatImageViewer(); } }
-        window.chatImageViewerPrev = chatImageViewerPrev;
-        function chatImageViewerNext() { if (chatImgViewerIndex < chatImgViewerUrls.length - 1) { chatImgViewerIndex++; renderChatImageViewer(); } }
-        window.chatImageViewerNext = chatImageViewerNext;
-        function closeChatImageViewer() { document.getElementById('chat-img-viewer-overlay').classList.remove('show'); }
-        window.closeChatImageViewer = closeChatImageViewer;
-
-        function renderSupportChatMessages(msgs) {
-            const box = document.getElementById('support-chat-messages');
-            if (!box) return;
-            if (msgs.length === 0) {
-                box.innerHTML = `<div class="support-chat-empty">${t('chat_empty')}</div>`;
-                return;
-            }
-            box.innerHTML = msgs.map(m => {
-                const mine = m.sender !== 'admin';
-                // Read-receipt: once the admin panel marks this message doc as
-                // seen (seenByAdmin: true, or seen: true), the sent bubble's
-                // text switches from black to blue.
-                const seen = mine && (m.seenByAdmin === true || m.seen === true);
-                const time = (m.timestamp && m.timestamp.toDate) ? m.timestamp.toDate().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' }) : '';
-                // Small avatar badge on admin bubbles: each admin has their
-                // own photo (set in admin.html's Settings > Admin Accounts),
-                // denormalized onto the message at send time so it stays
-                // correct even if that admin later changes their photo.
-                // Falls back to the legacy shared settings/supportChat photo,
-                // then a plain "A", for messages/admins without one.
-                let avatarBadge = '';
-                if (!mine) {
-                    const inner = m.isBot ? '🤖' : (m.adminAvatar ? `<img src="${m.adminAvatar}" alt="">` : (window.__supportChatFallbackAvatar ? `<img src="${window.__supportChatFallbackAvatar}" alt="">` : 'A'));
-                    avatarBadge = `<span class="support-chat-msg-avatar${m.isBot ? ' bot-avatar' : ''}">${inner}</span>`;
-                }
-                const botLabel = (!mine && m.isBot) ? `<span class="support-chat-bubble-bot-label">Auto-reply 🤖</span>` : '';
-                const imgUrls = Array.isArray(m.imageUrls) ? m.imageUrls.filter(Boolean) : (m.imageUrl ? [m.imageUrl] : []);
-                if (imgUrls.length) {
-                    return `<div class="support-chat-bubble image-bubble ${mine ? 'mine' : 'theirs'}${seen ? ' seen' : ''}">${avatarBadge}${chatImageCollageHTML(imgUrls)}<span class="support-chat-bubble-time">${time}</span></div>`;
-                }
-                const safe = (m.text || '').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                return `<div class="support-chat-bubble ${mine ? 'mine' : 'theirs'}${seen ? ' seen' : ''}">${avatarBadge}${botLabel}${safe}<span class="support-chat-bubble-time">${time}</span></div>`;
-            }).join('');
-            box.scrollTop = box.scrollHeight;
-        }
-
-        // Attached when the Support Chat tab is opened, and left running while
-        // the widget stays open (so replies still render live if the user
-        // flips to the Guide/Complaint tab and back). Torn down in
-        // closeSupportWidget() once the whole widget closes, instead of
-        // staying subscribed for the rest of the session (PERF).
-        function listenSupportChatMessages() {
-            if (supportChatMsgUnsub) return;
-            const guestId = window.getGuestId ? window.getGuestId() : '';
-            if (!guestId) return;
-            const q = query(collection(db, supportChatCollectionName(), supportChatThreadId(guestId), "messages"), orderBy("timestamp", "asc"));
-            supportChatMsgUnsub = onSnapshot(q, (snap) => {
-                renderSupportChatMessages(snap.docs.map(d => d.data()));
-            }, (error) => console.error("Support chat listen error:", error));
-        }
-        function stopListenSupportChatMessages() {
-            if (supportChatMsgUnsub) { supportChatMsgUnsub(); supportChatMsgUnsub = null; }
-        }
-        window.stopListenSupportChatMessages = stopListenSupportChatMessages;
-
-        // Runs from app start (not just once the Chat tab is opened) purely to
-        // light up the FAB dot / tab badge the moment an admin reply lands while
-        // the widget is closed or on a different tab.
-        // Typing indicator: mirrors admin.html's side of this - a
-        // userTypingAt/adminTypingAt timestamp pair on the supportChats
-        // summary doc, refreshed at most every TYPING_THROTTLE_MS and
-        // treated as stale (indicator hidden) after TYPING_STALE_MS with no
-        // refresh. See admin.html's handleAdminChatTyping for the mirror.
-        const TYPING_THROTTLE_MS = 1500;
-        const TYPING_STALE_MS = 3000;
-        let userTypingWriteAt = 0;
-        let adminTypingAtMs = null;
-        // Guards for the "new admin reply" receive sound: skip the very first
-        // summary snapshot (that's just existing history loading in, not a
-        // new message) and de-dupe by timestamp so a reconnect/refresh never
-        // replays the sound for a reply the customer already heard.
-        // Namespaced per mode so the product and account threads never leak
-        // into each other's header avatar / typing indicator / receive-sound
-        // state, even though both summary docs are listened to at once.
-        const supportChatSummaryState = {
-            product: { seenFirst: false, lastPlayedMs: 0, lastAdminAvatar: null, adminTypingAtMs: null },
-            account: { seenFirst: false, lastPlayedMs: 0, lastAdminAvatar: null, adminTypingAtMs: null }
-        };
-
-        function renderSupportChatTypingIndicator() {
-            const el = document.getElementById('support-chat-typing-indicator');
-            if (!el) return;
-            const atMs = supportChatSummaryState[supportChatMode].adminTypingAtMs;
-            const isTyping = atMs !== null && (Date.now() - atMs) < TYPING_STALE_MS;
-            el.classList.toggle('show', isTyping);
-        }
-
-        // Wired to the chat input's oninput. Throttled while there's text,
-        // cleared immediately once the box is emptied (see
-        // sendSupportChatMessage for the clear-on-send path).
-        function handleSupportChatTyping() {
-            const guestId = window.getGuestId ? window.getGuestId() : '';
-            if (!guestId) return;
-            const input = document.getElementById('support-chat-input');
-            const now = Date.now();
-            if (!input.value.trim()) {
-                if (userTypingWriteAt !== 0) {
-                    userTypingWriteAt = 0;
-                    setDoc(doc(db, supportChatCollectionName(), supportChatThreadId(guestId)), { userTypingAt: null }, { merge: true }).catch(() => {});
-                }
-                return;
-            }
-            if (now - userTypingWriteAt < TYPING_THROTTLE_MS) return;
-            userTypingWriteAt = now;
-            setDoc(doc(db, supportChatCollectionName(), supportChatThreadId(guestId)), { userTypingAt: serverTimestamp() }, { merge: true }).catch(() => {});
-        }
-        window.handleSupportChatTyping = handleSupportChatTyping;
-
-        // Show the just-sent message instantly in the sender's own chat
-        // view. Needed because the message is written with
-        // timestamp: serverTimestamp(), and the messages query is ordered
-        // by that same field — until the server resolves the timestamp,
-        // Firestore's realtime listener can momentarily fail to include
-        // the pending message, so without this the sender wouldn't see
-        // their own text appear until the reply/sync caught up.
-        function appendOptimisticSupportChatMessage(text) {
-            const box = document.getElementById('support-chat-messages');
-            if (!box) return;
-            playSupportChatSendSound();
-            const empty = box.querySelector('.support-chat-empty');
-            if (empty) empty.remove();
-            const time = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-            const safe = text.replace(/</g, '&lt;').replace(/>/g, '&gt;');
-            const bubble = document.createElement('div');
-            bubble.className = 'support-chat-bubble mine';
-            bubble.innerHTML = `${safe}<span class="support-chat-bubble-time">${time}</span>`;
-            box.appendChild(bubble);
-            box.scrollTop = box.scrollHeight;
-        }
-
-        async function sendSupportChatMessage(presetAutoAnswer) {
-            const input = document.getElementById('support-chat-input');
-            const text = input.value.trim();
-            if (!text) return;
-            input.value = '';
-            userTypingWriteAt = 0;
-            appendOptimisticSupportChatMessage(text);
-            try {
-                const guestId = window.getGuestId ? window.getGuestId() : '';
-                const threadId = supportChatThreadId(guestId);
-                const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
-                await addDoc(collection(db, supportChatCollectionName(), threadId, "messages"), {
-                    sender: 'user', text, timestamp: serverTimestamp(), sentToTelegram: false, seenByAdmin: false
-                });
-                await setDoc(doc(db, supportChatCollectionName(), threadId), {
-                    userId: guestId,
-                    userName: (savedProfile.name && savedProfile.name.trim()) ? savedProfile.name.trim() : guestId,
-                    lastMessage: text,
-                    lastMessageAt: serverTimestamp(),
-                    lastSender: 'user',
-                    unreadByAdmin: true,
-                    userTypingAt: null
-                }, { merge: true });
-                // Auto-reply: a tapped FAQ chip already knows its answer
-                // (presetAutoAnswer); a hand-typed message gets matched
-                // against the same FAQ keyword list.
-                const autoAnswer = presetAutoAnswer || (matchSupportFaq(text) || {}).a;
-                if (autoAnswer) {
-                    setTimeout(() => sendSupportFaqAutoReply(guestId, autoAnswer), 900);
-                }
-            } catch (error) {
-                console.error("Support chat send error:", error);
-                window.showToast(error.message || 'ပို့၍မရပါ', 'fail');
-                input.value = text; // give the message back so it isn't lost
-            }
-        }
-        window.sendSupportChatMessage = sendSupportChatMessage;
-
-        // ---------- Support Chat: sending a photo (camera icon) ----------
-        // Same ImgBB host used for receipts/profile photo/KYC. Message doc
-        // gets an imageUrl instead of text; renderSupportChatMessages and
-        // the optimistic-append path above both know how to show it.
-        async function uploadSupportChatImageToImgBB(file) {
-            const form = new FormData();
-            form.append('image', file);
-            const res = await fetch(IMGBB_UPLOAD_URL, { method: 'POST', body: form });
-            const data = await res.json();
-            if (!data.success) throw new Error(data.error?.message || 'Photo upload failed');
-            return data.data.url;
-        }
-
-        // Shows a spinner bubble the instant photo(s) are picked (upload +
-        // Firestore write both take a moment, and without this the user has
-        // no feedback that anything is happening until the image finally
-        // appears). The same bubble element is then swapped in place for
-        // the real photo/collage once the upload finishes, or removed on
-        // failure. count>1 just labels the spinner so a multi-photo pick
-        // doesn't look stuck on "one photo" while several upload.
-        function appendOptimisticSupportChatImageSpinner(count) {
-            const box = document.getElementById('support-chat-messages');
-            if (!box) return null;
-            const empty = box.querySelector('.support-chat-empty');
-            if (empty) empty.remove();
-            const bubble = document.createElement('div');
-            bubble.className = 'support-chat-bubble image-bubble mine';
-            bubble.id = 'sc-img-pending-' + Date.now();
-            const label = count > 1 ? `<span style="position:absolute;bottom:6px;left:0;right:0;text-align:center;font-size:11px;color:var(--text-secondary);">${count} photos</span>` : '';
-            bubble.innerHTML = `<div class="support-chat-image-spinner-wrap" style="position:relative;"><div class="ld-bar"><i></i></div>${label}</div>`;
-            box.appendChild(bubble);
-            box.scrollTop = box.scrollHeight;
-            return bubble.id;
-        }
-
-        function resolveOptimisticSupportChatImage(bubbleId, urls) {
-            const bubble = document.getElementById(bubbleId);
-            if (!bubble) return;
-            playSupportChatSendSound();
-            const time = new Date().toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit' });
-            bubble.innerHTML = `${chatImageCollageHTML(urls)}<span class="support-chat-bubble-time">${time}</span>`;
-            const box = document.getElementById('support-chat-messages');
-            if (box) box.scrollTop = box.scrollHeight;
-        }
-
-        function failOptimisticSupportChatImage(bubbleId) {
-            const bubble = document.getElementById(bubbleId);
-            if (bubble) bubble.remove();
-        }
-
-        // Uploads every picked photo (one tap can select many from the
-        // gallery) and sends them as a single message with an imageUrls
-        // array, so the thread renders them as one collage bubble instead
-        // of one full-size bubble per photo.
-        async function handleSupportChatImageSelect(inputEl) {
-            const files = Array.from(inputEl.files || []);
-            inputEl.value = ''; // allow picking the same file(s) again next time
-            if (!files.length) return;
-            const camBtn = document.querySelector('.support-chat-camera-btn');
-            if (camBtn) camBtn.style.opacity = '0.5';
-            const pendingId = appendOptimisticSupportChatImageSpinner(files.length);
-            try {
-                const urls = await Promise.all(files.map(f => uploadSupportChatImageToImgBB(f)));
-                resolveOptimisticSupportChatImage(pendingId, urls);
-                const guestId = window.getGuestId ? window.getGuestId() : '';
-                const threadId = supportChatThreadId(guestId);
-                const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
-                await addDoc(collection(db, supportChatCollectionName(), threadId, "messages"), {
-                    sender: 'user', text: '', imageUrls: urls, timestamp: serverTimestamp(), sentToTelegram: false, seenByAdmin: false
-                });
-                await setDoc(doc(db, supportChatCollectionName(), threadId), {
-                    userId: guestId,
-                    userName: (savedProfile.name && savedProfile.name.trim()) ? savedProfile.name.trim() : guestId,
-                    lastMessage: urls.length > 1 ? `📷 ${urls.length} Photos` : '📷 Photo',
-                    lastMessageAt: serverTimestamp(),
-                    lastSender: 'user',
-                    unreadByAdmin: true,
-                    userTypingAt: null
-                }, { merge: true });
-            } catch (error) {
-                console.error("Support chat image send error:", error);
-                window.showToast(error.message || 'ဓာတ်ပုံပို့၍မရပါ', 'fail');
-                failOptimisticSupportChatImage(pendingId);
-            } finally {
-                if (camBtn) camBtn.style.opacity = '';
-            }
-        }
-        window.handleSupportChatImageSelect = handleSupportChatImageSelect;
-
         initSupportWidget();
         initPackageCardLongPressCopy();
         applyI18n();
@@ -16287,18 +15697,7 @@
          Store needed. Hidden by default; JS toggles it visible. -->
     <button id="install-app-btn" onclick="installApp()" style="display:none;position:fixed;left:16px;right:16px;bottom:calc(16px + env(safe-area-inset-bottom, 0px));z-index:9999;padding:13px 16px;border:none;border-radius:14px;background:#2563EB;color:#fff;font-size:15px;font-weight:700;box-shadow:0 8px 24px rgba(37,99,235,0.35);align-items:center;justify-content:center;gap:8px;">
         ⬇️ App ကို Download လုပ်ပါ
-    </button>    <!-- Full-screen chat photo viewer (single photo, or a collage tile) —
-         shared by every image bubble in Support Chat; see chatImageCollageHTML()
-         / openChatImageViewer() in the script below. -->
-    <div class="chat-img-viewer-overlay" id="chat-img-viewer-overlay" onclick="if(event.target===this) closeChatImageViewer()">
-        <div class="chat-img-viewer-close" onclick="closeChatImageViewer()">
-            <svg class="ui-icon" style="width:18px;height:18px;stroke:#fff;"><use href="#icon-close"></use></svg>
-        </div>
-        <div class="chat-img-viewer-nav prev" id="chat-img-viewer-prev" onclick="chatImageViewerPrev()">‹</div>
-        <img id="chat-img-viewer-img" src="" alt="Photo">
-        <div class="chat-img-viewer-nav next" id="chat-img-viewer-next" onclick="chatImageViewerNext()">›</div>
-        <div class="chat-img-viewer-counter" id="chat-img-viewer-counter" style="display:none;"></div>
-    </div>
+    </button>
 
     <!-- HIDDEN DEV TOOL: Eruda mobile console, not loaded by default.
          Tapping "Version ..." in Profile 7 times (see handleVersionTap()
