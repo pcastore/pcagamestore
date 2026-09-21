@@ -8173,7 +8173,7 @@
     <!-- FIREBASE CODE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, collection, addDoc, doc, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp, query, where, orderBy, limit, getDocs, getCountFromServer, onSnapshot, increment, runTransaction, arrayUnion, arrayRemove, deleteField } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, addDoc, doc, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp, query, where, orderBy, limit, getDocs, getCountFromServer, onSnapshot, increment, runTransaction, arrayUnion, arrayRemove, deleteField } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInWithCredential, getRedirectResult, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getMessaging, getToken, onMessage, isSupported as isMessagingSupported } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js";
 
@@ -8187,7 +8187,17 @@
         };
 
         const app = initializeApp(firebaseConfig);
-        const db = getFirestore(app);
+        // Persistent local cache: the storefront stops/restarts several listeners as
+        // the customer changes pages (games, coupons, game accounts, ...). With the
+        // default in-memory cache every restart re-downloads (and re-bills) the WHOLE
+        // collection; with a persistent cache a restart only bills docs that changed.
+        let db;
+        try {
+            db = initializeFirestore(app, { localCache: persistentLocalCache({ tabManager: persistentMultipleTabManager() }) });
+        } catch (e) {
+            console.warn('Persistent cache unavailable, using default:', e);
+            db = getFirestore(app);
+        }
         const auth = getAuth(app);
 
         // ---------- Real push notifications (FCM) ----------
@@ -10481,7 +10491,7 @@
         // timer (not just on new Firestore data) so the badge flips to Offline on
         // its own a few minutes after the last heartbeat stops arriving, without
         // needing a new snapshot to trigger it.
-        const ADMIN_ONLINE_THRESHOLD_MS = 3 * 60 * 1000; // 3 minutes
+        const ADMIN_ONLINE_THRESHOLD_MS = 12 * 60 * 1000; // 12 minutes (admin heartbeat is every 10 min)
         let lastAdminActiveMs = null;
         function renderAdminStatus() {
             const bar = document.getElementById('admin-status-bar');
@@ -10917,20 +10927,26 @@
                 // (rare) short-ID collision from silently overwriting someone else's order.
                 const chargeAmount = Number(price);
                 if (!Number.isFinite(chargeAmount) || chargeAmount < 0) throw new Error('INVALID_PRICE');
-                await runTransaction(db, async (tx) => {
-                    const snap = await tx.get(userRef);
-                    const existingOrder = await tx.get(orderRef);
-                    if (existingOrder.exists()) {
-                        // Our own earlier attempt (same reused id) already committed
-                        // - the response was just lost. Don't debit twice.
-                        if (reusedOrderId && existingOrder.data().userId === guestId) return;
-                        throw new Error('ORDER_ID_TAKEN');
+                // WALLET FLOW 2 (matches firestore.rules): the browser can NEVER touch
+                // walletBalance. It only files a Pending wallet-order REQUEST carrying
+                // the signed-in Google uid; the Cloudflare Worker verifies owner/price/
+                // balance, calls the provider, and only then debits the wallet (and
+                // refunds if the provider fails). The old client-side transaction
+                // (tx.set walletBalance + tx.get on a not-yet-existing order) is what
+                // produced "Missing or insufficient permissions."
+                const walletUser = auth.currentUser;
+                if (!walletUser) throw new Error('NEEDS_GOOGLE_SIGNIN');
+                orderPayload.walletFlow = 2;
+                orderPayload.authUid = walletUser.uid;
+                let alreadyPlaced = false;
+                if (reusedOrderId) {
+                    const prev = await getDoc(orderRef);
+                    if (prev.exists()) {
+                        if (prev.data().userId === guestId) alreadyPlaced = true;
+                        else throw new Error('ORDER_ID_TAKEN');
                     }
-                    const bal = snap.exists() ? Number(snap.data().walletBalance || 0) : 0;
-                    if (bal < chargeAmount) throw new Error('INSUFFICIENT_BALANCE');
-                    tx.set(userRef, { walletBalance: increment(-chargeAmount) }, { merge: true });
-                    tx.set(orderRef, orderPayload);
-                });
+                }
+                if (!alreadyPlaced) await setDoc(orderRef, orderPayload);
                 pingWorker('order', orderRef.id);
 
                 saveContact(inGameId, selectedGameId, serverId);
@@ -10947,6 +10963,8 @@
                     ? 'Invalid price. Please reload and try again.'
                     : error.message === 'INSUFFICIENT_BALANCE'
                     ? 'Your wallet balance is no longer enough for this order. Please top up.'
+                    : error.message === 'NEEDS_GOOGLE_SIGNIN'
+                    ? 'Please sign in with Google to pay with your wallet.'
                     : (error.message || 'Failed to place order! Check Connection.');
                 window.showToast(msg, 'fail');
                 btnElement.innerText = originalText;
@@ -14464,20 +14482,13 @@
                 // (rare) short-ID collision from silently overwriting someone else's order.
                 const chargeAmount = Number(price);
                 if (!Number.isFinite(chargeAmount) || chargeAmount < 0) throw new Error('INVALID_PRICE');
-                await runTransaction(db, async (tx) => {
-                    const snap = await tx.get(userRef);
-                    const existingOrder = await tx.get(orderRef);
-                    if (existingOrder.exists()) throw new Error('ORDER_ID_TAKEN');
-                    // Re-check the listing INSIDE the transaction: an admin may have
-                    // marked it sold (or changed the price) since the pre-flight above.
-                    const accSnap = await tx.get(doc(db, "gameAccounts", accountId));
-                    if (!accSnap.exists() || !isAccountAvailable(accSnap.data())) throw new Error('ACCOUNT_UNAVAILABLE');
-                    if (Number(accSnap.data().price || 0) !== chargeAmount) throw new Error('ACCOUNT_PRICE_CHANGED');
-                    const bal = snap.exists() ? Number(snap.data().walletBalance || 0) : 0;
-                    if (bal < chargeAmount) throw new Error('INSUFFICIENT_BALANCE');
-                    tx.set(userRef, { walletBalance: increment(-chargeAmount) }, { merge: true });
-                    tx.set(orderRef, orderPayload);
-                });
+                // Same wallet-flow-2 request as submitWalletOrder (see comment there).
+                // Availability/price were just re-verified by verifyAccountPurchasable above.
+                const walletUser = auth.currentUser;
+                if (!walletUser) throw new Error('NEEDS_GOOGLE_SIGNIN');
+                orderPayload.walletFlow = 2;
+                orderPayload.authUid = walletUser.uid;
+                await setDoc(orderRef, orderPayload);
                 pingWorker('order', orderRef.id);
 
                 btnElement.innerText = "Order Sent";
@@ -14492,6 +14503,8 @@
                     ? 'Invalid price. Please reload and try again.'
                     : error.message === 'INSUFFICIENT_BALANCE'
                     ? 'Your wallet balance is no longer enough for this account. Please top up.'
+                    : error.message === 'NEEDS_GOOGLE_SIGNIN'
+                    ? 'Please sign in with Google to pay with your wallet.'
                     : (error.message || 'Failed to place order! Check connection.'));
                 window.showToast(msg, 'fail');
                 btnElement.innerText = originalText;
