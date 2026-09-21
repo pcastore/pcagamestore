@@ -772,11 +772,11 @@
            always replays on entry, unlike game-card-anim's scroll-triggered
            reveal, since the whole page just became visible at once. */
         .profile-card-anim { opacity: 0; }
-        .profile-card-anim.in-view { animation: profileCardSlideIn 0.4s cubic-bezier(.22,1,.36,1) both; }
-        @keyframes profileCardSlideIn {
-            0%   { opacity: 0; transform: translateX(26px); }
-            100% { opacity: 1; transform: translateX(0); }
-        }
+        .profile-card-anim.in-view { animation: profileSlideRight 0.5s cubic-bezier(.22,1,.36,1) both; }
+        .profile-card-anim.in-view.from-left { animation-name: profileSlideLeft; }
+        /* Side slide: cards alternate coming in from the left and the right. */
+        @keyframes profileSlideLeft  { 0% { opacity: 0; transform: translateX(-40px); } 100% { opacity: 1; transform: translateX(0); } }
+        @keyframes profileSlideRight { 0% { opacity: 0; transform: translateX(40px); }  100% { opacity: 1; transform: translateX(0); } }
         @media (prefers-reduced-motion: reduce) {
             .profile-card-anim, .profile-card-anim.in-view { animation: none; opacity: 1; }
         }
@@ -1139,7 +1139,7 @@
         .lb-rank.lb-rank-1 { color: #D4A017; }
         .lb-rank.lb-rank-2 { color: #8E9AAF; }
         .lb-rank.lb-rank-3 { color: #A9673A; }
-        .lb-avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-weight: 600; font-size: 15px; overflow: hidden; }
+        .lb-avatar { width: 40px; height: 40px; border-radius: 12px; background: var(--accent-soft); color: var(--accent); display: flex; align-items: center; justify-content: center; flex-shrink: 0; font-weight: 600; font-size: 15px; overflow: hidden; }
         .lb-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .lb-info { flex: 1; min-width: 0; }
         .lb-info .lb-name { font-size: 14px; font-weight: 500; color: var(--text); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1165,7 +1165,26 @@
         .lb-podium-avatar img { width: 100%; height: 100%; object-fit: cover; }
         .lb-podium-name { font-size: 13px; font-weight: 600; color: var(--text); text-align: center; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; margin-top: 2px; }
         .lb-podium-amount { font-size: 12.5px; font-weight: 700; color: var(--text-secondary); }
+        .lb-title { display: flex; align-items: center; gap: 10px; }
+        .live-badge { display: inline-flex; align-items: center; gap: 5px; font-size: 10px; font-weight: 700; letter-spacing: 0.6px; padding: 3px 8px; border-radius: 7px; background: rgba(239,68,68,0.12); color: #DC2626; }
+        .live-badge i { width: 6px; height: 6px; border-radius: 50%; background: #EF4444; animation: liveDotPulse 1.4s ease-in-out infinite; }
+        .live-badge.off { background: var(--surface-alt); color: var(--text-muted); }
+        .live-badge.off i { background: var(--text-muted); animation: none; }
+        html[data-theme="dark"] .live-badge:not(.off) { background: rgba(239,68,68,0.18); color: #F87171; }
+        @media (prefers-reduced-motion: reduce) { .live-badge i { animation: none; } }
         .lb-list-heading { font-size: 12px; font-weight: 600; color: var(--text-muted); margin: 2px 4px 6px; }
+        /* Top 10 strip: swipeable rounded-square avatars with a rank badge, medal-coloured for 1-3 */
+        .lb-strip { display: flex; gap: 12px; overflow-x: auto; padding: 8px 2px 12px; margin-bottom: 6px; -webkit-overflow-scrolling: touch; overscroll-behavior-x: contain; scrollbar-width: none; }
+        .lb-strip::-webkit-scrollbar { display: none; }
+        .lb-st { flex: 0 0 auto; width: 62px; text-align: center; position: relative; cursor: pointer; -webkit-tap-highlight-color: transparent; }
+        .lb-st-av { width: 58px; height: 58px; border-radius: 16px; background: var(--accent-soft); color: var(--accent); border: 2px solid var(--st-c, var(--border)); display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 20px; margin: 0 auto 5px; }
+        .lb-st-badge { position: absolute; top: -5px; right: 0; min-width: 20px; height: 20px; padding: 0 5px; border-radius: 7px; background: var(--st-c, var(--text-muted)); color: #fff; font-size: 11px; font-weight: 700; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 2px var(--bg); z-index: 1; }
+        .lb-st-name { font-size: 11.5px; color: var(--text-secondary); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .lb-st.rank-1 { --st-c: #D4A017; } .lb-st.rank-2 { --st-c: #8E9AAF; } .lb-st.rank-3 { --st-c: #A9673A; }
+        .lb-st.you .lb-st-av { border-color: var(--accent); }
+        .lb-row-you { background: var(--accent-soft); border-radius: 10px; padding-left: 8px; padding-right: 8px; }
+        .lb-row.lb-flash { animation: lbFlash 1.1s ease; }
+        @keyframes lbFlash { 0%, 100% { background: transparent; } 30% { background: var(--accent-soft); } }
 
         /* Buttons & Nav */
         .btn {
@@ -1706,18 +1725,6 @@
         .modal-footer .btn:disabled { background: var(--text-faint); cursor: not-allowed; }
 
         /* Voucher quantity stepper */
-        .qty-stepper { display: flex; align-items: center; gap: 14px; margin-top: 6px; }
-        .qty-btn {
-            width: 36px; height: 36px; border-radius: 10px; border: 1.5px solid var(--border);
-            background: var(--surface-alt); color: var(--text); font-size: 18px; font-weight: 600;
-            display: flex; align-items: center; justify-content: center; cursor: pointer;
-            transition: 0.15s; -webkit-user-select: none; user-select: none; flex-shrink: 0;
-        }
-        .qty-btn:active { transform: scale(0.92); background: var(--accent-soft); }
-        .qty-btn:disabled { opacity: 0.4; cursor: not-allowed; transform: none; background: var(--surface-alt); }
-        .qty-value { font-size: 17px; font-weight: 700; color: var(--text); min-width: 24px; text-align: center; }
-        .qty-total { margin-left: auto; font-size: 13px; font-weight: 600; color: var(--accent); }
-        .qty-hint { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
 
         /* Game Description card — sits below the detail banner, explains
            the game to the customer. Admin-editable free text, shown with
@@ -2652,6 +2659,76 @@
         @keyframes cardPop { from { opacity: 0; transform: scale(0.6); } to { opacity: 1; transform: none; } }
         @keyframes cardWave { from { opacity: 0; transform: translateY(12px) scale(0.85); } to { opacity: 1; transform: none; } }
         @media (prefers-reduced-motion: reduce) { .card-pop, .card-wave { animation: none !important; } }
+
+        /* Game / Voucher detail page: sections fade up one after another when the page opens
+           (and again when a hidden section, like Payment, is revealed). Package/price cards
+           get the soft zoom. 'backwards' fill keeps finished elements free of leftover transforms. */
+        #game-detail.page-section { animation: none; }
+        #game-detail.active > *:not(.detail-layout),
+        #game-detail.active .detail-layout > * { animation: fadeUpIn 0.5s var(--ease-out) backwards; }
+        #game-detail.active > :nth-child(2) { animation-delay: 70ms; }
+        #game-detail.active > :nth-child(3) { animation-delay: 140ms; }
+        #game-detail.active > :nth-child(n+4) { animation-delay: 210ms; }
+        #game-detail.active .detail-layout > :nth-child(1) { animation-delay: 70ms; }
+        #game-detail.active .detail-layout > :nth-child(n+2) { animation-delay: 140ms; }
+        @keyframes fadeUpIn { from { opacity: 0; transform: translateY(18px); } to { opacity: 1; transform: none; } }
+        .package-card.card-zoom { animation: cardZoom 0.6s var(--ease-out) backwards; animation-delay: calc(var(--i, 0) * 60ms); }
+        @keyframes cardZoom { from { opacity: 0; transform: scale(1.25); } to { opacity: 1; transform: none; } }
+        @media (prefers-reduced-motion: reduce) { #game-detail.active > *, #game-detail.active .detail-layout > *, .package-card.card-zoom { animation: none !important; } }
+
+        /* Tab entrance motion (class .tab-enter is set for ~1.6s each time the tab is opened, see
+           playTabEnter): Wallet = pop, History = fade up, Game Acc = diagonal wave. Being tied to
+           the open, not to rendering, live data updates never replay them. */
+        #history .history-card { animation: none; }
+        #wallet.tab-enter .wallet-balance-card, #wallet.tab-enter .wallet-section-title, #wallet.tab-enter #wallet-topup-list > * { animation: cardPop 0.5s var(--ease-spring) backwards; }
+        #wallet.tab-enter .wallet-section-title { animation-delay: 120ms; }
+        #wallet.tab-enter #wallet-topup-list > :nth-child(1) { animation-delay: 235ms; }
+        #wallet.tab-enter #wallet-topup-list > :nth-child(2) { animation-delay: 290ms; }
+        #wallet.tab-enter #wallet-topup-list > :nth-child(3) { animation-delay: 345ms; }
+        #wallet.tab-enter #wallet-topup-list > :nth-child(4) { animation-delay: 400ms; }
+        #wallet.tab-enter #wallet-topup-list > :nth-child(5) { animation-delay: 455ms; }
+        #wallet.tab-enter #wallet-topup-list > :nth-child(6) { animation-delay: 510ms; }
+        #wallet.tab-enter #wallet-topup-list > :nth-child(7) { animation-delay: 565ms; }
+        #wallet.tab-enter #wallet-topup-list > :nth-child(8) { animation-delay: 620ms; }
+        #history.tab-enter .history-card { animation: fadeUpIn 0.5s var(--ease-out) backwards; }
+        #history.tab-enter .history-card:nth-child(1) { animation-delay: 55ms !important; }
+        #history.tab-enter .history-card:nth-child(2) { animation-delay: 110ms !important; }
+        #history.tab-enter .history-card:nth-child(3) { animation-delay: 165ms !important; }
+        #history.tab-enter .history-card:nth-child(4) { animation-delay: 220ms !important; }
+        #history.tab-enter .history-card:nth-child(5) { animation-delay: 275ms !important; }
+        #history.tab-enter .history-card:nth-child(6) { animation-delay: 330ms !important; }
+        #history.tab-enter .history-card:nth-child(7) { animation-delay: 385ms !important; }
+        #history.tab-enter .history-card:nth-child(8) { animation-delay: 440ms !important; }
+        #account.tab-enter #account-list-grid > * { animation: cardWave 0.5s var(--ease-out) backwards; }
+        #account.tab-enter #account-list-grid > :nth-child(1) { animation-delay: 150ms; }
+        #account.tab-enter #account-list-grid > :nth-child(2) { animation-delay: 220ms; }
+        #account.tab-enter #account-list-grid > :nth-child(3) { animation-delay: 290ms; }
+        #account.tab-enter #account-list-grid > :nth-child(4) { animation-delay: 360ms; }
+        #account.tab-enter #account-list-grid > :nth-child(5) { animation-delay: 430ms; }
+        #account.tab-enter #account-list-grid > :nth-child(6) { animation-delay: 500ms; }
+        #account.tab-enter #account-list-grid > :nth-child(7) { animation-delay: 570ms; }
+        #account.tab-enter #account-list-grid > :nth-child(8) { animation-delay: 640ms; }
+        @media (prefers-reduced-motion: reduce) { #wallet.tab-enter *, #history.tab-enter .history-card, #account.tab-enter #account-list-grid > * { animation: none !important; } }
+
+        /* Leaderboard = Top 10 strip pops in, then the rankings flip down; Name Check = soft zoom. */
+        @keyframes flipDownIn { from { opacity: 0; transform: perspective(300px) rotateX(-70deg); transform-origin: top; } to { opacity: 1; transform: none; } }
+        #leaderboard.tab-enter .lb-st { animation: cardPop 0.5s var(--ease-spring) backwards; animation-delay: calc(var(--i, 0) * 60ms); }
+        #leaderboard.tab-enter .lb-list-heading, #leaderboard.tab-enter .lb-row, #leaderboard.tab-enter #leaderboard-you > * { animation: flipDownIn 0.6s var(--ease-out) backwards; animation-delay: 1000ms; }
+        #leaderboard.tab-enter .lb-list-heading { animation-delay: 400ms; }
+        #leaderboard.tab-enter #leaderboard-list > :nth-child(3) { animation-delay: 495ms; }
+        #leaderboard.tab-enter #leaderboard-list > :nth-child(4) { animation-delay: 540ms; }
+        #leaderboard.tab-enter #leaderboard-list > :nth-child(5) { animation-delay: 585ms; }
+        #leaderboard.tab-enter #leaderboard-list > :nth-child(6) { animation-delay: 630ms; }
+        #leaderboard.tab-enter #leaderboard-list > :nth-child(7) { animation-delay: 675ms; }
+        #leaderboard.tab-enter #leaderboard-list > :nth-child(8) { animation-delay: 720ms; }
+        #leaderboard.tab-enter #leaderboard-list > :nth-child(9) { animation-delay: 765ms; }
+        #leaderboard.tab-enter #leaderboard-list > :nth-child(10) { animation-delay: 810ms; }
+        #leaderboard.tab-enter #leaderboard-list > :nth-child(11) { animation-delay: 855ms; }
+        #leaderboard.tab-enter #leaderboard-list > :nth-child(12) { animation-delay: 900ms; }
+        #leaderboard.tab-enter #leaderboard-list > :nth-child(13) { animation-delay: 945ms; }
+        #leaderboard.tab-enter #leaderboard-list > :nth-child(14) { animation-delay: 990ms; }
+        #name-check.tab-enter .detail-form-card { animation: cardZoom 0.6s var(--ease-out) backwards; animation-delay: 80ms; }
+        @media (prefers-reduced-motion: reduce) { #leaderboard.tab-enter *, #name-check.tab-enter .detail-form-card { animation: none !important; } }
 
         /* Order Detail — receipt / ticket style */
         .od-receipt { padding: 16px 16px 18px; gap: 0; }
@@ -3622,7 +3699,7 @@
         <!-- LEADERBOARD PAGE — ranks real customers by lifetime successful top-up
              spend, aggregated client-side from the "orders" collection. -->
         <div id="leaderboard" class="page-section">
-            <h2 class="title-header" data-i18n="title_leaderboard">Top Spenders</h2>
+            <h2 class="title-header lb-title"><span data-i18n="title_leaderboard">Top Spenders</span><span class="live-badge off" id="lb-live-badge"><i></i>CONNECTING</span></h2>
             <div id="leaderboard-list"><p class="empty-msg">Loading leaderboard...</p></div>
             <div id="leaderboard-you"></div>
         </div>
@@ -4462,23 +4539,6 @@
             <div class="pkg-type-tabs" id="pkg-type-tabs" style="display:none;"></div>
             <div class="package-grid-scroll"><div id="detail-package-list" class="package-grid"></div></div>
 
-            <!-- Quantity stepper — shown for any package that allows buying
-                 more than one in a single order: voucher/gift-card packages
-                 (capped by live G2Bulk stock) and regular top-up packages
-                 (capped at TOPUP_MAX_QTY, since they have no stock concept).
-                 Lets a customer buy several of the same package (e.g. 5×
-                 60 UC) instead of repeating checkout one at a time. -->
-            <div id="voucher-qty-card" class="detail-form-card" style="display:none; margin-top:12px;">
-                <label style="align-self:flex-start;">Quantity</label>
-                <div class="qty-stepper">
-                    <button type="button" class="qty-btn" id="qty-btn-minus" onclick="changePackageQty(-1)" aria-label="Decrease quantity">−</button>
-                    <span class="qty-value" id="qty-value">1</span>
-                    <button type="button" class="qty-btn" id="qty-btn-plus" onclick="changePackageQty(1)" aria-label="Increase quantity">+</button>
-                    <span class="qty-total" id="qty-total"></span>
-                </div>
-                <p class="qty-hint" id="qty-hint"></p>
-            </div>
-
             <!-- Coupon code — validated live against the coupons collection
                  via the Worker's /validate-coupon (see COUPON_WORKER_URL);
                  the real, must-not-lie check + usedCount increment happens
@@ -5101,13 +5161,55 @@
         // then re-adding 'in-view' with a forced reflow in between restarts
         // the CSS animation instead of it only firing once on first render.
         function playProfileCardsIn() {
+            let n = 0;
             document.querySelectorAll('#profile .profile-card-anim').forEach(el => {
                 el.classList.remove('in-view');
+                // Alternate sides by visible position (hidden cards don't count).
+                el.classList.toggle('from-left', el.offsetParent !== null && (n++ % 2 === 0));
                 void el.offsetWidth;
                 el.classList.add('in-view');
             });
         }
         window.playProfileCardsIn = playProfileCardsIn;
+
+        // Adds .tab-enter to a tab's page for ~1.6s so its entrance motion plays once per open.
+        // Tabs whose list arrives from Firebase AFTER the tab opens (History, Wallet, Game Acc,
+        // Leaderboard) replay it once when the real content first appears (see the observers below),
+        // so the motion is seen on the actual cards instead of being spent on the loader.
+        const TAB_CONTENT_SEL = {
+            history: '#history-container .history-card',
+            wallet: '#wallet-topup-list .wallet-topup-row',
+            account: '#account-list-grid .acct-list-card',
+            leaderboard: '#leaderboard-list .lb-row, #leaderboard-list .lb-st'
+        };
+        function restartTabEnter(el) {
+            el.classList.remove('tab-enter');
+            void el.offsetWidth;
+            el.classList.add('tab-enter');
+            clearTimeout(el._tabEnterTimer);
+            el._tabEnterTimer = setTimeout(() => el.classList.remove('tab-enter'), 1600);
+        }
+        function playTabEnter(pageId) {
+            const el = document.getElementById(pageId);
+            if (!el) return;
+            restartTabEnter(el);
+            const sel = TAB_CONTENT_SEL[pageId];
+            el._enterWaitUntil = (sel && !el.querySelector(sel)) ? Date.now() + 8000 : 0;
+        }
+        window.playTabEnter = playTabEnter;
+        Object.keys(TAB_CONTENT_SEL).forEach(pageId => {
+            const el = document.getElementById(pageId);
+            if (!el) return;
+            const watch = { history: '#history-container', wallet: '#wallet-topup-list', account: '#account-list-grid', leaderboard: '#leaderboard-list' }[pageId];
+            const target = document.querySelector(watch);
+            if (!target) return;
+            new MutationObserver(() => {
+                if (el._enterWaitUntil && Date.now() < el._enterWaitUntil && el.querySelector(TAB_CONTENT_SEL[pageId])) {
+                    el._enterWaitUntil = 0;
+                    restartTabEnter(el);
+                }
+            }).observe(target, { childList: true });
+        });
 
         // Switches between Terms / Privacy / Refund inside the Terms & Policy
         // page - all three live on one page-section so it stays a plain
@@ -5160,7 +5262,9 @@
             if (pageId === 'profile' && window.renderTierPreviewGrid) window.renderTierPreviewGrid();
             if (pageId === 'profile' && window.renderPushToggleUI) window.renderPushToggleUI();
             if (pageId === 'profile') playProfileCardsIn();
+            if (['wallet', 'history', 'account', 'leaderboard', 'name-check'].includes(pageId)) playTabEnter(pageId);
             if (pageId === 'leaderboard' && window.loadLeaderboard) window.loadLeaderboard();
+            if (pageId !== 'leaderboard' && window.stopLeaderboardLive) window.stopLeaderboardLive();
             if (pageId === 'voucher' && window.renderVoucherGames) window.renderVoucherGames();
             if (pageId === 'account' && window.renderAccountAccessGate) window.renderAccountAccessGate();
             // Game Accounts marketplace listener: only alive while on one of
@@ -5341,11 +5445,25 @@
 
             content.addEventListener('touchmove', (e) => {
                 if (!dragEl || e.touches.length !== 1) return;
-                if (verticalIntent) return; // this gesture was already claimed as a vertical scroll — never hijack it
-                if (scrollAncestor && Math.abs(scrollAncestor.scrollLeft - scrollStartLeft) > 4) return;
+                if (verticalIntent) return; // this gesture was already claimed as a vertical scroll, never hijack it
                 const t = e.touches[0];
                 const dx = t.clientX - startX;
                 const dy = t.clientY - startY;
+                // The finger started on a horizontally scrolling strip (Popular games, category chips...).
+                // If that strip can still scroll the way the finger is moving, the strip owns the gesture:
+                // never drag the page/tab along with it. (Once it has actually scrolled, also snap back any
+                // page shift that started before the scroll kicked in.)
+                if (scrollAncestor) {
+                    const scrolled = Math.abs(scrollAncestor.scrollLeft - scrollStartLeft) > 4;
+                    const canScroll = dx < 0
+                        ? scrollAncestor.scrollLeft + scrollAncestor.clientWidth < scrollAncestor.scrollWidth - 2
+                        : scrollAncestor.scrollLeft > 2;
+                    if (scrolled || (Math.abs(dx) >= 4 && canScroll)) {
+                        if (dragging) { dragging = false; resetDragEl(); }
+                        verticalIntent = true;
+                        return;
+                    }
+                }
                 if (!dragging) {
                     // Direction not yet locked: only claim the gesture as a horizontal
                     // tab-swipe once it has moved far enough AND is clearly more
@@ -5397,15 +5515,8 @@
         // Payment methods live in Firestore's "paymentMethods" collection, synced
         // the same way into window.PAYMENT_METHODS.
         let selectedPackage = null;
-        // Quantity chosen for the selected voucher package (see the
-        // Quantity stepper) — always 1 for non-voucher/topup packages,
-        // which don't show the stepper at all.
-        let selectedPackageQty = 1;
-        // Regular (non-voucher) top-up packages have no live "stock" concept
-        // the way vouchers do, but a customer can still legitimately want
-        // several of the same denomination in one order (e.g. 5× 60 UC) -
-        // capped at a sane per-order maximum rather than left unbounded.
-        const TOPUP_MAX_QTY = 5;
+        let pkgZoomStartedAt = 0;
+        let pkgZoomDone = false; // soft-zoom the price cards only on the first render per game / tab, not on every stock refresh
         // Coupon applied to the currently selected package, if any -
         // { code, discountAmount, discountType, discountValue }. Reset
         // whenever a new package is picked (see selectPackageOption) since
@@ -6550,6 +6661,7 @@
             selectedGameG2BulkIdCheckCode = game.g2bulkIdCheckCode || null;
             selectedGameAluuCode = game.aluuCode || null;
             selectedPackage = null;
+            pkgZoomDone = false;
             appliedCoupon = null;
 
             // Voucher/coupon-style games deliver a code rather than crediting a
@@ -6670,6 +6782,7 @@
 
         function switchPackageTab(tabId) {
             activePackageTab = tabId;
+            pkgZoomDone = false;
             document.querySelectorAll('.pkg-type-tab').forEach(el => el.classList.toggle('active', el.dataset.type === tabId));
             renderDetailPackageList();
         }
@@ -6753,11 +6866,19 @@
                 const products = data.products || (data.category ? data.category.products : []) || [];
                 const map = {};
                 products.forEach(p => { map[String(p.id)] = Number(p.stock ?? 0); });
+                // Nothing changed since the last poll: leave the cards alone (no redraw, no flicker).
+                const stockChanged = JSON.stringify(map) !== JSON.stringify(voucherStockMap);
                 voucherStockMap = map;
+                if (!stockChanged) return;
                 // Only re-render if the customer is still looking at this same
                 // voucher game's package list (stops a stale/slow response from
                 // a game they've already navigated away from overwriting the UI).
-                if (window.currentStorePage === 'game-detail') renderDetailPackageList();
+                // If the soft-zoom entrance is still playing, wait for it to finish
+                // first so the redraw can't cut the animation short.
+                const wait = Math.max(0, 1400 - (Date.now() - pkgZoomStartedAt));
+                setTimeout(() => {
+                    if (window.currentStorePage === 'game-detail') renderDetailPackageList();
+                }, wait);
             } catch (error) {
                 console.error("Voucher stock fetch error:", error);
             }
@@ -6775,6 +6896,9 @@
         }
 
         function renderDetailPackageList() {
+            const zoomIn = !pkgZoomDone;
+            if (zoomIn) pkgZoomStartedAt = Date.now();
+            pkgZoomDone = true;
             // Steps the label font size down as the name gets longer, so a
             // long package name takes fewer extra lines (and the card grows
             // less) instead of staying at full size and wrapping to 3-4
@@ -6836,7 +6960,7 @@
                     <div class="pc-label-wrap${tagHtml ? ' has-tag' : ''}"><span class="pc-label${pcLabelSizeClass(String(pkg.amount))}">${pkg.amount}</span>${tagHtml}</div>
                     <div class="pc-price-bar"><span class="pc-price">${Number(pkg.price || 0).toLocaleString()}<span class="pc-cur">MMK</span></span></div>`;
                 return `
-                <div class="package-card ${cardTypeClass} game-card-anim${outOfStock ? ' out-of-stock' : ''}" style="animation-delay:${Math.min(pos * 18, 120)}ms" data-index="${i}" onclick="${outOfStock ? '' : `selectPackageOption(${i})`}">
+                <div class="package-card ${cardTypeClass} game-card-anim${zoomIn ? ' card-zoom' : ''}${outOfStock ? ' out-of-stock' : ''}" style="--i:${Math.min(pos, 12)}" data-index="${i}" onclick="${outOfStock ? '' : `selectPackageOption(${i})`}">
                     ${stockBadge}<span class="pc-selected-check"><svg class="ui-icon"><use href="#icon-check"></use></svg></span>
                     ${bodyHTML}
                 </div>`;
@@ -6851,12 +6975,10 @@
             // stripped out for out-of-stock cards - see renderDetailPackageList).
             if (pkgToSelect && pkgToSelect.voucherId && voucherStockMap[String(pkgToSelect.voucherId)] === 0) return;
             selectedPackage = pkgToSelect;
-            selectedPackageQty = 1;
             appliedCoupon = null; // discount was validated against the previous package's subtotal - start clean
             document.querySelectorAll('#detail-package-list .package-card').forEach(el => el.classList.remove('selected'));
             document.querySelector(`#detail-package-list .package-card[data-index="${index}"]`).classList.add('selected');
 
-            renderQtyStepper();
             renderCouponCard();
 
             // Picking a new package invalidates whatever "how do I pay" choice
@@ -6931,57 +7053,9 @@
             ['pointerup', 'pointercancel', 'pointerleave'].forEach(evt => list.addEventListener(evt, clearHold));
         }
 
-        // Highest quantity the customer is allowed to pick for the currently
-        // selected package — bounded by live G2Bulk stock for voucher
-        // packages, bounded by a flat per-order cap for regular top-up
-        // packages (see TOPUP_MAX_QTY above).
-        function getSelectedPackageMaxQty() {
-            if (!selectedPackage) return 1;
-            if (window.currentGameIsVoucher && selectedPackage.voucherId) {
-                const stock = voucherStockMap[String(selectedPackage.voucherId)];
-                if (typeof stock !== 'number' || stock <= 0) return 1;
-                return Math.min(stock, TOPUP_MAX_QTY);
-            }
-            return TOPUP_MAX_QTY;
-        }
-
-        // Builds/refreshes the Quantity card: hidden entirely unless the
-        // selected package allows buying more than one.
-        function renderQtyStepper() {
-            const card = document.getElementById('voucher-qty-card');
-            const maxQty = getSelectedPackageMaxQty();
-            if (!selectedPackage || maxQty <= 1) {
-                card.style.display = 'none';
-                return;
-            }
-            card.style.display = 'flex';
-            document.getElementById('qty-value').innerText = selectedPackageQty;
-            document.getElementById('qty-btn-minus').disabled = selectedPackageQty <= 1;
-            document.getElementById('qty-btn-plus').disabled = selectedPackageQty >= maxQty;
-            document.getElementById('qty-total').innerText = `= ${(selectedPackage.price * selectedPackageQty).toLocaleString()} MMK`;
-            document.getElementById('qty-hint').innerText = (window.currentGameIsVoucher && selectedPackage.voucherId)
-                ? `${voucherStockMap[String(selectedPackage.voucherId)]} in stock`
-                : `Max ${maxQty} per order`;
-        }
-
-        function changePackageQty(delta) {
-            if (!selectedPackage) return;
-            const maxQty = getSelectedPackageMaxQty();
-            const next = Math.min(maxQty, Math.max(1, selectedPackageQty + delta));
-            if (next === selectedPackageQty) return;
-            selectedPackageQty = next;
-            renderQtyStepper();
-            if (appliedCoupon) { revalidateCouponSilently(); return; } // it re-runs the price refresh below itself
-            // Quantity changes the total, so anything already showing a
-            // price (wallet balance box, confirm button) needs refreshing.
-            if (selectedPaymentType === 'wallet') renderWalletPayBox();
-            else if (selectedPaymentType) updateConfirmButtonForPaymentType();
-        }
-        window.changePackageQty = changePackageQty;
-
         // ---------- Coupon codes ----------
         function getOrderSubtotal() {
-            return selectedPackage ? selectedPackage.price * selectedPackageQty : 0;
+            return selectedPackage ? selectedPackage.price : 0;
         }
         function getOrderTotal() {
             return Math.max(0, getOrderSubtotal() - (appliedCoupon ? appliedCoupon.discountAmount : 0));
@@ -7022,7 +7096,6 @@
 
         function refreshPricesAfterCouponChange() {
             renderCouponCard();
-            renderQtyStepper();
             if (selectedPaymentType === 'wallet') renderWalletPayBox();
             else if (selectedPaymentType) updateConfirmButtonForPaymentType();
         }
@@ -7037,7 +7110,7 @@
         // enforce this same cost floor server-side too — that logic lives
         // in telegram-worker.js, which wasn't part of this edit.
         function capCouponDiscountToCost(discountAmount, subtotal) {
-            const costTotal = (Number(selectedPackage?.cost) || 0) * selectedPackageQty;
+            const costTotal = (Number(selectedPackage?.cost) || 0);
             if (costTotal <= 0) return { discountAmount, blocked: false }; // no cost data - nothing to protect
             const maxDiscount = Math.max(0, subtotal - costTotal);
             if (maxDiscount <= 0) return { discountAmount: 0, blocked: true }; // already at/under cost - coupon can't apply at all
@@ -7057,7 +7130,7 @@
             btn.innerText = 'Checking...';
             try {
                 const guestId = window.getGuestId ? window.getGuestId() : '';
-                const costTotal = (Number(selectedPackage?.cost) || 0) * selectedPackageQty;
+                const costTotal = (Number(selectedPackage?.cost) || 0);
                 const res = await fetch(`${COUPON_WORKER_URL}/validate-coupon`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -7097,7 +7170,7 @@
             const subtotal = getOrderSubtotal();
             try {
                 const guestId = window.getGuestId ? window.getGuestId() : '';
-                const costTotal = (Number(selectedPackage?.cost) || 0) * selectedPackageQty;
+                const costTotal = (Number(selectedPackage?.cost) || 0);
                 const res = await fetch(`${COUPON_WORKER_URL}/validate-coupon`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
@@ -7180,16 +7253,15 @@
             if (!selectedPackage) return;
             const confirmBtn = document.getElementById('detail-confirm-btn');
             const total = getOrderTotal();
-            const qtySuffix = selectedPackageQty > 1 ? ` ×${selectedPackageQty}` : '';
             if (selectedPaymentType === 'wallet') {
                 const enough = currentWalletBalance >= total;
                 confirmBtn.disabled = !enough;
                 confirmBtn.innerText = enough
-                    ? `Buy ${selectedPackage.amount}${qtySuffix} - ${total.toLocaleString()} MMK (Wallet)`
+                    ? `Buy ${selectedPackage.amount} - ${total.toLocaleString()} MMK (Wallet)`
                     : 'Insufficient Wallet Balance';
             } else if (selectedPaymentType === 'payment') {
                 confirmBtn.disabled = false;
-                confirmBtn.innerText = `Buy ${selectedPackage.amount}${qtySuffix} - ${total.toLocaleString()} MMK`;
+                confirmBtn.innerText = `Buy ${selectedPackage.amount} - ${total.toLocaleString()} MMK`;
             }
         }
 
@@ -7670,13 +7742,12 @@
 
         function showOrderReview(inGameId, serverId) {
             const esc = (v) => (window.escapeHtml ? window.escapeHtml(String(v)) : String(v));
-            const qty = selectedPackageQty || 1;
             const total = getOrderTotal();
             const fmt = (n) => Number(n).toLocaleString() + ' MMK';
             const isWallet = selectedPaymentType === 'wallet';
             const img = window.findGameImage ? window.findGameImage(selectedGameName, selectedGameServerName) : '';
 
-            const rows = [['Package', esc(selectedPackage.amount) + (qty > 1 ? ' x ' + qty : '')]];
+            const rows = [['Package', esc(selectedPackage.amount)]];
             let note = '';
             if (selectedGameNeedsPlayerId) {
                 rows.push(['In-Game ID', `<span class="or-id-val">${esc(inGameId)}${serverId ? ' (' + esc(serverId) + ')' : ''}</span>`]);
@@ -7695,24 +7766,12 @@
         async function confirmPackagePurchase(btnElement) {
             if (!selectedPackage) return;
 
-            // Stock can move between selecting the package and hitting
-            // confirm (another customer buying the same voucher, etc.) - re-clamp
-            // the quantity against the live max right before submitting so an
-            // order is never placed for more codes than are actually left.
-            if (window.currentGameIsVoucher && selectedPackage.voucherId) {
-                const liveMax = getSelectedPackageMaxQty();
-                if (liveMax < 1) {
-                    window.showToast('This package just sold out. Please pick another.', 'fail');
-                    if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb();
-                    return;
-                }
-                if (selectedPackageQty > liveMax) {
-                    selectedPackageQty = liveMax;
-                    renderQtyStepper();
-                    window.showToast(`Only ${liveMax} left in stock — quantity adjusted.`, 'warning');
-                    if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb();
-                    return;
-                }
+            // Stock can move between selecting the package and hitting confirm (another
+            // customer buying the same voucher, etc.), so re-check right before submitting.
+            if (window.currentGameIsVoucher && selectedPackage.voucherId && voucherStockMap[String(selectedPackage.voucherId)] === 0) {
+                window.showToast('This package just sold out. Please pick another.', 'fail');
+                if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb();
+                return;
             }
 
             const inGameId = document.getElementById('detail-ingame-id').value.trim();
@@ -7898,17 +7957,16 @@
         window.initSlideConfirm = initSlideConfirm;
 
         async function doSubmitOrder(inGameId, serverId, btnElement, transactionId) {
-            const qty = selectedPackageQty || 1;
             await window.submitOrder({
                 gameName: selectedGameName,
                 serverRegion: selectedGameServerName,
-                amount: qty > 1 ? `${selectedPackage.amount} × ${qty}` : selectedPackage.amount,
+                amount: selectedPackage.amount,
                 price: getOrderTotal(),
-                cost: (Number(selectedPackage.cost) || 0) * qty,
+                cost: (Number(selectedPackage.cost) || 0),
                 couponCode: appliedCoupon ? appliedCoupon.code : null,
                 couponDiscount: appliedCoupon ? appliedCoupon.discountAmount : null,
                 couponSubtotal: appliedCoupon ? getOrderSubtotal() : null,
-                quantity: qty,
+                quantity: 1,
                 inGameId,
                 serverId,
                 // Only trust this when the ID that got verified is the exact
@@ -7941,17 +7999,16 @@
         }
 
         async function doSubmitWalletOrder(inGameId, serverId, btnElement) {
-            const qty = selectedPackageQty || 1;
             await window.submitWalletOrder({
                 gameName: selectedGameName,
                 serverRegion: selectedGameServerName,
-                amount: qty > 1 ? `${selectedPackage.amount} × ${qty}` : selectedPackage.amount,
+                amount: selectedPackage.amount,
                 price: getOrderTotal(),
-                cost: (Number(selectedPackage.cost) || 0) * qty,
+                cost: (Number(selectedPackage.cost) || 0),
                 couponCode: appliedCoupon ? appliedCoupon.code : null,
                 couponDiscount: appliedCoupon ? appliedCoupon.discountAmount : null,
                 couponSubtotal: appliedCoupon ? getOrderSubtotal() : null,
-                quantity: qty,
+                quantity: 1,
                 inGameId,
                 serverId,
                 inGameName: playerIdVerified === true ? verifiedPlayerName : null,
@@ -10269,107 +10326,158 @@
         // successful order ever placed — stays fast and cheap to read no
         // matter how many orders/users pile up over time. Renders the top
         // 20, plus the current user's own rank if they're outside that top 20.
+        // Leaderboard is LIVE: while the tab is open it listens to the top 20 spenders, so a new
+        // purchase moves the rankings without a refresh. The listener is stopped when the user
+        // leaves the tab or the app goes to the background, to keep Firestore reads low.
+        let lbUnsub = null;
+        let lbYouCheckedAt = 0;
+
+        function setLbLive(state) {
+            const badge = document.getElementById('lb-live-badge');
+            if (!badge) return;
+            badge.classList.toggle('off', state !== 'live');
+            badge.lastChild.textContent = state === 'live' ? 'LIVE' : (state === 'error' ? 'OFFLINE' : 'CONNECTING');
+        }
+
+        function stopLeaderboardLive() {
+            if (lbUnsub) { try { lbUnsub(); } catch (e) {} lbUnsub = null; }
+            setLbLive('connecting');
+        }
+        window.stopLeaderboardLive = stopLeaderboardLive;
+
+        function renderLeaderboardList(top, guestId) {
+            const listEl = document.getElementById('leaderboard-list');
+            if (!listEl) return;
+            if (top.length === 0) {
+                listEl.innerHTML = '<p class="empty-msg">No spenders yet.</p>';
+                return;
+            }
+            const prevStrip = listEl.querySelector('.lb-strip');
+            const prevScroll = prevStrip ? prevStrip.scrollLeft : 0;
+
+            // Top 10 strip (swipeable avatars) + compact ranking list underneath.
+            const stripHTML = `
+                <div class="lb-strip">
+                    ${top.slice(0, 10).map((r, i) => {
+                        const rank = i + 1;
+                        const initial = (r.name || '?').trim().charAt(0).toUpperCase() || '?';
+                        const firstName = (r.name || '?').trim().split(/\s+/)[0];
+                        return `
+                            <div class="lb-st${rank <= 3 ? ' rank-' + rank : ''}${r.uid === guestId ? ' you' : ''}" style="--i:${i}" onclick="lbFocusRow(${rank})">
+                                <span class="lb-st-badge">${rank}</span>
+                                <div class="lb-st-av">${escapeHtml(initial)}</div>
+                                <div class="lb-st-name">${escapeHtml(firstName)}</div>
+                            </div>`;
+                    }).join('')}
+                </div>`;
+
+            const rowsHTML = `
+                <div class="lb-list-heading">Rankings</div>
+                ${top.map((r, i) => {
+                    const rank = i + 1;
+                    const tier = tierForSpend(r.total);
+                    const isYou = r.uid === guestId;
+                    return `
+                        <div class="lb-row${isYou ? ' lb-row-you' : ''}" id="lb-row-${rank}">
+                            <div class="lb-rank${rank <= 3 ? ' lb-rank-' + rank : ''}">${rank}</div>
+                            <div class="lb-info">
+                                <div class="lb-name">${escapeHtml(r.name)}${isYou ? ' (You)' : ''}</div>
+                                ${tierBadgeHTML(tier)}
+                            </div>
+                            <div class="lb-amount">${formatMMK(r.total)}</div>
+                        </div>
+                    `;
+                }).join('')}`;
+
+            listEl.innerHTML = stripHTML + rowsHTML;
+            const strip = listEl.querySelector('.lb-strip');
+            if (strip && prevScroll) strip.scrollLeft = prevScroll;
+        }
+
+        // "You" row for people outside the top 20 (rank = 1 + customers who out-spend you).
+        // Throttled - the live listener can fire often and this costs a few extra reads.
+        async function updateLeaderboardYou(top, guestId) {
+            const youEl = document.getElementById('leaderboard-you');
+            if (!youEl) return;
+            if (!guestId || top.some(r => r.uid === guestId)) { youEl.innerHTML = ''; return; }
+            if (youEl.innerHTML && Date.now() - lbYouCheckedAt < 15000) return;
+            lbYouCheckedAt = Date.now();
+            const myStatsSnap = await getDoc(doc(db, "userStats", guestId));
+            if (!myStatsSnap.exists()) { youEl.innerHTML = ''; return; }
+            const me = myStatsSnap.data();
+            const myTotal = Number(me.totalSpent) || 0;
+            const myName = me.name || guestId;
+            const higherCountSnap = await getCountFromServer(
+                query(collection(db, "userStats"), where("totalSpent", ">", myTotal))
+            );
+            const myRank = higherCountSnap.data().count + 1;
+            const tier = tierForSpend(myTotal);
+            youEl.innerHTML = `
+                <div class="lb-you-row">
+                    <div class="lb-row" style="border:none;padding:0;">
+                        <div class="lb-rank">#${myRank}</div>
+                        <div class="lb-avatar">${escapeHtml((myName || '?').trim().charAt(0).toUpperCase())}</div>
+                        <div class="lb-info">
+                            <div class="lb-name">${escapeHtml(myName)} (You)</div>
+                            ${tierBadgeHTML(tier)}
+                        </div>
+                        <div class="lb-amount">${formatMMK(myTotal)}</div>
+                    </div>
+                </div>
+            `;
+        }
+
         async function loadLeaderboard() {
             const listEl = document.getElementById('leaderboard-list');
-            const youEl = document.getElementById('leaderboard-you');
-            listEl.innerHTML = '<p class="empty-msg">Loading leaderboard...</p>';
-            youEl.innerHTML = '';
+            if (!listEl) return;
+            stopLeaderboardLive();
+            // Keep whatever was shown last time (no loader flash); only show a loader on the very first open.
+            if (!listEl.querySelector('.lb-row')) listEl.innerHTML = loadingStateHTML('ripple');
+            let first = true;
             try {
                 const q = query(collection(db, "userStats"), orderBy("totalSpent", "desc"), limit(20));
-                const snap = await getDocs(q);
-                const top = snap.docs.map(docSnap => {
-                    const d = docSnap.data();
-                    return { uid: docSnap.id, name: d.name || docSnap.id, total: Number(d.totalSpent) || 0, count: Number(d.orderCount) || 0 };
+                lbUnsub = onSnapshot(q, (snap) => {
+                    const top = snap.docs.map(docSnap => {
+                        const d = docSnap.data();
+                        return { uid: docSnap.id, name: d.name || docSnap.id, total: Number(d.totalSpent) || 0, count: Number(d.orderCount) || 0 };
+                    });
+                    if (snap.empty && snap.metadata.fromCache) return; // cache had nothing yet: wait for the server
+                    const guestId = window.getGuestId ? window.getGuestId() : '';
+                    setLbLive('live');
+                    const draw = () => {
+                        renderLeaderboardList(top, guestId);
+                        updateLeaderboardYou(top, guestId).catch(e => console.error("Leaderboard you-row error:", e));
+                    };
+                    // First data draws immediately; later live updates wait until the finger/scroll is idle.
+                    if (first) { first = false; draw(); }
+                    else if (window.whenUiIdle) window.whenUiIdle('lb-render', draw);
+                    else draw();
+                }, (error) => {
+                    console.error("Leaderboard load error:", error);
+                    setLbLive('error');
+                    if (!listEl.querySelector('.lb-row')) listEl.innerHTML = '<p class="empty-msg" style="color:red;">Could not load leaderboard.</p>';
                 });
-
-                if (top.length === 0) {
-                    listEl.innerHTML = '<p class="empty-msg">No spenders yet.</p>';
-                    return;
-                }
-
-                const guestId = window.getGuestId ? window.getGuestId() : '';
-                const podium = top.slice(0, 3);
-                const rest = top.slice(3);
-
-                const podiumHTML = podium.length ? `
-                    <div class="lb-podium">
-                        ${podium.map((r, i) => {
-                            const rank = i + 1;
-                            const tier = tierForSpend(r.total);
-                            const initial = (r.name || '?').trim().charAt(0).toUpperCase() || '?';
-                            const isYou = r.uid === guestId;
-                            return `
-                                <div class="lb-podium-slot rank-${rank}">
-                                    <div class="lb-podium-medal">${rank}</div>
-                                    <div class="lb-podium-avatar">${initial}</div>
-                                    <div class="lb-podium-name">${escapeHtml(r.name)}${isYou ? ' (You)' : ''}</div>
-                                    ${tierBadgeHTML(tier)}
-                                    <div class="lb-podium-amount">${formatMMK(r.total)}</div>
-                                </div>
-                            `;
-                        }).join('')}
-                    </div>
-                ` : '';
-
-                const restHTML = rest.length ? `
-                    <div class="lb-list-heading">Rankings</div>
-                    ${rest.map((r, i) => {
-                        const rank = i + 4;
-                        const tier = tierForSpend(r.total);
-                        const initial = (r.name || '?').trim().charAt(0).toUpperCase() || '?';
-                        const isYou = r.uid === guestId;
-                        return `
-                            <div class="lb-row" style="${isYou ? 'background:#F8FBFF;border-radius:10px;' : ''}">
-                                <div class="lb-rank">${rank}</div>
-                                <div class="lb-avatar">${initial}</div>
-                                <div class="lb-info">
-                                    <div class="lb-name">${escapeHtml(r.name)}${isYou ? ' (You)' : ''}</div>
-                                    ${tierBadgeHTML(tier)}
-                                </div>
-                                <div class="lb-amount">${formatMMK(r.total)}</div>
-                            </div>
-                        `;
-                    }).join('')}
-                ` : '';
-
-                listEl.innerHTML = podiumHTML + restHTML;
-
-                // Only look up "you" separately when you're not already
-                // shown in the top 20 above.
-                if (guestId && !top.some(r => r.uid === guestId)) {
-                    const myStatsSnap = await getDoc(doc(db, "userStats", guestId));
-                    if (myStatsSnap.exists()) {
-                        const me = myStatsSnap.data();
-                        const myTotal = Number(me.totalSpent) || 0;
-                        const myName = me.name || guestId;
-                        // Rank = 1 + how many customers out-spend you. A single
-                        // inequality filter needs no composite index.
-                        const higherCountSnap = await getCountFromServer(
-                            query(collection(db, "userStats"), where("totalSpent", ">", myTotal))
-                        );
-                        const myRank = higherCountSnap.data().count + 1;
-                        const tier = tierForSpend(myTotal);
-                        youEl.innerHTML = `
-                            <div class="lb-you-row">
-                                <div class="lb-row" style="border:none;padding:0;">
-                                    <div class="lb-rank">#${myRank}</div>
-                                    <div class="lb-avatar">${(myName || '?').trim().charAt(0).toUpperCase()}</div>
-                                    <div class="lb-info">
-                                        <div class="lb-name">${escapeHtml(myName)} (You)</div>
-                                        ${tierBadgeHTML(tier)}
-                                    </div>
-                                    <div class="lb-amount">${formatMMK(myTotal)}</div>
-                                </div>
-                            </div>
-                        `;
-                    }
-                }
             } catch (error) {
                 console.error("Leaderboard load error:", error);
+                setLbLive('error');
                 listEl.innerHTML = '<p class="empty-msg" style="color:red;">Could not load leaderboard.</p>';
             }
         }
         window.loadLeaderboard = loadLeaderboard;
+
+        // Tapping an avatar in the Top 10 strip scrolls to that person's row and flashes it.
+        document.addEventListener('visibilitychange', () => {
+            if (document.hidden) stopLeaderboardLive();
+            else if (window.currentStorePage === 'leaderboard') loadLeaderboard();
+        });
+        window.lbFocusRow = function (rank) {
+            const el = document.getElementById('lb-row-' + rank);
+            if (!el) return;
+            el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            el.classList.remove('lb-flash');
+            void el.offsetWidth;
+            el.classList.add('lb-flash');
+        };
 
         // ---------- Social Links (Facebook / Telegram / TikTok, managed from the admin panel) ----------
         // Each platform can optionally have a custom icon image uploaded from
@@ -12487,14 +12595,18 @@
             }
         }
 
-        ['g2bulk', 'fazercard', 'aluu', 'jcplays'].forEach(provider => {
-            onSnapshot(doc(db, "settings", provider), (docSnap) => {
-                const data = docSnap.exists() ? docSnap.data() : {};
-                PROVIDER_ENABLED[provider] = data.enabled !== false;
-                applyProviderFilterAndRerender();
-            }, (error) => {
-                console.error(provider + " settings fetch error:", error);
+        // Reads the PUBLIC settings/providerFlags mirror (kept in sync by the
+        // Worker's /admin-sync-claims) instead of settings/g2bulk etc. directly -
+        // those docs hold live API keys/webhook secrets and must never be
+        // readable by a customer's browser once Firestore Rules are locked down.
+        onSnapshot(doc(db, "settings", "providerFlags"), (docSnap) => {
+            const data = docSnap.exists() ? docSnap.data() : {};
+            ['g2bulk', 'fazercard', 'aluu', 'jcplays'].forEach(provider => {
+                PROVIDER_ENABLED[provider] = data[provider] !== false;
             });
+            applyProviderFilterAndRerender();
+        }, (error) => {
+            console.error("providerFlags fetch error:", error);
         });
 
         // Order documents only store the game's name (not its id), so order cards
