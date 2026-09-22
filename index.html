@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700;800&family=Noto+Sans+Myanmar:wght@400;500;600;700&display=swap">
     <title>PCA Store — Game Top-Up & Voucher Store</title>
     <meta name="description" content="PCA Store: fast, reliable game top-ups and vouchers. Pay with Wallet balance, KPay, Wave, or Crypto (USDT).">
-    <link rel="canonical" href="https://pcagamestore.vercel.app/">
+    <link rel="canonical" href="https://pcagamestoremm.vercel.app/">
 
     <!-- Open Graph / social preview. og:image points at a real hosted file
          (not a data URI) since Facebook/Telegram/Twitter's scrapers don't
@@ -25,12 +25,12 @@
     <meta property="og:site_name" content="PCA Store">
     <meta property="og:title" content="PCA Store — Game Top-Up & Voucher Store">
     <meta property="og:description" content="Fast, reliable game top-ups and vouchers. Pay with Wallet balance, KPay, Wave, or Crypto (USDT).">
-    <meta property="og:url" content="https://pcagamestore.vercel.app/">
-    <meta property="og:image" content="https://pcagamestore.vercel.app/og-image.png">
+    <meta property="og:url" content="https://pcagamestoremm.vercel.app/">
+    <meta property="og:image" content="https://pcagamestoremm.vercel.app/og-image.png">
     <meta name="twitter:card" content="summary_large_image">
     <meta name="twitter:title" content="PCA Store — Game Top-Up & Voucher Store">
     <meta name="twitter:description" content="Fast, reliable game top-ups and vouchers. Pay with Wallet balance, KPay, Wave, or Crypto (USDT).">
-    <meta name="twitter:image" content="https://pcagamestore.vercel.app/og-image.png">
+    <meta name="twitter:image" content="https://pcagamestoremm.vercel.app/og-image.png">
 
     <!-- Favicon: static branded fallback shown until (or unless) an admin
          uploads a custom app logo in Dashboard → Settings, at which point
@@ -2528,9 +2528,12 @@
             padding: 4px 4px calc(4px + env(safe-area-inset-bottom, 0px));
             box-shadow: 0 16px 40px -10px rgba(20,30,60,0.35), inset 0 1px 1px rgba(255,255,255,0.5), inset 0 -1px 8px rgba(0,0,0,0.04);
             position: fixed;
-            transform: translateZ(0);
-            will-change: transform;
+            transform: translateZ(0); will-change: transform;
+            transition: transform 0.32s cubic-bezier(.4,0,.2,1);
         }
+        /* Applied by JS on scroll-down, removed on scroll-up/near-top — same
+           listener that drives .header.header-hidden above. */
+        .bottom-nav.nav-hidden { transform: translateY(calc(100% + 24px)) translateZ(0); pointer-events: none; }
         html[data-theme="dark"] .bottom-nav { box-shadow: 0 16px 40px -10px rgba(0,0,10,0.6), inset 0 1px 1px rgba(255,255,255,0.06), inset 0 -1px 8px rgba(0,0,0,0.3); }
         .nav-item { border-radius: 8px; padding: 3px 0 2px; transition: color 0.2s ease; position: relative; }
         .nav-label { transition: transform 0.2s ease, opacity 0.2s ease; }
@@ -6142,20 +6145,24 @@
         // (RAF-throttled so fast scrolling on low-end phones doesn't run
         // this on every scroll event). Always shown near the very top so
         // it doesn't flicker while the page is still settling there.
+        // The bottom nav mirrors the same show/hide so both docks move
+        // together instead of the nav staying fixed while the header hides.
         (function () {
             let lastY = window.scrollY;
             let ticking = false;
             const headerEl = document.querySelector('.header');
+            const navEl = document.getElementById('bottom-nav');
             function applyHeaderVisibility() {
                 const y = window.scrollY;
-                if (headerEl) {
-                    if (y < 40) {
-                        headerEl.classList.remove('header-hidden');
-                    } else if (y > lastY + 4) {
-                        headerEl.classList.add('header-hidden');
-                    } else if (y < lastY - 4) {
-                        headerEl.classList.remove('header-hidden');
-                    }
+                if (y < 40) {
+                    if (headerEl) headerEl.classList.remove('header-hidden');
+                    if (navEl) navEl.classList.remove('nav-hidden');
+                } else if (y > lastY + 4) {
+                    if (headerEl) headerEl.classList.add('header-hidden');
+                    if (navEl) navEl.classList.add('nav-hidden');
+                } else if (y < lastY - 4) {
+                    if (headerEl) headerEl.classList.remove('header-hidden');
+                    if (navEl) navEl.classList.remove('nav-hidden');
                 }
                 lastY = y;
                 ticking = false;
@@ -15294,7 +15301,7 @@
         // notifications on. Registering it here unconditionally means every
         // visitor's browser sees this as an installable app from their first
         // visit, and — once actually installed — notifications show up under
-        // the app's own name/icon instead of "Chrome • pcagamestore.vercel.app".
+        // the app's own name/icon instead of "Chrome • pcagamestoremm.vercel.app".
         if (!isNativeApp() && 'serviceWorker' in navigator) {
             navigator.serviceWorker.register('/firebase-messaging-sw.js')
                 .catch(err => console.error('Service worker registration error:', err));
