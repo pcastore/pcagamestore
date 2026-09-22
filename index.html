@@ -3174,7 +3174,7 @@
 
     <!-- Header -->
     <header class="header">
-        <div class="logo logo-loading" id="header-logo" onclick="window.open('https://t.me/pcagamepage','_blank')" role="button" aria-label="Open PCA Store Telegram channel">
+        <div class="logo logo-loading" id="header-logo" onclick="window.open('https://t.me/pca_gamestore','_blank')" role="button" aria-label="Open PCA Store Telegram channel">
             <span class="logo-icon-wrap">
                 <svg class="ui-icon" id="header-logo-default-icon" style="color:#fff;"><use href="#icon-gamepad"></use></svg>
                 <img id="header-logo-img" src="" alt="PCA Store" style="display:none;">
@@ -3187,6 +3187,9 @@
         <div class="header-icons-group" style="display:flex;align-items:center;">
             <div class="header-icon" id="header-guide-btn" onclick="window.openGuidePage(); window.switchSupportTab('guide');" role="button" aria-label="Open User Guide" style="margin-right:8px;">
                 <svg class="ui-icon" style="width:19px;height:19px;"><use href="#icon-book"></use></svg>
+            </div>
+            <div class="header-icon" id="header-history-btn" onclick="drawerNavigate('history')" role="button" aria-label="Order History" style="margin-right:8px;">
+                <svg class="ui-icon" style="width:19px;height:19px;"><use href="#icon-history"></use></svg>
             </div>
             <div class="header-icon header-menu-btn" id="drawer-toggle-btn" onclick="openDrawer()" role="button" aria-label="Open menu">
                 <svg viewBox="0 0 24 24" width="22" height="22" fill="none">
@@ -4140,6 +4143,19 @@
                         <p class="google-account-hint" id="link-telegram-hint" style="margin-bottom:6px;">Telegram ဖြင့်ပါ ချိတ်ဆက်ထားနိုင်ပါသည် — account တစ်ခုတည်းအတွက်ပါ၊ data ဘာမှ ပြောင်းမသွားပါ။</p>
                         <div id="profile-telegram-widget-linked" style="display:flex;justify-content:center;"></div>
                     </div>
+                    <div id="link-google-slot" style="display:none;width:100%;margin-top:10px;text-align:center;">
+                        <p class="google-account-hint" id="link-google-hint" style="margin-bottom:6px;">Google ဖြင့်ပါ ချိတ်ဆက်ထားနိုင်ပါသည် — account တစ်ခုတည်းအတွက်ပါ၊ data ဘာမှ ပြောင်းမသွားပါ။</p>
+                        <div id="link-google-gis" class="gis-btn-slot" style="display:flex;justify-content:center;"></div>
+                        <button type="button" class="google-login-btn gis-fallback" id="link-google-btn" style="display:none;" onclick="handleGoogleSignIn('link-google-btn')">
+                            <svg width="18" height="18" viewBox="0 0 48 48">
+                                <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
+                                <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/>
+                                <path fill="#4CAF50" d="M24 44c5.2 0 9.9-2 13.4-5.2l-6.2-5.2C29.2 35.1 26.7 36 24 36c-5.2 0-9.6-3.3-11.3-7.9l-6.5 5C9.5 39.6 16.2 44 24 44z"/>
+                                <path fill="#1976D2" d="M43.6 20.5H42V20H24v8h11.3c-.8 2.3-2.3 4.2-4.1 5.6l6.2 5.2C40.9 36.2 44 30.6 44 24c0-1.3-.1-2.7-.4-3.5z"/>
+                            </svg>
+                            Continue with Google
+                        </button>
+                    </div>
                 </div>
             </div>
 
@@ -4334,7 +4350,7 @@
                     </div>
                     <div class="support-guide-item" id="term-card-terms_l_contact">
                         <div class="support-guide-q" onclick="window.toggleGuideItem(this.parentElement)"><div class="guide-card-dots"><span></span><span></span><span></span></div><span class="guide-card-label" data-i18n="terms_l_contact">ဆက်သွယ်ရန်</span><button type="button" class="guide-card-close" onclick="event.stopPropagation(); window.toggleGuideItem(this.closest('.support-guide-item'))" aria-label="Close"><svg class="ui-icon"><use href="#icon-close"></use></svg><span data-i18n="guide_card_close">Close</span></button></div>
-                        <div class="support-guide-a"><span data-i18n="terms_b_contact_pre">ဤစည်းကမ်းချက်များနှင့် ပတ်သက်၍ မေးခွန်းများ ရှိပါက Telegram </span><a href="https://t.me/pcagamepage" target="_blank" rel="noopener" style="color:var(--accent);">@pcagamepage</a><span data-i18n="terms_b_contact_post"> သို့မဟုတ် Profile စာမျက်နှာရှိ Support button မှတစ်ဆင့် ဆက်သွယ်နိုင်ပါသည်။</span></div>
+                        <div class="support-guide-a"><span data-i18n="terms_b_contact_pre">ဤစည်းကမ်းချက်များနှင့် ပတ်သက်၍ မေးခွန်းများ ရှိပါက Telegram </span><a href="https://t.me/pca_gamestore" target="_blank" rel="noopener" style="color:var(--accent);">@pca_gamestore</a><span data-i18n="terms_b_contact_post"> သို့မဟုတ် Profile စာမျက်နှာရှိ Support button မှတစ်ဆင့် ဆက်သွယ်နိုင်ပါသည်။</span></div>
                     </div>
                 </div>
             </div>
@@ -4360,7 +4376,7 @@
                     </div>
                     <div class="support-guide-item" id="term-card-privacy_l_access">
                         <div class="support-guide-q" onclick="window.toggleGuideItem(this.parentElement)"><div class="guide-card-dots"><span></span><span></span><span></span></div><span class="guide-card-label" data-i18n="privacy_l_access">ကြည့်ရှုခွင့်နှင့် ဖျက်ပစ်ခွင့်</span><button type="button" class="guide-card-close" onclick="event.stopPropagation(); window.toggleGuideItem(this.closest('.support-guide-item'))" aria-label="Close"><svg class="ui-icon"><use href="#icon-close"></use></svg><span data-i18n="guide_card_close">Close</span></button></div>
-                        <div class="support-guide-a"><span data-i18n="privacy_b_access_pre">သင့်အကြောင်း ကျွန်ုပ်တို့ ဘာအချက်အလက်များ ထားရှိသည်ကို မေးမြန်းလိုပါက သို့မဟုတ် သင်၏ profile နှင့် history ကို ဖျက်ပစ်ပေးရန် တောင်းဆိုလိုပါက Telegram </span><a href="https://t.me/pcagamepage" target="_blank" rel="noopener" style="color:var(--accent);">@pcagamepage</a><span data-i18n="privacy_b_access_post"> သို့ အချိန်မရွေး message ပို့နိုင်ပါသည်၊ ဖြေရှင်းရန်ကျန်နေသေးသော order/ငွေပေးချေမှု အငြင်းပွားမှုအတွက် သီးခြား မှတ်တမ်းများ ထိန်းသိမ်းထားရန် လိုအပ်ခြင်း မရှိပါက ဖြစ်သည်။</span></div>
+                        <div class="support-guide-a"><span data-i18n="privacy_b_access_pre">သင့်အကြောင်း ကျွန်ုပ်တို့ ဘာအချက်အလက်များ ထားရှိသည်ကို မေးမြန်းလိုပါက သို့မဟုတ် သင်၏ profile နှင့် history ကို ဖျက်ပစ်ပေးရန် တောင်းဆိုလိုပါက Telegram </span><a href="https://t.me/pca_gamestore" target="_blank" rel="noopener" style="color:var(--accent);">@pca_gamestore</a><span data-i18n="privacy_b_access_post"> သို့ အချိန်မရွေး message ပို့နိုင်ပါသည်၊ ဖြေရှင်းရန်ကျန်နေသေးသော order/ငွေပေးချေမှု အငြင်းပွားမှုအတွက် သီးခြား မှတ်တမ်းများ ထိန်းသိမ်းထားရန် လိုအပ်ခြင်း မရှိပါက ဖြစ်သည်။</span></div>
                     </div>
                     <div class="support-guide-item" id="term-card-privacy_l_children">
                         <div class="support-guide-q" onclick="window.toggleGuideItem(this.parentElement)"><div class="guide-card-dots"><span></span><span></span><span></span></div><span class="guide-card-label" data-i18n="privacy_l_children">ကလေးများ</span><button type="button" class="guide-card-close" onclick="event.stopPropagation(); window.toggleGuideItem(this.closest('.support-guide-item'))" aria-label="Close"><svg class="ui-icon"><use href="#icon-close"></use></svg><span data-i18n="guide_card_close">Close</span></button></div>
@@ -4372,7 +4388,7 @@
                     </div>
                     <div class="support-guide-item" id="term-card-privacy_l_contact">
                         <div class="support-guide-q" onclick="window.toggleGuideItem(this.parentElement)"><div class="guide-card-dots"><span></span><span></span><span></span></div><span class="guide-card-label" data-i18n="privacy_l_contact">ဆက်သွယ်ရန်</span><button type="button" class="guide-card-close" onclick="event.stopPropagation(); window.toggleGuideItem(this.closest('.support-guide-item'))" aria-label="Close"><svg class="ui-icon"><use href="#icon-close"></use></svg><span data-i18n="guide_card_close">Close</span></button></div>
-                        <div class="support-guide-a"><span data-i18n="privacy_b_contact_pre">ကိုယ်ရေးအချက်အလက်နှင့် ပတ်သက်သော မေးခွန်းများအတွက် Telegram </span><a href="https://t.me/pcagamepage" target="_blank" rel="noopener" style="color:var(--accent);">@pcagamepage</a><span data-i18n="privacy_b_contact_post"> သို့ ဆက်သွယ်နိုင်ပါသည်။</span></div>
+                        <div class="support-guide-a"><span data-i18n="privacy_b_contact_pre">ကိုယ်ရေးအချက်အလက်နှင့် ပတ်သက်သော မေးခွန်းများအတွက် Telegram </span><a href="https://t.me/pca_gamestore" target="_blank" rel="noopener" style="color:var(--accent);">@pca_gamestore</a><span data-i18n="privacy_b_contact_post"> သို့ ဆက်သွယ်နိုင်ပါသည်။</span></div>
                     </div>
                 </div>
             </div>
@@ -4406,7 +4422,7 @@
                     </div>
                     <div class="support-guide-item" id="term-card-refund_l_dispute">
                         <div class="support-guide-q" onclick="window.toggleGuideItem(this.parentElement)"><div class="guide-card-dots"><span></span><span></span><span></span></div><span class="guide-card-label" data-i18n="refund_l_dispute">အငြင်းပွားမှုတစ်ခု ဖော်ပြနည်း</span><button type="button" class="guide-card-close" onclick="event.stopPropagation(); window.toggleGuideItem(this.closest('.support-guide-item'))" aria-label="Close"><svg class="ui-icon"><use href="#icon-close"></use></svg><span data-i18n="guide_card_close">Close</span></button></div>
-                        <div class="support-guide-a"><span data-i18n="refund_b_dispute_pre">သင်၏ Order ID သို့မဟုတ် Top-Up ID ဖြင့် Telegram </span><a href="https://t.me/pcagamepage" target="_blank" rel="noopener" style="color:var(--accent);">@pcagamepage</a><span data-i18n="refund_b_dispute_post"> ကို အမြန်ဆုံး ဆက်သွယ်ပါ — ၇ ရက်အတွင်း ဆက်သွယ်ရန် အကောင်းဆုံးဖြစ်ပါသည်၊ အကြောင်းမှာ ၇ ရက်ထက်ကြာသော order/top-up မှတ်တမ်းများကို ကျွန်ုပ်တို့၏ မှတ်တမ်းများမှ အလိုအလျောက် ဖျက်ပစ်လိုက်ပါသည်။</span></div>
+                        <div class="support-guide-a"><span data-i18n="refund_b_dispute_pre">သင်၏ Order ID သို့မဟုတ် Top-Up ID ဖြင့် Telegram </span><a href="https://t.me/pca_gamestore" target="_blank" rel="noopener" style="color:var(--accent);">@pca_gamestore</a><span data-i18n="refund_b_dispute_post"> ကို အမြန်ဆုံး ဆက်သွယ်ပါ — ၇ ရက်အတွင်း ဆက်သွယ်ရန် အကောင်းဆုံးဖြစ်ပါသည်၊ အကြောင်းမှာ ၇ ရက်ထက်ကြာသော order/top-up မှတ်တမ်းများကို ကျွန်ုပ်တို့၏ မှတ်တမ်းများမှ အလိုအလျောက် ဖျက်ပစ်လိုက်ပါသည်။</span></div>
                     </div>
                 </div>
             </div>
@@ -4414,7 +4430,7 @@
             <!-- BUSINESS IDENTITY -->
             <div class="detail-form-card" style="gap:8px;margin-top:14px;">
                 <label style="margin-top:0;" data-i18n="biz_identity_label">စီးပွားရေးအချက်အလက်</label>
-                <p style="font-size:12.5px;color:var(--text-secondary);line-height:1.6;margin-top:2px;"><span data-i18n="biz_identity_pre">လုပ်ငန်းရှင်: PCA Store &nbsp;·&nbsp; ဝက်ဘ်ဆိုက်: daikokuten.my.id &nbsp;·&nbsp; အကူအညီ: </span><a href="https://t.me/pcagamepage" target="_blank" rel="noopener" style="color:var(--accent);">Telegram @pcagamepage</a></p>
+                <p style="font-size:12.5px;color:var(--text-secondary);line-height:1.6;margin-top:2px;"><span data-i18n="biz_identity_pre">လုပ်ငန်းရှင်: PCA Store &nbsp;·&nbsp; ဝက်ဘ်ဆိုက်: daikokuten.my.id &nbsp;·&nbsp; အကူအညီ: </span><a href="https://t.me/pca_gamestore" target="_blank" rel="noopener" style="color:var(--accent);">Telegram @pca_gamestore</a></p>
             </div>
         </div>
 
@@ -9402,7 +9418,7 @@
         // default) if the GIS script is blocked/fails to load - e.g. some
         // ad/tracker blockers block accounts.google.com/gsi/client.
         const GIS_CLIENT_ID = '666629360027-us8un4uogmeb24mgb9jt6ljsbp3r25k4.apps.googleusercontent.com';
-        const GIS_BUTTON_SLOT_IDS = ['onboard-google-gis', 'account-google-signin-gis', 'wallet-gate-google-gis', 'google-signin-gis'];
+        const GIS_BUTTON_SLOT_IDS = ['onboard-google-gis', 'account-google-signin-gis', 'wallet-gate-google-gis', 'google-signin-gis', 'link-google-gis'];
 
         async function handleGisCredentialResponse(response) {
             try {
@@ -9487,44 +9503,76 @@
                     avatarImg.style.display = user.photoURL ? 'block' : 'none';
                 }
                 if (signoutBtn) signoutBtn.innerText = 'Sign Out';
-                renderTelegramLinkSlot(user, isTelegram);
+                renderLinkedProviderSlots(user, isTelegram);
             } else {
                 signedOutEl.style.display = 'block';
                 signedInEl.style.display = 'none';
-                const linkSlot = document.getElementById('link-telegram-slot');
-                if (linkSlot) linkSlot.style.display = 'none';
+                const tgSlot = document.getElementById('link-telegram-slot');
+                const gSlot = document.getElementById('link-google-slot');
+                if (tgSlot) tgSlot.style.display = 'none';
+                if (gSlot) gSlot.style.display = 'none';
             }
         }
 
-        // Lets a customer who is currently signed in with Google also link
-        // Telegram to the SAME account (guestId never changes here) - so
-        // either provider signs them back into the one account afterwards.
-        // Hidden entirely once signed in via Telegram (nothing left to link),
-        // and swapped to a "already linked" message once telegramUsername is
-        // present on the account doc, instead of showing the widget again.
-        async function renderTelegramLinkSlot(user, isTelegram) {
-            const slot = document.getElementById('link-telegram-slot');
-            const hint = document.getElementById('link-telegram-hint');
-            const widgetEl = document.getElementById('profile-telegram-widget-linked');
-            if (!slot) return;
-            if (isTelegram) { slot.style.display = 'none'; return; }
+        // Order doesn't matter: whichever provider (Google or Telegram) a
+        // customer signs in with FIRST, this offers the OTHER one as a
+        // "connect too" option right there in the signed-in Account card -
+        // same guestId, same data either way, nothing about the order is
+        // fixed. Hidden entirely for the provider currently signed in
+        // (nothing to link to itself), and swapped to an "already linked"
+        // message once that provider is confirmed linked on the account doc.
+        async function renderLinkedProviderSlots(user, isTelegram) {
+            const tgSlot = document.getElementById('link-telegram-slot');
+            const gSlot = document.getElementById('link-google-slot');
             const myGid = window.getGuestId ? window.getGuestId() : null;
-            if (!myGid) { slot.style.display = 'none'; return; }
+            if (!myGid) {
+                if (tgSlot) tgSlot.style.display = 'none';
+                if (gSlot) gSlot.style.display = 'none';
+                return;
+            }
             try {
                 const snap = await getDoc(doc(db, "users", myGid));
-                const tgUsername = (snap.exists() && snap.data().telegramUsername) || '';
-                slot.style.display = 'block';
-                if (tgUsername) {
-                    if (hint) hint.textContent = `Telegram @${tgUsername} ဖြင့် ချိတ်ဆက်ပြီးပါပြီ။`;
-                    if (widgetEl) widgetEl.style.display = 'none';
+                const data = snap.exists() ? snap.data() : {};
+                const tgUsername = data.telegramUsername || '';
+                const gEmail = data.googleEmail || '';
+
+                if (isTelegram) {
+                    if (tgSlot) tgSlot.style.display = 'none';
+                    if (gSlot) {
+                        const hint = document.getElementById('link-google-hint');
+                        gSlot.style.display = 'block';
+                        if (gEmail) {
+                            if (hint) hint.textContent = `Google (${gEmail}) ဖြင့် ချိတ်ဆက်ပြီးပါပြီ။`;
+                            document.querySelectorAll('#link-google-slot .gis-btn-slot, #link-google-slot .gis-fallback').forEach((el) => { el.style.display = 'none'; });
+                        } else {
+                            if (hint) hint.textContent = 'Google ဖြင့်ပါ ချိတ်ဆက်ထားနိုင်ပါသည် — account တစ်ခုတည်းအတွက်ပါ၊ data ဘာမှ ပြောင်းမသွားပါ။';
+                            if (window.renderGisButtons) window.renderGisButtons();
+                        }
+                    }
                 } else {
-                    if (hint) hint.textContent = 'Telegram ဖြင့်ပါ ချိတ်ဆက်ထားနိုင်ပါသည် — account တစ်ခုတည်းအတွက်ပါ၊ data ဘာမှ ပြောင်းမသွားပါ။';
-                    if (widgetEl) widgetEl.style.display = 'flex';
-                    if (window.renderTelegramWidgets) window.renderTelegramWidgets();
+                    if (gSlot) gSlot.style.display = 'none';
+                    if (tgSlot) {
+                        const hint = document.getElementById('link-telegram-hint');
+                        const widgetEl = document.getElementById('profile-telegram-widget-linked');
+                        tgSlot.style.display = 'block';
+                        if (tgUsername) {
+                            if (hint) hint.textContent = `Telegram @${tgUsername} ဖြင့် ချိတ်ဆက်ပြီးပါပြီ။`;
+                            if (widgetEl) widgetEl.style.display = 'none';
+                        } else {
+                            if (hint) hint.textContent = 'Telegram ဖြင့်ပါ ချိတ်ဆက်ထားနိုင်ပါသည် — account တစ်ခုတည်းအတွက်ပါ၊ data ဘာမှ ပြောင်းမသွားပါ။';
+                            if (widgetEl) widgetEl.style.display = 'flex';
+                            // Rendered here, on demand, now that the slot is
+                            // actually visible - NOT at page load, when the
+                            // hidden container would give Telegram's widget
+                            // script a 0-width box to size its iframe against.
+                            renderTelegramWidgetInto('profile-telegram-widget-linked');
+                        }
+                    }
                 }
             } catch (e) {
-                console.error('Telegram link status check error:', e);
-                slot.style.display = 'none';
+                console.error('Linked-provider status check error:', e);
+                if (tgSlot) tgSlot.style.display = 'none';
+                if (gSlot) gSlot.style.display = 'none';
             }
         }
 
@@ -9711,49 +9759,73 @@
         const TELEGRAM_BOT_USERNAME = 'pcagamestore_bot';
         const AUTH_WORKER_URL = 'https://pcastore.pca-game-store.workers.dev';
 
-        async function enforceTelegramAccountBan(user, myGid) {
-            try {
-                const linkSnap = await getDoc(doc(db, "telegramAccounts", user.uid));
-                const targetGid = (linkSnap.exists() && linkSnap.data().guestId) || myGid;
-                if (!targetGid) return false;
-                const userSnap = await getDoc(doc(db, "users", targetGid));
-                if (userSnap.exists() && userSnap.data().banned) {
-                    await signOut(auth);
-                    if (window.showToast) window.showToast('This account has been restricted. Contact support.', 'fail');
-                    return true;
-                }
-            } catch (e) {
-                console.error('Telegram account ban check error:', e);
-            }
-            return false;
-        }
-
-        async function guestIdBelongsToOtherTelegram(myGid, user) {
+        // guestIdBelongsToOtherTelegram and notifyTelegramConnected both take
+        // an already-fetched users/{gid} snapshot instead of reading it
+        // themselves - see applyTelegramProfile below, which does the one
+        // upfront read they (and the ban check) all share.
+        async function guestIdBelongsToOtherTelegram(myGid, user, myUserSnap) {
             try {
                 const ownerUid = localStorage.getItem('gz_gid_owner_uid_tg');
                 if (ownerUid && ownerUid !== user.uid) return true;
             } catch (e) { /* private browsing */ }
             try {
                 if (!myGid) return false;
-                const snap = await getDoc(doc(db, "users", myGid));
-                const linkedTgId = (snap.exists() && snap.data().telegramId) || '';
+                const linkedTgId = (myUserSnap && myUserSnap.exists() && myUserSnap.data().telegramId) || '';
                 const thisTgId = String(user.uid).replace(/^tg_/, '');
                 if (linkedTgId && linkedTgId !== thisTgId) return true;
             } catch (e) { /* can't tell - fall through to the normal link */ }
             return false;
         }
 
+        // Fire-and-forget: tell the user via the bot that Telegram is now
+        // connected (User ID / Name / Balance / Connected Time). Only called
+        // from the two first-time-link branches below, not on every
+        // re-login. balance is passed in by the caller (already has a fresh
+        // snapshot from applyTelegramProfile's single upfront read) so this
+        // never issues its own extra Firestore read.
+        async function notifyTelegramConnected(telegramId, guestId, name, balance) {
+            try {
+                await fetch(`${AUTH_WORKER_URL}/notify-connected`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ telegramId: String(telegramId), guestId, name, balance: Number(balance) || 0 })
+                });
+            } catch (e) {
+                console.error('notifyTelegramConnected failed:', e);
+            }
+        }
+
+        // Single upfront read of telegramAccounts/{uid} + users/{targetGid}
+        // (the account this Telegram id is already linked to, or myGid if
+        // not linked yet) - reused for the ban check, the "switch to linked
+        // account" branch's profile data, the "not linked yet" ownership
+        // check, and the connected-notification balance. Previously each of
+        // those re-fetched on their own, up to 5 reads of the same
+        // users/{gid} doc in a single login.
         async function applyTelegramProfile(user, tgUser) {
             const myGid = window.getGuestId ? window.getGuestId() : null;
-            if (await enforceTelegramAccountBan(user, myGid)) return;
+            const linkRef = doc(db, "telegramAccounts", user.uid);
+
+            let linkSnap = null, targetUserSnap = null;
             try {
-                const linkRef = doc(db, "telegramAccounts", user.uid);
-                const linkSnap = await getDoc(linkRef);
-                if (linkSnap.exists() && linkSnap.data().guestId && linkSnap.data().guestId !== myGid) {
+                linkSnap = await getDoc(linkRef);
+                const targetGid = (linkSnap.exists() && linkSnap.data().guestId) || myGid;
+                if (targetGid) targetUserSnap = await getDoc(doc(db, "users", targetGid));
+            } catch (e) {
+                console.error('Telegram account ban check error:', e);
+            }
+
+            if (targetUserSnap && targetUserSnap.exists() && targetUserSnap.data().banned) {
+                await signOut(auth);
+                if (window.showToast) window.showToast('This account has been restricted. Contact support.', 'fail');
+                return;
+            }
+
+            try {
+                if (linkSnap && linkSnap.exists() && linkSnap.data().guestId && linkSnap.data().guestId !== myGid) {
                     const linkedGid = linkSnap.data().guestId;
                     try {
-                        const userSnap = await getDoc(doc(db, "users", linkedGid));
-                        const d = userSnap.exists() ? userSnap.data() : {};
+                        const d = targetUserSnap && targetUserSnap.exists() ? targetUserSnap.data() : {};
                         localStorage.setItem('gz_profile', JSON.stringify({ name: d.name || '', phone: d.phone || '', photo: d.photo || '' }));
                         localStorage.setItem('gz_guest_id', linkedGid);
                         localStorage.setItem('gz_gid_owner_uid_tg', user.uid);
@@ -9766,8 +9838,8 @@
                     }
                     return;
                 }
-                if (!linkSnap.exists()) {
-                    if (await guestIdBelongsToOtherTelegram(myGid, user)) {
+                if (!linkSnap || !linkSnap.exists()) {
+                    if (await guestIdBelongsToOtherTelegram(myGid, user, targetUserSnap)) {
                         const newGid = await generateFreshGuestId();
                         const newProfile = { name: [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' '), phone: '', photo: tgUser.photo_url || '' };
                         await setDoc(doc(db, "users", newGid), {
@@ -9783,6 +9855,7 @@
                             localStorage.setItem('gz_profile', JSON.stringify(newProfile));
                         } catch (e) { /* private browsing */ }
                         if (window.showToast) window.showToast('အကောင့်အသစ် ဖွင့်နေသည်...', 'success');
+                        notifyTelegramConnected(tgUser.id, newGid, newProfile.name, 0);
                         setTimeout(() => location.reload(), 900);
                         return;
                     }
@@ -9791,7 +9864,9 @@
                     // Google-linked account that now also links Telegram carries
                     // both providers on the one account (mirrors googleEmail).
                     if (myGid) {
+                        const priorBalance = targetUserSnap && targetUserSnap.exists() ? Number(targetUserSnap.data().walletBalance || 0) : 0;
                         await setDoc(doc(db, "users", myGid), { telegramId: String(tgUser.id), telegramUsername: tgUser.username || '' }, { merge: true });
+                        notifyTelegramConnected(tgUser.id, myGid, [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' '), priorBalance);
                         // Best-effort separate write: claims this Telegram Firebase
                         // uid as the doc's server-verifiable owner (see canReadAsOwner
                         // / authUid in firestore.rules) - write-once and only while
@@ -9837,6 +9912,35 @@
                 });
                 const data = await res.json();
                 if (!res.ok || !data.token) throw new Error(data.error || 'auth failed');
+
+                // Linking case: already signed in with a real Google account
+                // and about to add Telegram on top of it. signInWithCustomToken
+                // below immediately swaps the active Firebase Auth session over
+                // to the Telegram uid, which carries no email - so it can never
+                // itself satisfy firestore.rules' walletBalance==0 guard for
+                // claiming authUid on a money-holding account. Claim it now,
+                // one line, while still authenticated as the proven Google
+                // owner (rules allow this regardless of balance - see
+                // firestore.rules). Best-effort: any failure here (not linked
+                // to this guestId yet, already linked elsewhere, etc.) is
+                // non-fatal - applyTelegramProfile below still runs its own
+                // normal linking/ban checks either way.
+                const priorUser = auth.currentUser;
+                if (priorUser && !String(priorUser.uid).startsWith('tg_') && priorUser.email && data.user && data.user.id) {
+                    const myGid = window.getGuestId ? window.getGuestId() : null;
+                    if (myGid) {
+                        try {
+                            await setDoc(doc(db, "users", myGid), {
+                                telegramId: String(data.user.id),
+                                telegramUsername: data.user.username || '',
+                                authUid: 'tg_' + data.user.id
+                            }, { merge: true });
+                        } catch (e) {
+                            console.error('Telegram pre-link claim failed:', e);
+                        }
+                    }
+                }
+
                 const result = await signInWithCustomToken(auth, data.token);
                 await applyTelegramProfile(result.user, data.user);
             } catch (e) {
@@ -9850,24 +9954,35 @@
             completeTelegramSignIn('/auth/widget', tgUser);
         };
 
-        // Renders the Telegram Login Widget into both slots. The widget
-        // script tag replaces itself with an iframe wherever it's inserted,
-        // so each slot gets its own freshly-created script element.
+        // Renders the Telegram Login Widget into one slot. The widget script
+        // tag replaces itself with an iframe wherever it's inserted, so each
+        // slot needs its own freshly-created script element. IMPORTANT: only
+        // call this once the slot's container is actually visible - Telegram's
+        // widget sizes its iframe off the container at load time, so
+        // rendering into a `display:none` ancestor produces a 0-width iframe
+        // (looks like the hint text renders but no button ever appears).
+        function renderTelegramWidgetInto(id) {
+            const el = document.getElementById(id);
+            if (!el || el.dataset.tgRendered) return;
+            el.dataset.tgRendered = '1';
+            const s = document.createElement('script');
+            s.async = true;
+            s.src = 'https://telegram.org/js/telegram-widget.js?22';
+            s.setAttribute('data-telegram-login', TELEGRAM_BOT_USERNAME);
+            s.setAttribute('data-size', 'large');
+            s.setAttribute('data-radius', '20');
+            s.setAttribute('data-onauth', 'onTelegramAuth(user)');
+            s.setAttribute('data-request-access', 'write');
+            el.appendChild(s);
+        }
+
+        // The onboarding screen and the signed-out Profile card are always
+        // visible (or about to be) when reached, so these two render eagerly
+        // as before. The signed-IN linking slot (profile-telegram-widget-linked)
+        // is NOT included here - it starts hidden and is rendered on demand,
+        // right after its container is made visible, from renderLinkedProviderSlots().
         function renderTelegramWidgets() {
-            ['onboard-telegram-widget', 'profile-telegram-widget', 'profile-telegram-widget-linked'].forEach((id) => {
-                const el = document.getElementById(id);
-                if (!el || el.dataset.tgRendered) return;
-                el.dataset.tgRendered = '1';
-                const s = document.createElement('script');
-                s.async = true;
-                s.src = 'https://telegram.org/js/telegram-widget.js?22';
-                s.setAttribute('data-telegram-login', TELEGRAM_BOT_USERNAME);
-                s.setAttribute('data-size', 'large');
-                s.setAttribute('data-radius', '20');
-                s.setAttribute('data-onauth', 'onTelegramAuth(user)');
-                s.setAttribute('data-request-access', 'write');
-                el.appendChild(s);
-            });
+            ['onboard-telegram-widget', 'profile-telegram-widget'].forEach(renderTelegramWidgetInto);
         }
         window.renderTelegramWidgets = renderTelegramWidgets;
         renderTelegramWidgets();
