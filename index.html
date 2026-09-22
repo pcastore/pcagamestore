@@ -2,6 +2,10 @@
 <html lang="en">
 <head>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
+    <!-- Telegram Mini App SDK - provides window.Telegram.WebApp / initData when
+         the site is opened from inside pcagamestore_bot's mini app. No-op
+         (window.Telegram stays undefined) when opened as a normal website. -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <!-- Fonts: preconnect + <link> (an @import inside <style> blocks rendering behind a second request).
@@ -2956,6 +2960,7 @@
             <div class="onboarding-step" id="onboard-step-login" style="display:none;">
                 <p class="onboarding-sub">Sign in with Google, or continue as a guest.<br>Google ဖြင့် အကောင့်ဝင်ပါ၊ သို့မဟုတ် ဧည့်သည်အဖြစ် ဆက်လက်ကြည့်ရှုနိုင်ပါသည်။</p>
                 <div id="onboard-google-gis" class="gis-btn-slot"></div>
+                <div id="onboard-telegram-widget" style="margin-top:10px;display:flex;justify-content:center;"></div>
                 <button type="button" class="google-login-btn gis-fallback" id="onboard-google-btn" onclick="handleOnboardGoogleSignIn()">
                     <svg width="18" height="18" viewBox="0 0 48 48">
                         <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
@@ -4089,6 +4094,7 @@
                 <div class="collapsible-body" id="account-body">
                     <div class="google-account-card" id="google-account-signedout">
                         <div id="google-signin-gis" class="gis-btn-slot" style="display:flex;justify-content:center;"></div>
+                        <div id="profile-telegram-widget" style="margin-top:10px;display:flex;justify-content:center;"></div>
                         <button type="button" class="google-login-btn gis-fallback" id="google-signin-btn" onclick="handleGoogleSignIn()">
                             <svg width="18" height="18" viewBox="0 0 48 48">
                                 <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
@@ -8174,7 +8180,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
         import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, addDoc, doc, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp, query, where, orderBy, limit, getDocs, getCountFromServer, onSnapshot, increment, runTransaction, arrayUnion, arrayRemove, deleteField } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
-        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInWithCredential, getRedirectResult, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
+        import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInWithCredential, signInWithCustomToken, getRedirectResult, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
         import { getMessaging, getToken, onMessage, isSupported as isMessagingSupported } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js";
 
         const firebaseConfig = {
@@ -9440,11 +9446,27 @@
             if (user) {
                 signedOutEl.style.display = 'none';
                 signedInEl.style.display = 'flex';
-                document.getElementById('google-account-name').innerText = user.displayName || user.email || 'Signed in';
-                document.getElementById('google-account-email').innerText = user.email || '';
+                const isTelegram = String(user.uid || '').startsWith('tg_');
+                const nameEl = document.getElementById('google-account-name');
+                const emailEl = document.getElementById('google-account-email');
                 const avatarImg = document.getElementById('google-account-avatar');
-                avatarImg.src = user.photoURL || '';
-                avatarImg.style.display = user.photoURL ? 'block' : 'none';
+                const signoutBtn = document.getElementById('google-signout-btn');
+                if (isTelegram) {
+                    // Custom-token users carry no displayName/photoURL/email of
+                    // their own - pull what applyTelegramProfile stashed at sign-in.
+                    let tg = {};
+                    try { tg = JSON.parse(localStorage.getItem('gz_telegram_profile') || '{}'); } catch (e) { /* ignore */ }
+                    nameEl.innerText = tg.name || 'Signed in';
+                    emailEl.innerText = tg.username ? `Telegram @${tg.username}` : 'Telegram account';
+                    avatarImg.src = tg.photo_url || '';
+                    avatarImg.style.display = tg.photo_url ? 'block' : 'none';
+                } else {
+                    nameEl.innerText = user.displayName || user.email || 'Signed in';
+                    emailEl.innerText = user.email || '';
+                    avatarImg.src = user.photoURL || '';
+                    avatarImg.style.display = user.photoURL ? 'block' : 'none';
+                }
+                if (signoutBtn) signoutBtn.innerText = 'Sign Out';
             } else {
                 signedOutEl.style.display = 'block';
                 signedInEl.style.display = 'none';
@@ -9494,7 +9516,7 @@
         // support button position, onboarding flag - are kept.
         function resetLocalAccountState() {
             try {
-                ['gz_profile', 'gz_guest_id', 'gz_member_since', 'gz_stats_cache', 'gz_gid_owner_uid',
+                ['gz_profile', 'gz_guest_id', 'gz_member_since', 'gz_stats_cache', 'gz_gid_owner_uid', 'gz_gid_owner_uid_tg', 'gz_telegram_profile',
                  'gz_playerId', 'gz_last_seen_notif', 'gz_notif_read', 'gz_notif_baseline', 'gz_order_notifs', 'gz_fcm_token_registered'].forEach((k) => localStorage.removeItem(k));
                 Object.keys(localStorage).forEach((k) => {
                     if (k.startsWith('gz_playerId:') || k.startsWith('gz_serverId:')) localStorage.removeItem(k);
@@ -9612,6 +9634,202 @@
             if (window.renderMiniProfile) window.renderMiniProfile();
             syncUserToFirestore();
         }
+
+        // ---------- Telegram login (pcagamestore_bot) ----------
+        // Two entry points into the same account-linking logic:
+        //  1) Mini App auto-login - if the site is opened from inside Telegram
+        //     (pcagamestore_bot's mini app), window.Telegram.WebApp.initData
+        //     is present and we sign in automatically, no button needed.
+        //  2) Login Widget - a "Log in with Telegram" button (onboarding +
+        //     Profile) for normal browser visits.
+        // Both call the gamestore-auth-worker (separate Worker, separate bot
+        // token from the order/admin bot) which verifies the payload and
+        // returns a Firebase custom token for uid `tg_<telegram_id>`.
+        //
+        // Linking mirrors the Google pattern exactly, in its own
+        // `telegramAccounts` collection so the two providers never collide:
+        // first sign-in links to whatever guestId this device already has
+        // (so a guest who is already signed in with Google keeps that same
+        // guestId once they also link Telegram - both providers end up
+        // pointing at the one account); signing in again on a different
+        // device pulls that device back onto the original guestId.
+        const TELEGRAM_BOT_USERNAME = 'pcagamestore_bot';
+        const AUTH_WORKER_URL = 'https://pcastore.pca-game-store.workers.dev';
+
+        async function enforceTelegramAccountBan(user, myGid) {
+            try {
+                const linkSnap = await getDoc(doc(db, "telegramAccounts", user.uid));
+                const targetGid = (linkSnap.exists() && linkSnap.data().guestId) || myGid;
+                if (!targetGid) return false;
+                const userSnap = await getDoc(doc(db, "users", targetGid));
+                if (userSnap.exists() && userSnap.data().banned) {
+                    await signOut(auth);
+                    if (window.showToast) window.showToast('This account has been restricted. Contact support.', 'fail');
+                    return true;
+                }
+            } catch (e) {
+                console.error('Telegram account ban check error:', e);
+            }
+            return false;
+        }
+
+        async function guestIdBelongsToOtherTelegram(myGid, user) {
+            try {
+                const ownerUid = localStorage.getItem('gz_gid_owner_uid_tg');
+                if (ownerUid && ownerUid !== user.uid) return true;
+            } catch (e) { /* private browsing */ }
+            try {
+                if (!myGid) return false;
+                const snap = await getDoc(doc(db, "users", myGid));
+                const linkedTgId = (snap.exists() && snap.data().telegramId) || '';
+                const thisTgId = String(user.uid).replace(/^tg_/, '');
+                if (linkedTgId && linkedTgId !== thisTgId) return true;
+            } catch (e) { /* can't tell - fall through to the normal link */ }
+            return false;
+        }
+
+        async function applyTelegramProfile(user, tgUser) {
+            const myGid = window.getGuestId ? window.getGuestId() : null;
+            if (await enforceTelegramAccountBan(user, myGid)) return;
+            try {
+                const linkRef = doc(db, "telegramAccounts", user.uid);
+                const linkSnap = await getDoc(linkRef);
+                if (linkSnap.exists() && linkSnap.data().guestId && linkSnap.data().guestId !== myGid) {
+                    const linkedGid = linkSnap.data().guestId;
+                    try {
+                        const userSnap = await getDoc(doc(db, "users", linkedGid));
+                        const d = userSnap.exists() ? userSnap.data() : {};
+                        localStorage.setItem('gz_profile', JSON.stringify({ name: d.name || '', phone: d.phone || '', photo: d.photo || '' }));
+                        localStorage.setItem('gz_guest_id', linkedGid);
+                        localStorage.setItem('gz_gid_owner_uid_tg', user.uid);
+                        if (localStorage.getItem('gz_guest_id') !== linkedGid) throw new Error('guest id did not persist');
+                        if (window.showToast) window.showToast('ချိတ်ဆက်ထားသော အကောင့်သို့ ပြန်ခေါ်နေသည်...', 'success');
+                        setTimeout(() => location.reload(), 900);
+                    } catch (e) {
+                        console.error('Telegram account switch failed:', e);
+                        if (window.showToast) window.showToast('အကောင့်ဟောင်းကို ပြန်ခေါ်၍မရပါ။ ထပ်မံကြိုးစားပါ သို့မဟုတ် Support ကို ဆက်သွယ်ပါ။', 'fail');
+                    }
+                    return;
+                }
+                if (!linkSnap.exists()) {
+                    if (await guestIdBelongsToOtherTelegram(myGid, user)) {
+                        const newGid = await generateFreshGuestId();
+                        const newProfile = { name: [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' '), phone: '', photo: tgUser.photo_url || '' };
+                        await setDoc(doc(db, "users", newGid), {
+                            guestId: newGid, name: newProfile.name, phone: '', photo: newProfile.photo,
+                            telegramId: String(tgUser.id), telegramUsername: tgUser.username || '', authUid: user.uid, createdAt: serverTimestamp(), lastSeen: serverTimestamp()
+                        }, { merge: true });
+                        await setDoc(linkRef, { guestId: newGid, telegramId: String(tgUser.id) }, { merge: true });
+                        resetLocalAccountState();
+                        try {
+                            localStorage.setItem('gz_guest_id', newGid);
+                            localStorage.setItem('gz_member_since', String(Date.now()));
+                            localStorage.setItem('gz_gid_owner_uid_tg', user.uid);
+                            localStorage.setItem('gz_profile', JSON.stringify(newProfile));
+                        } catch (e) { /* private browsing */ }
+                        if (window.showToast) window.showToast('အကောင့်အသစ် ဖွင့်နေသည်...', 'success');
+                        setTimeout(() => location.reload(), 900);
+                        return;
+                    }
+                    await setDoc(linkRef, { guestId: myGid, telegramId: String(tgUser.id) }, { merge: true });
+                    // Record telegramId on the shared users/{guestId} doc too, so a
+                    // Google-linked account that now also links Telegram carries
+                    // both providers on the one account (mirrors googleEmail).
+                    if (myGid) {
+                        await setDoc(doc(db, "users", myGid), { telegramId: String(tgUser.id), telegramUsername: tgUser.username || '' }, { merge: true });
+                        // Best-effort separate write: claims this Telegram Firebase
+                        // uid as the doc's server-verifiable owner (see canReadAsOwner
+                        // / authUid in firestore.rules) - write-once and only while
+                        // walletBalance is 0, so this silently no-ops (permission
+                        // denied, caught below) for an existing account that already
+                        // has an owner or holds real money; kept separate from the
+                        // telegramId write above so that denial can never also block it.
+                        try {
+                            await setDoc(doc(db, "users", myGid), { authUid: user.uid }, { merge: true });
+                        } catch (e) { /* already owned / has balance - expected, not an error */ }
+                    }
+                }
+                try { localStorage.setItem('gz_gid_owner_uid_tg', user.uid); } catch (e) { /* private browsing */ }
+            } catch (e) {
+                console.error('Telegram account link check failed:', e);
+            }
+
+            const existing = window.getSavedProfile ? window.getSavedProfile() : { name: '', phone: '', photo: '' };
+            const tgName = [tgUser.first_name, tgUser.last_name].filter(Boolean).join(' ');
+            const profile = {
+                name: tgName || existing.name || '',
+                phone: existing.phone || '',
+                photo: tgUser.photo_url || existing.photo || ''
+            };
+            try {
+                localStorage.setItem('gz_profile', JSON.stringify(profile));
+                localStorage.setItem('gz_telegram_profile', JSON.stringify({ id: tgUser.id, name: tgName, username: tgUser.username || '', photo_url: tgUser.photo_url || '' }));
+            } catch (e) { /* private browsing */ }
+            if (window.renderProfileFields) window.renderProfileFields();
+            if (window.renderMiniProfile) window.renderMiniProfile();
+            renderGoogleAccountUI(user);
+            syncUserToFirestore();
+        }
+
+        // Shared by both the widget callback and mini-app auto-login: exchange
+        // a verified Telegram payload for a Firebase custom token and sign in.
+        async function completeTelegramSignIn(endpoint, body) {
+            try {
+                const res = await fetch(`${AUTH_WORKER_URL}${endpoint}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(body)
+                });
+                const data = await res.json();
+                if (!res.ok || !data.token) throw new Error(data.error || 'auth failed');
+                const result = await signInWithCustomToken(auth, data.token);
+                await applyTelegramProfile(result.user, data.user);
+            } catch (e) {
+                console.error('Telegram sign-in error:', e);
+                if (window.showToast) window.showToast('Telegram sign-in failed. Please try again.', 'fail');
+            }
+        }
+
+        // Login Widget callback - referenced by data-onauth below.
+        window.onTelegramAuth = function (tgUser) {
+            completeTelegramSignIn('/auth/widget', tgUser);
+        };
+
+        // Renders the Telegram Login Widget into both slots. The widget
+        // script tag replaces itself with an iframe wherever it's inserted,
+        // so each slot gets its own freshly-created script element.
+        function renderTelegramWidgets() {
+            ['onboard-telegram-widget', 'profile-telegram-widget'].forEach((id) => {
+                const el = document.getElementById(id);
+                if (!el || el.dataset.tgRendered) return;
+                el.dataset.tgRendered = '1';
+                const s = document.createElement('script');
+                s.async = true;
+                s.src = 'https://telegram.org/js/telegram-widget.js?22';
+                s.setAttribute('data-telegram-login', TELEGRAM_BOT_USERNAME);
+                s.setAttribute('data-size', 'large');
+                s.setAttribute('data-radius', '20');
+                s.setAttribute('data-onauth', 'onTelegramAuth(user)');
+                s.setAttribute('data-request-access', 'write');
+                el.appendChild(s);
+            });
+        }
+        window.renderTelegramWidgets = renderTelegramWidgets;
+        renderTelegramWidgets();
+
+        // Mini App auto-login - runs once on load. No-op (silently returns)
+        // when the site is opened as a normal website, since window.Telegram
+        // only exists inside Telegram's in-app browser.
+        (function tryTelegramMiniAppAutoLogin() {
+            try {
+                const tg = window.Telegram && window.Telegram.WebApp;
+                if (!tg || !tg.initData) return;
+                tg.ready();
+                completeTelegramSignIn('/auth/miniapp', { initData: tg.initData });
+            } catch (e) {
+                console.error('Mini App auto-login error:', e);
+            }
+        })();
 
         async function handleGoogleSignIn(btnId) {
             // Home Screen "Add to Home Screen" apps run in a separate storage
