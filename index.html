@@ -6797,10 +6797,11 @@
         // same category - e.g. rapid start/stop while switching between two
         // voucher games that happen to share a category, or a slow response
         // still pending when the next poll tick fires - without needing any
-        // server-side cache. TTL is well under the 15s poll interval, so it
-        // only ever collapses genuinely-overlapping calls, never staleness.
+        // server-side cache. TTL is kept just above the 15s poll interval so
+        // that most poll ticks are served from local memory instead of
+        // re-hitting Firestore every time.
         const g2bulkCategoryCache = new Map(); // categoryId -> { data, ts, promise }
-        const G2BULK_CATEGORY_CACHE_TTL_MS = 8000;
+        const G2BULK_CATEGORY_CACHE_TTL_MS = 16000;
 
         // Second layer, shared across sessions via Firestore: the admin panel
         // polls this same endpoint too, so if a customer and the admin panel
@@ -6851,6 +6852,7 @@
         }
 
         async function fetchVoucherStock(categoryId) {
+            if (document.hidden) return; // tab backgrounded - skip poll, no point burning a read nobody sees
             try {
                 const data = await fetchG2BulkCategoryLive(categoryId);
                 if (!data.success) return;
