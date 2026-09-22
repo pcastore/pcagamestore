@@ -4136,6 +4136,10 @@
                         </div>
                         <button type="button" class="google-signout-btn" id="google-signout-btn" onclick="handleGoogleSignOut()">Sign Out</button>
                     </div>
+                    <div id="link-telegram-slot" style="display:none;width:100%;margin-top:10px;text-align:center;">
+                        <p class="google-account-hint" id="link-telegram-hint" style="margin-bottom:6px;">Telegram ဖြင့်ပါ ချိတ်ဆက်ထားနိုင်ပါသည် — account တစ်ခုတည်းအတွက်ပါ၊ data ဘာမှ ပြောင်းမသွားပါ။</p>
+                        <div id="profile-telegram-widget-linked" style="display:flex;justify-content:center;"></div>
+                    </div>
                 </div>
             </div>
 
@@ -9483,9 +9487,44 @@
                     avatarImg.style.display = user.photoURL ? 'block' : 'none';
                 }
                 if (signoutBtn) signoutBtn.innerText = 'Sign Out';
+                renderTelegramLinkSlot(user, isTelegram);
             } else {
                 signedOutEl.style.display = 'block';
                 signedInEl.style.display = 'none';
+                const linkSlot = document.getElementById('link-telegram-slot');
+                if (linkSlot) linkSlot.style.display = 'none';
+            }
+        }
+
+        // Lets a customer who is currently signed in with Google also link
+        // Telegram to the SAME account (guestId never changes here) - so
+        // either provider signs them back into the one account afterwards.
+        // Hidden entirely once signed in via Telegram (nothing left to link),
+        // and swapped to a "already linked" message once telegramUsername is
+        // present on the account doc, instead of showing the widget again.
+        async function renderTelegramLinkSlot(user, isTelegram) {
+            const slot = document.getElementById('link-telegram-slot');
+            const hint = document.getElementById('link-telegram-hint');
+            const widgetEl = document.getElementById('profile-telegram-widget-linked');
+            if (!slot) return;
+            if (isTelegram) { slot.style.display = 'none'; return; }
+            const myGid = window.getGuestId ? window.getGuestId() : null;
+            if (!myGid) { slot.style.display = 'none'; return; }
+            try {
+                const snap = await getDoc(doc(db, "users", myGid));
+                const tgUsername = (snap.exists() && snap.data().telegramUsername) || '';
+                slot.style.display = 'block';
+                if (tgUsername) {
+                    if (hint) hint.textContent = `Telegram @${tgUsername} ဖြင့် ချိတ်ဆက်ပြီးပါပြီ။`;
+                    if (widgetEl) widgetEl.style.display = 'none';
+                } else {
+                    if (hint) hint.textContent = 'Telegram ဖြင့်ပါ ချိတ်ဆက်ထားနိုင်ပါသည် — account တစ်ခုတည်းအတွက်ပါ၊ data ဘာမှ ပြောင်းမသွားပါ။';
+                    if (widgetEl) widgetEl.style.display = 'flex';
+                    if (window.renderTelegramWidgets) window.renderTelegramWidgets();
+                }
+            } catch (e) {
+                console.error('Telegram link status check error:', e);
+                slot.style.display = 'none';
             }
         }
 
@@ -9815,7 +9854,7 @@
         // script tag replaces itself with an iframe wherever it's inserted,
         // so each slot gets its own freshly-created script element.
         function renderTelegramWidgets() {
-            ['onboard-telegram-widget', 'profile-telegram-widget'].forEach((id) => {
+            ['onboard-telegram-widget', 'profile-telegram-widget', 'profile-telegram-widget-linked'].forEach((id) => {
                 const el = document.getElementById(id);
                 if (!el || el.dataset.tgRendered) return;
                 el.dataset.tgRendered = '1';
