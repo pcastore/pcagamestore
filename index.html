@@ -2901,6 +2901,30 @@
         #guide-page .pkg-type-tabs { background: var(--bg); padding: 3px; gap: 3px; }
         #guide-page .pkg-type-tab { font-size: 12px; padding: 7px 2px; }
 
+        /* The header above (--accent redefined to gold for the whole page)
+           cascades into everything by default. Only the FAQ cards below are
+           meant to read as gold - the "Help" title, the back button and the
+           3 tabs themselves should stay the app's normal blue, in both
+           themes (dark mode already got this right via its own block
+           further down; this is the missing light-mode half). */
+        #guide-page-title { color: #1877F2; }
+        #guide-page .header-icon { color: #1877F2; }
+        #guide-page .pkg-type-tab.active { color: #1877F2; }
+        html[data-theme="dark"] #guide-page-title { color: #4C93FF; }
+        html[data-theme="dark"] #guide-page .header-icon { color: #4C93FF; }
+
+        /* Telegram tab = a real blue button, in EITHER theme - previously
+           only the dark-mode block below styled it, so in light mode it
+           just blended in as a plain gold-accented tab like Guide/Complaint
+           and wasn't recognizable as a "go to Telegram" button. */
+        #support-tab-chat svg { display: none; }
+        #support-tab-chat {
+            background: linear-gradient(135deg, #5AA0FF, #2563EB); color: #fff; font-weight: 600; border-radius: 12px; gap: 5px;
+            box-shadow: 0 4px 14px rgba(37,99,235,0.4), inset 0 1px 1px rgba(255,255,255,0.35);
+        }
+        #support-tab-chat:active { transform: scale(0.96); }
+        #support-tab-chat svg { display: block; width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
+
         /* Dark theme: the page was hardcoded to a solid white+gold look
            regardless of html[data-theme]. This re-points its local palette
            to a dark warm-brown+gold surface when the site is in dark mode,
@@ -2916,14 +2940,6 @@
         /* Dark: tabs row uses the app's blue glass look; active tab glows blue. */
         html[data-theme="dark"] #guide-page .pkg-type-tabs { background: rgba(76,147,255,0.07); border: 1px solid rgba(76,147,255,0.2); }
         html[data-theme="dark"] #guide-page .pkg-type-tab.active { background: rgba(76,147,255,0.18); color: #7FB0FF; box-shadow: 0 0 0 1px rgba(76,147,255,0.5), 0 0 14px rgba(76,147,255,0.35); }
-        /* Telegram tab = a real blue button (dark mode). */
-        #support-tab-chat svg { display: none; }
-        html[data-theme="dark"] #support-tab-chat {
-            background: linear-gradient(135deg, #5AA0FF, #2563EB); color: #fff; font-weight: 600; border-radius: 12px; gap: 5px;
-            box-shadow: 0 4px 14px rgba(76,147,255,0.5), inset 0 1px 1px rgba(255,255,255,0.35);
-        }
-        html[data-theme="dark"] #support-tab-chat:active { transform: scale(0.96); }
-        html[data-theme="dark"] #support-tab-chat svg { display: block; width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
         /* Guide cards keep their original gold look in dark mode. */
         html[data-theme="dark"] #guide-page .support-guide-item {
             --surface: #1F1A0E; --surface-alt: #241D0C; --border: rgba(232,196,110,0.22);
