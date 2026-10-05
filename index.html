@@ -128,10 +128,10 @@
         /* iOS look: Apple's system font (San Francisco) on iPhone/iPad/Mac, with Inter
            (its closest free match) as the fallback on Android/Windows, used everywhere - body text, headings, display numbers - for a
            minimal, consistent brand look instead of a two-font pairing. */
-        .logo, .title-header, .stat-box p, .profile-hero-name, .vip-stat b,
+        .logo, .title-header, .stat-box p, .profile-hero-name,
         .pc-price, h1, h2, h3, h4,
         .game-card-name, .detail-grid-item b,
-        .id-result-name, .google-account-details span, .vip-card-head h4 {
+        .id-result-name, .google-account-details span {
             font-family: -apple-system, BlinkMacSystemFont, 'SF Pro Text', 'SF Pro Display', 'Inter', 'Noto Sans Myanmar', 'Myanmar Sangam MN', 'Myanmar Text', system-ui, 'Segoe UI', Roboto, sans-serif;
         }
 
@@ -625,25 +625,6 @@
         }
         .title-header { font-size: 18px; font-weight: 600; color: var(--text); margin-bottom: 15px; border-bottom: 1px solid var(--border); padding-bottom: 10px; }
 
-        /* Flash Sale banner: shown on Home while settings/flashsale is enabled
-           and hasn't expired (see listenFlashSale() / tickFlashSaleCountdown()). */
-        .flash-sale-banner {
-            display: flex; align-items: center; gap: 12px; margin-bottom: 16px; padding: 14px 16px;
-            border-radius: 16px; cursor: pointer; color: #fff;
-            background: linear-gradient(135deg, #FF5F6D 0%, #FF3D00 100%);
-            box-shadow: 0 8px 22px -8px rgba(255,61,0,0.5);
-        }
-        .flash-sale-icon { font-size: 26px; flex-shrink: 0; }
-        .flash-sale-body { flex: 1; min-width: 0; }
-        .flash-sale-title { font-weight: 700; font-size: 14.5px; }
-        .flash-sale-desc { font-size: 12.5px; opacity: 0.92; margin-top: 2px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .flash-sale-countdown {
-            flex-shrink: 0; font-variant-numeric: tabular-nums; font-weight: 700; font-size: 13.5px;
-            background: rgba(255,255,255,0.22); padding: 6px 10px; border-radius: 10px;
-            animation: flashSalePulse 1.4s ease-in-out infinite;
-        }
-        @keyframes flashSalePulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.55; } }
-        
         /* Cards & Lists */
         .cards-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; }
         /* Wider screens (tablet/desktop/laptop): the phone-style 2-up grid would
@@ -863,7 +844,7 @@
         .voucher-card {
             cursor: pointer; position: relative; isolation: isolate; overflow: hidden;
             border-radius: 18px; aspect-ratio: 1 / 1.32;
-            padding: 14px 10px 10px;
+            padding: 10px 8px 8px;
             display: flex; flex-direction: column; align-items: center; justify-content: flex-end;
             background:
                 repeating-linear-gradient(45deg, rgba(255,255,255,0.045) 0 1px, transparent 1px 13px),
@@ -879,8 +860,8 @@
             pointer-events: none; z-index: 0;
         }
         .voucher-card-stack {
-            position: relative; width: 56%; aspect-ratio: 1 / 1;
-            margin: 2px 0 8px;
+            position: relative; width: 84%; aspect-ratio: 1 / 1;
+            margin: 0 0 6px;
         }
         .voucher-card-stack::before, .voucher-card-stack::after {
             content: ''; position: absolute; inset: 0; border-radius: 13px;
@@ -903,7 +884,7 @@
            clearly over the card's purple gradient, without the per-card
            compositing cost. */
         .voucher-card-name {
-            position: relative; z-index: 2; color: #fff; font-size: 11.5px; font-weight: 400;
+            position: relative; z-index: 2; color: #fff; font-size: 9.5px; font-weight: 400;
             text-align: center; line-height: 1.25;
             padding: 4px 9px; border-radius: 10px;
             background: rgba(20,8,40,0.4); border: 1px solid rgba(255,255,255,0.14);
@@ -1049,23 +1030,7 @@
         .stat-box { background: var(--surface); padding: 20px; border-radius: 10px; text-align: center; border: 1px solid var(--border); border-left: 5px solid var(--accent); box-shadow: 0 1px 2px rgba(0,0,0,0.05); margin-bottom: 15px;}
         .stat-box p { font-size: 28px; font-weight: 600; color: var(--text); margin: 8px 0 15px 0; }
 
-        /* VIP tier badges — colors are set per-tier via inline style from JS,
-           this class just supplies the shared chip shape. */
-        .tier-badge { display: inline-flex; align-items: center; gap: 4px; padding: 4px 11px 4px 8px; border-radius: 999px; font-size: 11px; font-weight: 600; white-space: nowrap; }
-        .tier-badge svg { width: 12px; height: 12px; }
 
-        /* Profile page: VIP status card (avatar ring, tier, spend stats, progress) */
-        .avatar-upload-box.has-tier-ring { box-shadow: 0 0 0 3px var(--tier-color, var(--border)); }
-        .vip-card { background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 16px; box-shadow: 0 1px 3px rgba(0,0,0,0.05); margin-top: 14px; }
-        .vip-card-head { display: flex; align-items: center; justify-content: space-between; }
-        .vip-card-head h4 { font-size: 15px; font-weight: 600; color: var(--text); }
-        .vip-stats-row { display: flex; gap: 10px; margin-top: 14px; }
-        .vip-stat { flex: 1; text-align: center; background: var(--surface-alt); border-radius: 10px; padding: 10px 4px; }
-        .vip-stat b { display: block; font-size: 15px; font-weight: 600; color: var(--text); }
-        .vip-stat span { font-size: 11px; color: var(--text-muted); }
-        .vip-progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--text-secondary); margin-top: 14px; margin-bottom: 6px; }
-        .vip-progress-track { height: 8px; background: var(--bg); border-radius: 6px; overflow: hidden; }
-        .vip-progress-fill { height: 100%; border-radius: 6px; background: var(--tier-color, var(--accent)); transition: width 0.4s ease; }
 
 
         /* Buttons & Nav */
@@ -1893,8 +1858,6 @@
         }
         .pc-top { display: flex; align-items: center; gap: 12px; }
         .pc-avatar-wrap { position: relative; width: 56px; height: 56px; flex-shrink: 0; }
-        .pc-frame-inner { position: absolute; top: 50%; left: 50%; width: 84px; height: 84px; transform: translate(-50%, -50%) scale(0.667); pointer-events: none; }
-        .pc-frame-inner .avatar-tier-frame { top: 50%; }
         .pc-avatar-wrap .avatar-upload-box { top: 50%; width: 56px; height: 56px; }
         .pc-avatar-wrap .avatar-upload-circle { border-width: 2px; }
         .pc-avatar-wrap .avatar-upload-placeholder svg { width: 24px; height: 24px; }
@@ -1907,7 +1870,6 @@
         .profile-hero-id { font-size: 12px; color: var(--text-muted); }
         .profile-id-copy-btn { width: 22px; height: 22px; border-radius: 6px; }
         .profile-id-copy-btn svg { width: 12px; height: 12px; }
-        .profile-hero-tier { display: flex; justify-content: flex-end; flex-shrink: 0; }
         .pc-divider { height: 1px; background: var(--border); margin: 14px 0 12px; }
         .pc-balance-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
         .pc-balance-info { min-width: 0; }
@@ -1973,263 +1935,6 @@
         .google-signout-btn:active { background: var(--border); }
         .avatar-upload-badge { position: absolute; bottom: -2px; right: -2px; width: 28px; height: 28px; border-radius: 50%; background: var(--accent); color: var(--on-color); display: flex; align-items: center; justify-content: center; border: 2px solid var(--surface); }
         .avatar-upload-badge svg { width: 13px; height: 13px; }
-
-        /* ===================== TIER FRAMES — per-VIP-tier avatar rings =====================
-           Sits directly behind .avatar-upload-box at the same anchor point (left:50%,
-           top:96px), sized larger so the ring shows around the photo. Lower tiers get a
-           plain static ring; from Diamond up the ring is a rotating conic-gradient
-           "shimmer"; Gold and up also get orbiting dust/shard particles around
-           the ring, with the particle count, size, and speed escalating tier by tier
-           (Bronze: none, Gold: 2 ... Immortal: all 8) for a premium/mythic feel that
-           visibly grows with rank. All pure CSS, no images. */
-        .avatar-tier-frame {
-            position: absolute; left: 50%; top: 0; transform: translate(-50%, -50%);
-            width: 84px; height: 84px; border-radius: 50%; pointer-events: none; z-index: 1;
-        }
-        .avatar-tier-frame[data-tier=""] { display: none; }
-
-        /* Ring drawn with a conic-gradient masked down to a thin band, so the same
-           element can either sit still (bronze/gold/platinum) or spin (diamond+)
-           just by animating its own transform — the mask shape never changes. */
-        .avatar-tier-frame::before {
-            content: ''; position: absolute; inset: -8px; border-radius: 50%;
-            background: conic-gradient(from 0deg, var(--tf-c1, #A9673A), var(--tf-c2, #C98552), var(--tf-c1, #A9673A));
-            -webkit-mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 4px));
-            mask: radial-gradient(farthest-side, transparent calc(100% - 4px), #000 calc(100% - 4px));
-        }
-        /* Soft ambient glow behind the ring, intensity/color set per tier */
-        .avatar-tier-frame::after {
-            content: ''; position: absolute; inset: -14px; border-radius: 50%;
-            box-shadow: 0 0 0 0 var(--tf-glow, transparent); opacity: 0.9;
-        }
-
-        @keyframes tierFrameSpin { to { transform: rotate(360deg); } }
-        @keyframes tierFrameGlowPulse {
-            0%, 100% { box-shadow: 0 0 10px 1px var(--tf-glow, transparent); }
-            50%      { box-shadow: 0 0 20px 5px var(--tf-glow, transparent); }
-        }
-
-        /* Bronze / Gold / Platinum — used to be fully static; now given a very
-           slow, barely-there spin so they read as "living metal" instead of a
-           dead sticker, while staying clearly calmer than Diamond+ so the
-           escalation up the ranks still feels earned. */
-        .avatar-tier-frame[data-tier="bronze"]   { --tf-c1: #7A4A22; --tf-c2: #E8B98A; }
-        .avatar-tier-frame[data-tier="bronze"]::before { animation: tierFrameSpin 14s linear infinite; }
-        .avatar-tier-frame[data-tier="gold"]     { --tf-c1: #A87400; --tf-c2: #FFDA73; --tf-glow: rgba(255,200,0,0.4); }
-        .avatar-tier-frame[data-tier="gold"]::before    { animation: tierFrameSpin 10s linear infinite; }
-        .avatar-tier-frame[data-tier="gold"]::after     { animation: tierFrameGlowPulse 2.6s ease-in-out infinite; }
-        .avatar-tier-frame[data-tier="platinum"] { --tf-c1: #4A6FA5; --tf-c2: #E4F0FF; --tf-glow: rgba(74,111,165,0.4); }
-        .avatar-tier-frame[data-tier="platinum"]::before { animation: tierFrameSpin 8s linear infinite; }
-        .avatar-tier-frame[data-tier="platinum"]::after { animation: tierFrameGlowPulse 2.6s ease-in-out infinite; }
-
-        /* Diamond / Legend — ring starts rotating faster: a shimmer sweep, now
-           with a bright white peak stop instead of a flat 2-color fade so the
-           gradient looks like polished solid catching light, not a plain blend. */
-        .avatar-tier-frame[data-tier="diamond"]  { --tf-c1: #00A8C9; --tf-c2: #DFFBFF; --tf-glow: rgba(0,184,217,0.45); }
-        .avatar-tier-frame[data-tier="diamond"]::before { animation: tierFrameSpin 5s linear infinite; }
-        .avatar-tier-frame[data-tier="diamond"]::after  { animation: tierFrameGlowPulse 2.2s ease-in-out infinite; }
-        .avatar-tier-frame[data-tier="legend"]   { --tf-c1: #6A3FD1; --tf-c2: #E8DBFF; --tf-glow: rgba(106,63,209,0.5); }
-        .avatar-tier-frame[data-tier="legend"]::before  {
-            background: conic-gradient(from 0deg, #6A3FD1, #E8DBFF, #FFFFFF, #E8DBFF, #6A3FD1);
-            animation: tierFrameSpin 4s linear infinite;
-        }
-        .avatar-tier-frame[data-tier="legend"]::after   { animation: tierFrameGlowPulse 2s ease-in-out infinite; }
-
-        /* Conqueror / Mythical / Immortal — faster shimmer, stronger pulsing glow,
-           star-shaped orbiting sparks (see .tier-frame-spark rules below), plus a
-           subtle "breathing" scale on the whole ring so the top tiers feel alive
-           rather than just spinning in place. */
-        .avatar-tier-frame[data-tier="conqueror"] { --tf-c1: #C41F7D; --tf-c2: #FFC2E6; --tf-glow: rgba(196,31,125,0.55); }
-        .avatar-tier-frame[data-tier="conqueror"]::before {
-            background: conic-gradient(from 0deg, #C41F7D, #FFC2E6, #FFFFFF, #FFC2E6, #C41F7D);
-            animation: tierFrameSpin 3.2s linear infinite;
-        }
-        .avatar-tier-frame[data-tier="conqueror"]::after  { animation: tierFrameGlowPulse 1.8s ease-in-out infinite; }
-        .avatar-tier-frame[data-tier="conqueror"]         { animation: tierFrameBreathe 2.6s ease-in-out infinite; }
-        .avatar-tier-frame[data-tier="mythical"]  { --tf-c1: #FF4318; --tf-c2: #FFCB3D; --tf-glow: rgba(255,67,24,0.6); }
-        .avatar-tier-frame[data-tier="mythical"]::before  {
-            background: conic-gradient(from 0deg, #FF4318, #FFCB3D, #FFFFFF, #FFCB3D, #FF4318);
-            animation: tierFrameSpin 2.6s linear infinite;
-        }
-        .avatar-tier-frame[data-tier="mythical"]::after   { animation: tierFrameGlowPulse 1.5s ease-in-out infinite; }
-        .avatar-tier-frame[data-tier="mythical"]          { animation: tierFrameBreathe 2.2s ease-in-out infinite; }
-        /* Immortal — no longer a flat gold ring: a holographic obsidian/vivid-gold/white
-           sweep (distinct from every other tier's simple 2-color gradient) plus a
-           wider, brighter glow with a thin static gold hairline, so it reads as
-           "one rank above everything else" rather than a slightly-faster Mythical.
-           Gold stops pushed to a punchier saturated yellow (#FFD700/#FFC400) rather
-           than the paler champagne tone used at first, and it breathes the fastest
-           of all tiers. */
-        .avatar-tier-frame[data-tier="immortal"]  { --tf-c1: #0D0B14; --tf-c2: #FFD700; --tf-glow: rgba(255,215,0,0.7); animation: tierFrameBreathe 1.8s ease-in-out infinite; }
-        .avatar-tier-frame[data-tier="immortal"]::before  {
-            background: conic-gradient(from 0deg, #0D0B14, #FFD700, #FFFFFF, #FFC400, #0D0B14, #FFD700, #FFFFFF, #FFC400, #0D0B14);
-            animation: tierFrameSpin 3.4s linear infinite reverse;
-        }
-        .avatar-tier-frame[data-tier="immortal"]::after   {
-            inset: -16px;
-            animation: tierFrameGlowPulseImmortal 1.6s ease-in-out infinite;
-        }
-        @keyframes tierFrameGlowPulseImmortal {
-            0%, 100% { box-shadow: 0 0 0 1px rgba(255,215,0,0.5), 0 0 14px 2px var(--tf-glow, transparent); }
-            50%      { box-shadow: 0 0 0 1px rgba(255,215,0,0.85), 0 0 32px 9px var(--tf-glow, transparent); }
-        }
-        /* Whole-ring breathing pulse for the top 3 tiers — keeps the element's
-           own centering transform (translate(-50%,-50%)) intact while adding a
-           gentle scale so the ring "inhales" alongside the glow pulse. */
-        @keyframes tierFrameBreathe {
-            0%, 100% { transform: translate(-50%, -50%) scale(1); }
-            50%      { transform: translate(-50%, -50%) scale(1.045); }
-        }
-
-        /* Orbiting dust/shard particles — graduated by tier: Bronze has none,
-           then each rank up adds more particles (and a bit more speed/size/glow)
-           so the mythic feel visibly escalates from Gold up to Immortal. Hidden
-           by default (animation-name:none); each tier below turns on exactly as
-           many of the 8 particles as it should show, via :nth-child. Odd ones stay
-           round "dust motes", even ones are squared into tiny "solid shards". */
-        .tier-frame-spark {
-            position: absolute; width: 5px; height: 5px; border-radius: 50%;
-            background: var(--tf-c2, #fff); top: 50%; left: 50%;
-            margin: -2.5px 0 0 -2.5px; opacity: 0; box-shadow: 0 0 6px 1px var(--tf-c2, #fff);
-            animation-name: none; animation-timing-function: linear; animation-iteration-count: infinite;
-        }
-        .tier-frame-spark:nth-child(even) { border-radius: 2px; }
-        .tier-frame-spark:nth-child(1) { animation-delay: 0s; }
-        .tier-frame-spark:nth-child(2) { animation-delay: -0.45s; }
-        .tier-frame-spark:nth-child(3) { animation-delay: -0.9s; }
-        .tier-frame-spark:nth-child(4) { animation-delay: -1.35s; }
-        .tier-frame-spark:nth-child(5) { animation-delay: -1.8s; }
-        .tier-frame-spark:nth-child(6) { animation-delay: -2.25s; }
-        .tier-frame-spark:nth-child(7) { animation-delay: -2.7s; }
-        .tier-frame-spark:nth-child(8) { animation-delay: -3.15s; }
-        @keyframes tierSparkOrbit {
-            0%   { transform: rotate(0deg) translateX(50px) rotate(0deg) scale(0.5); opacity: 0; }
-            8%   { opacity: 1; transform: rotate(28.8deg) translateX(50px) rotate(-28.8deg) scale(1); }
-            50%  { transform: rotate(180deg) translateX(50px) rotate(-180deg) scale(0.7); opacity: 0.55; }
-            92%  { opacity: 1; transform: rotate(331.2deg) translateX(50px) rotate(-331.2deg) scale(1); }
-            100% { transform: rotate(360deg) translateX(50px) rotate(-360deg) scale(0.5); opacity: 0; }
-        }
-        /* Gold — a couple of faint, slow-drifting dust motes */
-        .avatar-tier-frame[data-tier="gold"] .tier-frame-spark:nth-child(-n+2) {
-            animation-name: tierSparkOrbit; animation-duration: 5.2s;
-            width: 3px; height: 3px; margin: -1.5px 0 0 -1.5px;
-        }
-        /* Platinum — three */
-        .avatar-tier-frame[data-tier="platinum"] .tier-frame-spark:nth-child(-n+3) {
-            animation-name: tierSparkOrbit; animation-duration: 4.8s;
-            width: 3px; height: 3px; margin: -1.5px 0 0 -1.5px;
-        }
-        /* Diamond — four, slightly bigger and quicker */
-        .avatar-tier-frame[data-tier="diamond"] .tier-frame-spark:nth-child(-n+4) {
-            animation-name: tierSparkOrbit; animation-duration: 4.2s;
-            width: 4px; height: 4px; margin: -2px 0 0 -2px;
-        }
-        /* Legend — five */
-        .avatar-tier-frame[data-tier="legend"] .tier-frame-spark:nth-child(-n+5) {
-            animation-name: tierSparkOrbit; animation-duration: 3.8s;
-            width: 4px; height: 4px; margin: -2px 0 0 -2px;
-        }
-        /* Conqueror — six, brighter glints */
-        .avatar-tier-frame[data-tier="conqueror"] .tier-frame-spark:nth-child(-n+6) {
-            animation-name: tierSparkOrbit; animation-duration: 3.4s;
-            width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px;
-        }
-        /* Mythical — seven */
-        .avatar-tier-frame[data-tier="mythical"] .tier-frame-spark:nth-child(-n+7) {
-            animation-name: tierSparkOrbit; animation-duration: 3s;
-            width: 5px; height: 5px; margin: -2.5px 0 0 -2.5px;
-        }
-        /* Immortal — full 8-particle storm, fastest and biggest, alternating
-           vivid gold / white-hot motes so it looks like drifting embers +
-           starlight rather than one uniform color like every tier below it. */
-        .avatar-tier-frame[data-tier="immortal"] .tier-frame-spark {
-            animation-name: tierSparkOrbit; animation-duration: 2.6s;
-            width: 6px; height: 6px; margin: -3px 0 0 -3px;
-        }
-        .avatar-tier-frame[data-tier="immortal"] .tier-frame-spark:nth-child(odd) {
-            background: #FFD700; box-shadow: 0 0 8px 2px #FFD700;
-        }
-        .avatar-tier-frame[data-tier="immortal"] .tier-frame-spark:nth-child(even) {
-            background: #FFFFFF; box-shadow: 0 0 8px 2px #FFFFFF;
-        }
-        /* Legend and up — swap the plain dust motes for tiny 4-point twinkle
-           stars (via clip-path), a proper "sparkle" instead of a dot/square,
-           reserved for the top tiers so it still reads as an escalation. */
-        .avatar-tier-frame[data-tier="legend"] .tier-frame-spark:nth-child(-n+5),
-        .avatar-tier-frame[data-tier="conqueror"] .tier-frame-spark:nth-child(-n+6),
-        .avatar-tier-frame[data-tier="mythical"] .tier-frame-spark:nth-child(-n+7),
-        .avatar-tier-frame[data-tier="immortal"] .tier-frame-spark {
-            border-radius: 0;
-            clip-path: polygon(50% 0%, 63% 37%, 100% 50%, 63% 63%, 50% 100%, 37% 63%, 0% 50%, 37% 37%);
-        }
-
-        /* Tier badge (chip next to the name) — matching glow for top tiers */
-        .tier-badge { position: relative; overflow: visible; }
-        .tier-badge.tier-badge-glow { box-shadow: 0 0 10px 0 var(--tbg-glow, transparent); animation: tierBadgeGlowPulse 1.8s ease-in-out infinite; }
-        @keyframes tierBadgeGlowPulse {
-            0%, 100% { box-shadow: 0 0 6px 0 var(--tbg-glow, transparent); }
-            50%      { box-shadow: 0 0 14px 2px var(--tbg-glow, transparent); }
-        }
-        /* Top-4 tier badges (Legend/Conqueror/Mythical/Immortal) — each gets its
-           own dark "material" chip instead of a pastel tint like the tiers below
-           it, with a diagonal shimmer in the tier's own color sweeping across it,
-           so every top rank reads as a distinct jewel/metal rather than the same
-           pastel pill in a different hue. Rank order sets shimmer speed so the
-           escalation matches the avatar ring: Legend slowest, Immortal fastest. */
-        .tier-badge.tier-badge-legend,
-        .tier-badge.tier-badge-conqueror,
-        .tier-badge.tier-badge-mythical,
-        .tier-badge.tier-badge-immortal {
-            overflow: hidden;
-        }
-        .tier-badge.tier-badge-legend::before,
-        .tier-badge.tier-badge-conqueror::before,
-        .tier-badge.tier-badge-mythical::before,
-        .tier-badge.tier-badge-immortal::before {
-            content: ''; position: absolute; top: 0; left: -60%; width: 40%; height: 100%;
-            animation: tierBadgeShimmer 2.4s ease-in-out infinite;
-        }
-        @keyframes tierBadgeShimmer {
-            0%   { left: -60%; }
-            60%  { left: 130%; }
-            100% { left: 130%; }
-        }
-        /* Legend — deep amethyst obsidian, violet shimmer. */
-        .tier-badge.tier-badge-legend {
-            background: linear-gradient(135deg, #150C26, #241748) !important;
-            border: 1px solid rgba(168,133,255,0.5);
-        }
-        .tier-badge.tier-badge-legend::before {
-            background: linear-gradient(115deg, transparent, rgba(168,133,255,0.6), transparent);
-            animation-duration: 3s;
-        }
-        /* Conqueror — deep crimson obsidian, hot-pink shimmer. */
-        .tier-badge.tier-badge-conqueror {
-            background: linear-gradient(135deg, #1F0512, #3A0A22) !important;
-            border: 1px solid rgba(255,109,180,0.55);
-        }
-        .tier-badge.tier-badge-conqueror::before {
-            background: linear-gradient(115deg, transparent, rgba(255,109,180,0.65), transparent);
-            animation-duration: 2.6s;
-        }
-        /* Mythical — charcoal-ember, fiery orange-gold shimmer. */
-        .tier-badge.tier-badge-mythical {
-            background: linear-gradient(135deg, #1A0D05, #3A1608) !important;
-            border: 1px solid rgba(255,159,64,0.55);
-        }
-        .tier-badge.tier-badge-mythical::before {
-            background: linear-gradient(115deg, transparent, rgba(255,159,64,0.7), transparent);
-            animation-duration: 2.2s;
-        }
-        /* Immortal — dark obsidian, vivid-gold shimmer (already the top rank). */
-        .tier-badge.tier-badge-immortal {
-            background: linear-gradient(135deg, #0D0B14, #1C1730) !important;
-            border: 1px solid rgba(255,215,0,0.55);
-        }
-        .tier-badge.tier-badge-immortal::before {
-            background: linear-gradient(115deg, transparent, rgba(255,215,0,0.65), transparent);
-            animation-duration: 1.9s;
-        }
 
         /* Generic collapsible section (Account / VIP Status / Follow Us) - closed by default, header row toggles a body that slides
            down with a bit of motion (fade + drop-in from above) instead of a
@@ -2404,10 +2109,10 @@
            single full-screen sheet, one on screen at a time) keeps the
            real blur; the rest keep the same translucent solid tint
            without the per-element blur cost. */
-        .game-card, .list-card, .notif-item, .detail-form-card, .stat-box, .vip-card,
+        .game-card, .list-card, .notif-item, .detail-form-card, .stat-box,
         .package-card, .payment-option, .google-account-signedin, .history-date-chip,
         .upload-shot-box, .id-result-card, .id-fail-card,
-        .social-link-btn, .detail-grid-item, .vip-stat, .success-box {
+        .social-link-btn, .detail-grid-item, .success-box {
             background: var(--card-bg);
             border: 1px solid var(--line); box-shadow: var(--elev-1);
         }
@@ -2423,7 +2128,7 @@
         .modal-box { border-radius: 26px 26px 0 0; }
         .package-card { border-radius: 20px; }
         .game-card { border-radius: 20px; }
-        .list-card, .detail-form-card, .stat-box, .vip-card { border-radius: 20px; }
+        .list-card, .detail-form-card, .stat-box { border-radius: 20px; }
         /* Status-colored left edge on History cards (inset shadow follows the rounded corners) */
         .history-card.st-pending    { --st: #EAB308; }
         .history-card.st-processing { --st: #1877F2; }
@@ -2554,37 +2259,6 @@
         .pay-type-tab.active { background: var(--card-bg); border-radius: 12px; }
         .recent-id-chip { background: var(--panel-bg); border: 1px solid var(--line); border-radius: 16px; }
         .modal-overlay, .success-overlay { background: rgba(0,0,10,0.45); }
-        /* Support Widget - draggable help/contact bubble (Guide / Complaint / Support Chat) */
-        .support-fab { position: fixed; width: 56px; height: 56px; border-radius: 50%; background: radial-gradient(circle at 30% 22%, #0B1730 0%, #01030A 72%); color: #fff; display: flex; align-items: center; justify-content: center; box-shadow: 0 0 0 1px rgba(76,147,255,0.55), 0 0 16px 2px rgba(59,130,255,0.55), 0 0 30px 4px rgba(59,130,255,0.28), 0 8px 20px rgba(0,0,0,0.45), inset 0 1px 2px rgba(255,255,255,0.06); z-index: 150; cursor: grab; touch-action: none; right: 16px; bottom: 92px; transition: transform 0.15s ease; }
-        .support-fab:active { cursor: grabbing; transform: scale(0.94); }
-        /* Peek state: when idle/unused, the bubble tucks half-behind the
-           screen edge it's docked to and dims, like a Messenger chat head.
-           A first tap slides it fully into view; tapping again (while not
-           peeking) pops it up and opens the widget. */
-        .support-fab.fab-peek { opacity: 0.5; transition: transform 0.35s cubic-bezier(.34,1.56,.64,1), opacity 0.35s ease; }
-        .support-fab.fab-peek.peek-right { transform: translateX(30px); }
-        .support-fab.fab-peek.peek-left { transform: translateX(-30px); }
-        .support-fab.fab-peek:active { transform: scale(0.94); }
-        .support-fab.fab-pop { transition: transform 0.2s cubic-bezier(.34,1.56,.64,1); transform: translateY(-16px) scale(1.1); }
-        /* Only meant to be visible on the game-detail (product/package
-           selection) page — hidden on every other tab (Home, Voucher,
-           Account, History, Wallet, Profile), toggled from
-           showPage() the same way home-hidden works above. */
-        .support-fab.fab-page-hidden { display: none !important; }
-        .support-fab-icon { fill: url(#fabBubbleGradient); stroke: #CFE6FF; stroke-width: 1.2; filter: drop-shadow(0 0 5px rgba(76,147,255,0.9)); }
-        .support-fab-dot { position: absolute; top: 1px; right: 1px; width: 13px; height: 13px; border-radius: 50%; background: #FF3B30; border: 2px solid var(--surface); display: none; }
-        /* Light theme: swap the FAB from its default deep-blue "space"
-           look to a warm gold tone that matches the widget's own gold
-           accent (--accent: #C9972E inside #guide-page). */
-        html:not([data-theme="dark"]) .support-fab {
-            background: radial-gradient(circle at 30% 22%, #B8860B 0%, #5C3D05 72%);
-            box-shadow: 0 0 0 1px rgba(201,151,46,0.55), 0 0 16px 2px rgba(201,151,46,0.55), 0 0 30px 4px rgba(201,151,46,0.28), 0 8px 20px rgba(0,0,0,0.28), inset 0 1px 2px rgba(255,255,255,0.06);
-        }
-        html:not([data-theme="dark"]) .support-fab-icon {
-            fill: url(#fabBubbleGradientLight);
-            stroke: #FBF0D9;
-            filter: drop-shadow(0 0 5px rgba(201,151,46,0.9));
-        }
         /* Store Guide cards — "response card" look (traffic-light dots +
            label header, close button where a Copy button would sit, and a
            two-tone header/body card body) instead of the plain accordion. */
@@ -2628,89 +2302,6 @@
             --guide-card-body-bg: rgba(232,196,110,0.05);
             --guide-card-border: rgba(232,196,110,0.22);
         }
-        .support-complaint-field { margin-bottom: 12px; }
-        .support-complaint-field label { display: block; font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 6px; }
-        .support-complaint-field input, .support-complaint-field textarea { width: 100%; padding: 11px 12px; border-radius: 10px; border: 1px solid var(--border); background: var(--bg); color: var(--text); font-size: 14px; font-family: inherit; box-sizing: border-box; }
-        .support-complaint-field textarea { min-height: 100px; resize: vertical; }
-
-        /* ===== Guide/Help page: white+gold themed full page =====
-           Scoped entirely to #guide-page so no other page in the app is
-           affected. Was previously a small height-limited modal, which
-           cramped/clipped the guide list; now a normal full-page section
-           (like Terms) so the whole list scrolls naturally with the page.
-           Swaps the translucent "solid" look for a solid white
-           surface with a warm gold accent that matches the Guide tab's
-           response-card palette — this reuses the same --accent/--surface
-           variables the rest of the app already reads, just re-pointed
-           locally. */
-        #guide-page {
-            --accent: #C9972E;
-            --accent-dark: #A97A1A;
-            --accent-soft: #FBF0D9;
-            --accent-rgb: 201,151,46;
-            --surface: #FFFFFF;
-            --surface-alt: #FBF5E4;
-            --bg: #FDF8EC;
-            --border: #EAD9A6;
-            --on-color: #FFFFFF;
-            --text: #221B0E;
-            --text-secondary: #8A7A52;
-            --text-faint: #E4D6A8;
-        }
-        #guide-page-title { color: var(--accent-dark); }
-        /* Smaller, tighter tab row so the 3 tabs
-           (လမ်းညွှန် / တိုင်ကြားရန် / Support Chat) fit comfortably
-           instead of looking oversized/cramped on narrow screens. */
-        #guide-page .pkg-type-tabs { background: var(--bg); padding: 3px; gap: 3px; }
-        #guide-page .pkg-type-tab { font-size: 12px; padding: 7px 2px; }
-
-        /* The header above (--accent redefined to gold for the whole page)
-           cascades into everything by default. Only the FAQ cards below are
-           meant to read as gold - the "Help" title, the back button and the
-           3 tabs themselves should stay the app's normal blue, in both
-           themes (dark mode already got this right via its own block
-           further down; this is the missing light-mode half). */
-        #guide-page-title { color: #1877F2; }
-        #guide-page .header-icon { color: #1877F2; }
-        #guide-page .pkg-type-tab.active { color: #1877F2; }
-        html[data-theme="dark"] #guide-page-title { color: #4C93FF; }
-        html[data-theme="dark"] #guide-page .header-icon { color: #4C93FF; }
-
-        /* Telegram tab = a real blue button, in EITHER theme - previously
-           only the dark-mode block below styled it, so in light mode it
-           just blended in as a plain gold-accented tab like Guide/Complaint
-           and wasn't recognizable as a "go to Telegram" button. */
-        #support-tab-chat svg { display: none; }
-        #support-tab-chat {
-            background: linear-gradient(135deg, #5AA0FF, #2563EB); color: #fff; font-weight: 600; border-radius: 12px; gap: 5px;
-            box-shadow: 0 4px 14px rgba(37,99,235,0.4), inset 0 1px 1px rgba(255,255,255,0.35);
-        }
-        #support-tab-chat:active { transform: scale(0.96); }
-        #support-tab-chat svg { display: block; width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex-shrink: 0; }
-
-        /* Dark theme: the page was hardcoded to a solid white+gold look
-           regardless of html[data-theme]. This re-points its local palette
-           to a dark warm-brown+gold surface when the site is in dark mode,
-           so the guide/complaint page follows the site theme instead of
-           always staying white. */
-        html[data-theme="dark"] #guide-page {
-            --accent: #4C93FF;
-            --accent-dark: #6FA8FF;
-            --accent-soft: rgba(76,147,255,0.18);
-            --accent-rgb: 76,147,255;
-            --on-color: #FFFFFF;
-        }
-        /* Dark: tabs row uses the app's blue solid look; active tab glows blue. */
-        html[data-theme="dark"] #guide-page .pkg-type-tabs { background: rgba(76,147,255,0.07); border: 1px solid rgba(76,147,255,0.2); }
-        html[data-theme="dark"] #guide-page .pkg-type-tab.active { background: rgba(76,147,255,0.18); color: #7FB0FF; box-shadow: 0 0 0 1px rgba(76,147,255,0.5), 0 0 14px rgba(76,147,255,0.35); }
-        /* Guide cards keep their original gold look in dark mode. */
-        html[data-theme="dark"] #guide-page .support-guide-item {
-            --surface: #1F1A0E; --surface-alt: #241D0C; --border: rgba(232,196,110,0.22);
-            --text: #F5ECD6; --text-secondary: #C9B37E;
-            border-color: rgba(232,196,110,0.55);
-            box-shadow: 0 0 10px rgba(232,196,110,0.28), inset 0 0 8px rgba(232,196,110,0.08);
-        }
-
         /* ===== Compact split cards (image tile + separate name pill) ===== */
         .cards-grid { grid-template-columns: repeat(3, 1fr); gap: 10px; }
         @media (min-width: 700px) { .cards-grid { grid-template-columns: repeat(auto-fill, minmax(104px, 1fr)); gap: 12px; } }
@@ -2799,9 +2390,9 @@
         .nav-icon-wrap-wallet .ui-icon { stroke: var(--lime-ink); }
 
         /* Surfaces: solid card, hairline border, no shadow */
-        .game-card, .list-card, .notif-item, .detail-form-card, .stat-box, .vip-card,
+        .game-card, .list-card, .notif-item, .detail-form-card, .stat-box,
         .package-card, .payment-option, .google-account-signedin, .history-date-chip,
-        .upload-shot-box, .id-result-card, .id-fail-card, .social-link-btn, .detail-grid-item, .vip-stat, .success-box {
+        .upload-shot-box, .id-result-card, .id-fail-card, .social-link-btn, .detail-grid-item, .success-box {
             background: var(--surface); border: 1px solid var(--border); box-shadow: none;
         }
         .modal-box { background: var(--surface); border: none; border-radius: 22px 22px 0 0; box-shadow: none; }
@@ -2949,11 +2540,6 @@
 .header-profile-avatar{border-radius:12px!important}
 .avatar-upload-box,.avatar-upload-circle,.google-account-avatar{border-radius:14px!important}
 .pc-avatar-wrap .avatar-upload-box,.pc-avatar-wrap .avatar-upload-circle{border-radius:12px!important}
-.avatar-tier-frame{border-radius:14px!important}
-.avatar-tier-frame::before{inset:-8px;padding:4px;border-radius:20px!important;box-sizing:border-box;
- -webkit-mask:linear-gradient(#000 0 0) content-box,linear-gradient(#000 0 0);-webkit-mask-composite:xor;
- mask:linear-gradient(#000 0 0) content-box exclude,linear-gradient(#000 0 0)}
-.avatar-tier-frame::after{border-radius:22px!important}
 /* ---- Profile: no header ---- */
 body.page-profile .header{display:none!important}
 body.page-profile{padding-top:calc(10px + env(safe-area-inset-top,0px))!important}
@@ -3218,18 +2804,6 @@ html[data-theme="dark"] .profile-hero-edit-btn,html[data-theme="dark"] .prefs-ro
 
     <!-- SVGs -->
     <svg style="display: none;">
-        <defs>
-            <radialGradient id="fabBubbleGradient" cx="35%" cy="24%" r="80%">
-                <stop offset="0%" stop-color="#BFE3FF"></stop>
-                <stop offset="45%" stop-color="#3B8CFF"></stop>
-                <stop offset="100%" stop-color="#0B3D91"></stop>
-            </radialGradient>
-            <radialGradient id="fabBubbleGradientLight" cx="35%" cy="24%" r="80%">
-                <stop offset="0%" stop-color="#FBF0D9"></stop>
-                <stop offset="45%" stop-color="#E0B04A"></stop>
-                <stop offset="100%" stop-color="#8A6416"></stop>
-            </radialGradient>
-        </defs>
         <symbol id="icon-gamepad" viewBox="0 0 24 24"><path d="M7.5 7h9a4.5 4.5 0 0 1 4.4 5.4l-.8 4.2a2.4 2.4 0 0 1-4.1 1.2L14.6 16.2H9.4l-1.4 1.6a2.4 2.4 0 0 1-4.1-1.2l-.8-4.2A4.5 4.5 0 0 1 7.5 7z"></path><path d="M8.2 10v4M6.2 12h4"></path><circle cx="15.6" cy="11" r="1" fill="currentColor" stroke="none"></circle><circle cx="17.6" cy="13" r="1" fill="currentColor" stroke="none"></circle></symbol>
         <symbol id="icon-home" viewBox="0 0 24 24"><path d="M3.5 11.2 12 4l8.5 7.2"></path><path d="M5.8 9.6V18a2.2 2.2 0 0 0 2.2 2.2h8A2.2 2.2 0 0 0 18.2 18V9.6"></path><path d="M10 20.2v-4.4a2 2 0 0 1 4 0v4.4" stroke-opacity=".45"></path></symbol>
         <symbol id="icon-history" viewBox="0 0 24 24"><path d="M3.6 12a8.4 8.4 0 1 0 2.5-6L3.6 8.4"></path><path d="M3.6 4v4.4H8"></path><path d="M12 7.6V12l3 1.9" stroke-opacity=".45"></path></symbol>
@@ -3270,9 +2844,7 @@ html[data-theme="dark"] .profile-hero-edit-btn,html[data-theme="dark"] .prefs-ro
         <symbol id="icon-gift" viewBox="0 0 24 24"><rect x="4" y="8.4" width="16" height="4" rx="1.6"></rect><path d="M5.6 12.4V18a2 2 0 0 0 2 2h8.8a2 2 0 0 0 2-2v-5.6"></path><path d="M12 8.4V20" stroke-opacity=".45"></path><path d="M12 8.4C10 8.4 7.6 7.9 7.6 6.2c0-1.1.9-1.9 2-1.9 1.5 0 2.4 1.7 2.4 4.1zM12 8.4c2 0 4.4-.5 4.4-2.2 0-1.1-.9-1.9-2-1.9-1.5 0-2.4 1.7-2.4 4.1z"></path></symbol>
         <symbol id="icon-external-link" viewBox="0 0 24 24"><path d="M14 4h6v6M20 4l-8.6 8.6"></path><path d="M18 14.2v3.3a2.5 2.5 0 0 1-2.5 2.5h-9A2.5 2.5 0 0 1 4 17.5v-9A2.5 2.5 0 0 1 6.5 6h3.3" stroke-opacity=".45"></path></symbol>
         <symbol id="icon-help" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"></circle><path d="M9.4 9.4a2.7 2.7 0 0 1 5.2.9c0 1.8-2.6 2.3-2.6 3.8"></path><path d="M12 17.4h.01"></path></symbol>
-        <symbol id="icon-message-circle" viewBox="0 0 24 24"><path d="M12 4C7.6 4 4 7.3 4 11.4c0 2.2 1 4.2 2.7 5.6l-.7 3.5 3.6-1.8c.8.2 1.6.3 2.4.3 4.4 0 8-3.3 8-7.6S16.4 4 12 4z"></path><circle cx="8.4" cy="11.5" r="1.1" fill="currentColor" stroke="none"></circle><circle cx="12" cy="11.5" r="1.1" fill="currentColor" stroke="none"></circle><circle cx="15.6" cy="11.5" r="1.1" fill="currentColor" stroke="none"></circle></symbol>
         <symbol id="icon-globe" viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.6"></circle><path d="M3.4 12h17.2"></path><path d="M12 3.4c2.4 2.5 3.7 5.4 3.7 8.6s-1.3 6.1-3.7 8.6c-2.4-2.5-3.7-5.4-3.7-8.6S9.6 5.9 12 3.4z" stroke-opacity=".45"></path></symbol>
-        <symbol id="icon-flag" viewBox="0 0 24 24"><path d="M5 21V4.2"></path><path d="M5 5.2c3-1.6 5.4 1.4 8.8 0 1.9-.8 3.5-.8 5.2 0v8c-1.7-.8-3.3-.8-5.2 0-3.4 1.4-5.8-1.6-8.8 0"></path></symbol>
         <symbol id="icon-pin" viewBox="0 0 24 24"><path d="M12 21s-6.6-5.6-6.6-10.6a6.6 6.6 0 0 1 13.2 0C18.6 15.4 12 21 12 21z"></path><circle cx="12" cy="10.4" r="2.4"></circle></symbol>
         <symbol id="icon-map-pin" viewBox="0 0 24 24"><path d="M12 21s-6.6-5.6-6.6-10.6a6.6 6.6 0 0 1 13.2 0C18.6 15.4 12 21 12 21z"></path><circle cx="12" cy="10.4" r="2.4"></circle></symbol>
         <symbol id="icon-book" viewBox="0 0 24 24"><path d="M5 19.4V5.6a2 2 0 0 1 2-2h12.4v13.6H7a2 2 0 0 0-2 2.2 2 2 0 0 0 2 2h12.4v-3.4"></path><path d="M9.4 8h6" stroke-opacity=".45"></path></symbol>
@@ -3296,44 +2868,7 @@ html[data-theme="dark"] .profile-hero-edit-btn,html[data-theme="dark"] .prefs-ro
     <!-- Toast Notification -->
     <div id="toast"><span class="toast-icon-circle" id="toast-icon-circle"><svg class="ui-icon" id="toast-icon" style="color:#fff;"><use id="toast-icon-use" href="#icon-check"></use></svg></span> <span id="toast-msg">Success!</span> <svg class="ui-icon toast-close" onclick="window.hideToast && window.hideToast()"><use href="#icon-close"></use></svg></div>
 
-    <!-- Support Widget: draggable FAB, opens a panel with Guide / Complaint / Support Chat tabs -->
-    <div class="support-fab fab-page-hidden" id="support-fab" aria-label="Help &amp; Support">
-        <svg class="ui-icon support-fab-icon" style="width:27px;height:27px;"><use href="#icon-message-circle"></use></svg>
-        <span class="support-fab-dot" id="support-fab-dot"></span>
-    </div>
-
-    <!-- Guide/Help page: was a small height-limited modal (cramped the
-         accordion list and made it feel like items "disappeared" when
-         scrolling); now a normal full-page section like Terms, so the
-         whole list has room and scrolls with the page. -->
-    <div id="guide-page" class="page-section">
-        <div style="display:flex; align-items:center; gap:10px; margin-bottom:14px;">
-            <div class="header-icon" style="width:36px;height:36px;" onclick="closeGuidePage()">
-                <svg class="ui-icon" style="width:18px;"><use href="#icon-chevron-left"></use></svg>
-            </div>
-            <h3 data-i18n="support_title" id="guide-page-title" style="font-size:18px;font-weight:600;">Help</h3>
-        </div>
-        <div class="pkg-type-tabs" id="support-widget-tabs" style="margin-bottom:14px;">
-            <button class="pkg-type-tab active" id="support-tab-complaint" onclick="window.switchSupportTab('complaint')" data-i18n="tab_complaint">Complaint</button>
-            <button class="pkg-type-tab" id="support-tab-chat" onclick="window.openAdminTelegram()"><svg class="ui-icon"><use href="#icon-telegram"></use></svg><span data-i18n="tab_chat">Support Chat</span></button>
-        </div>
-
-            <!-- Complaint tab -->
-            <div class="modal-body" id="support-panel-complaint">
-                <div class="support-complaint-field">
-                    <label data-i18n="complaint_label_title">Title</label>
-                    <input type="text" id="complaint-title" placeholder="ဥပမာ - အော်ဒါ Processing မှာ ကပ်နေသည်" data-i18n-ph="complaint_ph_title">
-                </div>
-                <div class="support-complaint-field">
-                    <label data-i18n="complaint_label_content">Details</label>
-                    <textarea id="complaint-text" placeholder="ပြဿနာအား အသေးစိတ် ရေးပေးပါ..." data-i18n-ph="complaint_ph_text"></textarea>
-                </div>
-                <button type="button" class="btn btn-primary" style="width:100%;" onclick="window.submitComplaint(this)">
-                    <svg class="ui-icon" style="width:16px;margin-right:6px;vertical-align:-3px;"><use href="#icon-flag"></use></svg><span data-i18n="btn_send_complaint">Send Complaint</span>
-                </button>
-            </div>
-
-    </div>
+    
 
     <!-- Header -->
     <header class="header">
@@ -3388,14 +2923,6 @@ html[data-theme="dark"] .profile-hero-edit-btn,html[data-theme="dark"] .prefs-ro
                 <button type="button" class="wf-act wf-act--games active" aria-current="true" onclick="var t=document.getElementById('all-games-title-row'); if(t) t.scrollIntoView({behavior:'smooth',block:'start'});"><span class="wf-act-ic"><svg class="ui-icon"><use href="#icon-gamepad"></use></svg></span>Games</button>
                 <button type="button" class="wf-act wf-act--gifts" onclick="showPage('voucher')"><span class="wf-act-ic"><svg class="ui-icon"><use href="#icon-gift"></use></svg></span>Gifts</button>
                 <button type="button" class="wf-act wf-act--history" onclick="showPage('history')"><span class="wf-act-ic"><svg class="ui-icon"><use href="#icon-history"></use></svg></span>History</button>
-            </div>
-            <div class="flash-sale-banner" id="flash-sale-banner" style="display:none;" onclick="openFlashSaleGame()">
-                <div class="flash-sale-icon">⚡</div>
-                <div class="flash-sale-body">
-                    <div class="flash-sale-title" id="flash-sale-title">Flash Sale</div>
-                    <div class="flash-sale-desc" id="flash-sale-desc"></div>
-                </div>
-                <div class="flash-sale-countdown" id="flash-sale-countdown">--:--:--</div>
             </div>
             <div id="favorite-games-section" style="display:none;">
                 <h2 class="title-header" data-i18n="title_favorites">My Favorites</h2>
@@ -3781,20 +3308,7 @@ html[data-theme="dark"] .wallet-balance-card{
             <div class="profile-card profile-card-anim" style="animation-delay:0ms;">
                 <div class="pc-top">
                     <div class="pc-avatar-wrap">
-                        <!-- Tier frame: scaled-down copy of the per-tier ring, centred behind the avatar.
-                             Ring style/particles switch by data-tier in loadProfileStats(). -->
-                        <div class="pc-frame-inner">
-                            <div class="avatar-tier-frame" id="avatar-tier-frame" data-tier="">
-                                <span class="tier-frame-spark spark-1"></span>
-                                <span class="tier-frame-spark spark-2"></span>
-                                <span class="tier-frame-spark spark-3"></span>
-                                <span class="tier-frame-spark spark-4"></span>
-                                <span class="tier-frame-spark spark-5"></span>
-                                <span class="tier-frame-spark spark-6"></span>
-                                <span class="tier-frame-spark spark-7"></span>
-                                <span class="tier-frame-spark spark-8"></span>
-                            </div>
-                        </div>
+                        
                         <label class="avatar-upload-box" id="avatar-upload-box" for="profile-photo-file">
                             <span class="avatar-upload-circle">
                                 <img id="profile-photo-preview" src="" alt="Profile photo" style="display:none;">
@@ -3823,7 +3337,6 @@ html[data-theme="dark"] .wallet-balance-card{
                         </div>
                     </div>
 
-                    <div class="profile-hero-tier" id="vip-tier-badge-hero"></div>
                 </div>
 
                 <div class="pc-divider"></div>
@@ -3905,11 +3418,7 @@ html[data-theme="dark"] .wallet-balance-card{
                         <span class="pt-ic"><svg class="ui-icon"><use href="#icon-history"></use></svg></span>
                         <span class="pt-label"><span data-i18n="nav_history">History</span></span>
                     </button>
-                    <button type="button" class="prefs-tile" onclick="showPage('wallet')">
-                        <span class="pt-ic"><svg class="ui-icon"><use href="#icon-wallet"></use></svg></span>
-                        <span class="pt-label"><span data-i18n="nav_wallet">Wallet</span></span>
-                    </button>
-                    <button type="button" class="prefs-tile" onclick="contactAdmin()">
+                                        <button type="button" class="prefs-tile" onclick="contactAdmin()">
                         <span class="pt-ic"><svg class="ui-icon"><use href="#icon-help"></use></svg></span>
                         <span class="pt-label"><span data-i18n="nav_contact">Contact Admin</span></span>
                     </button>
@@ -3989,27 +3498,7 @@ html[data-theme="dark"] .wallet-balance-card{
                 </div>
             </div>
 
-            <div class="vip-card profile-card-anim" id="vip-card" style="display:none;animation-delay:160ms;">
-                <div class="vip-card-head collapsible-header" onclick="toggleCollapsible('vip-body','vip-chevron')" role="button" aria-label="Show VIP status">
-                    <h4>VIP Status</h4>
-                    <div style="display:flex;align-items:center;gap:8px;">
-                        <div id="vip-tier-badge"></div>
-                        <svg class="ui-icon collapsible-chevron" id="vip-chevron"><use href="#icon-chevron-right"></use></svg>
-                    </div>
-                </div>
-                <div class="collapsible-body" id="vip-body">
-                    <div class="vip-stats-row">
-                        <div class="vip-stat"><b id="vip-stat-spent">0 MMK</b><span>Total Spent</span></div>
-                        <div class="vip-stat"><b id="vip-stat-orders">0</b><span>Orders</span></div>
-                        <div class="vip-stat"><b id="vip-stat-since">-</b><span>Member Since</span></div>
-                    </div>
-                    <div id="vip-progress-wrap">
-                        <div class="vip-progress-label"><span id="vip-progress-text">-</span></div>
-                        <div class="vip-progress-track"><div class="vip-progress-fill" id="vip-progress-fill" style="width:0%;"></div></div>
-                    </div>
-                </div>
-            </div>
-
+            
             <div class="detail-form-card profile-card-anim" id="social-links-card" style="margin-top:14px;animation-delay:240ms;">
                 <div class="collapsible-header" onclick="toggleCollapsible('social-links-body','social-links-chevron')" role="button" aria-label="Show social links">
                     <label style="align-self:flex-start;margin-top:0;">Follow Us</label>
@@ -4296,12 +3785,6 @@ html[data-theme="dark"] .wallet-balance-card{
             <h3 class="detail-section-title" data-i18n="sec_select_currency_pkg">Select Currency Package</h3>
             <div class="pkg-type-tabs" id="pkg-type-tabs" style="display:none;"></div>
             <div class="package-grid-scroll"><div id="detail-package-list" class="package-grid"></div></div>
-
-            <!-- Coupon code — validated live against the coupons collection
-                 via the Worker's /validate-coupon (see COUPON_WORKER_URL);
-                 the real, must-not-lie check + usedCount increment happens
-                 at /redeem-coupon inside submitOrder/submitWalletOrder. -->
-            <div id="coupon-card" class="detail-form-card" style="display:none; margin-top:12px;"></div>
 
             <div id="detail-payment-section" style="display:none;">
                 <h3 class="detail-section-title" data-i18n="sec_how_pay">How do you want to pay?</h3>
@@ -4633,7 +4116,7 @@ html[data-theme="dark"] .wallet-balance-card{
                 btn_select_network: 'Select a Network', btn_select_package: 'Select a Package',
                 btn_submit_verification: 'Submit for Verification', btn_save_profile: 'Save Profile',
                 btn_go_history: 'Go to History', 
-                btn_remove: 'Remove', btn_apply: 'Apply', btn_top_up_wallet: 'Top Up Wallet',
+                btn_top_up_wallet: 'Top Up Wallet',
                 btn_copy_all_codes: 'Copy All Codes', btn_contact_admin_telegram: 'Contact Admin on Telegram',
                 
                 
@@ -4642,31 +4125,7 @@ html[data-theme="dark"] .wallet-balance-card{
                 
                 
                 drawer_footer: 'PCA Store',
-                support_title: 'Help', tab_guide: 'Guide', tab_complaint: 'Complaint', tab_chat: 'Telegram', guide_card_close: 'Close',
-                guide_q_about: 'What is PCA Store?',
-                guide_a_about: 'PCA Store has been Myanmar\'s fast, safe and reliable platform for game top-ups and in-game currency (Diamonds, UC, and more) since 2026. It comes with a Wallet, VIP tiers, and a direct Telegram line to the admin.',
-                guide_q_order: 'How do I place an order?',
-                guide_a_order: 'Pick a game from the Home page. Choose a Package/Currency and enter your In-Game ID (and Server ID if needed). Tap "Confirm ID" to verify it\'s correct. Finally, choose a payment type and confirm.',
-                guide_q_payment: 'How do I pay?',
-                guide_a_payment: 'You can pay directly from your Wallet balance, or choose a Payment Method and upload a transfer receipt. To top up your Wallet, use "Top Up" on the Wallet page.',
-                guide_q_status: 'How do I check my order status?',
-                guide_a_status: 'On the History page, each order shows live Pending → Processing → Success/Fail status. If it stays in Processing too long, reach out via the "Complaint" tab.',
-                guide_q_contact: 'How do I get help if there\'s a problem?',
-                guide_a_contact: 'For details, use the "Complaint" tab (logged as a ticket). To talk directly, tap the "Telegram" tab to message the admin.',
-                complaint_label_title: 'Title', complaint_label_content: 'Details',
-                complaint_ph_title: 'e.g. Order stuck in Processing',
-                complaint_ph_text: 'Describe the issue in detail...',
-                btn_send_complaint: 'Send Complaint',
-                guide_q_getstarted: 'How do I get started the very first time?',
-                guide_a_getstarted: 'The first time you open the app, it asks you to sign in with your Google account - just pick your Gmail account, no password to type. Then choose a language (Myanmar / English); you can switch it later from "Language" in the Drawer menu. Tap "Get Started" to reach the Home page. Along the bottom you\'ll see 5 tabs - "Top Up" (buy game Diamonds/UC), "Voucher" (gift cards), "Wallet" (your balance), "Game Acc" (buy/sell game accounts), and "Profile" (your info). There\'s also a menu icon at the top-left that opens the Drawer, with History, Name Check, Support and more.',
-                guide_q_orderfull: 'Placing an order - a full step-by-step guide',
-                guide_a_orderfull: '1) On the Home page ("Top Up" tab), scroll to the game you want and tap it. 2) On the game\'s page, choose a Package/Currency (e.g. how many Diamonds). 3) In the "In-Game ID" field, enter your Player ID (some games also need a Server ID) - you can find this on your profile inside the game. 4) Tap "Confirm ID" - the system automatically shows your account name; double-check it\'s correct (re-enter the ID if the name looks wrong). 5) Choose a payment type - pay instantly from your Wallet balance if you have enough, or pick a Payment Method (bank transfer, KBZPay, Wave, etc.) and upload a photo of your transfer receipt. 6) Drag the slide button at the bottom to confirm and your order is placed. 7) Track its status any time under "History" in the Drawer menu.',
-                guide_q_wallettopup: 'How to top up your Wallet - in detail',
-                guide_a_wallettopup: '1) Tap "Wallet" in the bottom tabs. 2) Tap "Top Up". 3) Enter the amount you want to add. 4) Choose a Payment Method (bank transfer, Crypto, Aluu, FazerCard, etc.) - the account details to send money to will appear based on what you pick. 5) After transferring outside the app, upload a photo of the receipt or the transaction ID and tap Submit. 6) Once an admin verifies it, the money is added to your Wallet automatically (usually within a few minutes to a few hours). From then on, you can pay for orders instantly from your Wallet balance without uploading a receipt each time.',
-                guide_q_historyfull: 'Checking Order History, and what to do if there\'s a problem',
-                guide_a_historyfull: 'Open the Drawer from the top-left menu icon and choose "History". You can see each order\'s status here - "Pending", "Processing", "Success" or "Fail". Tap an order to see its details such as ID, amount and time. If Processing takes too long, or you run into any other issue, use the "Complaint" tab in the Support widget - the admin logs it as a ticket and gets back to you. For a faster, direct line, use the "Telegram" tab instead.',
-                guide_q_otherfeatures: 'What else can I do in the app?',
-                guide_a_otherfeatures: '"Voucher" tab - buy gift cards and top-up vouchers instantly. "Game Acc" tab - buy game accounts other people are selling, or list your own for sale (this may be switched on or off by the admin). "Name Check" in the Drawer - check whether a game ID is valid before placing an order. Your "Profile" shows your VIP tier and total spend. Theme (Dark/Light Mode) and language can also be changed from the Drawer.',
+                guide_card_close: 'Close',
                 btn_confirm_id: 'Confirm ID', btn_confirmed_id: 'Confirmed ✓', btn_checking_id: 'Checking...',
                 checking_id_text: 'Checking ID...', id_not_found: 'ID not found — please double-check it.',
                 verified_prefix: 'Verified', player_verified: 'Player verified',
@@ -4767,7 +4226,7 @@ html[data-theme="dark"] .wallet-balance-card{
                 btn_select_network: 'ကွန်ရက် ရွေးပါ', btn_select_package: 'ပက်ကေ့ချ် ရွေးပါ',
                 btn_submit_verification: 'အတည်ပြုရန် ပို့ပါ', btn_save_profile: 'ပရိုဖိုင် သိမ်းမည်',
                 btn_go_history: 'မှတ်တမ်းသို့သွားမည်', 
-                btn_remove: 'ဖယ်ရှားမည်', btn_apply: 'သုံးမည်', btn_top_up_wallet: 'ပိုက်ဆံအိတ်ဖြည့်မည်',
+                btn_top_up_wallet: 'ပိုက်ဆံအိတ်ဖြည့်မည်',
                 btn_copy_all_codes: 'ကုဒ်အားလုံးကူးမည်', btn_contact_admin_telegram: 'Telegram မှ အက်ဒမင်ကိုဆက်သွယ်ရန်',
                 
                 
@@ -4776,31 +4235,7 @@ html[data-theme="dark"] .wallet-balance-card{
                 
                 
                 drawer_footer: 'PCA Store',
-                support_title: 'အကူအညီ', tab_guide: 'လမ်းညွှန်', tab_complaint: 'တိုင်ကြားရန်', tab_chat: 'Telegram', guide_card_close: 'ပိတ်ရန်',
-                guide_q_about: 'PCA Store ဆိုတာ ဘာလဲ',
-                guide_a_about: 'PCA Store သည် ၂၀၂၆ ခုနှစ်မှစတင်၍ မြန်မာနိုင်ငံရှိ ဂိမ်းသမားများအတွက် Diamond၊ UC စသည့် In-Game Currency နှင့် Top Up ဝန်ဆောင်မှုများကို လျင်မြန်၊ ဘေးကင်း၊ စိတ်ချရစွာ ရရှိနိုင်သော ပလက်ဖောင်းတစ်ခု ဖြစ်ပါသည်။ Wallet၊ VIP အဆင့်များ နှင့် Admin ထံ တိုက်ရိုက် Telegram ဆက်သွယ်ခွင့် တို့ကို ပါဝင်ပေးထားပါသည်။',
-                guide_q_order: 'အော်ဒါ ဘယ်လိုတင်ရမလဲ',
-                guide_a_order: 'Home စာမျက်နှာမှ ဂိမ်းကို ရွေးပါ။ Package/Currency ကို ရွေးပြီး In-Game ID (နှင့် Server ID လိုအပ်ပါက) ရိုက်ထည့်ပါ။ "Confirm ID" ကို နှိပ်ပြီး ID မှန်ကန်ကြောင်း စစ်ဆေးပါ။ နောက်ဆုံးတွင် ငွေပေးချေမှုအမျိုးအစား ရွေးချယ်ပြီး အတည်ပြုလိုက်ရုံပါပဲ။',
-                guide_q_payment: 'ငွေပေးချေနည်း',
-                guide_a_payment: 'Wallet ထဲက လက်ကျန်ငွေဖြင့် တိုက်ရိုက်ပေးချေနိုင်သလို၊ Payment Method တစ်ခုကို ရွေးပြီး ငွေလွှဲပြေစာ (Receipt) တင်၍လည်း ပေးချေနိုင်ပါသည်။ Wallet ထဲသို့ ငွေဖြည့်ရန် Wallet စာမျက်နှာမှ "Top Up" ကို သုံးပါ။',
-                guide_q_status: 'အော်ဒါ Status ကို ဘယ်လိုစစ်ရမလဲ',
-                guide_a_status: 'History စာမျက်နှာတွင် အော်ဒါတစ်ခုချင်းစီကို Pending → Processing → Success/Fail အဆင့်ဆင့် အချိန်နှင့်တပြေးညီ ကြည့်ရှုနိုင်ပါသည်။ Processing တွင် ကြာမြင့်နေပါက "တိုင်ကြားရန်" tab ကနေ ပြန်လည်အကြောင်းကြားနိုင်ပါသည်။',
-                guide_q_contact: 'ပြဿနာရှိရင် ဘယ်လိုဆက်သွယ်ရမလဲ',
-                guide_a_contact: 'အသေးစိတ် ရေးရန်ဆိုရင် "တိုင်ကြားရန်" tab ကို သုံးပါ (Ticket အနေနှင့် မှတ်တမ်းတင်ပေးပါမည်)။ တိုက်ရိုက် ဆက်သွယ်ချင်ရင် "Telegram" tab ကို နှိပ်ပြီး Admin ကို message ပို့နိုင်ပါသည်။',
-                complaint_label_title: 'ခေါင်းစဉ်', complaint_label_content: 'အကြောင်းအရာ',
-                complaint_ph_title: 'ဥပမာ - အော်ဒါ Processing မှာ ကပ်နေသည်',
-                complaint_ph_text: 'ပြဿနာအား အသေးစိတ် ရေးပေးပါ...',
-                btn_send_complaint: 'တိုင်ကြားစာ ပို့မည်',
-                guide_q_getstarted: 'App ကို ပထမဆုံးအကြိမ် ဘယ်လိုစသုံးရမလဲ',
-                guide_a_getstarted: 'App ကို ပထမဆုံး ဖွင့်လိုက်တဲ့အခါ Google account နဲ့ Sign in လုပ်ဖို့ တောင်းဆိုပါလိမ့်မယ် - သင့် Gmail အကောင့်ကို ရွေးလိုက်ရုံပါပဲ၊ Password ထပ်ရိုက်စရာ မလိုပါ။ ပြီးရင် ဘာသာစကား (မြန်မာ / English) ရွေးပါ၊ နောက်ပိုင်း Drawer ထဲက "Language" ကနေ ပြန်ပြောင်းလို့ရပါတယ်။ "Get Started" ကို နှိပ်လိုက်ရင် Home page ရောက်ပါပြီ။ Screen အောက်ခြေမှာ tab ၅ ခု တွေ့ရမယ် - "Top Up" (ဂိမ်း Diamond/UC ဝယ်ရန်)၊ "Voucher" (Gift card များ)၊ "Wallet" (မိမိရဲ့ လက်ကျန်ငွေ)၊ "Game Acc" (ရောင်းရန်/ဝယ်ရန် ဂိမ်း Account များ)၊ "Profile" (မိမိ အချက်အလက်)။ ဒါ့အပြင် ဖန်သားပြင် ဘယ်ဘက်အပေါ် icon ကို နှိပ်ရင် Drawer menu ထဲမှာ History, Name Check, Support စတာတွေကိုပါ ရှာတွေ့နိုင်ပါတယ်။',
-                guide_q_orderfull: 'Order တင်ခြင်း - အစအဆုံး အသေးစိတ် လမ်းညွှန်',
-                guide_a_orderfull: '၁) Home page ("Top Up" tab) မှာ သင်ဝယ်ချင်တဲ့ ဂိမ်းကို ရွှေ့ကြည့်ပြီး နှိပ်ပါ။ ၂) ဂိမ်းစာမျက်နှာပေါ်မှာ Package/Currency (ဥပမာ - Diamond ဘယ်နှစ်ခု) ကို ရွေးပါ။ ၃) "In-Game ID" ကွက်ထဲမှာ သင့်ဂိမ်းရဲ့ Player ID ကို ရိုက်ထည့်ပါ (တချို့ဂိမ်းတွေဆို Server ID ပါ ထပ်ထည့်ရပါမယ်) - ID ကို ဂိမ်းထဲက Profile page မှာ ရှာတွေ့နိုင်ပါတယ်။ ၄) "Confirm ID" ခလုတ်ကို နှိပ်ပါ - system က အလိုအလျောက် သင့် Account နာမည်ကို ပြပေးပါလိမ့်မယ်၊ မှန်မမှန် ပြန်စစ်ပါ (နာမည်မှားရင် ID ပြန်ပြင်ပါ)။ ၅) ငွေပေးချေမှု အမျိုးအစား ရွေးပါ - Wallet ထဲမှာ လက်ကျန်ငွေ ရှိရင် တိုက်ရိုက် နှိပ်ပေးလို့ရသလို၊ Payment Method (ဘဏ်လွှဲ/KBZPay/Wave စသည်) ရွေးပြီး ငွေလွှဲပြေစာ ဓာတ်ပုံတင်ပြီးလည်း ပေးချေနိုင်ပါတယ်။ ၆) အောက်ခြေက Slide ခလုတ်ကို ဆွဲပြီး အတည်ပြုလိုက်ရင် Order တင်ပြီးပါပြီ။ ၇) Order ရဲ့ အခြေအနေကို "History" (Drawer ထဲမှာ ရှိပါတယ်) မှာ အချိန်နှင့်တပြေးညီ ပြန်ကြည့်နိုင်ပါတယ်။',
-                guide_q_wallettopup: 'Wallet ထဲ ငွေဖြည့်နည်း - အသေးစိတ်',
-                guide_a_wallettopup: '၁) အောက်ခြေ tab က "Wallet" ကို နှိပ်ပါ။ ၂) "Top Up" ခလုတ်ကို နှိပ်ပါ။ ၃) ဖြည့်ချင်တဲ့ ပမာဏ (ငွေပမာဏ) ကို ရိုက်ထည့်ပါ။ ၄) Payment Method (ဘဏ်လွှဲ၊ Crypto၊ Aluu, FazerCard စသည်) ထဲက တစ်ခုကို ရွေးပါ - ရွေးလိုက်တဲ့ Method အလိုက် ငွေလွှဲရမယ့် အကောင့်အချက်အလက် ပေါ်လာပါလိမ့်မယ်။ ၅) ပြင်ပက ငွေလွှဲပြီးရင် ပြေစာ (Receipt) ဓာတ်ပုံ သို့ Transaction ID ကို တင်ပြီး Submit နှိပ်ပါ။ ၆) Admin မှ စစ်ဆေးပြီးပါက Wallet ထဲ ငွေအလိုအလျောက် ဝင်ပါလိမ့်မယ် (ပုံမှန်အားဖြင့် မိနစ်အနည်းငယ်မှ နာရီအနည်းငယ်အတွင်း)။ Wallet ထဲရှိငွေကို နောက်ပိုင်း Order တင်တိုင်း တိုက်ရိုက် အသုံးပြုနိုင်ပါတယ်၊ ငွေလွှဲပြေစာ ထပ်တင်စရာ မလိုတော့ပါ။',
-                guide_q_historyfull: 'Order History ကြည့်နည်းနှင့် ပြဿနာ ဖြစ်ရင်',
-                guide_a_historyfull: 'ဖန်သားပြင် ဘယ်ဘက်အပေါ် icon ကို နှိပ်ပြီး Drawer ဖွင့်ပါ၊ "History" ကို ရွေးပါ။ Order တစ်ခုချင်းစီရဲ့ Status ကို ဒီနေရာမှာ ကြည့်နိုင်ပါတယ် - "Pending" (စောင့်ဆိုင်းနေဆဲ)၊ "Processing" (လုပ်ဆောင်နေဆဲ)၊ "Success" (ပြီးမြောက်ပြီ) သို့မဟုတ် "Fail" (မအောင်မြင်)။ Order တစ်ခုကို နှိပ်ရင် အသေးစိတ် အချက်အလက်တွေ ဖြစ်တဲ့ ID, ပမာဏ, အချိန် စတာတွေ ပြပါလိမ့်မယ်။ Processing မှာ အချိန်ကြာနေရင် (သို့) တခြား ပြဿနာ ရှိရင် Support widget ထဲက "Complaint" tab ကနေ တိုင်ကြားနိုင်ပါတယ်၊ Admin က Ticket အနေနဲ့ လက်ခံပြီး ပြန်ကြည့်ပေးပါလိမ့်မယ်။ တိုက်ရိုက် အမြန်ဆက်သွယ်ချင်ရင် "Telegram" tab ကို အသုံးပြုနိုင်ပါတယ်။',
-                guide_q_otherfeatures: 'App ထဲက အခြား features တွေ ဘာတွေရှိလဲ',
-                guide_a_otherfeatures: '"Voucher" tab - Gift card နှင့် Top-up voucher များကို ချက်ချင်း ဝယ်ယူနိုင်ပါတယ်။ "Game Acc" tab - တခြားသူတွေရောင်းထားတဲ့ ဂိမ်း Account များကို ဝယ်နိုင်သလို၊ ကိုယ်ပိုင် Account ရောင်းလည်း တင်နိုင်ပါတယ် (ဒီ feature ကို ဖွင့်/ပိတ် Admin ဆီမှာ မူတည်ပါတယ်)။ Drawer ထဲက "Name Check" - Order မတင်ခင် ဂိမ်းနဲ့ ID ရိုက်ထည့်ပြီး Account နာမည် မှန်မမှန် ကြိုတင်စစ်ကြည့်နိုင်ပါတယ်။ "Profile" ထဲမှာ VIP Tier, စုစုပေါင်း သုံးငွေ တွေကို တွေ့နိုင်ပါတယ်။ Theme (Dark/Light Mode) နှင့် ဘာသာစကား ကိုလည်း Drawer ထဲကနေ ပြောင်းလို့ရပါတယ်။',
+                guide_card_close: 'ပိတ်ရန်',
                 btn_confirm_id: 'Confirm ID', btn_confirmed_id: 'Confirmed ✓', btn_checking_id: 'စစ်ဆေးနေသည်...',
                 checking_id_text: 'ID စစ်ဆေးနေသည်...', id_not_found: 'ID မတွေ့ပါ — ပြန်စစ်ကြည့်ပါ။',
                 verified_prefix: 'အတည်ပြုပြီး', player_verified: 'ကစားသမား အတည်ပြုပြီး',
@@ -4967,9 +4402,6 @@ html[data-theme="dark"] .wallet-balance-card{
             const isHome = pageId === 'home';
             const bulletWrapper = document.getElementById('bullet-chat-wrapper');
             if (bulletWrapper) bulletWrapper.classList.toggle('home-hidden', !isHome);
-            // Support Chat FAB: only shown on the game-detail (product) page.
-            const supportFab = document.getElementById('support-fab');
-            if (supportFab) supportFab.classList.toggle('fab-page-hidden', pageId !== 'game-detail');
             const MAIN_TAB_PAGES = ['home', 'voucher', 'name-check', 'history', 'wallet', 'profile'];
             document.body.classList.toggle('no-bottom-nav', !MAIN_TAB_PAGES.includes(pageId));
             document.body.classList.toggle('page-profile', pageId === 'profile');
@@ -4995,16 +4427,9 @@ html[data-theme="dark"] .wallet-balance-card{
             const GAMES_PAGES = ['home', 'voucher', 'game-detail'];
             if (GAMES_PAGES.includes(pageId) && window.listenGames) window.listenGames();
             else if (!GAMES_PAGES.includes(pageId) && window.stopListenGames) window.stopListenGames();
-            // Coupon availability: only needed while a package/checkout is
-            // being shown on game-detail.
-            if (pageId === 'game-detail' && window.listenCouponAvailability) window.listenCouponAvailability();
-            else if (pageId !== 'game-detail' && window.stopListenCouponAvailability) window.stopListenCouponAvailability();
             // Wallet top-up history: only needed on the Wallet page.
             if (pageId === 'wallet' && window.listenWalletTopups) window.listenWalletTopups();
             else if (pageId !== 'wallet' && window.stopListenWalletTopups) window.stopListenWalletTopups();
-            // Flash sale banner: only lives inside the Home page-section.
-            if (pageId === 'home' && window.listenFlashSale) window.listenFlashSale();
-            else if (pageId !== 'home' && window.stopListenFlashSale) window.stopListenFlashSale();
             // Payment methods: needed wherever a payment-method picker or the
             // Payment methods: needed wherever a payment-method picker or the
             // wallet top-up modal can appear - game-detail's checkout and the
@@ -5203,17 +4628,6 @@ html[data-theme="dark"] .wallet-balance-card{
         let selectedPackage = null;
         let pkgZoomStartedAt = 0;
         let pkgZoomDone = false; // soft-zoom the price cards only on the first render per game / tab, not on every stock refresh
-        // Coupon applied to the currently selected package, if any -
-        // { code, discountAmount, discountType, discountValue }. Reset
-        // whenever a new package is picked (see selectPackageOption) since
-        // a discount is only ever validated against one specific subtotal.
-        let appliedCoupon = null;
-        // Whether at least one coupon exists right now that is isActive AND
-        // inside its startsAt/expiresAt event window (see listenCouponAvailability
-        // below). The whole "Coupon Code" card is hidden from checkout unless
-        // this is true — so customers never see a coupon box during a period
-        // when nothing is actually redeemable.
-        let anyCouponAvailable = false;
         // Which bottom-nav page a game's detail modal was opened from (Home
         // or Voucher) - so closing it returns the customer to the right tab
         // instead of always dropping back to Home.
@@ -5250,10 +4664,9 @@ html[data-theme="dark"] .wallet-balance-card{
         // server-side as the aluu-functions Worker's ALUU_API_KEY secret.
         // See the /aluu-id-check route in aluu-worker.js.
         const ALUU_ID_CHECK_URL = 'https://aluu-functions.pca-game-store.workers.dev/aluu-id-check';
-        // Coupon validate/redeem — served by the same Worker as the Telegram
-        // approval bot (telegram-worker.js's /validate-coupon and
-        // /redeem-coupon routes). Fill in the actual deployed subdomain.
-        const COUPON_WORKER_URL = 'https://telegram-order.pca-game-store.workers.dev';
+        // Telegram approval bot Worker (telegram-worker.js) - used for the
+        // /ping wake-up below. Fill in the actual deployed subdomain.
+        const ORDER_WORKER_URL = 'https://telegram-order.pca-game-store.workers.dev';
         // Fire-and-forget "wake up now" ping to the Worker's /ping route, sent
         // right after an order / wallet top-up is saved so Telegram + wallet
         // auto-fulfil happen instantly instead of on the next cron tick.
@@ -5261,7 +4674,7 @@ html[data-theme="dark"] .wallet-balance-card{
         // throws and never blocks checkout - the cron is the safety net.
         function pingWorker(type, id) {
             try {
-                fetch(`${COUPON_WORKER_URL}/ping`, {
+                fetch(`${ORDER_WORKER_URL}/ping`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'text/plain' },
                     body: JSON.stringify({ type, id }),
@@ -6337,7 +5750,6 @@ html[data-theme="dark"] .wallet-balance-card{
             selectedGameAluuCode = game.aluuCode || null;
             selectedPackage = null;
             pkgZoomDone = false;
-            appliedCoupon = null;
 
             // Voucher/coupon-style games deliver a code rather than crediting a
             // player account, so the admin can turn off the In-Game ID prompt
@@ -6652,11 +6064,8 @@ html[data-theme="dark"] .wallet-balance-card{
             // stripped out for out-of-stock cards - see renderDetailPackageList).
             if (pkgToSelect && pkgToSelect.voucherId && voucherStockMap[String(pkgToSelect.voucherId)] === 0) return;
             selectedPackage = pkgToSelect;
-            appliedCoupon = null; // discount was validated against the previous package's subtotal - start clean
             document.querySelectorAll('#detail-package-list .package-card').forEach(el => el.classList.remove('selected'));
             document.querySelector(`#detail-package-list .package-card[data-index="${index}"]`).classList.add('selected');
-
-            renderCouponCard();
 
             // Picking a new package invalidates whatever "how do I pay" choice
             // was made for the previous one — price may have changed, so the
@@ -6730,148 +6139,8 @@ html[data-theme="dark"] .wallet-balance-card{
             ['pointerup', 'pointercancel', 'pointerleave'].forEach(evt => list.addEventListener(evt, clearHold));
         }
 
-        // ---------- Coupon codes ----------
-        function getOrderSubtotal() {
-            return selectedPackage ? selectedPackage.price : 0;
-        }
         function getOrderTotal() {
-            return Math.max(0, getOrderSubtotal() - (appliedCoupon ? appliedCoupon.discountAmount : 0));
-        }
-
-        function renderCouponCard() {
-            const card = document.getElementById('coupon-card');
-            if (!card) return;
-            // Hide the whole card — not just the input — whenever there's
-            // nothing to redeem right now: no package chosen yet, or no
-            // coupon is currently isActive + inside its event time window.
-            // A coupon the customer already applied still gets to show its
-            // "applied" row even if availability flips off mid-session; that
-            // case is cleaned up separately by listenCouponAvailability.
-            if (!selectedPackage || (!appliedCoupon && !anyCouponAvailable)) { card.style.display = 'none'; return; }
-            card.style.display = 'flex';
-            if (appliedCoupon) {
-                card.innerHTML = `
-                    <div style="display:flex;align-items:center;justify-content:space-between;width:100%;">
-                        <div>
-                            <span style="font-weight:600;font-size:14px;">${appliedCoupon.code}</span>
-                            <span style="color:#28a745;font-weight:600;font-size:13px;margin-left:8px;">-${appliedCoupon.discountAmount.toLocaleString()} MMK</span>
-                        </div>
-                        <button type="button" class="btn btn-outline" style="flex:unset;width:auto;min-width:78px;padding:6px 12px;font-size:12px;" onclick="removeCoupon()" data-i18n="btn_remove">Remove</button>
-                    </div>
-                `;
-            } else {
-                card.innerHTML = `
-                    <label style="align-self:flex-start;">Coupon Code</label>
-                    <div style="display:flex;gap:8px;width:100%;">
-                        <input type="text" id="coupon-code-input" placeholder="Enter coupon code" autocomplete="off" style="flex:1;text-transform:uppercase;padding:11px 14px;border-radius:12px;border:1px solid var(--border-glass);background:var(--fill-soft);color:var(--text);font-size:14px;">
-                        <button type="button" class="btn btn-outline" id="coupon-apply-btn" style="flex:unset;width:auto;min-width:76px;padding:0 16px;" onclick="applyCoupon()" data-i18n="btn_apply">Apply</button>
-                    </div>
-                `;
-            }
-        }
-        window.renderCouponCard = renderCouponCard;
-
-        function refreshPricesAfterCouponChange() {
-            renderCouponCard();
-            if (selectedPaymentType === 'wallet') renderWalletPayBox();
-            else if (selectedPaymentType) updateConfirmButtonForPaymentType();
-        }
-
-        // Caps a coupon's discount so the final price never dips below the
-        // package's own cost price (selectedPackage.cost, admin-set buy-in
-        // price × qty) — protects margin so a coupon can never eat into or
-        // go past what the package actually cost the store.
-        // NOTE: this is a client-side/UX guard only. The Worker's
-        // /redeem-coupon route is the authoritative, must-not-lie check at
-        // submit time (see COUPON_WORKER_URL comment above) and should
-        // enforce this same cost floor server-side too — that logic lives
-        // in telegram-worker.js, which wasn't part of this edit.
-        function capCouponDiscountToCost(discountAmount, subtotal) {
-            const costTotal = (Number(selectedPackage?.cost) || 0);
-            if (costTotal <= 0) return { discountAmount, blocked: false }; // no cost data - nothing to protect
-            const maxDiscount = Math.max(0, subtotal - costTotal);
-            if (maxDiscount <= 0) return { discountAmount: 0, blocked: true }; // already at/under cost - coupon can't apply at all
-            return { discountAmount: Math.min(discountAmount, maxDiscount), blocked: false };
-        }
-
-        async function applyCoupon() {
-            const input = document.getElementById('coupon-code-input');
-            const code = input ? input.value.trim().toUpperCase() : '';
-            if (!code) { window.showToast('Please enter a coupon code', 'fail'); return; }
-            const subtotal = getOrderSubtotal();
-            if (!subtotal) return;
-
-            const btn = document.getElementById('coupon-apply-btn');
-            const originalText = btn.innerText;
-            btn.disabled = true;
-            btn.innerText = 'Checking...';
-            try {
-                const guestId = window.getGuestId ? window.getGuestId() : '';
-                const costTotal = (Number(selectedPackage?.cost) || 0);
-                const res = await fetch(`${COUPON_WORKER_URL}/validate-coupon`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code, guestId, orderAmount: subtotal, costTotal })
-                });
-                const data = await res.json();
-                if (!data.ok) { window.showToast(data.error || 'Invalid coupon', 'fail'); return; }
-                // The Worker already enforces the cost floor authoritatively
-                // (costTotal above); this just mirrors it instantly client-side.
-                const capped = capCouponDiscountToCost(data.discountAmount, subtotal);
-                if (capped.blocked) { window.showToast('This coupon can\'t be applied to this package', 'fail'); return; }
-                appliedCoupon = { code, discountAmount: capped.discountAmount, discountType: data.discountType, discountValue: data.discountValue };
-                window.showToast(`Coupon applied: -${capped.discountAmount.toLocaleString()} MMK`, 'success');
-                refreshPricesAfterCouponChange();
-            } catch (error) {
-                console.error('Coupon validate error:', error);
-                window.showToast('Could not check coupon. Check connection.', 'fail');
-            } finally {
-                btn.disabled = false;
-                btn.innerText = originalText;
-            }
-        }
-        window.applyCoupon = applyCoupon;
-
-        function removeCoupon() {
-            appliedCoupon = null;
-            refreshPricesAfterCouponChange();
-        }
-        window.removeCoupon = removeCoupon;
-
-        // Re-checks the already-applied coupon against a new subtotal (qty
-        // changed) without making the customer retype the code. Silently
-        // drops the coupon if it no longer qualifies (e.g. a max-uses cap
-        // hit in the meantime) rather than leaving a stale discount showing.
-        async function revalidateCouponSilently() {
-            if (!appliedCoupon) return;
-            const subtotal = getOrderSubtotal();
-            try {
-                const guestId = window.getGuestId ? window.getGuestId() : '';
-                const costTotal = (Number(selectedPackage?.cost) || 0);
-                const res = await fetch(`${COUPON_WORKER_URL}/validate-coupon`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ code: appliedCoupon.code, guestId, orderAmount: subtotal, costTotal })
-                });
-                const data = await res.json();
-                if (!data.ok) {
-                    appliedCoupon = null;
-                    window.showToast(data.error || 'Coupon no longer valid for this quantity', 'fail');
-                } else {
-                    const capped = capCouponDiscountToCost(data.discountAmount, subtotal);
-                    if (capped.blocked) {
-                        appliedCoupon = null;
-                        window.showToast('Coupon removed — no longer applicable at this quantity', 'fail');
-                    } else {
-                        appliedCoupon.discountAmount = capped.discountAmount;
-                    }
-                }
-            } catch (error) {
-                console.error('Coupon revalidate error:', error);
-                // Leave the coupon applied on a network hiccup - /redeem-coupon
-                // at submit time is the authoritative check either way.
-            }
-            refreshPricesAfterCouponChange();
+            return selectedPackage ? Math.max(0, selectedPackage.price) : 0;
         }
 
         // ---------- Pay with Wallet vs Pay with Kpay/Wave/etc. ----------
@@ -6905,20 +6174,16 @@ html[data-theme="dark"] .wallet-balance-card{
         function renderWalletPayBox() {
             const box = document.getElementById('detail-wallet-pay-box');
             if (!selectedPackage) { box.innerHTML = ''; return; }
-            const subtotal = getOrderSubtotal();
             const price = getOrderTotal();
-            const discountLine = appliedCoupon ? `<span class="wallet-pay-note ok" style="color:#28a745;">Coupon ${appliedCoupon.code}: -${appliedCoupon.discountAmount.toLocaleString()} MMK (was ${subtotal.toLocaleString()} MMK)</span>` : '';
             const bal = currentWalletBalance;
             const enough = bal >= price;
             box.innerHTML = enough ? `
                 <span class="wallet-pay-balance-label">Wallet Balance <span class="payment-option-availability" style="font-weight:400;">- Available 24/7</span></span>
                 <span class="wallet-pay-balance-amount">${bal.toLocaleString()} MMK</span>
-                ${discountLine}
                 <span class="wallet-pay-note ok">✓ Enough balance — ${price.toLocaleString()} MMK will be deducted when you confirm.</span>
             ` : `
                 <span class="wallet-pay-balance-label">Wallet Balance <span class="payment-option-availability" style="font-weight:400;">- Available 24/7</span></span>
                 <span class="wallet-pay-balance-amount">${bal.toLocaleString()} MMK</span>
-                ${discountLine}
                 <span class="wallet-pay-note low">Not enough balance — top up ${(price - bal).toLocaleString()} MMK more to pay from your wallet.</span>
                 <button type="button" class="btn btn-primary" style="margin-top:10px;width:100%;" onclick="openWalletTopupModal()">Top Up Wallet</button>
             `;
@@ -7270,7 +6535,6 @@ html[data-theme="dark"] .wallet-balance-card{
             selectedPackage = null;
             selectedPaymentMethod = null;
             selectedPaymentType = null;
-            appliedCoupon = null;
             editingReceiptFile = null;
             receiptOcrPromise = null;
             stopVoucherStockRefresh();
@@ -7409,7 +6673,6 @@ html[data-theme="dark"] .wallet-balance-card{
                 else note = '<div class="or-note"><span>Check your In-Game ID carefully. Top ups cannot be moved to another account after delivery.</span></div>';
             }
             rows.push(['Payment', isWallet ? 'Wallet Balance' : esc(selectedPaymentMethod ? selectedPaymentMethod.name : '-')]);
-            if (appliedCoupon && appliedCoupon.discountAmount) rows.push(['Discount (' + esc(appliedCoupon.code) + ')', '- ' + fmt(appliedCoupon.discountAmount)]);
             if (isWallet) rows.push(['Balance after', fmt(Math.max(0, currentWalletBalance - total))]);
 
             return openReviewSheet({ game: selectedGameName, sub: selectedGameServerName, img, noteHTML: note, rows, total });
@@ -7606,9 +6869,6 @@ html[data-theme="dark"] .wallet-balance-card{
                 amount: selectedPackage.amount,
                 price: getOrderTotal(),
                 cost: (Number(selectedPackage.cost) || 0),
-                couponCode: appliedCoupon ? appliedCoupon.code : null,
-                couponDiscount: appliedCoupon ? appliedCoupon.discountAmount : null,
-                couponSubtotal: appliedCoupon ? getOrderSubtotal() : null,
                 quantity: 1,
                 inGameId,
                 serverId,
@@ -7648,9 +6908,6 @@ html[data-theme="dark"] .wallet-balance-card{
                 amount: selectedPackage.amount,
                 price: getOrderTotal(),
                 cost: (Number(selectedPackage.cost) || 0),
-                couponCode: appliedCoupon ? appliedCoupon.code : null,
-                couponDiscount: appliedCoupon ? appliedCoupon.discountAmount : null,
-                couponSubtotal: appliedCoupon ? getOrderSubtotal() : null,
                 quantity: 1,
                 inGameId,
                 serverId,
@@ -7886,7 +7143,7 @@ html[data-theme="dark"] .wallet-balance-card{
 
         const app = initializeApp(firebaseConfig);
         // Persistent local cache: the storefront stops/restarts several listeners as
-        // the customer changes pages (games, coupons, game accounts, ...). With the
+        // the customer changes pages (games, game accounts, ...). With the
         // default in-memory cache every restart re-downloads (and re-bills) the WHOLE
         // collection; with a persistent cache a restart only bills docs that changed.
         let db;
@@ -9826,133 +9083,9 @@ html[data-theme="dark"] .wallet-balance-card{
             console.error('Google redirect sign-in error:', error);
         });
 
-        // ---------- VIP Tiers (based on lifetime successful top-up spend) ----------
-        // Rank names/colors are fixed here (mirrored in the admin panel); only
-        // the MMK thresholds are admin-editable, read live from settings/tiers
-        // so rank-ups apply instantly without a page reload. Ordered
-        // highest-to-lowest so tierForSpend() can just find the first
-        // threshold a spend qualifies for.
-        const TIER_META = [
-            { name: 'Immortal',  color: '#FFD700', bg: '#0D0B14' },
-            { name: 'Mythical',  color: '#FF4318', bg: '#FFE9E2' },
-            { name: 'Conqueror', color: '#C41F7D', bg: '#FDE8F3' },
-            { name: 'Legend',    color: '#6A3FD1', bg: '#F0EAFC' },
-            { name: 'Diamond',   color: '#00A8C9', bg: '#E5FAFD' },
-            { name: 'Platinum',  color: '#4A6FA5', bg: '#EAF0FB' },
-            { name: 'Gold',      color: '#A87400', bg: '#FFF6DF' },
-            { name: 'Bronze',    color: '#7A4A22', bg: '#FBEEE6' },
-        ];
-        const DEFAULT_TIER_MINS = {
-            Bronze: 0, Gold: 100000, Platinum: 300000, Diamond: 700000,
-            Legend: 1500000, Conqueror: 3000000, Mythical: 6000000, Immortal: 12000000
-        };
-        let VIP_TIERS = TIER_META.map(t => ({ ...t, min: DEFAULT_TIER_MINS[t.name] }));
-
-        function tierForSpend(spend) {
-            return VIP_TIERS.find(t => spend >= t.min) || VIP_TIERS[VIP_TIERS.length - 1];
-        }
-        // Returns the next tier above the current spend, or null if already at the top.
-        function nextTierForSpend(spend) {
-            const idx = VIP_TIERS.findIndex(t => spend >= t.min);
-            return idx > 0 ? VIP_TIERS[idx - 1] : null;
-        }
-
-        // Live-updates VIP_TIERS whenever the admin changes a tier's minimum
-        // spend, then refreshes whichever tier-aware view is currently open
-        // (Profile's VIP card) so changes are reflected
-        // immediately, with no reload required.
-        let tierSettingsListenerAttached = false;
-        function listenTierSettings() {
-            if (tierSettingsListenerAttached) return;
-            tierSettingsListenerAttached = true;
-            onSnapshot(doc(db, "settings", "tiers"), (docSnap) => {
-                const mins = { ...DEFAULT_TIER_MINS, ...(docSnap.exists() ? (docSnap.data().mins || {}) : {}) };
-                VIP_TIERS = TIER_META.map(t => ({ ...t, min: Number(mins[t.name]) || 0 }));
-                if (window.currentStorePage === 'profile' && window.loadProfileStats) window.loadProfileStats();
-            }, (error) => {
-                console.error("Tier settings listener error:", error);
-            });
-        }
         function formatMMK(n) {
             return Math.round(n || 0).toLocaleString('en-US') + ' MMK';
         }
-        // Per-tier badge icon: shape complexity escalates with rank (plain shield
-        // for Bronze up to a jeweled crown for Immortal), and the top 4 ranks get
-        // a two-stop gradient fill instead of a flat color for a shinier look.
-        // Every call gets a fresh gradient id so multiple badges on one page
-        // (several can render at once) never collide.
-        let tierBadgeUid = 0;
-        const TIER_ICON_PATHS = {
-            Bronze:    { shape: 'path',    d: 'M12 2.6l7.4 2.7v5.8c0 4.4-3.1 8-7.4 10.3-4.3-2.3-7.4-5.9-7.4-10.3V5.3z', extra: '<path d="M12 7.2v8.2" stroke="#fff" stroke-opacity=".5" stroke-width="1.6" stroke-linecap="round" fill="none"/>' },
-            Gold:      { shape: 'path',    d: 'M12 2.6l2.8 5.7 6.2.9-4.5 4.4 1.1 6.2L12 16.8l-5.6 3 1.1-6.2L3 9.2l6.2-.9z', extra: '' },
-            Platinum:  { shape: 'polygon', points: '12,2.4 19.4,6.7 19.4,15.3 12,19.6 4.6,15.3 4.6,6.7', extra: '<polygon points="12,6.6 15.7,8.8 15.7,13.2 12,15.4 8.3,13.2 8.3,8.8" fill="#fff" fill-opacity=".38"/>' },
-            Diamond:   { shape: 'path',    d: 'M7.2 3.4h9.6l4.7 5.9L12 21 2.5 9.3z', extra: '<path d="M2.8 9.3h18.4M9.4 3.6 7.6 9.3 12 20.4M14.6 3.6l1.8 5.7L12 20.4" stroke="#fff" stroke-opacity=".5" stroke-width=".9" stroke-linejoin="round" fill="none"/>' },
-            Legend:    { shape: 'medal',   extra: '<path d="M12 5.9l1 2 2.2.3-1.6 1.6.4 2.2-2-1.1-2 1.1.4-2.2L8.8 8.2 11 7.9z" fill="#fff" fill-opacity=".85"/>' },
-            Conqueror: { shape: 'polygon', points: '2.6,19 2.6,8.2 7.6,12.4 12,4.8 16.4,12.4 21.4,8.2 21.4,19', extra: '<rect x="2.6" y="16" width="18.8" height="1.5" fill="#fff" fill-opacity=".4"/><circle cx="12" cy="11.6" r="1.3" fill="#fff" fill-opacity=".85"/>' },
-            Mythical:  { shape: 'path',    d: 'M12 2C8 7 6 10 6 13c0 3.5 2.5 6 6 6s6-2.5 6-6c0-2-1-4-2.5-6 .5 2-1 3-1 3C13.5 7 12.5 5 12 2Z', extra: '<path d="M12 18.4c-1.8 0-3.1-1.2-3.1-3 0-1.1.6-2 1.4-3 .3.9.8 1.5 1.7 1.7 0-1.4.5-2.5 1.1-3.5 1.3 1.1 2 2.5 2 4.3 0 2-1.3 3.5-3.1 3.5z" fill="#fff" fill-opacity=".4"/>' },
-            Immortal:  { shape: 'sunburst', points: '12.0,2.0 13.6,8.0 19.1,4.9 16.0,10.4 22.0,12.0 16.0,13.6 19.1,19.1 13.6,16.0 12.0,22.0 10.4,16.0 4.9,19.1 8.0,13.6 2.0,12.0 8.0,10.4 4.9,4.9 10.4,8.0', extra: '' },
-        };
-        const TIER_GRADIENT_TIERS = new Set(['Legend', 'Conqueror', 'Mythical', 'Immortal']);
-        // Maps the top-4 tiers to their dark "material" badge class (see the
-        // .tier-badge-legend / -conqueror / -mythical / -immortal CSS above)
-        // and a brighter text color tuned for readability on that dark chip
-        // (the tier's normal mid-tone color reads fine on a pastel bg but goes
-        // muddy on near-black, so each gets a lighter tint of its own hue).
-        const TIER_MATERIAL_CLASS = {
-            Legend: 'legend', Conqueror: 'conqueror', Mythical: 'mythical', Immortal: 'immortal'
-        };
-        const TIER_MATERIAL_TEXT = {
-            Legend: '#C9B3FF', Conqueror: '#FF9BC9', Mythical: '#FFB870', Immortal: '#FFD700'
-        };
-        // Lowest-to-highest rank order, used to grade how "mythic" a tier-aware
-        // visual (avatar frame particles, receipt ornamentation) should look.
-        const TIER_RANK_ORDER = ['Bronze', 'Gold', 'Platinum', 'Diamond', 'Legend', 'Conqueror', 'Mythical', 'Immortal'];
-        function tierRankIndex(tierName) {
-            const i = TIER_RANK_ORDER.indexOf(tierName);
-            return i === -1 ? 0 : i;
-        }
-
-        function tierIconSVG(tier) {
-            const def = TIER_ICON_PATHS[tier.name] || TIER_ICON_PATHS.Bronze;
-            const useGradient = TIER_GRADIENT_TIERS.has(tier.name);
-            const gid = `tg-${tierBadgeUid++}`;
-            const fill = useGradient ? `url(#${gid})` : tier.color;
-            const defs = useGradient
-                ? `<defs><linearGradient id="${gid}" x1="0" y1="0" x2="1" y2="1">
-                       <stop offset="0%" stop-color="${tier.color}"/>
-                       <stop offset="100%" stop-color="#FFFFFF" stop-opacity="0.9"/>
-                   </linearGradient></defs>`
-                : '';
-            let body;
-            if (def.shape === 'path') {
-                body = `<path d="${def.d}" fill="${fill}" stroke="${fill}" stroke-width="1.2" stroke-linejoin="round"/>${def.extra || ''}`;
-            } else if (def.shape === 'polygon') {
-                body = `<polygon points="${def.points}" fill="${fill}" stroke="${fill}" stroke-width="1.2" stroke-linejoin="round"/>${def.extra || ''}`;
-            } else if (def.shape === 'medal') {
-                body = `<circle cx="12" cy="9" r="6" fill="${fill}"/><polygon points="8,14 4,22 9,19" fill="${fill}"/><polygon points="16,14 20,22 15,19" fill="${fill}"/>${def.extra || ''}`;
-            } else if (def.shape === 'sunburst') {
-                // Immortal: an 8-point starburst (radiant/eternal light) with a
-                // bright white core gem — distinct from every lower tier's
-                // crown/medal/gem shapes, since Immortal sits above them all.
-                body = `<polygon points="${def.points}" fill="${fill}"/><circle cx="12" cy="12" r="2.4" fill="#FFFFFF"/>`;
-            }
-            return `<svg width="14" height="14" viewBox="0 0 24 24">${defs}${body}</svg>`;
-        }
-
-        function tierBadgeHTML(tier) {
-            const glowClass = TIER_GRADIENT_TIERS.has(tier.name) ? ' tier-badge-glow' : '';
-            const glowStyle = TIER_GRADIENT_TIERS.has(tier.name) ? `--tbg-glow:${tier.color}66;` : '';
-            const materialTier = TIER_MATERIAL_CLASS[tier.name];
-            const materialClass = materialTier ? ` tier-badge-${materialTier}` : '';
-            // Top-4 tiers get their own dark chip color (set by the material CSS
-            // class, via !important) plus a brighter tint of the tier's hue so
-            // the text stays readable over the dark background.
-            const textColor = materialTier ? TIER_MATERIAL_TEXT[tier.name] : tier.color;
-            return `<span class="tier-badge${glowClass}${materialClass}" style="background:${tier.bg};color:${textColor};${glowStyle}">
-                ${tierIconSVG(tier)}${tier.name}
-            </span>`;
-        }
-
         // Sums lifetime successful-order spend for one customer, straight from
         // Firestore (not cached), so tier/rank are always accurate. Also
         // includes completed wallet top-ups, so VIP progress reflects money
@@ -9998,52 +9131,11 @@ html[data-theme="dark"] .wallet-balance-card{
         // Firestore numbers come back.
         function renderProfileStatsUI(total, count, games) {
             window.__lastUserStats = { total, count, games };
-            const tier = tierForSpend(total);
-            const next = nextTierForSpend(total);
-
-            const vipCard = document.getElementById('vip-card');
-            if (vipCard) {
-                vipCard.style.display = 'block';
-                document.getElementById('vip-tier-badge').innerHTML = tierBadgeHTML(tier);
-                const heroTierEl = document.getElementById('vip-tier-badge-hero');
-                if (heroTierEl) heroTierEl.innerHTML = tierBadgeHTML(tier);
-                document.getElementById('vip-stat-spent').innerText = formatMMK(total);
-                document.getElementById('vip-stat-orders').innerText = String(count);
+            {
                 const pcOrders = document.getElementById('profile-card-orders');
                 if (pcOrders) pcOrders.innerText = String(count);
                 const pcSpent = document.getElementById('profile-card-spent');
                 if (pcSpent) pcSpent.innerText = formatMMK(total);
-
-                let memberSince = '-';
-                try {
-                    const ts = Number(localStorage.getItem('gz_member_since'));
-                    if (ts) memberSince = new Date(ts).toLocaleDateString('en-US', { month: 'short', year: 'numeric' });
-                } catch (e) {}
-                document.getElementById('vip-stat-since').innerText = memberSince;
-
-                const progressText = document.getElementById('vip-progress-text');
-                const progressFill = document.getElementById('vip-progress-fill');
-                progressFill.style.setProperty('--tier-color', tier.color);
-                if (next) {
-                    const remaining = next.min - total;
-                    const span = next.min - tier.min;
-                    const pct = span > 0 ? Math.min(100, Math.max(0, ((total - tier.min) / span) * 100)) : 100;
-                    progressText.innerText = `${formatMMK(remaining)} more to reach ${next.name}`;
-                    progressFill.style.width = pct + '%';
-                } else {
-                    progressText.innerText = 'Highest tier reached 🎉';
-                    progressFill.style.width = '100%';
-                }
-
-                const avatarBox = document.getElementById('avatar-upload-box');
-                if (avatarBox) {
-                    avatarBox.classList.add('has-tier-ring');
-                    avatarBox.style.setProperty('--tier-color', tier.color);
-                }
-                const tierFrame = document.getElementById('avatar-tier-frame');
-                if (tierFrame) {
-                    tierFrame.dataset.tier = tier.name.toLowerCase();
-                }
             }
         }
 
@@ -10073,16 +9165,10 @@ html[data-theme="dark"] .wallet-balance-card{
             const guestId = window.getGuestId ? window.getGuestId() : '';
             if (!guestId) return;
 
-            // VIP tier is tied to a verified Google account — a guest's
-            // spend/order history lives under a local device ID that resets
-            // the moment storage is cleared, so a tier shown to a guest
-            // wouldn't be trustworthy. Hide the tier UI entirely until they
-            // sign in with Google instead of showing progress that isn't real.
-            if (!(auth.currentUser)) {
-                const vipCard = document.getElementById('vip-card');
-                if (vipCard) vipCard.style.display = 'none';
-                return;
-            }
+            // Stats are tied to a verified Google account — a guest's
+            // history lives under a local device ID that resets when storage
+            // is cleared, so nothing is shown until they sign in with Google.
+            if (!(auth.currentUser)) return;
 
             const cached = getCachedUserStats(guestId);
             if (cached) renderProfileStatsUI(cached.total, cached.count, cached.games);
@@ -10414,26 +9500,8 @@ html[data-theme="dark"] .wallet-balance-card{
             });
         }
 
-        // ---------- Coupon redemption memo ----------
-        // /redeem-coupon consumes one use of the coupon the moment it succeeds,
-        // but the order is only written AFTER it (and, for wallet orders, the
-        // wallet debit can still fail). Before this memo, any failure after
-        // redemption - network drop, balance changed meanwhile, DB write
-        // error - burned the coupon while the customer got no order, and the
-        // retry then failed with "coupon no longer valid". Now the last
-        // successful redemption is remembered; if the customer retries the
-        // SAME checkout (same coupon, same subtotal/cost) the same order id is
-        // reused and /redeem-coupon is not called a second time.
-        let couponRedemptionMemo = null; // { code, guestId, subtotal, cost, orderId }
-        function reusableCouponOrderId(couponCode, guestId, couponSubtotal, cost) {
-            const m = couponRedemptionMemo;
-            if (couponCode && m && m.code === couponCode && m.guestId === guestId
-                && m.subtotal === couponSubtotal && m.cost === (Number(cost) || 0)) return m.orderId;
-            return null;
-        }
-
         async function submitOrder(orderData, btnElement) {
-            const { gameName, serverRegion, amount, price, cost, quantity, inGameId, inGameName, serverId, paymentMethodName, receiptFile, transactionId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId, fazercardCategoryId, fazercardOfferId, fazercardGiftCategoryId, fazercardGiftCardId, bay2gameProductId, couponCode, couponDiscount, couponSubtotal } = orderData;
+            const { gameName, serverRegion, amount, price, cost, quantity, inGameId, inGameName, serverId, paymentMethodName, receiptFile, transactionId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId, fazercardCategoryId, fazercardOfferId, fazercardGiftCategoryId, fazercardGiftCardId, bay2gameProductId } = orderData;
 
             const originalText = btnElement.innerText;
             btnElement.innerText = "Processing...";
@@ -10467,32 +9535,7 @@ html[data-theme="dark"] .wallet-balance-card{
                 // permission prompt or geolocation just isn't available.
                 const location = await getOrderLocation();
 
-                // Pre-generate the order's doc ref/id so it can be passed to
-                // /redeem-coupon BEFORE the order itself is written - if the
-                // coupon turns out to no longer be valid (someone else took
-                // the last slot in the meantime), nothing gets created at all.
-                const reusedOrderId = reusableCouponOrderId(couponCode, guestId, couponSubtotal, cost);
-                const orderRef = doc(db, "orders", reusedOrderId || await generateShortNumericId("orders"));
-                if (couponCode && !reusedOrderId) {
-                    // costTotal lets the Worker re-enforce the cost floor
-                    // server-side (authoritative — see capCouponDiscountToCost
-                    // in telegram-worker.js) since the client-side cap above
-                    // can be bypassed.
-                    const redeemRes = await fetch(`${COUPON_WORKER_URL}/redeem-coupon`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ code: couponCode, guestId, orderAmount: couponSubtotal, orderId: orderRef.id, costTotal: Number(cost) || 0 })
-                    }).then(r => r.json()).catch(() => ({ ok: false, error: 'Could not reach the store. Check connection.' }));
-                    if (!redeemRes.ok) {
-                        window.showToast(redeemRes.error || 'This coupon is no longer valid.', 'fail');
-                        if (window.removeCoupon) window.removeCoupon();
-                        btnElement.innerText = originalText;
-                        btnElement.disabled = false;
-                        if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb();
-                        return;
-                    }
-                    couponRedemptionMemo = { code: couponCode, guestId, subtotal: couponSubtotal, cost: Number(cost) || 0, orderId: orderRef.id };
-                }
+                const orderRef = doc(db, "orders", await generateShortNumericId("orders"));
 
                 const receiptOrderPayload = {
                     playerId: inGameId,
@@ -10507,7 +9550,6 @@ html[data-theme="dark"] .wallet-balance-card{
                     // Provider cost snapshot at order time (for profit/margin
                     // reporting in admin.html).
                     cost: Number(cost) || 0,
-                    ...(couponCode ? { couponCode, couponDiscount, couponSubtotal } : {}),
                     // How many of this voucher/package are bundled into this
                     // single order (always 1 for a normal top-up order). The
                     // admin-side fulfillment flow reads this to know how many
@@ -10556,23 +9598,10 @@ html[data-theme="dark"] .wallet-balance-card{
                     // single-field pattern as g2bulkVoucherProductId above.
                     ...(bay2gameProductId ? { bay2gameProductId } : {})
                 };
-                // If an earlier attempt of this same checkout already saved the
-                // order (write succeeded but the response was lost), don't write
-                // it again - that would reset a status the admin may have moved.
-                let alreadyPlaced = false;
-                if (reusedOrderId) {
-                    const prev = await getDoc(orderRef);
-                    if (prev.exists()) {
-                        if (prev.data().userId === guestId) alreadyPlaced = true;
-                        else { couponRedemptionMemo = null; throw new Error('Something went wrong creating your order. Please try again.'); }
-                    }
-                }
-                if (!alreadyPlaced) await setDoc(orderRef, receiptOrderPayload);
+                await setDoc(orderRef, receiptOrderPayload);
                 pingWorker('order', orderRef.id);
 
                 saveContact(inGameId, selectedGameId, serverId);
-                appliedCoupon = null; // consumed by /redeem-coupon above
-                couponRedemptionMemo = null;
                 btnElement.innerText = "Order Sent";
                 btnElement.style.backgroundColor = "#28a745";
                 // Pass the new doc's id so the success screen can live-track this
@@ -10595,7 +9624,7 @@ html[data-theme="dark"] .wallet-balance-card{
         // rendered) so two rapid orders can never both slip through on a
         // balance that only actually covers one of them.
         async function submitWalletOrder(orderData, btnElement) {
-            const { gameName, serverRegion, amount, price, cost, quantity, inGameId, inGameName, serverId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId, fazercardCategoryId, fazercardOfferId, fazercardGiftCategoryId, fazercardGiftCardId, bay2gameProductId, couponCode, couponDiscount, couponSubtotal } = orderData;
+            const { gameName, serverRegion, amount, price, cost, quantity, inGameId, inGameName, serverId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId, fazercardCategoryId, fazercardOfferId, fazercardGiftCategoryId, fazercardGiftCardId, bay2gameProductId } = orderData;
 
             const originalText = btnElement.innerText;
             btnElement.innerText = "Processing...";
@@ -10620,40 +9649,14 @@ html[data-theme="dark"] .wallet-balance-card{
                     console.error("Ban check error:", banCheckError);
                 }
 
-                // Cheap balance pre-check BEFORE /redeem-coupon: an obviously
-                // insufficient wallet must not consume a coupon use. (The
-                // authoritative check is still inside the transaction below.)
+                // Cheap balance pre-check: bail out early on an obviously
+                // insufficient wallet. (The authoritative check is the Worker's.)
                 if (walletBalanceSeen !== null && walletBalanceSeen < Number(price)) throw new Error('INSUFFICIENT_BALANCE');
 
                 const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
                 const location = await getOrderLocation();
 
-                // Pre-generate the order's doc ref/id so it can be passed to
-                // /redeem-coupon BEFORE any wallet money moves - if the coupon
-                // is no longer valid, nothing is deducted and nothing is created.
-                const reusedOrderId = reusableCouponOrderId(couponCode, guestId, couponSubtotal, cost);
-                const orderRef = doc(db, "orders", reusedOrderId || await generateShortNumericId("orders"));
-                if (couponCode && !reusedOrderId) {
-                    // costTotal lets the Worker re-enforce the cost floor
-                    // server-side (authoritative — see capCouponDiscountToCost
-                    // in telegram-worker.js) since the client-side cap above
-                    // can be bypassed.
-                    const redeemRes = await fetch(`${COUPON_WORKER_URL}/redeem-coupon`, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ code: couponCode, guestId, orderAmount: couponSubtotal, orderId: orderRef.id, costTotal: Number(cost) || 0 })
-                    }).then(r => r.json()).catch(() => ({ ok: false, error: 'Could not reach the store. Check connection.' }));
-                    if (!redeemRes.ok) {
-                        window.showToast(redeemRes.error || 'This coupon is no longer valid.', 'fail');
-                        if (window.removeCoupon) window.removeCoupon();
-                        btnElement.innerText = originalText;
-                        btnElement.disabled = false;
-                        if (window.resetSlideConfirmThumb) window.resetSlideConfirmThumb();
-                        return;
-                    }
-                    couponRedemptionMemo = { code: couponCode, guestId, subtotal: couponSubtotal, cost: Number(cost) || 0, orderId: orderRef.id };
-                }
-
+                const orderRef = doc(db, "orders", await generateShortNumericId("orders"));
                 const userRef = doc(db, "users", guestId);
 
                 const orderPayload = {
@@ -10667,7 +9670,6 @@ html[data-theme="dark"] .wallet-balance-card{
                     itemAmount: amount,
                     price: price,
                     cost: Number(cost) || 0,
-                    ...(couponCode ? { couponCode, couponDiscount, couponSubtotal } : {}),
                     quantity: quantity || 1,
                     paymentMethod: 'Wallet Balance',
                     paidFromWallet: true,
@@ -10703,28 +9705,16 @@ html[data-theme="dark"] .wallet-balance-card{
                 if (!walletUser) throw new Error('NEEDS_GOOGLE_SIGNIN');
                 orderPayload.walletFlow = 2;
                 orderPayload.authUid = walletUser.uid;
-                let alreadyPlaced = false;
-                if (reusedOrderId) {
-                    const prev = await getDoc(orderRef);
-                    if (prev.exists()) {
-                        if (prev.data().userId === guestId) alreadyPlaced = true;
-                        else throw new Error('ORDER_ID_TAKEN');
-                    }
-                }
-                if (!alreadyPlaced) await setDoc(orderRef, orderPayload);
+                await setDoc(orderRef, orderPayload);
                 pingWorker('order', orderRef.id);
 
                 saveContact(inGameId, selectedGameId, serverId);
-                appliedCoupon = null; // consumed by /redeem-coupon above
-                couponRedemptionMemo = null;
                 btnElement.innerText = "Order Sent";
                 btnElement.style.backgroundColor = "#28a745";
                 window.openSuccessOverlay(orderRef.id, { status: 'Pending', timestamp: { toDate: () => new Date() } });
             } catch (error) {
                 console.error("Wallet order error: ", error);
-                const msg = error.message === 'ORDER_ID_TAKEN'
-                    ? 'Something went wrong creating your order. You were not charged - please try again.'
-                    : error.message === 'INVALID_PRICE'
+                const msg = error.message === 'INVALID_PRICE'
                     ? 'Invalid price. Please reload and try again.'
                     : error.message === 'INSUFFICIENT_BALANCE'
                     ? 'Your wallet balance is no longer enough for this order. Please top up.'
@@ -10867,119 +9857,7 @@ html[data-theme="dark"] .wallet-balance-card{
                 console.error("Announcements listener error:", error);
             });
         }
-        deferInit(() => { listenAnnouncements(); listenTierSettings(); });
-
-        // ---------- Flash Sale Banner (Home page) ----------
-        // Firestore only tells us WHETHER a sale is on and WHEN it ends -
-        // ticking the actual countdown text every second is done locally so
-        // it doesn't need a write (or a read) once a second.
-        let flashSaleEndTime = null;
-        let flashSaleGameId = '';
-        let flashSaleTickInterval = null;
-
-        function tickFlashSaleCountdown() {
-            const banner = document.getElementById('flash-sale-banner');
-            const countdownEl = document.getElementById('flash-sale-countdown');
-            if (!banner || !flashSaleEndTime) return;
-            const remaining = flashSaleEndTime - Date.now();
-            if (remaining <= 0) {
-                banner.style.display = 'none';
-                if (flashSaleTickInterval) { clearInterval(flashSaleTickInterval); flashSaleTickInterval = null; }
-                return;
-            }
-            const h = Math.floor(remaining / 3600000);
-            const m = Math.floor((remaining % 3600000) / 60000);
-            const s = Math.floor((remaining % 60000) / 1000);
-            const pad = n => String(n).padStart(2, '0');
-            countdownEl.innerText = h > 0 ? `${h}h ${pad(m)}m left` : `${pad(m)}:${pad(s)}`;
-        }
-
-        function listenFlashSale() {
-            if (flashSaleUnsub) return;
-            flashSaleUnsub = onSnapshot(doc(db, "settings", "flashsale"), (docSnap) => {
-                const data = docSnap.exists() ? docSnap.data() : {};
-                const banner = document.getElementById('flash-sale-banner');
-                if (!banner) return;
-                const endTime = Number(data.endTime) || 0;
-                const isLive = !!data.enabled && endTime > Date.now();
-                if (!isLive) {
-                    banner.style.display = 'none';
-                    if (flashSaleTickInterval) { clearInterval(flashSaleTickInterval); flashSaleTickInterval = null; }
-                    return;
-                }
-                document.getElementById('flash-sale-title').innerText = data.title || 'Flash Sale';
-                document.getElementById('flash-sale-desc').innerText = data.description || '';
-                flashSaleEndTime = endTime;
-                flashSaleGameId = data.gameId || '';
-                banner.style.display = 'flex';
-                tickFlashSaleCountdown();
-                if (!flashSaleTickInterval) flashSaleTickInterval = setInterval(tickFlashSaleCountdown, 1000);
-            }, (error) => {
-                console.error('Flash sale listener error:', error);
-            });
-        }
-        function stopListenFlashSale() {
-            if (flashSaleUnsub) { flashSaleUnsub(); flashSaleUnsub = null; }
-            if (flashSaleTickInterval) { clearInterval(flashSaleTickInterval); flashSaleTickInterval = null; }
-        }
-        let flashSaleUnsub = null;
-        window.listenFlashSale = listenFlashSale;
-        window.stopListenFlashSale = stopListenFlashSale;
-        // Starts immediately since Home is the app's default landing page
-        // (no showPage('home') call fires on initial boot to trigger the
-        // hook below) - showPage() then starts/stops it on navigation.
-        deferInit(() => listenFlashSale());
-
-        // Live-tracks whether ANY coupon is currently redeemable (isActive,
-        // and — if set — now falls inside [startsAt, expiresAt]) so the
-        // Coupon Code card on the package detail page can hide itself
-        // completely outside of any coupon "event window" instead of always
-        // being visible with a code box that would just fail to validate.
-        // Doesn't reveal codes to the client - only a yes/no availability flag.
-        // Only relevant while a package is selected on the game-detail page
-        // (renderCouponCard, checkout), so this now subscribes on entering
-        // game-detail and unsubscribes on leaving it — see showPage().
-        let couponAvailabilityUnsub = null;
-        function isCouponCurrentlyUsable(c) {
-            if (!c || !c.isActive) return false;
-            const now = Date.now();
-            if (c.startsAt && c.startsAt > now) return false;   // event hasn't opened yet
-            if (c.expiresAt && c.expiresAt <= now) return false; // event window closed
-            if (c.maxUses && (c.usedCount || 0) >= c.maxUses) return false;
-            return true;
-        }
-        function listenCouponAvailability() {
-            if (couponAvailabilityUnsub) return;
-            couponAvailabilityUnsub = onSnapshot(collection(db, "coupons"), (snap) => {
-                let usable = false;
-                let appliedStillUsable = !appliedCoupon;
-                snap.forEach(docSnap => {
-                    const c = docSnap.data();
-                    if (isCouponCurrentlyUsable(c)) usable = true;
-                    if (appliedCoupon && docSnap.id === appliedCoupon.code) appliedStillUsable = isCouponCurrentlyUsable(c);
-                });
-                anyCouponAvailable = usable;
-                if (appliedCoupon && !appliedStillUsable) {
-                    // The coupon the customer already applied just closed
-                    // (admin turned it off, or its event window ended) -
-                    // drop it immediately rather than let a stale discount
-                    // linger on screen.
-                    appliedCoupon = null;
-                    window.showToast('Coupon is no longer available', 'fail');
-                }
-                refreshPricesAfterCouponChange();
-            }, (error) => console.error('Coupon availability listener error:', error));
-        }
-        function stopListenCouponAvailability() {
-            if (couponAvailabilityUnsub) { couponAvailabilityUnsub(); couponAvailabilityUnsub = null; }
-        }
-        window.listenCouponAvailability = listenCouponAvailability;
-        window.stopListenCouponAvailability = stopListenCouponAvailability;
-
-        function openFlashSaleGame() {
-            if (flashSaleGameId && window.openGameDetail) window.openGameDetail(flashSaleGameId);
-        }
-        window.openFlashSaleGame = openFlashSaleGame;
+        deferInit(() => { listenAnnouncements(); });
 
         // Watches this device's own orders for status changes and pops the
         // "Your Order Is Successfully" notification (or a Fail notice) the instant
@@ -11476,209 +10354,11 @@ html[data-theme="dark"] .wallet-balance-card{
             return cachedReceiptStyle;
         }
 
-        // ---- Tier-graded receipt ornamentation ----
-        // How "mythic" the receipt border/particles/ribbon look, driven by the
-        // buyer's own VIP tier — mirrors the avatar frame's escalation: Bronze/
-        // Gold stay plain, Platinum/Diamond get a subtle colored border, Legend/
-        // Conqueror add a glow + corner gems + a member ribbon, Mythical/Immortal
-        // get the full glowing-border, gem, dust-sparkle treatment.
-        function tierDecorLevel(rankIdx) {
-            if (rankIdx <= 1) return 0;
-            if (rankIdx <= 3) return 1;
-            if (rankIdx <= 5) return 2;
-            return 3;
-        }
-        function drawPill(ctx, x, y, text, color, bg, opts) {
-            ctx.save();
-            ctx.font = '700 9.5px -apple-system, Segoe UI, Roboto, sans-serif';
-            const textW = ctx.measureText(text).width;
-            const padX = 7, h = 16, rx = 8;
-            const w = textW + padX * 2;
-            const path = () => {
-                ctx.beginPath();
-                ctx.moveTo(x + rx, y);
-                ctx.arcTo(x + w, y, x + w, y + h, rx);
-                ctx.arcTo(x + w, y + h, x, y + h, rx);
-                ctx.arcTo(x, y + h, x, y, rx);
-                ctx.arcTo(x, y, x + w, y, rx);
-                ctx.closePath();
-            };
-            if (opts && opts.border) {
-                ctx.shadowColor = opts.border;
-                ctx.shadowBlur = 5;
-            }
-            ctx.fillStyle = bg;
-            path();
-            ctx.fill();
-            if (opts && opts.border) {
-                ctx.shadowBlur = 0;
-                ctx.strokeStyle = opts.border;
-                ctx.lineWidth = 1;
-                path();
-                ctx.stroke();
-            }
-            ctx.fillStyle = color;
-            ctx.textAlign = 'left';
-            ctx.fillText(text, x + padX, y + h - 4.5);
-            ctx.restore();
-            return w;
-        }
-        // Dark "material" palette matching the top-4 tier-badge CSS classes, so
-        // the tier pill on the printed/downloaded receipt matches what's shown
-        // in-app instead of falling back to a flat pastel chip.
-        const TIER_MATERIAL_RECEIPT = {
-            Legend:    { bg: '#1A1130', border: '#A885FF', text: '#C9B3FF' },
-            Conqueror: { bg: '#2B0917', border: '#FF6DB4', text: '#FF9BC9' },
-            Mythical:  { bg: '#26100A', border: '#FF9F40', text: '#FFB870' },
-            Immortal:  { bg: '#12101C', border: '#FFD700', text: '#FFD700' },
-        };
-        function drawTierPill(ctx, x, y, tier) {
-            const mat = TIER_MATERIAL_RECEIPT[tier.name];
-            if (mat) return drawPill(ctx, x, y, tier.name, mat.text, mat.bg, { border: mat.border });
-            return drawPill(ctx, x, y, tier.name, tier.color, tier.bg);
-        }
-        function drawGem(ctx, cx, cy, size, color) {
-            ctx.save();
-            ctx.translate(cx, cy);
-            ctx.rotate(Math.PI / 4);
-            ctx.shadowColor = color;
-            ctx.shadowBlur = 8;
-            ctx.fillStyle = color;
-            ctx.fillRect(-size / 2, -size / 2, size, size);
-            ctx.restore();
-            ctx.save();
-            ctx.fillStyle = 'rgba(255,255,255,0.55)';
-            ctx.beginPath();
-            ctx.moveTo(cx - size * 0.15, cy - size * 0.35);
-            ctx.lineTo(cx + size * 0.05, cy - size * 0.1);
-            ctx.lineTo(cx - size * 0.1, cy - size * 0.05);
-            ctx.closePath();
-            ctx.fill();
-            ctx.restore();
-        }
-        function drawSparkleDust(ctx, xMin, xMax, yMin, yMax, count, color) {
-            for (let i = 0; i < count; i++) {
-                const x = xMin + Math.random() * (xMax - xMin);
-                const y = yMin + Math.random() * (yMax - yMin);
-                const r = 1 + Math.random() * 1.8;
-                ctx.save();
-                ctx.globalAlpha = 0.5 + Math.random() * 0.45;
-                ctx.fillStyle = color;
-                ctx.shadowColor = color;
-                ctx.shadowBlur = 6;
-                ctx.beginPath();
-                ctx.arc(x, y, r, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-            }
-        }
-        // Draws the same per-tier glyph used by tierIconSVG() (Legend's medal,
-        // Conqueror's crossed blades, Mythical's flame, Immortal's sunburst),
-        // but on canvas, at (cx, cy) scaled to roughly `size` px tall.
-        function drawTierGlyph(ctx, cx, cy, size, tierName, color) {
-            const def = TIER_ICON_PATHS[tierName];
-            if (!def) return;
-            const s = size / 24; // TIER_ICON_PATHS is authored in a 24x24 box
-            ctx.save();
-            ctx.translate(cx - size / 2, cy - size / 2);
-            ctx.scale(s, s);
-            ctx.fillStyle = color;
-            if (def.shape === 'path') {
-                ctx.fill(new Path2D(def.d));
-            } else if (def.shape === 'polygon' || def.shape === 'sunburst') {
-                const pts = def.points.trim().split(/\s+/).map(p => p.split(',').map(Number));
-                ctx.beginPath();
-                pts.forEach(([px, py], i) => i === 0 ? ctx.moveTo(px, py) : ctx.lineTo(px, py));
-                ctx.closePath();
-                ctx.fill();
-                if (def.shape === 'sunburst') {
-                    ctx.fillStyle = '#FFFFFF';
-                    ctx.beginPath();
-                    ctx.arc(12, 12, 2.4, 0, Math.PI * 2);
-                    ctx.fill();
-                }
-            } else if (def.shape === 'medal') {
-                ctx.beginPath(); ctx.arc(12, 9, 6, 0, Math.PI * 2); ctx.fill();
-                [[8, 14, 4, 22, 9, 19], [16, 14, 20, 22, 15, 19]].forEach(([x1, y1, x2, y2, x3, y3]) => {
-                    ctx.beginPath();
-                    ctx.moveTo(x1, y1); ctx.lineTo(x2, y2); ctx.lineTo(x3, y3);
-                    ctx.closePath(); ctx.fill();
-                });
-            }
-            ctx.restore();
-        }
-        // Draws the tier-graded border/gems/ribbon/dust over the finished
-        // receipt. Called last so it sits on top of everything else.
-        function drawTierDecorations(ctx, W, H, headerH, tier, level) {
-            if (level <= 0) return;
-            // Use the brighter "material" accent color for the top-4 tiers (same
-            // hue family as their badge chip) instead of the duller mid-tone
-            // tier.color, which can blend into the dark premium/dark header.
-            const mat = TIER_MATERIAL_RECEIPT[tier.name];
-            const c = mat ? mat.border : tier.color;
-
-            // Border: subtle colored frame at level 1, glowing at level 2-3
-            ctx.save();
-            if (level >= 2) {
-                ctx.strokeStyle = c;
-                ctx.lineWidth = level >= 3 ? 3 : 2.5;
-                ctx.shadowColor = c;
-                ctx.shadowBlur = level >= 3 ? 16 : 10;
-            } else {
-                ctx.strokeStyle = c;
-                ctx.lineWidth = 1.6;
-                ctx.globalAlpha = 0.55;
-            }
-            ctx.strokeRect(1.5, 1.5, W - 3, H - 3);
-            ctx.restore();
-
-            // Corner gems, growing with rank
-            if (level >= 2) {
-                const gemSize = level >= 3 ? 13 : 10;
-                const inset = 15;
-                [[inset, inset], [W - inset, inset]].forEach(([gx, gy]) => drawGem(ctx, gx, gy, gemSize, c));
-            }
-
-            // Member ribbon under the header title — includes the same tier
-            // glyph shown on the in-app badge (star/medal/crossed-blades/flame/
-            // sunburst) so the receipt visibly matches the buyer's chip.
-            if (level >= 2) {
-                ctx.save();
-                ctx.fillStyle = c;
-                ctx.font = '700 11px -apple-system, Segoe UI, Roboto, sans-serif';
-                ctx.textAlign = 'center';
-                const label = `${tier.name.toUpperCase()} MEMBER`;
-                const labelW = ctx.measureText(label).width;
-                const ribbonY = (headerH - 14) - 8;
-                drawTierGlyph(ctx, W / 2 - labelW / 2 - 14, ribbonY - 4, 12, tier.name, c);
-                ctx.fillText(label, W / 2, ribbonY);
-                drawTierGlyph(ctx, W / 2 + labelW / 2 + 14, ribbonY - 4, 12, tier.name, c);
-                ctx.restore();
-            }
-
-            // Dust sparkles scattered across the header — more of them, and
-            // spilling past the header into the top margin, at the top tiers
-            if (level >= 2) {
-                const dustCount = level >= 3 ? 16 : 8;
-                drawSparkleDust(ctx, 10, W - 10, 6, headerH - 6, dustCount, c);
-            }
-            if (level >= 3) {
-                drawSparkleDust(ctx, 10, W - 10, H - 90, H - 10, 6, c);
-            }
-        }
-
         async function downloadOrderReceipt(index) {
             const data = HISTORY_ORDERS[index];
             if (!data) return;
 
             const style = await getReceiptStyle(); // 'minimal' | 'premium' | 'dark'
-
-            // Buyer's current VIP tier drives how "mythic" the receipt looks —
-            // same escalation ladder as the profile avatar frame.
-            const guestId = window.getGuestId ? window.getGuestId() : '';
-            const { total: tierSpendTotal } = await computeUserStats(guestId);
-            const receiptTier = tierForSpend(tierSpendTotal);
-            const decorLevel = tierDecorLevel(tierRankIndex(receiptTier.name));
 
             const W = 720, PAD = 44;
             const canvas = document.createElement('canvas');
@@ -11687,7 +10367,7 @@ html[data-theme="dark"] .wallet-balance-card{
             const providerOrderId = data.g2bulkOrderId || data.jcplaysOrderId || data.fazercardOrderId || data.id || null;
 
             const customerRows = [
-                ['User', data.userName || '-', receiptTier],
+                ['User', data.userName || '-'],
                 ['Game', data.game || '-'],
                 ...(data.inGameName ? [['Player Name', data.inGameName]] : []),
                 ['In-Game ID', data.playerId || '-'],
@@ -11888,7 +10568,7 @@ html[data-theme="dark"] .wallet-balance-card{
                 ctx.lineWidth = 1.4;
                 ctx.strokeRect(PAD + 0.5, y + 0.5, tableW, tableH);
 
-                rows.forEach(([label, value, badge], i) => {
+                rows.forEach(([label, value], i) => {
                     const rowY = y + i * rowH;
                     if (i > 0) {
                         ctx.strokeStyle = hair;
@@ -11913,11 +10593,6 @@ html[data-theme="dark"] .wallet-balance-card{
                     const valueText = String(value);
                     ctx.fillText(valueText, colDivider + 16, rowY + rowH / 2 + 5);
 
-                    // Small tier badge right after the username, e.g. on the "User" row
-                    if (badge) {
-                        const valueW = ctx.measureText(valueText).width;
-                        drawTierPill(ctx, colDivider + 16 + valueW + 8, rowY + rowH / 2 - 8, badge);
-                    }
                 });
                 ctx.lineWidth = 1;
                 return y + tableH;
@@ -11969,10 +10644,6 @@ html[data-theme="dark"] .wallet-balance-card{
             ctx.fillText('This is a system-generated receipt.', W - PAD, y + 36);
             ctx.fillText(`Generated ${new Date().toLocaleString()}`, W - PAD, y + 54);
             ctx.textAlign = 'left';
-
-            // Tier-graded ornamentation (border/gems/ribbon/dust) drawn last,
-            // on top of everything else.
-            drawTierDecorations(ctx, W, H, headerH, receiptTier, decorLevel);
 
             canvas.toBlob(blob => {
                 const url = URL.createObjectURL(blob);
@@ -13636,133 +12307,6 @@ html[data-theme="dark"] .wallet-balance-card{
         window.submitOrder = submitOrder;
         window.loadHistory = loadHistory;
 
-        // ---------- Support Widget: draggable FAB + Guide / Complaint / Support Chat panel ----------
-        // Complaint tab writes one-off tickets to `supportTickets`. Chat tab is a
-        // per-guest thread: `supportChats/{guestId}` (summary doc - lastMessage,
-        // lastSender, unreadByAdmin, used for admin-side inbox sorting) plus its
-        // `messages` subcollection (sender: 'user' | 'admin'). Getting these to
-        // actually reach Telegram / an admin.html inbox needs matching worker-side
-        // and admin-side code that isn't part of this pass - see chat notes.
-        let supportFabDragged = false;
-        let supportFabPeekTimer = null;
-
-        // Which screen edge the bubble is currently docked nearest to,
-        // based on its live `right` offset (the fab is always positioned
-        // via right/bottom, even after being dragged toward the left side).
-        function supportFabSide() {
-            const fab = document.getElementById('support-fab');
-            const rightVal = fab ? (parseFloat(fab.style.right) || 16) : 16;
-            return (rightVal < window.innerWidth / 2) ? 'right' : 'left';
-        }
-        function scheduleSupportFabPeek() {
-            clearTimeout(supportFabPeekTimer);
-            supportFabPeekTimer = setTimeout(() => {
-                const fab = document.getElementById('support-fab');
-                if (!fab) return;
-                fab.classList.remove('peek-left', 'peek-right');
-                fab.classList.add('fab-peek', supportFabSide() === 'right' ? 'peek-right' : 'peek-left');
-            }, 2600);
-        }
-        function cancelSupportFabPeek() {
-            clearTimeout(supportFabPeekTimer);
-            const fab = document.getElementById('support-fab');
-            if (fab) fab.classList.remove('fab-peek', 'peek-left', 'peek-right');
-        }
-
-        function loadSupportFabPos() {
-            try {
-                const saved = JSON.parse(localStorage.getItem('gz_support_fab_pos') || 'null');
-                const fab = document.getElementById('support-fab');
-                if (!fab || !saved || typeof saved.right !== 'number' || typeof saved.bottom !== 'number') return;
-                fab.style.right = saved.right + 'px';
-                fab.style.bottom = saved.bottom + 'px';
-            } catch (e) { /* private browsing - ignore */ }
-        }
-
-        function initSupportWidget() {
-            const fab = document.getElementById('support-fab');
-            if (!fab) return;
-            loadSupportFabPos();
-
-            let startX, startY, startRight, startBottom, moved;
-            const onMove = (e) => {
-                const dx = startX - e.clientX;
-                const dy = startY - e.clientY;
-                if (Math.abs(dx) > 4 || Math.abs(dy) > 4) moved = true;
-                const maxRight = window.innerWidth - fab.offsetWidth - 4;
-                const maxBottom = window.innerHeight - fab.offsetHeight - 4;
-                fab.style.right = Math.min(Math.max(startRight + dx, 4), maxRight) + 'px';
-                fab.style.bottom = Math.min(Math.max(startBottom + dy, 4), maxBottom) + 'px';
-            };
-            const onUp = () => {
-                document.removeEventListener('pointermove', onMove);
-                document.removeEventListener('pointerup', onUp);
-                supportFabDragged = moved;
-                if (moved) {
-                    try {
-                        localStorage.setItem('gz_support_fab_pos', JSON.stringify({
-                            right: parseFloat(fab.style.right) || 16,
-                            bottom: parseFloat(fab.style.bottom) || 92
-                        }));
-                    } catch (e) { /* private browsing - ignore */ }
-                }
-            };
-            fab.addEventListener('pointerdown', (e) => {
-                startX = e.clientX; startY = e.clientY; moved = false;
-                cancelSupportFabPeek();
-                const rect = fab.getBoundingClientRect();
-                startRight = window.innerWidth - rect.right;
-                startBottom = window.innerHeight - rect.bottom;
-                document.addEventListener('pointermove', onMove);
-                document.addEventListener('pointerup', onUp);
-            });
-            // The click that follows a drag is suppressed so dragging the bubble
-            // never also opens the panel - only a genuine tap opens it.
-            fab.addEventListener('click', () => {
-                if (supportFabDragged) { supportFabDragged = false; scheduleSupportFabPeek(); return; }
-                // First tap while peeking (half-hidden + dimmed) just slides
-                // the bubble fully into view - it doesn't open the widget yet.
-                if (fab.classList.contains('fab-peek')) {
-                    cancelSupportFabPeek();
-                    scheduleSupportFabPeek();
-                    return;
-                }
-                // A genuine open tap: pop the bubble up, then open the widget.
-                cancelSupportFabPeek();
-                fab.classList.add('fab-pop');
-                setTimeout(() => {
-                    fab.classList.remove('fab-pop');
-                    openGuidePage();
-                }, 180);
-            });
-
-            scheduleSupportFabPeek();
-            // No summary listener started here anymore — both Product
-            // Support Chat and Account "Ask about this account" now open a
-            // direct Telegram link (see openAdminTelegram / 
-            // contactAccountAdminOnTelegram) instead of a live in-app
-            // thread, so there's no admin-reply unread dot to maintain.
-        }
-
-        let guideReturnPage = 'home';
-        function openGuidePage() {
-            if (window.currentStorePage && window.currentStorePage !== 'guide-page') {
-                guideReturnPage = window.currentStorePage;
-            }
-            showPage('guide-page');
-            const dot = document.getElementById('support-fab-dot');
-            if (dot) dot.style.display = 'none';
-        }
-        function closeGuidePage() {
-            showPage(guideReturnPage || 'home');
-            scheduleSupportFabPeek();
-        }
-        window.openGuidePage = openGuidePage;
-        window.closeGuidePage = closeGuidePage;
-        // Old names kept as aliases so any other call sites keep working.
-        window.openSupportWidget = openGuidePage;
-        window.closeSupportWidget = closeGuidePage;
-
         // ---------- Phone Back button: keep it inside the app ----------
         // This store page has no browser history of its own, so the device's
         // physical/gesture Back button used to exit the site on the very
@@ -13794,7 +12338,6 @@ html[data-theme="dark"] .wallet-balance-card{
             if (page === 'notif-detail' && window.closeNotificationDetail) return closeNotificationDetail();
             if (page === 'notif-page' && window.closeNotificationsPage) return closeNotificationsPage();
             if (page === 'terms' && window.closeTermsPage) return closeTermsPage();
-            if (page === 'guide-page' && window.closeGuidePage) return closeGuidePage();
             // Otherwise, step back to the Home tab instead of exiting.
             if (page && page !== 'home' && window.showPage) return showPage('home');
             // Already on Home with nothing open - nothing left to unwind
@@ -13806,16 +12349,6 @@ html[data-theme="dark"] .wallet-balance-card{
         });
         pushBackGuard();
 
-
-        function switchSupportTab(tab) {
-            ['guide', 'complaint'].forEach(t => {
-                const tabBtn = document.getElementById(`support-tab-${t}`);
-                const panel = document.getElementById(`support-panel-${t}`);
-                if (tabBtn) tabBtn.classList.toggle('active', t === tab);
-                if (panel) panel.style.display = t === tab ? '' : 'none';
-            });
-        }
-        window.switchSupportTab = switchSupportTab;
 
         function toggleGuideItem(el) {
             if (!el) return;
@@ -13829,45 +12362,6 @@ html[data-theme="dark"] .wallet-balance-card{
         }
         window.toggleGuideItem = toggleGuideItem;
 
-        async function submitComplaint(btnEl) {
-            const titleEl = document.getElementById('complaint-title');
-            const textEl = document.getElementById('complaint-text');
-            const title = titleEl.value.trim();
-            const text = textEl.value.trim();
-            if (!title || !text) {
-                window.showToast('ခေါင်းစဉ်နှင့် အကြောင်းအရာ ဖြည့်ပေးပါ', 'fail');
-                return;
-            }
-            const originalHtml = btnEl.innerHTML;
-            btnEl.innerText = 'ပို့နေသည်...';
-            btnEl.disabled = true;
-            try {
-                const guestId = window.getGuestId ? window.getGuestId() : '';
-                const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
-                const ticketId = await generateShortNumericId("supportTickets");
-                await setDoc(doc(db, "supportTickets", ticketId), {
-                    userId: guestId,
-                    userName: (savedProfile.name && savedProfile.name.trim()) ? savedProfile.name.trim() : guestId,
-                    userPhone: (savedProfile.phone && savedProfile.phone.trim()) ? savedProfile.phone.trim() : '',
-                    title,
-                    message: text,
-                    status: 'Open',
-                    timestamp: serverTimestamp()
-                });
-                titleEl.value = '';
-                textEl.value = '';
-                window.showToast('တိုင်ကြားစာ ပို့ပြီးပါပြီ', 'success');
-            } catch (error) {
-                console.error("Complaint submit error:", error);
-                window.showToast(error.message || 'ပို့၍မရပါ', 'fail');
-            } finally {
-                btnEl.innerHTML = originalHtml;
-                btnEl.disabled = false;
-            }
-        }
-        window.submitComplaint = submitComplaint;
-
-        initSupportWidget();
         initPackageCardLongPressCopy();
         applyI18n();
     </script>
