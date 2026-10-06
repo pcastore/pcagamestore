@@ -6891,13 +6891,7 @@ html[data-theme="dark"] .wallet-balance-card{
                 fazercardCategoryId: selectedGameFazerCardCategory,
                 fazercardOfferId: selectedPackage.fazercardOfferId || null,
                 fazercardGiftCategoryId: selectedGameFazerCardGiftCategory,
-                fazercardGiftCardId: selectedPackage.fazercardGiftCardId || null,
-                // Bay2Game auto-fulfillment - carried directly on the package
-                // (see pkg-bay2game in the admin game editor), same
-                // single-field pattern as g2bulkVoucherProductId above; no
-                // game-level code needed here since placeBay2gameOrder only
-                // ever reads order.bay2gameProductId + playerId/serverId.
-                bay2gameProductId: selectedPackage.bay2gameProductId || null
+                fazercardGiftCardId: selectedPackage.fazercardGiftCardId || null
             }, btnElement);
         }
 
@@ -6920,8 +6914,7 @@ html[data-theme="dark"] .wallet-balance-card{
                 fazercardCategoryId: selectedGameFazerCardCategory,
                 fazercardOfferId: selectedPackage.fazercardOfferId || null,
                 fazercardGiftCategoryId: selectedGameFazerCardGiftCategory,
-                fazercardGiftCardId: selectedPackage.fazercardGiftCardId || null,
-                bay2gameProductId: selectedPackage.bay2gameProductId || null
+                fazercardGiftCardId: selectedPackage.fazercardGiftCardId || null
             }, btnElement);
         }
 
@@ -7313,6 +7306,16 @@ html[data-theme="dark"] .wallet-balance-card{
                     payload.createdAt = serverTimestamp();
                 }
                 await setDoc(userRef, payload, { merge: true });
+                // Claim this sign-in's Firebase uid as the wallet owner so the
+                // order worker can verify "this sign-in is linked to that wallet".
+                // Separate best-effort write: rules may deny it (already owned by
+                // another uid), and that must never break the profile sync above.
+                const cu = auth.currentUser;
+                const curOwner = existing.exists() ? existing.data().authUid : '';
+                if (cu && cu.email && !String(cu.uid).startsWith('tg_') && curOwner !== cu.uid) {
+                    try { await setDoc(userRef, { authUid: cu.uid }, { merge: true }); }
+                    catch (e) { console.warn('authUid claim skipped:', e && e.code); }
+                }
             } catch (error) {
                 console.error("User sync error:", error);
             }
@@ -8799,6 +8802,15 @@ html[data-theme="dark"] .wallet-balance-card{
                         } catch (e) { /* already owned / has balance - expected, not an error */ }
                     }
                 }
+                // Already-linked Telegram account on this same device: make sure the
+                // wallet doc records this tg_ uid as owner (no-op if already set).
+                try {
+                    const gidNow = (linkSnap && linkSnap.exists() && linkSnap.data().guestId) || myGid;
+                    const ownerNow = targetUserSnap && targetUserSnap.exists() ? targetUserSnap.data().authUid : '';
+                    if (gidNow && ownerNow !== user.uid) {
+                        await setDoc(doc(db, "users", gidNow), { telegramId: String(tgUser.id), authUid: user.uid }, { merge: true });
+                    }
+                } catch (e) { console.warn('Telegram authUid claim skipped:', e && e.code); }
                 try { localStorage.setItem('gz_gid_owner_uid_tg', user.uid); } catch (e) { /* private browsing */ }
             } catch (e) {
                 console.error('Telegram account link check failed:', e);
@@ -8919,6 +8931,9 @@ html[data-theme="dark"] .wallet-balance-card{
                 completeTelegramSignIn('/auth/miniapp', { initData: tg.initData }).finally(() => {
                     window.tgMiniAppLoginPending = false;
                     // success -> onAuthStateChanged already let the user in; failure -> show the login step
+                    // A saved session may still be loading (auth.currentUser is null until Firebase finishes
+                    // restoring it) - don't flash the login step; onAuthStateChanged decides in that case.
+                    if (!auth.currentUser && !window.authResolvedOnce && window.hasSavedSession && window.hasSavedSession()) return;
                     if (typeof handleOnboardAuthState === 'function') handleOnboardAuthState(auth.currentUser);
                 });
             } catch (e) {
@@ -9043,7 +9058,23 @@ html[data-theme="dark"] .wallet-balance-card{
         // fall back to the login step. Harmless if the real callback already
         // resolved things by then (handleOnboardAuthState is idempotent-safe
         // via the onboardAuthChecked flag).
-        setTimeout(() => { if (!onboardAuthChecked) handleOnboardAuthState(null); }, 2500);
+        //
+        // A device that already has a saved session must NOT get the login step
+        // just because the connection is slow (the auth callback also waits for the
+        // ban check's Firestore reads): when a saved session is likely, keep showing
+        // the "checking" spinner much longer before giving up on it.
+        function hasSavedSession() {
+            try {
+                if (localStorage.getItem('pca_had_session') === '1') return true;
+                for (let i = 0; i < localStorage.length; i++) {
+                    const k = localStorage.key(i);
+                    if (k && k.indexOf('firebase:authUser:') === 0) return true;
+                }
+            } catch (e) { /* private browsing */ }
+            return false;
+        }
+        window.hasSavedSession = hasSavedSession;
+        setTimeout(() => { if (!onboardAuthChecked) handleOnboardAuthState(null); }, hasSavedSession() ? 20000 : 2500);
 
         // Auth state known (or 5s passed): History may now subscribe and is
         // allowed to show a real result instead of the loader.
@@ -9055,6 +9086,7 @@ html[data-theme="dark"] .wallet-balance-card{
         setTimeout(markAuthResolved, 5000);
         onAuthStateChanged(auth, async (user) => {
             markAuthResolved();
+            try { if (user) localStorage.setItem('pca_had_session', '1'); else localStorage.removeItem('pca_had_session'); } catch (e) { /* private browsing */ }
             // Catches a persisted Google session (returning device) whose
             // linked guest account was banned after the last time they
             // actually signed in - without this, they'd stay "signed in"
@@ -9501,7 +9533,7 @@ html[data-theme="dark"] .wallet-balance-card{
         }
 
         async function submitOrder(orderData, btnElement) {
-            const { gameName, serverRegion, amount, price, cost, quantity, inGameId, inGameName, serverId, paymentMethodName, receiptFile, transactionId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId, fazercardCategoryId, fazercardOfferId, fazercardGiftCategoryId, fazercardGiftCardId, bay2gameProductId } = orderData;
+            const { gameName, serverRegion, amount, price, cost, quantity, inGameId, inGameName, serverId, paymentMethodName, receiptFile, transactionId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId, fazercardCategoryId, fazercardOfferId, fazercardGiftCategoryId, fazercardGiftCardId } = orderData;
 
             const originalText = btnElement.innerText;
             btnElement.innerText = "Processing...";
@@ -9591,12 +9623,7 @@ html[data-theme="dark"] .wallet-balance-card{
                     // placeFazerCardGiftCardOrder in the admin panel). Also
                     // store-never-calls-FazerCards-directly, same reasoning
                     // as fazercardCategoryId above.
-                    ...(fazercardGiftCategoryId && fazercardGiftCardId ? { fazercardGiftCategoryId, fazercardGiftCardId } : {}),
-                    // Bay2Game auto-fulfillment - lets the admin panel route
-                    // this order through Bay2Game's /create_order (see
-                    // placeBay2gameOrder in the admin panel), same
-                    // single-field pattern as g2bulkVoucherProductId above.
-                    ...(bay2gameProductId ? { bay2gameProductId } : {})
+                    ...(fazercardGiftCategoryId && fazercardGiftCardId ? { fazercardGiftCategoryId, fazercardGiftCardId } : {})
                 };
                 await setDoc(orderRef, receiptOrderPayload);
                 pingWorker('order', orderRef.id);
@@ -9624,7 +9651,7 @@ html[data-theme="dark"] .wallet-balance-card{
         // rendered) so two rapid orders can never both slip through on a
         // balance that only actually covers one of them.
         async function submitWalletOrder(orderData, btnElement) {
-            const { gameName, serverRegion, amount, price, cost, quantity, inGameId, inGameName, serverId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId, fazercardCategoryId, fazercardOfferId, fazercardGiftCategoryId, fazercardGiftCardId, bay2gameProductId } = orderData;
+            const { gameName, serverRegion, amount, price, cost, quantity, inGameId, inGameName, serverId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId, fazercardCategoryId, fazercardOfferId, fazercardGiftCategoryId, fazercardGiftCardId } = orderData;
 
             const originalText = btnElement.innerText;
             btnElement.innerText = "Processing...";
@@ -9683,8 +9710,7 @@ html[data-theme="dark"] .wallet-balance-card{
                     ...(jcplaysProduct && jcplaysProductId ? { jcplaysProduct, jcplaysProductId } : {}),
                     ...(g2bulkVoucherProductId ? { g2bulkVoucherProductId } : {}),
                     ...(fazercardCategoryId && fazercardOfferId ? { fazercardCategoryId, fazercardOfferId } : {}),
-                    ...(fazercardGiftCategoryId && fazercardGiftCardId ? { fazercardGiftCategoryId, fazercardGiftCardId } : {}),
-                    ...(bay2gameProductId ? { bay2gameProductId } : {})
+                    ...(fazercardGiftCategoryId && fazercardGiftCardId ? { fazercardGiftCategoryId, fazercardGiftCardId } : {})
                 };
                 // ATOMIC: the wallet debit and the order creation happen in ONE
                 // transaction. Previously the debit committed first and setDoc(orderRef)
