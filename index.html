@@ -12,7 +12,7 @@
          Noto Sans Myanmar is unicode-range subset by Google, so it only downloads when Burmese text is on screen. -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Noto+Sans+Myanmar:wght@400;500;600;700&display=swap">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=Manrope:wght@500;600&family=Noto+Sans+Myanmar:wght@400;500;600;700&display=swap">
     <title>PCA Store — Game Top-Up & Voucher Store</title>
     <meta name="description" content="PCA Store: fast, reliable game top-ups and vouchers. Pay with Wallet balance, KPay, Wave, or Crypto (USDT).">
     <link rel="canonical" href="https://pcagamestoremm.vercel.app/">
@@ -57,6 +57,29 @@
                 }
                 document.documentElement.setAttribute('data-theme', theme);
             } catch (e) { /* ignore */ }
+        })();
+    </script>
+    <script>
+        // Returning device with a saved session: the login gate (and its
+        // "Connecting..." text) must never flash. Hide it from the very first
+        // paint; handleOnboardAuthState() removes this class only if Firebase
+        // reports there is no signed-in user after all.
+        (function () {
+            try {
+                var had = localStorage.getItem('pca_had_session') === '1';
+                if (!had) {
+                    for (var i = 0; i < localStorage.length; i++) {
+                        var k = localStorage.key(i);
+                        if (k && k.indexOf('firebase:authUser:') === 0) { had = true; break; }
+                    }
+                }
+                if (had) {
+                    document.documentElement.classList.add('has-session');
+                    var st = document.createElement('style');
+                    st.textContent = 'html.has-session .onboarding-overlay{display:none!important}';
+                    document.head.appendChild(st);
+                }
+            } catch (e) { /* private browsing */ }
         })();
     </script>
     <script>
@@ -2895,7 +2918,7 @@ html[data-theme="dark"] .profile-hero-edit-btn,html[data-theme="dark"] .prefs-ro
                 <small>Balance</small>
                 <div class="hdr-bal-amt" id="home-balance-amount">0 MMK</div>
             </div>
-            <button type="button" class="hdr-dep" onclick="openDepositFromHeader()">+ Deposit</button>
+            <button type="button" class="hdr-dep" onclick="openDepositFromHeader()" aria-label="Deposit"><svg class="ui-icon"><use href="#icon-plus"></use></svg></button>
         </div>
     </header>
 
@@ -3230,6 +3253,193 @@ html[data-theme="dark"] .wallet-balance-card{
 .cards-grid > .game-card{padding:3px!important;border-radius:12px!important}
 .cards-grid > .game-card .game-card-img-wrap{border-radius:9px!important}
 .cards-grid > .game-card .game-card-name{font-size:8.5px!important;margin-top:3px!important;padding:2px 3px!important}
+
+/* =====================================================================
+   UI v3 — "Cover & Coin"
+   Idea: the game art is the hero, everything else stays quiet and solid.
+   Blue = actions. Amber (coin) = money only (balance, deposit).
+   One radius scale: tile 20 / card 16-18 / control 12 / pill 999.
+   Also removes the always-on blur, glow and sheen layers (lighter on low-end phones).
+   ===================================================================== */
+:root{
+  --coin:#F5A524; --coin-soft:#FFF3D9; --coin-line:rgba(224,148,16,.38); --coin-ink:#3F2600;
+  --font-num:'Manrope','Inter','Noto Sans Myanmar','Myanmar Text',system-ui,sans-serif;
+  --bg:#F1F3F8; --surface-alt:#F5F7FB; --line:#E3E7F0; --border:#E3E7F0;
+  --text:#0D1426; --text-secondary:#525C72; --text-muted:#838CA2;
+  --accent-soft:#E8F1FE;
+  --r-tile:20px;
+}
+html[data-theme="dark"]{
+  --coin-soft:rgba(245,165,36,.13); --coin-line:rgba(245,165,36,.30); --coin-ink:#FFD58A;
+  --bg:#080D1B; --surface:#0F1629; --card-bg:#0F1629; --panel-bg:#0F1629; --surface-alt:#141D34;
+  --line:#1F2A45; --border:#1F2A45;
+  --text:#E9EEF9; --text-secondary:#9AA7C0; --text-muted:#6C7893;
+  --accent-soft:rgba(91,157,255,.15);
+}
+
+/* ---- Header: one compact row — profile · coin balance · bell ---- */
+.header,html[data-theme="dark"] .header{
+  display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:center; column-gap:8px; row-gap:0;
+  height:auto; overflow:visible;
+  padding:calc(env(safe-area-inset-top,0px) + 8px) 14px 8px;
+  background:var(--surface); -webkit-backdrop-filter:none; backdrop-filter:none;
+  border-bottom:1px solid var(--line); box-shadow:none;
+}
+.header::before,html[data-theme="dark"] .header::before{display:none}
+.header-row{display:contents}
+.header-profile{order:1; margin:0; min-width:0}
+.hdr-bal{order:2}
+.header-icons-group{order:3}
+body,body:not(.no-bottom-nav){padding-top:calc(68px + env(safe-area-inset-top,0px))}
+
+.header-profile-avatar{
+  width:38px; height:38px; color:var(--accent);
+  background-color:var(--accent-soft); background-image:none;
+  border:1px solid var(--line); box-shadow:none;
+}
+.header-profile-name{font-size:14px; font-weight:500}
+.header-profile-id,html[data-theme="dark"] .header-profile-id{font-size:11px; color:var(--text-muted)}
+
+.header .header-icon,html[data-theme="dark"] .header .header-icon{
+  width:38px; height:38px; border-radius:12px; background:var(--surface-alt);
+  border:1px solid var(--line); box-shadow:none; color:var(--text-secondary)!important;
+}
+.header .header-icon .ui-icon,html[data-theme="dark"] .header .header-icon .ui-icon{
+  width:20px!important; height:20px!important; color:var(--text-secondary)!important; filter:none;
+}
+
+/* ---- Balance: amber coin pill (the only warm colour in the app) ---- */
+.hdr-bal,html[data-theme="dark"] .hdr-bal{
+  min-height:0; height:38px; padding:0 4px 0 11px; gap:8px; border-radius:999px;
+  background:var(--coin-soft); color:var(--coin-ink); border:1px solid var(--coin-line);
+  box-shadow:none; -webkit-backdrop-filter:none; backdrop-filter:none; animation:none;
+}
+.hdr-bal.bal-pop{animation:hdrBalFlash .9s ease-out}
+.hdr-bal::before,.hdr-bal::after,html[data-theme="dark"] .hdr-bal::before{display:none}
+.hdr-bal-info{display:flex; align-items:center; gap:7px}
+.hdr-bal-info small{display:none}
+.hdr-bal-info::before{
+  content:""; flex:none; width:16px; height:16px; border-radius:50%;
+  background:radial-gradient(circle at 50% 50%,#FFE7B0 0 26%,#F5A524 28%);
+  box-shadow:inset 0 0 0 1.5px #D98B0A;
+}
+.hdr-bal-amt,html[data-theme="dark"] .hdr-bal-amt,.hdr-bal.counting .hdr-bal-amt{
+  font-family:var(--font-num); font-size:13.5px; font-weight:600; line-height:1; letter-spacing:0; text-shadow:none;
+}
+.hdr-dep,html[data-theme="dark"] .hdr-dep{
+  width:30px; height:30px; padding:0; border-radius:50%;
+  display:flex; align-items:center; justify-content:center;
+  background:var(--coin); color:#3F2600; border:none; box-shadow:none;
+  -webkit-backdrop-filter:none; backdrop-filter:none;
+}
+.hdr-dep .ui-icon{width:16px; height:16px; stroke-width:2.4}
+.hdr-dep::after{content:""; position:absolute; inset:-6px}
+.hdr-dep:active{transform:scale(.92); box-shadow:none}
+
+/* ---- Quick actions: flat, one row, icon beside label ---- */
+.wf-actions{gap:8px; margin-bottom:18px}
+.wf-act,html[data-theme="dark"] .wf-act{
+  flex-direction:row; justify-content:center; gap:8px; padding:9px 6px; border-radius:14px;
+  background:var(--surface); border:1px solid var(--line); box-shadow:none;
+  -webkit-backdrop-filter:none; backdrop-filter:none; color:var(--text); font-size:12.5px; font-weight:500;
+}
+.wf-act::before{display:none}
+.wf-act--gifts{--t:238,96,112}
+.wf-act--history{--t:16,160,146}
+.wf-act-ic,html[data-theme="dark"] .wf-act-ic{
+  width:30px; height:30px; border-radius:10px; background:rgba(var(--t),.12); border:0; box-shadow:none;
+}
+.wf-act-ic .ui-icon{width:16px; height:16px}
+.wf-act.active,html[data-theme="dark"] .wf-act.active{
+  background:rgba(var(--t),.10); border-color:rgba(var(--t),.55); box-shadow:none; font-weight:500;
+}
+html[data-theme="dark"] .wf-act.active{color:var(--text)}
+.wf-act.active{color:rgb(var(--t))}
+.wf-act.active .wf-act-ic{background:rgb(var(--t))}
+.wf-act.active::after{display:none}
+
+/* ---- Section titles: type only, no bar, no rule ---- */
+.title-header{
+  font-family:var(--font-num); font-size:16.5px; font-weight:600; letter-spacing:-.1px;
+  border-bottom:0; padding-bottom:0; margin-bottom:10px; color:var(--text);
+}
+.title-header::before{display:none}
+
+/* ---- Game tiles: borderless, art-first (replaces the boxed card + grey name pill) ---- */
+.cards-grid{gap:16px 10px!important; padding:0 2px}
+.popular-scroll-wrap{gap:12px; padding:3px 3px 12px}
+.popular-card{flex:0 0 92px}
+.cards-grid > .game-card,.popular-card.game-card{
+  padding:0!important; border:0; background:transparent; box-shadow:none; border-radius:0!important;
+  overflow:visible; contain:layout style; transition:transform .12s ease;
+}
+.cards-grid > .game-card:active,.popular-card.game-card:active{transform:scale(.96)}
+.cards-grid > .game-card .game-card-img-wrap,.popular-card .game-card-img-wrap{
+  border-radius:var(--r-tile)!important;
+  box-shadow:0 0 0 1px rgba(128,138,160,.20),0 8px 16px -10px rgba(14,20,38,.45);
+}
+.cards-grid > .game-card .game-card-name,.popular-card .game-card-name{
+  margin:7px 0 0!important; padding:0 2px!important; border:0; border-radius:0; background:transparent;
+  font-size:11px!important; font-weight:500; line-height:1.3; min-height:2.6em; color:var(--text); text-align:center;
+  display:-webkit-box; -webkit-line-clamp:2; -webkit-box-orient:vertical; overflow:hidden; word-break:break-word;
+}
+.skel-game-card,.skel-popular-card{padding:0; background:transparent; border:0; border-radius:0}
+.skel-popular-card{flex:0 0 92px}
+.skel-game-card .skel-img,.skel-popular-card .skel-img{border-radius:var(--r-tile)}
+.skel-game-card .skel-name,.skel-popular-card .skel-name{height:11px; width:70%; margin:9px auto 0; border-radius:6px}
+
+/* ---- Live ticker ---- */
+.bullet-chat-wrapper{margin:10px 14px 0; border-radius:12px; height:30px; box-shadow:none}
+
+/* ---- Game page: the money page ---- */
+#detail-game-banner{border-radius:20px!important}
+.detail-section-title{font-family:var(--font-num); font-size:14px; font-weight:600; color:var(--text); margin:20px 0 10px}
+.detail-form-card{border-radius:18px; box-shadow:none; padding:14px}
+.detail-form-card label{font-weight:500}
+.detail-form-card input[type="text"]{border-width:1px; border-radius:12px; padding:12px 14px}
+.detail-form-card input[type="text"]:focus{background:var(--surface); box-shadow:0 0 0 3px var(--accent-soft)}
+.pc-price,.psb-price{font-family:var(--font-num)}
+
+/* ---- Wallet: ink card with coin rings (same amber as the header balance) ---- */
+.wallet-balance-card,html[data-theme="dark"] .wallet-balance-card{
+  transform:none; border-radius:22px;
+  background:#0E1A3A!important; border:1px solid rgba(255,255,255,.08);
+  -webkit-backdrop-filter:none; backdrop-filter:none;
+  box-shadow:0 14px 30px -16px rgba(10,20,50,.55)!important;
+}
+.wallet-balance-card::before,.wallet-balance-card::after,.wallet-balance-card-glow{display:none}
+.wallet-balance-pattern{
+  opacity:1; background-size:auto; -webkit-mask-image:none; mask-image:none;
+  background-image:radial-gradient(circle at 100% 0%,
+    transparent 0 46px, rgba(245,165,36,.26) 47px 48px, transparent 49px 70px,
+    rgba(245,165,36,.16) 71px 72px, transparent 73px 96px, rgba(245,165,36,.10) 97px 98px, transparent 99px);
+}
+.wallet-balance-icon{background:var(--coin)!important; color:#3F2600; border:0!important; box-shadow:none!important; -webkit-backdrop-filter:none; backdrop-filter:none}
+.wallet-balance-tag{background:rgba(255,255,255,.08)!important; border:1px solid rgba(255,255,255,.14)!important; box-shadow:none!important; -webkit-backdrop-filter:none; backdrop-filter:none}
+.wallet-balance-label{font-size:12px; letter-spacing:0; text-transform:none; color:rgba(255,255,255,.62)!important}
+.wallet-balance-amount{font-family:var(--font-num); font-size:30px; color:#FFE2A8; text-shadow:none}
+.wallet-topup-btn{
+  width:auto; display:inline-flex; padding:10px 18px 10px 12px; border-radius:999px;
+  background:var(--coin); color:#3F2600; box-shadow:none;
+}
+.wallet-topup-btn-icon{background:rgba(63,38,0,.14); color:#3F2600}
+.wallet-min-hint{text-align:left; color:rgba(255,255,255,.55)}
+.wallet-section-title{font-family:var(--font-num); font-size:14px; font-weight:600; color:var(--text)}
+
+/* ---- Shared components: one radius scale, hairline borders, no hard-coded tints ---- */
+.list-card,.notif-item{border-radius:16px}
+.history-card{padding:12px 14px}
+.history-card:active{background:var(--surface-alt); border-color:var(--line)}
+.history-status-tabs{border-radius:14px; background:var(--surface-alt); border:1px solid var(--line)}
+.history-status-tab{border-radius:10px}
+.history-status-tab.active{box-shadow:none}
+.pkg-type-tab.active,.pay-type-tab.active,.history-status-tab.active{background:var(--surface); box-shadow:none}
+.payment-option{border-width:1.5px; border-radius:16px}
+.payment-option-icon{border-radius:12px}
+.package-card{border-width:1.5px; border-radius:18px}
+.modal-box{border-radius:24px 24px 0 0}
+.modal-header{border-bottom-color:var(--line)}
+b,strong{font-weight:600}
 </style>
 
         <!-- ALUU.IN CRYPTO WALLET TOP UP MODAL: independent lane from the
@@ -9042,6 +9252,7 @@ html[data-theme="dark"] .wallet-balance-card{
             onboardAuthChecked = true;
             if (user) { overlay.style.display = 'none'; return; } // signed in -> straight into the app
             // No session: nobody gets past this screen.
+            document.documentElement.classList.remove('has-session'); // stale saved-session hint: bring the gate back
             overlay.style.display = 'flex';
             if (window.tgMiniAppLoginPending) { showOnboardStep('checking'); return; } // Telegram auto-login still running
             showOnboardStep('login');
