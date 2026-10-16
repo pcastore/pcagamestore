@@ -731,6 +731,19 @@
         .skel-popular-voucher-card { flex: 0 0 118px; aspect-ratio: 1 / 1.18; display: block; border-radius: 12px; overflow: hidden; border: 1px solid var(--border); }
         .skel-popular-voucher-card .skel-img { width: 118px; height: 118px; }
         .skel-popular-voucher-card .skel-name { height: 26px; margin-top: 0; }
+        /* Wallet top-up history: loading rows + per-row status note */
+        .skel-topup-row { height: 66px; border-radius: 16px; margin-bottom: 10px; }
+        .wallet-topup-note { margin-top: 4px; font-size: 11.5px; line-height: 1.4; color: var(--text-secondary); }
+        .wallet-topup-note.rejected { color: #C0392B; }
+        .wallet-topup-note.pending { color: #9A6B00; }
+        html[data-theme="dark"] .wallet-topup-note.rejected { color: #FF8A8A; }
+        html[data-theme="dark"] .wallet-topup-note.pending { color: #FACC15; }
+        /* Order-success screen: one-time "get updates on Telegram" offer */
+        .success-tg-offer { display: none; text-align: left; margin: 0 0 12px; padding: 12px 14px; border-radius: 14px; background: var(--surface-alt); border: 1px solid var(--border); }
+        .success-tg-offer p { margin: 0 0 10px; font-size: 13px; line-height: 1.5; color: var(--text); }
+        .success-tg-offer-actions { display: flex; gap: 8px; align-items: center; }
+        .success-tg-offer-actions .btn { flex: 1; padding: 9px 12px; font-size: 13px; }
+        .success-tg-offer-later { background: none; border: 0; color: var(--text-secondary); font-size: 12.5px; padding: 8px 6px; cursor: pointer; }
 
         /* Small colored category pill overlaid on the game's cover image.
            Kept compact on purpose - on a 3-across mobile grid the card image
@@ -4221,6 +4234,13 @@ body{background-image:radial-gradient(120% 55% at 50% -12%,rgba(var(--accent-rgb
                 <svg class="ui-icon"><use href="#icon-gamepad"></use></svg>
                 <span>Game ဖွင့်မယ်</span>
             </button>
+            <div class="success-tg-offer" id="success-tg-offer">
+                <p>📲 Order Success / Fail ဖြစ်တာနဲ့ Telegram မှာ တိုက်ရိုက်အကြောင်းကြားစေချင်လား?<br><span style="color:var(--text-secondary);font-size:12px;">Get your order status live in Telegram.</span></p>
+                <div class="success-tg-offer-actions">
+                    <button type="button" class="btn" onclick="goLinkTelegramFromSuccess()">Telegram ချိတ်မယ်</button>
+                    <button type="button" class="success-tg-offer-later" onclick="dismissTelegramOffer()">နောက်မှ</button>
+                </div>
+            </div>
             <button class="btn btn-primary" id="success-go-history-btn" onclick="goToHistoryFromSuccess()" data-i18n="btn_go_history">Go to History</button>
         </div>
     </div>
@@ -6489,6 +6509,10 @@ body{background-image:radial-gradient(120% 55% at 50% -12%,rgba(var(--accent-rgb
             const price = getOrderTotal();
             const bal = currentWalletBalance;
             const enough = bal >= price;
+            // Round the shortfall up to the next 1,000 (never below the top-up
+            // minimum) so the pre-filled amount is a clean number that covers it.
+            const shortfall = Math.max(0, price - bal);
+            const topupSuggest = Math.max(5000 /* = WALLET_TOPUP_MIN (module scope, not visible here) */, Math.ceil(shortfall / 1000) * 1000);
             box.innerHTML = enough ? `
                 <span class="wallet-pay-balance-label">Wallet Balance <span class="payment-option-availability" style="font-weight:400;">- Available 24/7</span></span>
                 <span class="wallet-pay-balance-amount">${bal.toLocaleString()} MMK</span>
@@ -6496,8 +6520,8 @@ body{background-image:radial-gradient(120% 55% at 50% -12%,rgba(var(--accent-rgb
             ` : `
                 <span class="wallet-pay-balance-label">Wallet Balance <span class="payment-option-availability" style="font-weight:400;">- Available 24/7</span></span>
                 <span class="wallet-pay-balance-amount">${bal.toLocaleString()} MMK</span>
-                <span class="wallet-pay-note low">Not enough balance — top up ${(price - bal).toLocaleString()} MMK more to pay from your wallet.</span>
-                <button type="button" class="btn btn-primary" style="margin-top:10px;width:100%;" onclick="openWalletTopupModal()">Top Up Wallet</button>
+                <span class="wallet-pay-note low">လက်ကျန်ငွေ မလုံလောက်ပါ — ${shortfall.toLocaleString()} MMK ထပ်လိုပါတယ်။<br>Not enough balance — top up ${shortfall.toLocaleString()} MMK more to pay from your wallet.</span>
+                <button type="button" class="btn btn-primary" style="margin-top:10px;width:100%;" onclick="openWalletTopupModal(${topupSuggest})">Top Up ${topupSuggest.toLocaleString()} MMK</button>
             `;
             updateConfirmButtonForPaymentType();
         }
@@ -6512,7 +6536,7 @@ body{background-image:radial-gradient(120% 55% at 50% -12%,rgba(var(--accent-rgb
                 confirmBtn.disabled = !enough;
                 confirmBtn.innerText = enough
                     ? `Buy ${selectedPackage.amount}${qtyLabel()} - ${total.toLocaleString()} MMK (Wallet)`
-                    : 'Insufficient Wallet Balance';
+                    : `Need ${(total - currentWalletBalance).toLocaleString()} MMK more`;
             } else if (selectedPaymentType === 'payment') {
                 confirmBtn.disabled = false;
                 confirmBtn.innerText = `Buy ${selectedPackage.amount}${qtyLabel()} - ${total.toLocaleString()} MMK`;
@@ -6860,8 +6884,45 @@ body{background-image:radial-gradient(120% 55% at 50% -12%,rgba(var(--accent-rgb
         // customer still standing right there on the success screen.
         let successOrderUnsubscribe = null;
 
+        // One-time offer (per device) to link Telegram so the bot can push live
+        // order status. Hidden when the account already has Telegram linked, or
+        // after the customer taps "later" / goes to link it.
+        async function maybeShowTelegramOffer() {
+            const el = document.getElementById('success-tg-offer');
+            if (!el) return;
+            el.style.display = 'none';
+            try {
+                try { if (localStorage.getItem('gz_tg_offer_dismissed') === '1') return; } catch (e) { /* storage blocked */ }
+                const gid = window.getGuestId ? window.getGuestId() : null;
+                if (!gid) return;
+                const snap = await window.getDoc(window.doc(window.db, 'users', gid));
+                const data = snap.exists() ? snap.data() : {};
+                if (data.telegramId || data.telegramUsername) return;
+                if (document.getElementById('success-overlay').classList.contains('show')) el.style.display = 'block';
+            } catch (e) {
+                console.error('Telegram offer check error:', e);
+            }
+        }
+        function dismissTelegramOffer() {
+            try { localStorage.setItem('gz_tg_offer_dismissed', '1'); } catch (e) { /* storage blocked */ }
+            const el = document.getElementById('success-tg-offer');
+            if (el) el.style.display = 'none';
+        }
+        function goLinkTelegramFromSuccess() {
+            dismissTelegramOffer();
+            goToHistoryFromSuccess();
+            showPage('profile');
+            setTimeout(() => {
+                const slot = document.getElementById('link-telegram-slot');
+                if (slot && slot.scrollIntoView) slot.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 350);
+        }
+        window.dismissTelegramOffer = dismissTelegramOffer;
+        window.goLinkTelegramFromSuccess = goLinkTelegramFromSuccess;
+
         function openSuccessOverlay(orderId, initialData, mode = 'default') {
             document.getElementById('success-overlay').classList.add('show');
+            maybeShowTelegramOffer();
 
             const openGameBtn = document.getElementById('success-open-game-btn');
             const purchasedGame = window.GAMES ? window.GAMES[selectedGameId] : null;
@@ -7859,13 +7920,15 @@ body{background-image:radial-gradient(120% 55% at 50% -12%,rgba(var(--accent-rgb
         // that we should auto-open the real top-up modal once sign-in succeeds.
         let walletGatePending = false;
 
-        function openWalletTopupModal() {
+        // `prefill` (optional number, e.g. the shortfall from the Wallet pay box)
+        // pre-fills the amount field. Ignored when called as a plain click handler.
+        function openWalletTopupModal(prefill) {
             if (!auth.currentUser) {
                 walletGatePending = true;
                 openLoginOverlay();
                 return;
             }
-            openWalletTopupModalActual();
+            openWalletTopupModalActual(typeof prefill === 'number' ? prefill : 0);
         }
         window.openWalletTopupModal = openWalletTopupModal;
 
@@ -7891,7 +7954,7 @@ body{background-image:radial-gradient(120% 55% at 50% -12%,rgba(var(--accent-rgb
         }
         window.handleWalletGateGoogleSignIn = handleWalletGateGoogleSignIn;
 
-        function openWalletTopupModalActual() {
+        function openWalletTopupModalActual(prefill) {
             document.getElementById('wallet-topup-amount').value = '';
             document.getElementById('wallet-topup-payment-info').style.display = 'none';
             document.getElementById('wallet-receipt-preview').style.display = 'none';
@@ -7905,6 +7968,11 @@ body{background-image:radial-gradient(120% 55% at 50% -12%,rgba(var(--accent-rgb
             btn.disabled = true;
             btn.innerText = 'Select a Payment Method';
             if (window.resetWalletSlideConfirmThumb) window.resetWalletSlideConfirmThumb();
+            if (typeof prefill === 'number' && prefill > 0) {
+                const amountInput = document.getElementById('wallet-topup-amount');
+                amountInput.value = String(Math.min(WALLET_TOPUP_MAX, Math.round(prefill)));
+                finalizeWalletTopupAmountInput(amountInput);
+            }
             renderWalletTopupPresets();
             renderWalletPaymentMethods();
             document.getElementById('wallet-topup-overlay').classList.add('show');
@@ -8455,7 +8523,7 @@ body{background-image:radial-gradient(120% 55% at 50% -12%,rgba(var(--accent-rgb
                 // neutral loading state, not the "No top up requests" empty
                 // state (which would misleadingly flash before real data).
                 list.innerHTML = '';
-                empty.innerHTML = `<div class="empty-state page-loading" style="min-height:30vh;">${LOADER_MARKUP.dots}<div class="pca-anim"><span>P</span><span>C</span><span>A</span></div></div>`;
+                empty.innerHTML = '<div class="skel skel-topup-row"></div><div class="skel skel-topup-row"></div><div class="skel skel-topup-row"></div>';
                 empty.style.display = 'block';
                 return;
             }
@@ -8480,6 +8548,9 @@ body{background-image:radial-gradient(120% 55% at 50% -12%,rgba(var(--accent-rgb
                             <span class="badge ${walletStatusBadgeClass(t.status)}">${orderStatusLabel(t.status)}</span>
                         </div>
                         <div class="wallet-topup-meta">${escapeHtml(t.paymentMethod || '-')} • ${t.timestamp && t.timestamp.toDate ? t.timestamp.toDate().toLocaleString() : 'Just now'}</div>
+                        ${t.status === 'Rejected'
+                            ? `<div class="wallet-topup-note rejected">${t.statusNote ? escapeHtml(t.statusNote) : 'ပယ်ချခံရပါသည် — Support ကို ဆက်သွယ်ပါ။'}</div>`
+                            : (t.status === 'Completed' ? '' : '<div class="wallet-topup-note pending">Admin စစ်ဆေးနေပါသည် — ပြီးရင် Wallet ထဲ ပေါင်းထည့်ပေးပါမယ်။</div>')}
                     </div>
                 </div>
             `;
@@ -8570,7 +8641,7 @@ body{background-image:radial-gradient(120% 55% at 50% -12%,rgba(var(--accent-rgb
                     <div class="detail-grid-item"><span>Payment Method</span><b>${escapeHtml(t.paymentMethod || '-')}</b></div>
                     <div class="detail-grid-item"><span>Date</span><b>${t.timestamp && t.timestamp.toDate ? t.timestamp.toDate().toLocaleString() : '-'}</b></div>
                     ${t.receiptUrl ? `<div class="detail-grid-item full"><span>Receipt</span><img src="${t.receiptUrl}" style="width:100%;border-radius:10px;margin-top:6px;"></div>` : ''}
-                    ${t.status === 'Rejected' && t.statusNote ? `<div class="detail-grid-item full"><span>Reason</span><b>${t.statusNote}</b></div>` : ''}
+                    ${t.status === 'Rejected' && t.statusNote ? `<div class="detail-grid-item full"><span>Reason</span><b>${escapeHtml(t.statusNote)}</b></div>` : ''}
                 </div>
             `;
             document.getElementById('wallet-topup-detail-overlay').classList.add('show');
