@@ -9507,6 +9507,7 @@ b,strong{font-weight:600}
                             ${orderTimelineMiniHTML(data.status)}
                             ${successTimeLine}
                             ${orderIdLine}
+                             ${(data.status === 'Success' || data.status === 'Fail') ? `<button type="button" class="hc-again" onclick="event.stopPropagation();pcaBuyAgainIdx(${index})"><svg class="ui-icon"><use href="#icon-refresh"></use></svg>Buy again</button>` : ''}
                         </div>
                     </div>
                     <div class="hc-right">
@@ -9546,7 +9547,7 @@ b,strong{font-weight:600}
 
         function renderHistoryOrders(orders) {
             const container = document.getElementById('history-container');
-            HISTORY_ORDERS = orders;
+            HISTORY_ORDERS = orders; window.__hist = orders;
             if (orders.length === 0) {
                 container.innerHTML = emptyStateHTML('icon-history', 'No orders yet', 'Your top ups and purchases will show up here once you place one.');
                 return;
@@ -9667,6 +9668,7 @@ b,strong{font-weight:600}
                         Download Receipt
                     </button>
                 ` : ''}
+                 ${(data.status === 'Success' || data.status === 'Fail') ? `<button type="button" class="btn od-again" onclick="pcaBuyAgainIdx(${index})"><svg class="ui-icon"><use href="#icon-refresh"></use></svg>Buy again</button>` : ''}
             `;
             document.getElementById('order-detail-overlay').classList.add('show');
         }
@@ -12338,6 +12340,7 @@ html body .bullet-chat-container,html body .bullet-chat-wrapper{background:trans
         <div class="pv-res-meta" id="pv-res-meta"></div>
         <div id="pv-res-voucher"></div>
         <div class="pv-res-actions">
+            <button type="button" class="pv-btn buy" id="pv-res-buy" onclick="pcaBuyAgain(window.__pcaLast)">Buy again</button>
             <button type="button" class="pv-btn ghost" onclick="pv2ResHistory()">Check Order</button>
             <button type="button" class="pv-btn main" id="pv-res-main" onclick="pv2ResMain()">Go Home</button>
         </div>
@@ -12934,6 +12937,8 @@ html body .title-header::before{width:4px !important;height:14px !important;bord
 
   function showResult(ok, data, id, label) {
     var ov = $('pv-result'); if (!ov) return;
+    window.__pcaLast = data; window.__pcaLastOk = ok;
+    var by = $('pv-res-buy'); if (by) by.style.display = ok ? '' : 'none';
     var so = $('success-overlay'); if (so) so.classList.remove('show');
     ov.querySelector('.pv-res-card').className = 'pv-res-card ' + (ok ? 'pv-ok' : 'pv-bad');
     $('pv-res-icon').innerHTML = ok ? CHK : CROSS;
@@ -12959,6 +12964,7 @@ html body .title-header::before{width:4px !important;height:14px !important;bord
   };
   window.pv2ResMain = function () {
     closeResult();
+    if (window.__pcaLastOk === false && window.__pcaLast && window.pcaBuyAgain) { window.pcaBuyAgain(window.__pcaLast); return; }
     if (typeof closeGameDetail === 'function') closeGameDetail();
     if (window.showPage) window.showPage('home');
   };
@@ -13248,6 +13254,324 @@ html body :is(#detail-payment-section,#detail-package-section) .qty-stepper{disp
   addEventListener('resize',function(){document.querySelectorAll('[data-mq]').forEach(function(e){e.removeAttribute('data-mq');e.classList.remove('mq-on');if(e.firstChild&&e.firstChild.className==='mq-in')e.textContent=e.firstChild.textContent});sched()},{passive:true});
  }
  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
+<style id="pca-v6">@layer pcafix{
+/* ===== PCA v6 · lighter text · swipe pay · glass ticker · compact popups · glass wallet · 3-col grid · skeleton · admin chip ===== */
+
+/* 1) TEXT: lighter weights, smaller sizes */
+html body :is(.game-card-name,.voucher-card-name,.game-row .game-card-name,.popular-card .game-card-name){font-weight:500 !important;font-size:10.5px !important}
+html body .title-header{font-weight:600 !important;font-size:12.5px !important}
+html body .htab-t{font-weight:500 !important;font-size:10.5px !important}
+html body :is(.pkg-type-tab,.pay-type-tab,.history-status-tab){font-weight:500 !important;font-size:12px !important;height:34px !important}
+html body :is(.pkg-type-tab,.pay-type-tab,.history-status-tab).active{font-weight:600 !important}
+html body .detail-section-title{font-weight:600 !important;font-size:14px !important}
+html body :is(.btn,.pv-btn,.dash-add,.confirm-id-btn){font-weight:600 !important}
+html body .payment-option .payment-option-name{font-weight:500 !important;font-size:12px !important}
+html body .id-result-name{font-weight:500 !important;font-size:13px !important}
+html body .header-profile-name{font-weight:600 !important}
+html body .hdr-bal .hdr-bal-amt{font-weight:600 !important}
+html body .wbc2 .wallet-balance-amount{font-weight:600 !important;font-size:26px !important}
+/* package rows: small cells, light text */
+html body #detail-package-list{gap:6px !important}
+html body #detail-package-list .package-card{grid-template-columns:36px minmax(0,1fr) auto !important;gap:6px !important;padding:6px !important;border-radius:16px !important}
+html body #detail-package-list .package-card .pc-img-wrap{width:36px !important;height:36px !important}
+html body #detail-package-list .package-card :is(.pc-label-wrap,.pc-price-bar){padding:6px 10px !important;border-radius:12px !important;min-width:0}
+html body #detail-package-list .package-card .pc-label{flex:1 1 0;font-size:13px !important;font-weight:500 !important;line-height:1.3 !important}
+html body #detail-package-list .package-card .pc-price{font-size:13px !important;font-weight:600 !important}
+html body #detail-package-list .package-card .pc-cur{font-size:9.5px !important;font-weight:500 !important;margin-left:2px}
+/* long names scroll (script below wraps them) */
+html body :is(#detail-package-list .package-card .pc-label,.payment-option-name,.id-result-name,.header-profile-name){display:block;min-width:0;max-width:100%;overflow:hidden !important;white-space:nowrap !important;text-overflow:clip !important}
+
+/* 2) SWIPE TO PAY */
+html body .slide-confirm-wrap{position:relative !important;height:50px !important;border-radius:999px !important;overflow:hidden !important;border:0 !important;
+ background:var(--pca-acc,#E11D2E) !important;box-shadow:0 8px 18px -10px rgba(var(--pca-rgb,225,29,46),.75) !important;transition:background-color .25s ease,box-shadow .25s ease}
+html body .slide-confirm-wrap .btn{position:absolute !important;inset:0 !important;z-index:2;width:100% !important;height:100% !important;margin:0 !important;padding:0 18px 0 56px !important;border:0 !important;border-radius:999px !important;
+ background:transparent !important;background-image:none !important;box-shadow:none !important;color:#fff !important;font-size:13.5px !important;font-weight:600 !important;opacity:1 !important;pointer-events:none !important;
+ display:flex !important;align-items:center;justify-content:center;white-space:nowrap;text-shadow:none !important}
+html body .slide-confirm-fill{z-index:1 !important;border-radius:999px !important;background:rgba(255,255,255,.24) !important;transition:width .28s cubic-bezier(.2,.9,.3,1)}
+html body .slide-confirm-wrap:has(.slide-confirm-thumb.dragging) .slide-confirm-fill{transition:none !important}
+html body .slide-confirm-hint{z-index:2 !important;right:16px !important;gap:0 !important}
+html body .slide-confirm-hint svg{width:14px !important;height:14px !important;stroke:#fff !important;color:#fff !important;opacity:.3;animation:pcaHint 1.5s ease-in-out infinite}
+html body .slide-confirm-hint svg:nth-child(2){animation-delay:.18s}
+html body .slide-confirm-hint svg:nth-child(3){animation-delay:.36s}
+@keyframes pcaHint{0%,100%{opacity:.25}50%{opacity:.95}}
+html body .slide-confirm-thumb{z-index:3 !important;top:3px !important;left:3px !important;width:44px !important;height:44px !important;border-radius:50% !important;background:#fff !important;opacity:1 !important;
+ box-shadow:0 3px 8px -2px rgba(17,19,24,.38) !important;transition:transform .28s cubic-bezier(.2,.9,.3,1) !important;color:var(--pca-acc,#E11D2E)}
+html body .slide-confirm-thumb.dragging{transition:none !important;cursor:grabbing}
+html body .slide-confirm-thumb :is(svg,.ui-icon){width:18px !important;height:18px !important;stroke:var(--pca-acc,#E11D2E) !important;color:var(--pca-acc,#E11D2E) !important}
+/* disabled = quiet grey track, thumb stays visible */
+html body .slide-confirm-wrap:has(> .btn:disabled):not(.completed){background:#EEF0F3 !important;box-shadow:inset 0 0 0 1px #E3E5EA !important}
+html body .slide-confirm-wrap:has(> .btn:disabled):not(.completed) .btn{color:#8A8F99 !important}
+html body .slide-confirm-wrap:has(> .btn:disabled):not(.completed) .slide-confirm-thumb :is(svg,.ui-icon){stroke:#B3B7C0 !important;color:#B3B7C0 !important}
+/* done = green track, white thumb with green tick */
+html body .slide-confirm-wrap.completed{background:#16A34A !important;box-shadow:0 8px 18px -10px rgba(22,163,74,.7) !important}
+html body .slide-confirm-wrap.completed .slide-confirm-fill{background:transparent !important}
+html body .slide-confirm-wrap.completed .btn{color:#fff !important}
+html body .slide-confirm-thumb.completed{background:#fff !important}
+html body .slide-confirm-thumb.completed :is(svg,.ui-icon){stroke:#16A34A !important;color:#16A34A !important}
+
+/* 3) LIVE TICKER: glass */
+html body .bullet-chat-wrapper{height:32px !important;margin:8px 15px 0 !important;padding:0 4px !important;gap:8px !important;border-radius:999px !important;overflow:hidden !important;
+ background:linear-gradient(120deg,rgba(255,255,255,.62),rgba(var(--pca-rgb,225,29,46),.1)) !important;border:1px solid rgba(255,255,255,.9) !important;
+ box-shadow:0 0 0 1px rgba(17,19,24,.05),0 6px 16px -10px rgba(var(--pca-rgb,225,29,46),.45),inset 0 1px 0 #fff !important;-webkit-backdrop-filter:blur(14px) saturate(1.6) !important;backdrop-filter:blur(14px) saturate(1.6) !important}
+html body .bullet-chat-badge{height:24px !important;padding:0 10px 0 8px !important;gap:5px !important;border-radius:999px !important;font-size:9.5px !important;font-weight:600 !important;letter-spacing:.6px !important;
+ color:var(--pca-acc,#E11D2E) !important;background:rgba(255,255,255,.8) !important;border:1px solid rgba(var(--pca-rgb,225,29,46),.22) !important;box-shadow:inset 0 1px 0 #fff !important}
+html body .bullet-chat-badge .live-dot{width:6px !important;height:6px !important;background:#EF4444 !important;box-shadow:0 0 0 0 rgba(239,68,68,.55) !important;animation:pcaLive 1.6s ease-out infinite}
+@keyframes pcaLive{to{box-shadow:0 0 0 6px rgba(239,68,68,0)}}
+html body .bullet-chat-container{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 14px,#000 calc(100% - 14px),transparent 100%)}
+html body .bullet-chat{font-size:12px !important;font-weight:400 !important;color:#2B2F38 !important}
+html body .bullet-chat>span{display:inline-flex;align-items:center;gap:6px;margin-right:40px;vertical-align:middle}
+html body .bullet-chat .svg-icon{width:13px !important;height:13px !important;flex:none;stroke:var(--pca-acc,#E11D2E) !important}
+
+/* 4) POPUPS: compact tracker, toast, request-success, result */
+html body :is(#toast,#order-tracker){top:calc(8px + env(safe-area-inset-top,0px)) !important;left:12px !important;right:12px !important;max-width:330px !important;gap:6px 10px !important;padding:8px 10px !important;border-radius:16px !important;border-width:1.5px !important;box-shadow:0 10px 22px -14px rgba(17,19,24,.35) !important}
+html.pv-trk body #toast{top:calc(8px + env(safe-area-inset-top,0px) + var(--pv-trk-h,0px) + 8px) !important}
+html body :is(#toast,#order-tracker) .pv-ic{width:34px !important;height:34px !important}
+html body :is(#toast,#order-tracker) .pv-ic svg{width:19px !important;height:19px !important}
+html body :is(#toast,#order-tracker) .pv-title{font-size:13px !important;font-weight:600 !important;line-height:1.25 !important}
+html body :is(#toast,#order-tracker) .pv-msg{font-size:11.5px !important;margin-top:1px !important;line-height:1.3 !important}
+html body #toast .pv-x{width:24px !important;height:24px !important;margin:-2px -2px 0 0 !important}
+html body #order-tracker .pv-steps{padding:0 2px !important}
+html body #order-tracker .pv-st{width:52px !important;gap:4px !important}
+html body #order-tracker .pv-st i{width:14px !important;height:14px !important;border-width:1.5px !important}
+html body #order-tracker .pv-st i svg{width:8px !important;height:8px !important}
+html body #order-tracker .pv-st.active i::after{width:5px !important;height:5px !important}
+html body #order-tracker .pv-st span{font-size:10px !important}
+html body #order-tracker .pv-ln{height:1.5px !important;margin:6px -6px 0 !important}
+html body #success-overlay .success-box.pv-bk{width:min(80vw,290px) !important;max-width:290px !important;margin-top:34px !important;border-radius:20px !important}
+html body .pv-bk-badge{top:-34px !important;width:68px !important;height:68px !important;margin-left:-34px !important;z-index:0 !important}
+html body .pv-bk-badge .rp.a{width:88px !important;height:88px !important}
+html body .pv-bk-badge .rp.b{width:116px !important;height:116px !important}
+html body .pv-bk-badge .rp.c{width:144px !important;height:144px !important}
+html body .pv-bk-badge .cf{display:none !important}
+html body .pv-bk-circle{width:58px !important;height:58px !important;box-shadow:0 10px 18px -10px rgba(47,203,134,.75) !important}
+html body .pv-bk-circle svg{width:30px !important;height:30px !important}
+html body .pv-bk-body{z-index:1 !important;padding:44px 16px 16px !important}
+html body .pv-bk-label{font-size:11.5px !important}
+html body #success-overlay .pv-bk-title{font-size:17px !important;font-weight:600 !important;margin:2px 0 6px !important}
+html body #success-overlay .pv-bk-sub{font-size:12px !important;margin:0 0 12px !important;line-height:1.45 !important}
+html body .pv-bk-actions{gap:8px !important;margin-top:12px !important}
+html body .pv-btn{height:38px !important;font-size:13px !important;border-radius:12px !important}
+html body .pv-res-card{width:min(100%,300px) !important;padding:24px 16px 16px !important;border-radius:20px !important}
+html body .pv-res-ic{width:80px !important;height:80px !important;margin-bottom:8px !important}
+html body .pv-res-ic .disc{width:44px !important;height:44px !important}
+html body .pv-res-ic .disc svg{width:22px !important;height:22px !important}
+html body .pv-res-title{font-size:18px !important;font-weight:600 !important}
+html body .pv-res-sub{font-size:12px !important}
+html body .pv-res-meta{margin-top:12px !important;padding:6px 10px !important}
+html body .pv-res-meta .row{font-size:12px !important;padding:4px 0 !important}
+
+/* 5) WALLET: blue glass + running rainbow ring */
+html body nav.bottom-nav .nav-item-wallet .nav-icon-wrap-wallet{width:44px !important;height:44px !important;top:-18px !important;margin:0 0 0 -22px !important;
+ background:radial-gradient(120% 90% at 30% 12%,rgba(255,255,255,.7) 0,rgba(255,255,255,0) 48%),linear-gradient(160deg,rgba(96,165,250,.78),rgba(29,78,216,.84)) !important;
+ border:1px solid rgba(255,255,255,.75) !important;-webkit-backdrop-filter:blur(10px) saturate(1.8) !important;backdrop-filter:blur(10px) saturate(1.8) !important;
+ box-shadow:inset 0 1px 1px rgba(255,255,255,.9),inset 0 -6px 10px -4px rgba(10,40,160,.45),0 8px 16px -6px rgba(var(--pca-nav-rgb,37,99,235),.65) !important}
+html body nav.bottom-nav .nav-item-wallet .nav-icon-wrap-wallet .ui-icon{width:21px !important;height:21px !important;filter:drop-shadow(0 1px 2px rgba(0,30,120,.45)) !important}
+html body nav.bottom-nav .nav-item-wallet .wallet-glow{width:52px !important;height:52px !important;top:-22px !important;margin:0 0 0 -26px !important;z-index:2 !important;
+ -webkit-mask:radial-gradient(circle,transparent 23px,#000 23.6px) !important;mask:radial-gradient(circle,transparent 23px,#000 23.6px) !important;animation:pcaRingSpin 2.8s linear infinite !important}
+html body nav.bottom-nav .nav-item-wallet .wallet-halo{position:absolute;left:50%;top:-22px;width:52px;height:52px;margin:0 0 0 -26px;border-radius:50%;z-index:1;pointer-events:none;
+ background:conic-gradient(from 0deg,#ff3d8b,#ff9a3d,#ffd23d,#3dd68c,#2fa8ff,#7a4dff,#ff3d8b);filter:blur(9px);opacity:.6;animation:pcaRingSpin 2.8s linear infinite}
+@media(prefers-reduced-motion:reduce){html body nav.bottom-nav .nav-item-wallet :is(.wallet-glow,.wallet-halo),html body .slide-confirm-hint svg,html body .bullet-chat-badge .live-dot{animation:none !important}}
+
+/* 6) GAME GRID: 3 small columns */
+html body :is(.cards-grid,.game-list){grid-template-columns:repeat(3,minmax(0,1fr)) !important;gap:8px !important}
+@media(min-width:700px){html body :is(.cards-grid,.game-list){grid-template-columns:repeat(4,minmax(0,1fr)) !important}}
+html body .popular-scroll-wrap{gap:8px !important}
+html body .popular-scroll-wrap>:is(.popular-card,.voucher-card){flex:0 0 calc((100% - 16px)/3) !important;min-width:0 !important}
+html body :is(.game-card,.game-row){padding:4px 4px 5px !important;gap:4px !important;border-radius:14px !important}
+html body :is(.game-card-img-wrap,.voucher-card-stack){border-radius:10px !important}
+
+/* 7) SKELETON: same shape as the 3-col cards */
+html body :is(.game-list,.cards-grid) .skel-game-card,html body :is(.skel-popular-card,.skel-popular-voucher-card){display:flex !important;flex-direction:column !important;gap:4px !important;height:auto !important;aspect-ratio:auto !important;
+ padding:4px 4px 5px !important;border-radius:14px !important;background:#fff !important;border:1px solid rgba(var(--pca-rgb,225,29,46),.1) !important;box-shadow:none !important;overflow:hidden !important}
+html body :is(.skel-popular-card,.skel-popular-voucher-card){flex:0 0 calc((100% - 16px)/3) !important;min-width:0 !important}
+html body :is(.skel-game-card,.skel-popular-card,.skel-popular-voucher-card) .skel-img{flex:none !important;width:100% !important;height:auto !important;aspect-ratio:1/1 !important;border-radius:10px !important}
+html body :is(.skel-game-card,.skel-popular-card,.skel-popular-voucher-card) .skel-name{flex:none !important;width:62% !important;height:9px !important;margin:4px auto 4px !important;border-radius:6px !important}
+html body :is(.skel-game-card,.skel-popular-card,.skel-popular-voucher-card) .skel{background:#EEF0F3 !important;animation:pcaSk 1.3s ease-in-out infinite}
+@keyframes pcaSk{50%{opacity:.5}}
+@media(prefers-reduced-motion:reduce){html body :is(.skel-game-card,.skel-popular-card,.skel-popular-voucher-card) .skel{animation:none !important}}
+
+/* 8) ADMIN ONLINE chip */
+html body .admin-status-bar{align-items:center;gap:7px !important;width:fit-content !important;height:26px !important;margin:8px 15px 0 !important;padding:0 12px 0 9px !important;border-radius:999px !important;font-size:11px !important;font-weight:500 !important;color:#5B606A !important;
+ background:linear-gradient(120deg,rgba(255,255,255,.72),rgba(148,163,184,.14)) !important;border:1px solid rgba(255,255,255,.9) !important;
+ box-shadow:0 0 0 1px rgba(17,19,24,.06),0 6px 14px -10px rgba(17,19,24,.3),inset 0 1px 0 #fff !important;-webkit-backdrop-filter:blur(12px) saturate(1.5) !important;backdrop-filter:blur(12px) saturate(1.5) !important}
+html body .admin-status-bar.online-text{color:#15803D !important;background:linear-gradient(120deg,rgba(255,255,255,.72),rgba(34,197,94,.16)) !important;box-shadow:0 0 0 1px rgba(34,197,94,.28),0 6px 14px -10px rgba(34,197,94,.55),inset 0 1px 0 #fff !important}
+html body .admin-status-bar #admin-status-text{color:inherit !important;font-weight:500 !important;line-height:1;white-space:nowrap}
+html body .admin-status-bar .admin-status-dot{position:relative;flex:none;width:8px !important;height:8px !important;border-radius:50% !important;background:#9AA0A8 !important;box-shadow:none !important}
+html body .admin-status-bar .admin-status-dot.online{background:#22C55E !important}
+html body .admin-status-bar .admin-status-dot.online::after{content:"";position:absolute;inset:0;border-radius:50%;background:#22C55E;animation:pcaPing 1.8s ease-out infinite}
+@keyframes pcaPing{from{transform:scale(1);opacity:.6}to{transform:scale(2.6);opacity:0}}
+@media(prefers-reduced-motion:reduce){html body .admin-status-bar .admin-status-dot.online::after{animation:none !important}}
+
+/* 9) "continue" pill sits above the nav, not behind it */
+html body #pca-pill{bottom:calc(74px + env(safe-area-inset-bottom,0px)) !important;left:24px !important;right:24px !important;max-width:340px !important;padding:5px 5px 5px 16px !important;font-size:12.5px !important;font-weight:500 !important}
+html body #pca-pill button{padding:8px 16px !important;font-size:12.5px !important;font-weight:600 !important}
+}</style>
+<script id="pca-v6-js">
+(function(){
+ var d=document,SEL='#detail-package-list .package-card .pc-label,.payment-option-name,.id-result-name,.header-profile-name',t=0;
+ /* wallet: rainbow halo behind the ring */
+ var w=d.getElementById('btn-wallet');
+ if(w&&!w.querySelector('.wallet-halo')){var h=d.createElement('span');h.className='wallet-halo';h.setAttribute('aria-hidden','true');w.insertBefore(h,w.firstChild)}
+ /* long names scroll sideways */
+ function wrapOk(e){var c=e.children;return c.length===0||(c.length===1&&c[0].classList.contains('mq-in'))}
+ function fit(e){
+  var s=e.firstElementChild;
+  if(!s||!s.classList.contains('mq-in')){var tx=e.textContent;e.textContent='';s=d.createElement('span');s.className='mq-in';s.textContent=tx;e.appendChild(s)}
+  e.classList.remove('mq-on');
+  var over=s.offsetWidth-e.clientWidth;
+  if(over>2){e.classList.add('mq-on');e.style.setProperty('--mqd',(-(over+6))+'px');e.style.setProperty('--mqt',Math.max(4,(over+6)/18+1.5).toFixed(1)+'s')}
+  e.__mq=e.textContent;
+ }
+ function run(){t=0;[].forEach.call(d.querySelectorAll(SEL),function(e){
+  if(!e.offsetParent||!wrapOk(e))return;
+  if(e.__mq===e.textContent&&e.firstElementChild&&e.firstElementChild.classList.contains('mq-in'))return;
+  fit(e)})}
+ function sched(){if(!t)t=setTimeout(run,150)}
+ function init(){
+  sched();
+  new MutationObserver(sched).observe(d.body,{childList:true,subtree:true,characterData:true});
+  addEventListener('resize',function(){[].forEach.call(d.querySelectorAll(SEL),function(e){e.__mq=null});sched()},{passive:true});
+  if(d.fonts&&d.fonts.ready)d.fonts.ready.then(function(){[].forEach.call(d.querySelectorAll(SEL),function(e){e.__mq=null});sched()});
+ }
+ if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
+<style id="pca-v7">@layer pcafix{
+/* ===== PCA v7 · true circles · compact tabs · profile/settings tidy ===== */
+/* theme swatches: exact circles, one row */
+html body .th-sw{display:flex !important;flex-wrap:wrap !important;align-items:center !important;gap:8px !important;padding:3px !important}
+html body .th-dot{box-sizing:border-box !important;display:block !important;flex:none !important;width:28px !important;height:28px !important;min-width:28px !important;max-width:28px !important;min-height:28px !important;max-height:28px !important;
+ padding:0 !important;margin:0 !important;aspect-ratio:1/1 !important;border-radius:50% !important;line-height:0 !important;align-self:center}
+html body .th-dot.on:not(.custom)::after{inset:8px !important}
+html body .th-preview{flex-wrap:nowrap !important;gap:8px !important;padding:10px 12px !important;overflow:hidden}
+html body :is(.th-pv-btn,.th-pv-chip){flex:none !important;height:30px !important;padding:0 12px !important;font-size:12px !important;font-weight:500 !important;white-space:nowrap}
+html body .th-pv-nav{width:28px !important;height:28px !important;flex:none}
+html body .th-lbl{font-size:12px !important;font-weight:500 !important;margin:0 0 8px 2px !important}
+html body .th-sec{margin:0 0 12px !important}
+html body .th-seg{padding:3px !important;border-radius:12px !important}
+html body .th-seg button{height:30px !important;font-size:12px !important;font-weight:500 !important;border-radius:9px !important}
+html body .th-seg button.on{font-weight:600 !important}
+html body .th-reset{height:36px !important;font-size:12.5px !important;font-weight:500 !important}
+
+/* collapsible headers: title + chevron centred, icon circle */
+html body .collapsible-header{display:flex !important;align-items:center !important;gap:10px !important;min-height:44px !important;padding:2px !important}
+html body .collapsible-header>label{align-self:center !important;margin:0 !important;flex:1 1 auto;font-size:14px !important;font-weight:600 !important;line-height:1.2}
+html body .collapsible-header .collapsible-chevron{margin-left:auto !important;width:18px !important;height:18px !important;flex:none}
+html body .ch-ic{flex:none;width:30px;height:30px;border-radius:50%;display:grid;place-items:center;background:var(--pca-soft,#FFF0F1);border:1px solid var(--pca-line,#FFD9DD)}
+html body .ch-ic .ui-icon{width:16px !important;height:16px !important;stroke:var(--pca-acc,#E11D2E) !important;color:var(--pca-acc,#E11D2E) !important}
+
+/* settings tiles: same size, toggle in the corner */
+html body .prefs-group-title{font-size:11px !important;font-weight:500 !important;text-transform:none !important;letter-spacing:.2px !important;margin:0 0 6px 2px !important}
+html body .prefs-group .prefs-grid{gap:8px !important}
+html body .prefs-tile{position:relative !important;display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;gap:6px !important;height:80px !important;min-height:0 !important;padding:8px 6px !important;overflow:hidden}
+html body .prefs-tile :is(.pt-ic,.lang-toggle-btn){flex:none !important;width:34px !important;height:34px !important;margin:0 !important;border-radius:50% !important;overflow:hidden !important;display:grid !important;place-items:center}
+html body .prefs-tile .pt-ic .ui-icon{width:18px !important;height:18px !important}
+html body .prefs-tile .lang-toggle-flag{width:100% !important;height:100% !important;border-radius:50% !important}
+html body .prefs-tile .pt-label{display:block !important;max-width:100%;font-size:11.5px !important;font-weight:500 !important;line-height:1.2 !important;white-space:nowrap !important;overflow:hidden;text-overflow:ellipsis}
+html body .prefs-tile .pt-state{display:none !important}
+html body .prefs-tile .push-toggle{position:absolute !important;top:8px !important;right:8px !important;left:auto !important;width:28px !important;height:16px !important;margin:0 !important;padding:0 !important;border:0 !important;border-radius:999px !important;background:#E3E5EA !important;transform:none !important}
+html body .prefs-tile .push-toggle.on{background:var(--pca-acc,#E11D2E) !important}
+html body .prefs-tile .push-toggle-thumb{position:absolute !important;top:2px !important;left:2px !important;width:12px !important;height:12px !important;border-radius:50% !important;background:#fff !important;box-shadow:0 1px 3px rgba(0,0,0,.3) !important;transform:none !important;transition:transform .2s ease}
+html body .prefs-tile .push-toggle.on .push-toggle-thumb{transform:translateX(12px) !important}
+
+/* profile card: lighter, smaller */
+html body .pc-label{font-size:12px !important;font-weight:400 !important}
+html body .pc-balance{font-size:18px !important;font-weight:600 !important}
+html body .pc-topup-btn{height:34px !important;padding:0 14px !important;font-size:13px !important}
+html body .pc-stat{padding:10px 12px !important;gap:2px !important}
+html body .pc-stat b{font-size:15px !important;font-weight:600 !important}
+html body .profile-hero-edit-btn{height:40px !important;max-height:40px !important;font-size:13px !important;font-weight:500 !important}
+
+/* tabs: one small size everywhere */
+html body :is(.pkg-type-tabs,.pay-type-tabs,.history-status-tabs){gap:3px !important;padding:3px !important;margin:0 0 10px !important;border-radius:14px !important}
+html body :is(.pkg-type-tab,.pay-type-tab,.history-status-tab){height:30px !important;min-height:0 !important;padding:0 10px !important;gap:5px !important;border-radius:11px !important;font-size:11.5px !important;font-weight:500 !important;line-height:1 !important}
+html body :is(.pkg-type-tab,.pay-type-tab,.history-status-tab).active{font-weight:600 !important}
+html body .history-status-count{min-width:16px !important;height:16px !important;padding:0 4px !important;border-radius:8px !important;font-size:10px !important;font-weight:600 !important;line-height:1 !important}
+html body .htabs{padding:3px !important;gap:3px !important}
+html body .htab{height:48px !important;gap:3px !important}
+html body .htab-ic{width:24px !important;height:24px !important}
+html body .htab-ic .ui-icon{width:14px !important;height:14px !important}
+html body .htab-t{font-size:10.5px !important}
+}</style>
+<script id="pca-v7-js">
+(function(){
+ var d=document,IC={'profile-prefs-body':'icon-grid','theme-body':'icon-sun'};
+ function add(){[].forEach.call(d.querySelectorAll('.collapsible-header'),function(h){
+  if(h.querySelector('.ch-ic'))return;
+  var m=(h.getAttribute('onclick')||'').match(/'([\w-]+-body)'/),id=m?IC[m[1]]||'icon-user':'icon-user';
+  var s=d.createElement('span');s.className='ch-ic';s.setAttribute('aria-hidden','true');
+  s.innerHTML='<svg class="ui-icon"><use href="#'+id+'"></use></svg>';h.insertBefore(s,h.firstChild)})}
+ if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',add);else add();
+ setTimeout(add,1200);
+})();
+</script>
+<style id="pca-v8">@layer pcafix{
+/* ===== PCA v8 · compact "completed" cards · tick on selected package · Buy again ===== */
+/* selected-package tick: hidden until selected, clean circle in the corner */
+html body .package-card{position:relative !important;overflow:visible !important}
+html body .package-card .pc-selected-check{display:none !important;position:absolute !important;top:-7px !important;right:-5px !important;left:auto !important;bottom:auto !important;width:20px !important;height:20px !important;min-width:20px !important;padding:0 !important;margin:0 !important;
+ box-sizing:border-box !important;border:2px solid #fff !important;border-radius:50% !important;background:var(--pca-acc,#E11D2E) !important;opacity:1 !important;place-items:center;z-index:4;box-shadow:0 2px 6px -1px rgba(var(--pca-rgb,225,29,46),.6) !important}
+html body .package-card.selected .pc-selected-check{display:grid !important;animation:pcaTick .22s cubic-bezier(.2,1.4,.4,1) both}
+html body .package-card .pc-selected-check .ui-icon{width:10px !important;height:10px !important;stroke:#fff !important;color:#fff !important;stroke-width:3.4 !important;fill:none !important;opacity:1 !important}
+@keyframes pcaTick{from{transform:scale(.3);opacity:0}to{transform:none;opacity:1}}
+
+/* order completed cards: smaller */
+html body .order-ok-box{width:210px !important;max-width:210px !important;padding:18px 16px 16px !important;border-radius:18px !important}
+html body .order-ok-check{width:44px !important;height:44px !important;margin:0 auto 8px !important}
+html body .order-ok-check .ui-icon{width:22px !important;height:22px !important}
+html body .order-ok-title{font-size:15px !important;font-weight:600 !important}
+html body .order-ok-sub{font-size:12px !important;margin-top:4px !important}
+html body .pv-res-card{width:min(100%,280px) !important;padding:20px 14px 14px !important}
+html body .pv-res-ic{width:68px !important;height:68px !important;margin-bottom:6px !important}
+html body .pv-res-ic .disc{width:38px !important;height:38px !important}
+html body .pv-res-ic .disc svg{width:19px !important;height:19px !important}
+html body .pv-res-title{font-size:16px !important}
+html body .pv-res-actions{flex-wrap:wrap !important;gap:8px !important;margin-top:12px !important}
+html body .pv-res-actions .pv-btn{height:36px !important;font-size:12.5px !important}
+html body .pv-res-actions .pv-btn.buy{flex:1 0 100% !important;background:var(--pca-acc,#E11D2E) !important;color:#fff !important}
+
+/* Buy again buttons */
+html body .hc-again{display:inline-flex;align-items:center;gap:5px;height:24px;margin-top:6px;padding:0 10px 0 8px;border:1px solid rgba(var(--pca-rgb,225,29,46),.28);border-radius:999px;background:var(--pca-soft,#FFF0F1);
+ color:var(--pca-acc,#E11D2E);font:inherit;font-size:11px;font-weight:500;cursor:pointer}
+html body .hc-again .ui-icon{width:12px !important;height:12px !important;stroke:var(--pca-acc,#E11D2E) !important;color:var(--pca-acc,#E11D2E) !important}
+html body .hc-again:active,html body .od-again:active{transform:scale(.96)}
+html body .od-again{width:100%;height:42px;margin-top:10px;display:flex;align-items:center;justify-content:center;gap:8px;border-radius:14px;font-size:13.5px;font-weight:600;background:var(--pca-soft,#FFF0F1) !important;color:var(--pca-acc,#E11D2E) !important;border:1px solid rgba(var(--pca-rgb,225,29,46),.28) !important}
+html body .od-again .ui-icon{width:16px !important;height:16px !important;stroke:var(--pca-acc,#E11D2E) !important;color:var(--pca-acc,#E11D2E) !important}
+}</style>
+<script id="pca-v8-js">
+(function(){
+ var d=document;
+ function toast(m,t){try{window.showToast&&window.showToast(m,t||'info')}catch(e){}}
+ /* Buy again: reopen the same game, refill the IDs, re-select the same package, jump to payment */
+ window.pcaBuyAgain=function(o){
+  if(!o||!o.game){toast('Order info not found','fail');return}
+  var G=window.GAMES||{},id=null,k,srv=o.serverRegion||'';
+  for(k in G){if(G[k]&&G[k].name===o.game&&(G[k].serverName||'')===srv){id=k;break}}
+  if(!id)for(k in G){if(G[k]&&G[k].name===o.game){id=k;break}}
+  if(!id||!window.openGameDetail){toast('This game is not available right now','fail');return}
+  try{window.closeOrderDetail&&window.closeOrderDetail()}catch(e){}
+  [].forEach.call(d.querySelectorAll('#order-detail-overlay,#pv-result,#success-overlay'),function(n){n.classList.remove('show')});
+  window.openGameDetail(id);
+  var tries=0,iv=setInterval(function(){
+   tries++;
+   var pk=window.currentGamePackages||[],pi=-1;
+   for(var i=0;i<pk.length;i++){if(String(pk[i].amount)===String(o.itemAmount)){pi=i;break}}
+   if(pi<0&&tries>14){clearInterval(iv);toast('Package changed — please pick one','info');return}
+   if(pi<0||!d.querySelector('#detail-package-list .package-card'))return;
+   var sel='#detail-package-list .package-card[data-index="'+pi+'"]',card=d.querySelector(sel);
+   if(!card){[].some.call(d.querySelectorAll('.pkg-type-tab'),function(t){t.click();return !!d.querySelector(sel)});card=d.querySelector(sel)}
+   if(!card)return;
+   clearInterval(iv);
+   function put(i,v){var el=d.getElementById(i);if(el&&v){el.value=v;el.dispatchEvent(new Event('input',{bubbles:true}));el.dispatchEvent(new Event('change',{bubbles:true}))}}
+   put('detail-ingame-id',o.playerId);put('detail-server-id',o.serverId);
+   try{window.selectPackageOption(pi)}catch(e){}
+   setTimeout(function(){var p=d.getElementById('detail-payment-section');if(p&&p.scrollIntoView)p.scrollIntoView({behavior:'smooth',block:'center'})},250);
+   toast('Same package selected — choose how to pay','success');
+  },120);
+ };
+ window.pcaBuyAgainIdx=function(i){window.pcaBuyAgain((window.__hist||[])[i])};
 })();
 </script>
 </body>
