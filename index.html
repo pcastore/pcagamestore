@@ -2307,18 +2307,11 @@ html.logged-out #profile>:not(.title-header):not(.auth-gate):not(.modal-overlay)
             <div id="popular-games-section">
                 <h2 class="title-header" data-i18n="title_popular_games">Popular Games</h2>
                 <div class="popular-scroll-wrap" id="popular-games-scroll">
-                    <div class="skel-popular-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
-                    <div class="skel-popular-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
-                    <div class="skel-popular-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
-                    <div class="skel-popular-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
                 </div>
             </div>
             <div id="popular-vouchers-section">
                 <h2 class="title-header">Popular Vouchers</h2>
                 <div class="popular-scroll-wrap" id="popular-vouchers-scroll">
-                    <div class="skel-popular-voucher-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
-                    <div class="skel-popular-voucher-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
-                    <div class="skel-popular-voucher-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
                 </div>
             </div>
             <div class="all-games-title-row section-title-spaced" id="all-games-title-row">
@@ -2329,14 +2322,9 @@ html.logged-out #profile>:not(.title-header):not(.auth-gate):not(.modal-overlay)
                     <svg class="ui-icon game-search-clear" id="game-search-clear" style="display:none;" onclick="clearGameSearch()"><use href="#icon-close"></use></svg>
                 </div>
             </div>
+            <div class="pkg-type-tabs" id="home-prov-tabs"></div>
             <div class="games-grid-scroll">
                 <div class="game-list" id="all-games-grid">
-                    <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
-                    <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
-                    <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
-                    <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
-                                    <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
-                    <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
 </div>
             </div>
             <button type="button" class="load-more-games-btn" id="home-games-load-more-btn" style="display:none;" onclick="loadMoreHomeGames()">Load More</button>
@@ -2349,11 +2337,9 @@ html.logged-out #profile>:not(.title-header):not(.auth-gate):not(.modal-overlay)
         <div id="voucher" class="page-section">
             <h2 class="title-header">All Vouchers</h2>
             <p class="empty-msg" style="text-align:left;padding:0 2px 12px;">Instant-delivery gift cards & top-up vouchers.</p>
+            <div class="pkg-type-tabs" id="voucher-prov-tabs"></div>
             <div class="games-grid-scroll">
                 <div class="cards-grid" id="voucher-games-grid">
-                    <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
-                    <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
-                                    <div class="skel-game-card"><div class="skel skel-img"></div><div class="skel skel-name"></div></div>
 </div>
             </div>
         </div>
@@ -6731,6 +6717,7 @@ b,strong{font-weight:600}
         // calling api.imgbb.com directly, so the ImgBB API key stays server-side
         // and never ships in this file's client-side JS (same "key never reaches
         // the browser" pattern as the fazercards-functions/aluu-functions Workers).
+        // Upload Worker (same name as before; its code now uploads to Cloudinary).
         const IMGBB_UPLOAD_URL = 'https://imgbb-functions.pca-game-store.workers.dev';
 
         async function uploadReceiptToImgBB(file) {
@@ -9499,6 +9486,7 @@ b,strong{font-weight:600}
                 : '';
             return `
                 <div class="list-card history-card ${historyStatusClassFor(data.status)}" style="animation-delay:${Math.min(pos, 8) * 0.03}s" onclick="openOrderDetail(${index})">
+                    ${(data.status === 'Success' || data.status === 'Fail') ? `<button type="button" class="hc-again" onclick="event.stopPropagation();pcaBuyAgainIdx(${index})"><svg class="ui-icon"><use href="#icon-refresh"></use></svg>Buy again</button>` : ''}
                     <div class="hc-left">
                         <div class="hc-thumb">${gameImg ? `<img src="${gameImg}" alt="" onerror="this.style.display='none'">` : ''}</div>
                         <div class="list-info">
@@ -9507,7 +9495,6 @@ b,strong{font-weight:600}
                             ${orderTimelineMiniHTML(data.status)}
                             ${successTimeLine}
                             ${orderIdLine}
-                             ${(data.status === 'Success' || data.status === 'Fail') ? `<button type="button" class="hc-again" onclick="event.stopPropagation();pcaBuyAgainIdx(${index})"><svg class="ui-icon"><use href="#icon-refresh"></use></svg>Buy again</button>` : ''}
                         </div>
                     </div>
                     <div class="hc-right">
@@ -10241,6 +10228,14 @@ b,strong{font-weight:600}
             if (!url || typeof url !== 'string') return url;
             if (!/^https?:\/\//i.test(url) || url.includes('wsrv.nl')) return url;
             const w = width || 200;
+            // Cloudinary: resize + best format on their CDN. Small list thumbnails stay
+            // static (first GIF frame); bigger sizes (detail banner etc.) keep the animation.
+            const cm = url.match(/^(https:\/\/res\.cloudinary\.com\/[^/]+\/image\/upload\/)(?![a-z]{1,3}_[^/]*\/)(.+)$/i);
+            if (cm) {
+                const isGif = /\.gif(\?|$)/i.test(cm[2]);
+                const fmt = isGif && w <= 240 ? 'f_webp' : 'f_auto';
+                return `${cm[1]}w_${w},h_${w},c_fill,${fmt},q_auto/${cm[2]}`;
+            }
             return `https://wsrv.nl/?url=${encodeURIComponent(url)}&w=${w}&h=${w}&fit=cover&output=webp&q=78`;
         }
         window.optimizedGameImg = optimizedGameImg;
@@ -10472,6 +10467,7 @@ b,strong{font-weight:600}
                         ${categoryBadgeHtml(g.category)}
                         ${serverCountBadgeHtml(gr)}
                         ${pinBadgeHtml()}
+                        ${gameBadgesHtml(g)}
                     </div>
                     <div class="game-card-name">${escapeHtml(g.name)}</div>
                 </div>
@@ -10509,6 +10505,40 @@ b,strong{font-weight:600}
             if (sentinelEl) popularLoadMoreObserver.observe(sentinelEl);
         }
 
+        // ---- Provider tabs: keep G2Bulk / FazerCard / JCPlays / Aluu / Manual games apart ----
+        const PROV_ORDER = ['g2bulk', 'fazercard', 'jcplays', 'aluu', 'manual'];
+        const PROV_LABEL = { g2bulk: 'P1', fazercard: 'P2', jcplays: 'P3', aluu: 'P4', manual: 'Manual' };
+        // Corner badges for game cards: provider tag (P1..P4) + Hot / Top.
+        function gameBadgesHtml(g) {
+            if (!g) return '';
+            const fam = gameProviderFamily(g);
+            let h = '';
+            if (fam) h += `<span class="gc-b gc-p" title="${PROV_LABEL[fam]}">${PROV_LABEL[fam]}</span>`;
+            const tag = (g.badge === 'top' || g.badge === 'hot') ? g.badge : '';
+            if (tag === 'top') h += '<span class="gc-b gc-top"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 3.6l2.6 5.3 5.8.8-4.2 4.1 1 5.8-5.2-2.7-5.2 2.7 1-5.8-4.2-4.1 5.8-.8z"/></svg>Top</span>';
+            if (tag === 'hot') h += '<span class="gc-b gc-hot"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 2.5c.9 3.4 4.8 5.2 4.8 10a4.8 4.8 0 01-9.6 0c0-2.1 1-3.3 2.1-4.3.2 1.3.8 2.1 1.7 2.4C10.6 8.3 11 5.4 12 2.5z"/></svg>Hot</span>';
+            return h ? `<div class="gc-badges">${h}</div>` : '';
+        }
+        window.gameBadgesHtml = gameBadgesHtml;
+        window.__prov = window.__prov || {};
+        window.__provCb = window.__provCb || {};
+        window.__provPick = function (key, fam) { window.__prov[key] = fam; const cb = window.__provCb[key]; if (cb) cb(); };
+        function applyProvTabs(ids, key, tabsId, rerender, skipFilter) {
+            const box = document.getElementById(tabsId);
+            const cnt = {};
+            ids.forEach(id => { const f = gameProviderFamily(GAMES[id]) || 'manual'; cnt[f] = (cnt[f] || 0) + 1; });
+            const fams = PROV_ORDER.filter(f => cnt[f]);
+            if (!window.__prov[key] || !cnt[window.__prov[key]]) window.__prov[key] = fams[0];
+            window.__provCb[key] = rerender;
+            if (box) {
+                box.style.display = fams.length > 1 ? '' : 'none';
+                const html = fams.map(f => `<button type="button" class="pkg-type-tab${f === window.__prov[key] ? ' active' : ''}" onclick="__provPick('${key}','${f}')">${PROV_LABEL[f]} <span class="vp-n">(${cnt[f]})</span></button>`).join('');
+                if (box.dataset.sig !== html) { box.innerHTML = html; box.dataset.sig = html; }
+            }
+            if (skipFilter || fams.length === 0) return ids;
+            return ids.filter(id => (gameProviderFamily(GAMES[id]) || 'manual') === window.__prov[key]);
+        }
+
         function renderHomeGames() {
             const popularSection = document.getElementById('popular-games-section');
             const popularScroll = document.getElementById('popular-games-scroll');
@@ -10519,13 +10549,14 @@ b,strong{font-weight:600}
             // Vouchers/gift cards (fulfillProvider === 'g2bulk_voucher') have their
             // own dedicated Voucher tab (see renderVoucherGames below) and should
             // not also appear mixed into the Home / direct top-up list.
-            const ids = Object.keys(GAMES).filter(id => GAMES[id].fulfillProvider !== 'g2bulk_voucher' && GAMES[id].fulfillProvider !== 'fazercard_giftcard').sort((a, b) => {
+            const idsAll = Object.keys(GAMES).filter(id => GAMES[id].fulfillProvider !== 'g2bulk_voucher' && GAMES[id].fulfillProvider !== 'fazercard_giftcard').sort((a, b) => {
                 const ga = GAMES[a], gb = GAMES[b];
                 const oa = typeof ga.order === 'number' ? ga.order : Infinity;
                 const ob = typeof gb.order === 'number' ? gb.order : Infinity;
                 if (oa !== ob) return oa - ob;
                 return (ga.name || '').localeCompare(gb.name || '');
             });
+            const ids = applyProvTabs(idsAll, 'home', 'home-prov-tabs', () => { homeGamesVisibleCount = HOME_GAMES_INITIAL_BATCH; lastHomeGamesSignature = ''; renderHomeGames(); }, !!gameSearchQuery);
             const countEl = document.getElementById('all-games-count');
             // Signature over only the fields this function renders - a price/cost/
             // stock-only edit elsewhere in the doc leaves this identical, so the
@@ -10539,8 +10570,8 @@ b,strong{font-weight:600}
                 lastHomeGamesFilterKey = filterKey;
             }
             const signature = JSON.stringify([
-                gamesLoadedOnce, gameSearchQuery, homeGamesVisibleCount,
-                ids.map(id => { const g = GAMES[id]; return [id, g.name, g.image, g.category, g.serverName, g.order, !!g.popular]; })
+                gamesLoadedOnce, gameSearchQuery, homeGamesVisibleCount, window.__prov.home,
+                ids.map(id => { const g = GAMES[id]; return [id, g.name, g.image, g.category, g.serverName, g.order, !!g.popular, g.badge]; })
             ]);
             if (signature === lastHomeGamesSignature && grid.children.length > 0) return;
             lastHomeGamesSignature = signature;
@@ -10610,7 +10641,7 @@ b,strong{font-weight:600}
             const motionCls = wave ? 'card-wave' : 'card-pop';
             const motionVars = wave ? `--r:${wave.r};--c:${wave.c}` : `--i:${Math.min(i, 12)}`;
             return `<div class="game-card game-row game-card-anim ${motionCls}${isGamePinned(gr.repId) ? ' pinned' : ''}" data-game-id="${gr.repId}" style="${motionVars}" onclick="openGameEntry(${gr.idx})">
-                <div class="game-card-img-wrap"><img src="${optimizedGameImg(g.image, 200)}" alt="${escapeHtml(g.name)}" loading="lazy" decoding="async">${pinBadgeHtml()}</div>
+                <div class="game-card-img-wrap"><img src="${optimizedGameImg(g.image, 200)}" alt="${escapeHtml(g.name)}" loading="lazy" decoding="async">${pinBadgeHtml()}${gameBadgesHtml(g)}</div>
                 <div class="game-row-body"><div class="game-card-name">${escapeHtml(g.name)}</div><div class="game-row-meta">${categoryBadgeHtml(g.category)}${serverCountBadgeHtml(gr)}</div></div>
                 <svg class="ui-icon game-row-go"><use href="#icon-chevron-right"></use></svg>
             </div>`;
@@ -10681,8 +10712,8 @@ b,strong{font-weight:600}
             const popularSection = document.getElementById('popular-vouchers-section');
             const popularScroll = document.getElementById('popular-vouchers-scroll');
             if (!grid) return;
-            const ids = Object.keys(GAMES)
-                .filter(id => GAMES[id].fulfillProvider === 'g2bulk_voucher' || GAMES[id].fulfillProvider === 'fazercard_giftcard')
+            const vAll = Object.keys(GAMES).filter(id => { const fp = GAMES[id].fulfillProvider; return fp === 'g2bulk_voucher' || fp === 'fazercard_giftcard'; });
+            const ids = applyProvTabs(vAll, 'voucher', 'voucher-prov-tabs', () => renderVoucherGames(), false)
                 .sort((a, b) => {
                     const ga = GAMES[a], gb = GAMES[b];
                     const oa = typeof ga.order === 'number' ? ga.order : Infinity;
@@ -10721,6 +10752,7 @@ b,strong{font-weight:600}
                                 <span class="voucher-card-tag">Gift Card</span>
                                 <div class="voucher-card-stack">
                                     <img src="${optimizedGameImg(g.image, 200)}" alt="${escapeHtml(g.name)}" loading="lazy" decoding="async">
+                                    ${gameBadgesHtml(g)}
                                 </div>
                                 <div class="voucher-card-name">${escapeHtml(g.name)}</div>
                             </div>
@@ -10740,6 +10772,7 @@ b,strong{font-weight:600}
                         <span class="voucher-card-tag">Gift Card</span>
                         <div class="voucher-card-stack">
                             <img src="${optimizedGameImg(g.image, 200)}" alt="${escapeHtml(g.name)}" loading="lazy" decoding="async">
+                                    ${gameBadgesHtml(g)}
                         </div>
                         <div class="voucher-card-name">${escapeHtml(g.name)}</div>
                     </div>
@@ -12648,7 +12681,7 @@ html[data-glass="off"] body .htab.active{background:var(--pca-soft,#FFF0F1);bord
 html body #home.htab-swap>*{animation:pcaTabIn .32s ease both}
 
 /* Home tab content: Popular = popular things · Top Up = All Games only */
-html body:not([data-htab="game"]) #home :is(#all-games-title-row,.games-grid-scroll,#home-games-load-more-btn){display:none !important}
+html body:not([data-htab="game"]) #home :is(#all-games-title-row,.games-grid-scroll,#home-games-load-more-btn,#home-prov-tabs){display:none !important}
 html body[data-htab="game"] #home :is(#popular-games-section,#popular-vouchers-section,#favorite-games-section){display:none !important}
 
 /* ---------- GAME GRID: one size, small glass cards ---------- */
@@ -13572,6 +13605,184 @@ html body .od-again .ui-icon{width:16px !important;height:16px !important;stroke
   },120);
  };
  window.pcaBuyAgainIdx=function(i){window.pcaBuyAgain((window.__hist||[])[i])};
+})();
+</script>
+
+<style id="pca-v9">@layer pcafix{
+/* ===== v9 ===== */
+/* 1. Selected-package pill: glass, slides in/out only when needed */
+html body #pca-pill{background:rgba(255,255,255,.78) !important;-webkit-backdrop-filter:blur(18px) saturate(170%) !important;backdrop-filter:blur(18px) saturate(170%) !important;
+ border:1px solid rgba(255,255,255,.9) !important;box-shadow:0 12px 28px -14px rgba(17,19,24,.35),inset 0 1px 0 #fff !important;padding:6px 6px 6px 16px !important;
+ transform:translateY(24px) scale(.96);opacity:0;pointer-events:none;transition:transform .38s cubic-bezier(.22,1,.36,1),opacity .25s ease !important}
+html body #pca-pill.show:not(.pca-hold){transform:none;opacity:1;pointer-events:auto}
+html body #pca-pill.pca-hold{transform:translateY(24px) scale(.96) !important;opacity:0 !important;pointer-events:none !important}
+html body #pca-pill>span{display:flex;flex-direction:column;min-width:0;line-height:1.25}
+html body #pca-pill>span b{font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body #pca-pill>span small{font-size:11.5px;color:var(--pca-acc,#E11D2E);font-weight:600}
+#home-prov-tabs,#voucher-prov-tabs{margin:0 0 12px;overflow-x:auto;scrollbar-width:none}
+#home-prov-tabs .pkg-type-tab,#voucher-prov-tabs .pkg-type-tab{flex:0 0 auto;white-space:nowrap}
+.vp-n{opacity:.6;font-weight:500;font-size:.9em}
+/* ===== game badges + Top/Hot: thin glass ===== */
+.gc-badges{position:absolute;left:5px;bottom:5px;z-index:3;display:flex;gap:3px;pointer-events:none}
+html body :is(.gc-b,.pc-tag){display:inline-flex !important;align-items:center;gap:3px;height:17px;padding:0 6px !important;border-radius:999px !important;font-size:9.5px !important;font-weight:600 !important;letter-spacing:.2px;line-height:1;
+ background:rgba(255,255,255,.55) !important;border:.5px solid rgba(255,255,255,.85) !important;box-shadow:0 2px 8px -3px rgba(17,19,24,.28),inset 0 .5px 0 rgba(255,255,255,.9) !important;
+ -webkit-backdrop-filter:blur(8px) saturate(160%) !important;backdrop-filter:blur(8px) saturate(160%) !important;text-shadow:none !important}
+html body :is(.gc-b,.pc-tag) svg{width:9px !important;height:9px !important;filter:none !important;flex:none}
+html body .gc-p{color:#1D4ED8 !important;background:rgba(219,234,254,.6) !important}
+html body :is(.gc-top,.pc-tag-top){color:#B45309 !important;background:rgba(254,243,199,.62) !important}
+html body :is(.gc-hot,.pc-tag-hot){color:#DC2626 !important;background:rgba(254,226,226,.62) !important}
+html body #detail-package-list .type-currency .pc-tag{border-radius:999px !important;top:6px;right:12px;transform:none}
+/* ===== home: no big loading skeletons; nav tucks away while scrolling ===== */
+html body #home :is(.skel,[class^="skel-"],[class*=" skel-"]){display:none !important}
+html body nav.bottom-nav{transition:transform .38s cubic-bezier(.22,1,.36,1),opacity .25s ease !important}
+html body nav.bottom-nav.nav-tuck{transform:translateY(calc(100% + 28px + env(safe-area-inset-bottom,0px))) !important;opacity:0;pointer-events:none}
+html body nav.bottom-nav .nav-item{flex:1 1 0 !important;min-width:0 !important}
+html body.nav-tucked #pca-pill.show:not(.pca-hold){transform:translateY(64px)}
+/* 7. Package list lives in its own scroll box */
+html body .package-grid-scroll{max-height:min(46vh,372px);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;padding:10px;border-radius:20px;background:#F1F2F5;border:1px solid #E7E8EC;scrollbar-width:thin;scrollbar-color:#C9CBD2 transparent}
+html body .package-grid-scroll #detail-package-list{gap:8px !important}
+/* 2. Voucher: ticket cards */
+html body #detail-package-list .package-card.type-currency{display:grid !important;grid-template-columns:64px minmax(0,1fr) auto;grid-template-areas:"img amt prc" "img stk prc";align-items:center;
+ padding:0 !important;min-height:68px;overflow:hidden !important;position:relative;border-radius:16px !important;border:1px solid #E7E8EC !important;box-shadow:none !important;
+ background:radial-gradient(circle 7px at 64px 0,#F1F2F5 97%,transparent) no-repeat,radial-gradient(circle 7px at 64px 100%,#F1F2F5 97%,transparent) no-repeat,#fff !important}
+html body #detail-package-list .package-card.type-currency.selected{border-color:var(--pca-acc,#E11D2E) !important;box-shadow:0 0 0 1px var(--pca-acc,#E11D2E) !important;
+ background:radial-gradient(circle 7px at 64px 0,#F1F2F5 97%,transparent) no-repeat,radial-gradient(circle 7px at 64px 100%,#F1F2F5 97%,transparent) no-repeat,var(--pca-soft,#FFF5F6) !important}
+html body #detail-package-list .type-currency .pc-img-wrap{grid-area:img;width:64px !important;height:calc(100% - 22px) !important;margin:11px 0;border-radius:0 !important;background:none !important;border-right:2px dashed #E1E3E8;display:flex;align-items:center;justify-content:center}
+html body #detail-package-list .type-currency .pc-img{width:38px !important;height:38px !important;border-radius:12px;object-fit:cover}
+html body #detail-package-list .type-currency .pc-amount-badge{grid-area:amt;display:block !important;padding:14px 10px 14px 14px !important;background:none !important;border:0 !important;border-radius:0 !important;
+ font-size:15px !important;font-weight:700 !important;color:#111318 !important;white-space:normal;overflow-wrap:anywhere}
+html body #detail-package-list .type-currency:has(.pc-stock-badge) .pc-amount-badge{padding-bottom:2px !important}
+html body #detail-package-list .type-currency.selected .pc-amount-badge{color:var(--pca-acc,#E11D2E) !important}
+html body #detail-package-list .type-currency .pc-stock-badge{grid-area:stk;justify-self:start;position:static !important;margin:0 0 12px 14px;padding:2px 8px;border-radius:999px;font-size:10.5px;font-weight:600;background:#EEF0F3;color:#5B606A}
+html body #detail-package-list .type-currency .pc-stock-badge:not(.stock-out)::before{content:"Stock "}
+html body #detail-package-list .type-currency .stock-high{background:#E6F7EC;color:#1E8E4F}
+html body #detail-package-list .type-currency .stock-mid{background:#FFF4D6;color:#A16207}
+html body #detail-package-list .type-currency .stock-low,html body #detail-package-list .type-currency .stock-out{background:#FDE8EA;color:#C41424}
+html body #detail-package-list .type-currency .pc-price-bar{grid-area:prc;padding:0 16px 0 4px !important;background:none !important;border:0 !important;border-radius:0 !important;display:flex;align-items:baseline;gap:3px}
+html body #detail-package-list .type-currency .pc-price{font-size:16px;font-weight:700;color:#111318}
+html body #detail-package-list .type-currency.selected .pc-price{color:var(--pca-acc,#E11D2E)}
+html body #detail-package-list .type-currency .pc-cur{font-size:10px;font-weight:600;color:#8A8F99;margin-left:3px}
+html body #detail-package-list .type-currency .pc-tag{position:absolute !important;top:0;right:14px;left:auto;margin:0;border-radius:0 0 8px 8px;transform:scale(.88);transform-origin:top right}
+/* 3. Buy again = bubble on top of the order card */
+html body #history-container{padding-top:10px}
+html body .history-card{position:relative !important;overflow:visible !important;margin-top:16px !important}
+html body .history-card>.hc-again{position:absolute;top:-12px;right:14px;margin:0;height:24px;z-index:3;background:#fff;box-shadow:0 5px 12px -6px rgba(17,19,24,.35)}
+html body .history-card>.hc-again::after{content:"";position:absolute;left:50%;bottom:-4px;width:8px;height:8px;margin-left:-4px;background:#fff;border-right:1px solid rgba(var(--pca-rgb,225,29,46),.28);border-bottom:1px solid rgba(var(--pca-rgb,225,29,46),.28);transform:rotate(45deg) scale(.9);clip-path:polygon(100% 0,100% 100%,0 100%)}
+/* 4. Request Successfully: smaller icon, tidy ripples */
+html body #success-overlay .success-box.pv-bk{margin-top:24px !important;width:min(82vw,300px) !important;max-width:300px !important}
+html body .pv-bk-badge{top:-22px !important;width:44px !important;height:44px !important;margin-left:-22px !important;z-index:3 !important}
+html body .pv-bk-badge .rp{clip-path:inset(0 0 50% 0)}
+html body .pv-bk-badge .rp.a{width:64px !important;height:64px !important}
+html body .pv-bk-badge .rp.b{width:84px !important;height:84px !important}
+html body .pv-bk-badge .rp.c{width:104px !important;height:104px !important}
+html body .pv-bk-circle{width:44px !important;height:44px !important;box-shadow:0 8px 14px -8px rgba(47,203,134,.8) !important}
+html body .pv-bk-circle svg{width:22px !important;height:22px !important}
+html body .pv-bk-body{padding:34px 18px 18px !important}
+html body .pv-bk-label{font-size:11px !important;margin-bottom:2px}
+html body #success-overlay .pv-bk-title{font-size:18px !important;margin:2px 0 6px !important}
+html body #success-overlay .pv-bk-sub{font-size:12.5px !important;margin:0 0 14px !important}
+html body .pv-bk-actions .pv-btn{height:40px;border-radius:14px;font-size:13.5px;font-weight:600}
+/* 5. Name check: glass */
+html body .id-result-card,html body .id-fail-card{position:relative;display:flex !important;align-items:center;gap:12px;padding:11px 14px !important;border-radius:18px !important;overflow:hidden;
+ -webkit-backdrop-filter:blur(16px) saturate(170%) !important;backdrop-filter:blur(16px) saturate(170%) !important}
+html body .id-result-card{background:radial-gradient(120% 160% at 0% 0%,rgba(52,211,153,.28),transparent 58%),rgba(255,255,255,.62) !important;border:1px solid rgba(255,255,255,.9) !important;
+ box-shadow:0 12px 26px -16px rgba(16,185,129,.7),inset 0 1px 0 #fff,0 0 0 1px rgba(16,185,129,.16) !important}
+html body .id-fail-card{background:radial-gradient(120% 160% at 0% 0%,rgba(248,113,113,.26),transparent 58%),rgba(255,255,255,.62) !important;border:1px solid rgba(255,255,255,.9) !important;
+ box-shadow:0 12px 26px -16px rgba(239,68,68,.6),inset 0 1px 0 #fff,0 0 0 1px rgba(239,68,68,.16) !important}
+html body .id-result-avatar{width:40px !important;height:40px !important;flex:none;border-radius:50% !important;display:grid !important;place-items:center;font-size:16px !important;font-weight:700 !important;line-height:1;
+ color:#fff !important;background:linear-gradient(145deg,#34D399,#0EA5A4) !important;box-shadow:0 6px 12px -6px rgba(14,165,164,.7),inset 0 1px 0 rgba(255,255,255,.5)}
+html body .id-result-info{display:flex;flex-direction:column;justify-content:center;gap:2px;min-width:0;flex:1}
+html body .id-result-name{font-size:14px !important;font-weight:600 !important;line-height:1.25;color:#111318 !important}
+html body .id-result-label{font-size:11.5px !important;line-height:1.2;color:#15803D !important;margin:0 !important}
+html body .id-result-check{width:24px !important;height:24px !important;flex:none;border-radius:50% !important;display:grid !important;place-items:center;font-size:13px !important;font-weight:700;line-height:1;
+ color:#fff !important;background:linear-gradient(145deg,#34D399,#16A34A) !important;box-shadow:0 0 0 4px rgba(52,211,153,.22)}
+/* 6. Custom server dropdown */
+html body .detail-form-card{overflow:visible !important}
+select[data-pcs]{display:none !important}
+.pcs{position:relative;width:100%}
+.pcs-t{width:100%;height:100%;min-height:48px;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:0 12px 0 14px;border:2px solid #E6E7EA;border-radius:16px;background:#fff;
+ font:inherit;font-size:14px;color:#8A8F99;text-align:left;cursor:pointer;transition:border-color .2s,box-shadow .2s}
+.pcs-t.has{color:#111318;font-weight:500}
+.pcs-t span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pcs-t svg{flex:none;width:16px;height:16px;stroke:#8A8F99;fill:none;stroke-width:2.2;stroke-linecap:round;stroke-linejoin:round;transition:transform .25s}
+.pcs.open .pcs-t{border-color:var(--pca-acc,#E11D2E);box-shadow:0 0 0 3px rgba(var(--pca-rgb,225,29,46),.12)}
+.pcs.open .pcs-t svg{transform:rotate(180deg)}
+.pcs-p{position:absolute;right:0;top:calc(100% + 6px);min-width:100%;width:max-content;max-width:min(270px,84vw);max-height:224px;overflow-y:auto;padding:6px;z-index:90;
+ background:rgba(255,255,255,.9);-webkit-backdrop-filter:blur(18px) saturate(170%);backdrop-filter:blur(18px) saturate(170%);border:1px solid rgba(255,255,255,.95);border-radius:18px;
+ box-shadow:0 18px 36px -14px rgba(17,19,24,.35),0 0 0 1px #ECEDF0;opacity:0;transform:translateY(-6px) scale(.97);transform-origin:top right;pointer-events:none;transition:opacity .18s ease,transform .22s cubic-bezier(.22,1,.36,1)}
+.pcs.open .pcs-p{opacity:1;transform:none;pointer-events:auto}
+.pcs-o{display:flex;align-items:center;justify-content:space-between;gap:10px;width:100%;min-height:40px;padding:0 12px;border:0;border-radius:12px;background:none;font:inherit;font-size:13.5px;color:#111318;text-align:left;cursor:pointer}
+.pcs-o:active{background:#F1F2F5}
+.pcs-o.sel{background:var(--pca-soft,#FFF0F1);color:var(--pca-acc,#E11D2E);font-weight:600}
+.pcs-o.sel::after{content:"✓";font-size:13px}
+}</style>
+<script id="pca-v9-js">
+(function(){
+ var d=document,$=function(i){return d.getElementById(i)};
+ /* --- pill: only when a package is picked and the payment area is not on screen --- */
+ var pill=$('pca-pill'),gd=$('game-detail'),raf=0;
+ function hold(){
+  if(!gd||!gd.classList.contains('active'))return true;
+  var a=d.activeElement;if(a&&/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName))return true;
+  if(d.querySelector('.modal-overlay.show,.success-overlay.show'))return true;
+  var p=$('detail-payment-section');
+  if(p&&p.offsetParent&&p.getBoundingClientRect().top<innerHeight*.62)return true;
+  return false;
+ }
+ function upd(){raf=0;if(!pill)return;
+  var s=gd&&gd.querySelector('.package-card.selected');
+  if(s){
+   var n=s.querySelector('.pc-label,.pc-amount-badge'),pr=s.querySelector('.pc-price'),qb=$('detail-qty-box'),qt=$('qty-total');
+   var price=(qb&&qb.style.display!=='none'&&qt&&qt.textContent.trim())||((pr&&pr.firstChild?pr.firstChild.textContent:'')+' MMK');
+   var sp=pill.firstChild;sp.innerHTML='';
+   var b=d.createElement('b');b.textContent=n?n.textContent.trim():'';var sm=d.createElement('small');sm.textContent=price;sp.appendChild(b);sp.appendChild(sm);
+   pill.classList.add('show');
+  }else pill.classList.remove('show');
+  pill.classList.toggle('pca-hold',hold());
+ }
+ function q(){if(!raf)raf=requestAnimationFrame(upd)}
+ if(gd){new MutationObserver(function(){
+   gd.classList.toggle('is-voucher',!!window.currentGameIsVoucher);q()}).observe(gd,{subtree:true,childList:true,attributes:true,attributeFilter:['class','style'],characterData:true})}
+ addEventListener('scroll',q,{passive:true});addEventListener('resize',q);d.addEventListener('focusin',q);d.addEventListener('focusout',function(){setTimeout(q,60)});
+ /* --- custom server dropdown (detail page + name check page) --- */
+ var VD=Object.getOwnPropertyDescriptor(HTMLSelectElement.prototype,'value');
+ var CH='<svg viewBox="0 0 24 24"><path d="M6 9l6 6 6-6"/></svg>';
+ function enhance(sel){
+  if(sel.dataset.pcs)return;sel.dataset.pcs='1';
+  var w=d.createElement('div');w.className='pcs';
+  var t=d.createElement('button');t.type='button';t.className='pcs-t';t.innerHTML='<span></span>'+CH;
+  var p=d.createElement('div');p.className='pcs-p';p.setAttribute('role','listbox');
+  [].forEach.call(sel.options,function(o,i){
+   var b=d.createElement('button');b.type='button';b.className='pcs-o';b.textContent=o.textContent;b.dataset.v=o.value;
+   if(i===0&&!o.value)b.style.display='none';
+   b.onclick=function(){VD.set.call(sel,o.value);sync();close();sel.dispatchEvent(new Event('change',{bubbles:true}))};p.appendChild(b)});
+  w._sel=sel;w.appendChild(t);w.appendChild(p);sel.insertAdjacentElement('afterend',w);
+  function sync(){var o=sel.options[sel.selectedIndex];var has=!!(o&&o.value);t.firstChild.textContent=o?o.textContent:'';t.classList.toggle('has',has);
+   [].forEach.call(p.children,function(b){b.classList.toggle('sel',has&&b.dataset.v===o.value)})}
+  function close(){w.classList.remove('open')}
+  Object.defineProperty(sel,'value',{configurable:true,get:function(){return VD.get.call(sel)},set:function(v){VD.set.call(sel,v);sync()}});
+  t.onclick=function(e){e.stopPropagation();var o=!w.classList.contains('open');[].forEach.call(d.querySelectorAll('.pcs.open'),function(x){x.classList.remove('open')});if(o){w.classList.add('open');var s=p.querySelector('.sel');if(s)s.scrollIntoView({block:'nearest'})}};
+  sync();
+ }
+ function scan(wrap){if(!wrap)return;
+  [].forEach.call(wrap.querySelectorAll('.pcs'),function(x){if(!x._sel||!x._sel.isConnected)x.remove()});
+  var s=wrap.querySelector('select');if(s)enhance(s)}
+ ['detail-server-id-wrap','nc-server-wrap'].forEach(function(id){var w=$(id);if(!w)return;scan(w);new MutationObserver(function(){scan(w)}).observe(w,{childList:true})});
+ d.addEventListener('pointerdown',function(e){if(!e.target.closest('.pcs'))[].forEach.call(d.querySelectorAll('.pcs.open'),function(x){x.classList.remove('open')})},true);
+ d.addEventListener('keydown',function(e){if(e.key==='Escape')[].forEach.call(d.querySelectorAll('.pcs.open'),function(x){x.classList.remove('open')})});
+
+ /* --- nav bar: tuck away on scroll down, back on scroll up --- */
+ var nav=$('bottom-nav'),last=new WeakMap(),tuck=false;
+ function setTuck(v){if(v===tuck||!nav)return;tuck=v;nav.classList.toggle('nav-tuck',v);d.body.classList.toggle('nav-tucked',v)}
+ d.addEventListener('scroll',function(e){
+  var t=e.target,el=(t===d||t===d.body||t===d.documentElement)?(d.scrollingElement||d.documentElement):t;
+  if(!el||el.nodeType!==1)return;
+  if(el!==d.scrollingElement&&(el.clientHeight<innerHeight*.5||el.scrollHeight<el.clientHeight*1.2))return;
+  var y=el.scrollTop,p=last.has(el)?last.get(el):y;last.set(el,y);var dy=y-p;
+  if(y<48||dy<-6)setTuck(false);else if(dy>8&&y>120)setTuck(true);
+ },true);
+ d.addEventListener('focusin',function(e){if(/^(INPUT|TEXTAREA)$/.test(e.target.tagName))setTuck(true)});
+ if(nav)nav.addEventListener('click',function(){setTimeout(function(){setTuck(false)},0)});
 })();
 </script>
 </body>
