@@ -6865,8 +6865,8 @@ b,strong{font-weight:600}
         // Pending→Draft, Processing→In-progress, success-class
         // (Success/Completed)→Completed, danger-class (Fail/Rejected)→Failed.
         const ORDER_STATUS_DISPLAY_LABELS = {
-            Pending: 'Draft',
-            Processing: 'In-progress',
+            Pending: 'Pending',
+            Processing: 'Processing',
             Success: 'Completed',
             Completed: 'Completed',
             Fail: 'Failed',
@@ -12123,7 +12123,6 @@ tint(sk);glass(sg);
 /* finger-following light + haptics */
 var CARD=".game-card,.package-card,.voucher-card,.popular-card,.list-card,.history-card,.detail-form-card,.profile-card";
 function lit(e){var t=e.target.closest&&e.target.closest(CARD);if(!t)return;var r=t.getBoundingClientRect();t.style.setProperty("--mx",(e.clientX-r.left)+"px");t.style.setProperty("--my",(e.clientY-r.top)+"px")}
-d.addEventListener("pointermove",lit,{passive:true});
 d.addEventListener("pointerdown",function(e){lit(e);if(navigator.vibrate&&e.target.closest&&e.target.closest(".btn,.nav-item,.package-card,.game-card,.confirm-id-btn"))navigator.vibrate(8)},{passive:true});
 /* header hides on scroll down; back-to-top */
 var h=d.querySelector("header.header"),top=d.createElement("button");top.id="pca-top";top.className="pca-fl";top.innerHTML='<svg class="ui-icon" aria-hidden="true"><use href="#icon-chevron-up"></use></svg>';top.setAttribute("aria-label","Top");top.onclick=function(){scrollTo({top:0,behavior:"smooth"})};d.body.appendChild(top);
@@ -13097,5 +13096,159 @@ html body .title-header::before{width:4px !important;height:14px !important;bord
 })();
 </script>
 
+
+<style id="pca-v5">@layer pcafix{
+/* ===== PCA v5 (unlayered, wins over layered !important) ===== */
+/* 1) ICONS: all circles, consistent size */
+html body :is(.header-icon,.htab-ic,.nav-icon-wrap,.pt-ic,.pv-ic,.pv-res-ic,.wbc2-ic,.rdm-ic,.auth-gate-icon,.social-link-icon,.payment-option-icon,.upload-shot-icon,.wallet-topup-btn-icon,.wallet-topup-row-icon,.notif-order-ic,.game-desc-head-icon,.empty-state-icon,.avatar-upload-placeholder,.avatar-upload-badge,.pvw-plus,.order-ok-check,.pc-selected-check,.pm-copy-btn,.voucher-copy-btn,.guide-card-close,.modal-close,.tab-back-btn,.profile-hero-edit-btn,.lang-toggle-btn,.push-toggle-thumb,.slide-confirm-thumb,.toast-icon-circle,.ot-dot){border-radius:50% !important;aspect-ratio:1/1;flex-shrink:0}
+html body :is(.header-icon){width:40px !important;height:40px !important}
+html body :is(.social-link-icon,.payment-option-icon,.upload-shot-icon){width:38px !important;height:38px !important;overflow:hidden}
+html body .payment-option-icon img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+html body .auth-gate-icon{width:48px !important;height:48px !important}
+html body :is(.pm-copy-btn,.voucher-copy-btn){width:30px !important;height:30px !important;min-width:30px !important;padding:0 !important;display:inline-grid !important;place-items:center}
+html body :is(.pm-copy-btn,.voucher-copy-btn) .ui-icon{width:15px !important;height:15px !important}
+html body :is(.guide-card-close,.modal-close){width:32px !important;height:32px !important;padding:0 !important;display:grid !important;place-items:center}
+html body :is(.guide-card-close,.modal-close) .ui-icon{width:16px !important;height:16px !important}
+html body :is(.header-icon,.htab-ic,.pt-ic,.wbc2-ic,.rdm-ic,.social-link-icon,.payment-option-icon,.upload-shot-icon,.notif-order-ic,.empty-state-icon) .ui-icon{width:20px !important;height:20px !important;stroke-width:1.8 !important}
+html body .nav-icon-wrap:not(.nav-icon-wrap-wallet) .ui-icon{width:20px !important;height:20px !important}
+html body .ui-icon{stroke-linecap:round;stroke-linejoin:round}
+html body :is(.game-card-img-wrap,.voucher-card-stack,.game-row .game-card-img-wrap){border-radius:max(8px,calc(var(--pca-r,16px) - 5px)) !important}
+
+/* 2) GRIDS: small, fixed size, never grow */
+html body :is(.cards-grid,.game-list){display:grid !important;grid-template-columns:repeat(4,minmax(0,1fr)) !important;gap:6px !important;padding:0 !important}
+@media(min-width:700px){html body :is(.cards-grid,.game-list){grid-template-columns:repeat(6,minmax(0,1fr)) !important}}
+html body .game-list>*:nth-child(n){grid-column:auto !important}
+html body .game-row,html body .game-card{padding:4px 4px 5px !important;gap:4px !important;transform:none !important;min-width:0}
+html body .game-row:active,html body .game-card:active{transform:scale(.97) !important}
+html body .popular-scroll-wrap>:is(.popular-card,.voucher-card){flex:0 0 calc((100% - 18px)/4) !important;min-width:0 !important}
+/* order/package grid: original size */
+html body .package-card,html body .packages-grid>*{transform:none !important;transition:border-color .15s,background-color .15s !important}
+html body .package-card:hover,html body .package-card.selected,html body .package-card.active{transform:none !important}
+
+/* 3) NAME: one line slot, marquee when long */
+html body :is(.game-card-name,.voucher-card-name,.game-row .game-card-name,.popular-card .game-card-name){display:block !important;-webkit-line-clamp:unset !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:clip !important;height:1.6em !important;min-height:1.6em !important;max-height:1.6em !important;line-height:1.6em !important;font-size:10.5px !important;text-align:center;padding:0 2px !important}
+html body .mq-in{display:inline-block;white-space:nowrap;will-change:auto}
+html body .mq-on{text-align:left !important}
+html body .mq-on .mq-in{will-change:transform;animation:pcaMq var(--mqt,6s) ease-in-out infinite alternate}
+@keyframes pcaMq{0%,15%{transform:translateX(0)}85%,100%{transform:translateX(var(--mqd,0px))}}
+
+/* 4) PERFORMANCE */
+html body :is(nav.bottom-nav,nav.bottom-nav::before,nav.bottom-nav::after,.nav-icon-wrap-wallet,.nav-icon-wrap-wallet::before,.nav-icon-wrap-wallet::after,.nav-item-wallet,.nav-item-wallet::before,.nav-item-wallet::after,.nav-item-wallet .ui-icon,.pv-res-ic::before,.pv-res-ic::after,.pv-bk-badge .cf,body::before,body::after,#home::before,#home::after){animation:none !important}
+html body :is(.game-card,.popular-card,.voucher-card,.package-card,.list-card,.history-card,.profile-card,.detail-form-card,.game-row,header.header){-webkit-backdrop-filter:none !important;backdrop-filter:none !important}
+html body :is(.game-card,.popular-card,.voucher-card,.game-row){content-visibility:auto;contain-intrinsic-size:auto 120px}
+html body :is(.game-card,.popular-card,.voucher-card,.game-row,.package-card)::before{filter:none !important}
+html body{scroll-behavior:auto}
+
+/* ===== v5b ===== */
+/* Profile blank fix: entrance animation was stripped, cards stayed opacity:0 */
+html body .profile-card-anim,html body .profile-card-anim.in-view{opacity:1 !important;transform:none !important}
+/* squircle avatars */
+html body :is(.avatar-upload-circle,.avatar-upload-circle img,.avatar-upload-placeholder,.header-profile-avatar,.header-profile-avatar img,.pc-avatar-wrap,.pc-avatar-wrap img){border-radius:30% !important;aspect-ratio:1/1;overflow:hidden}
+html body .avatar-upload-badge{border-radius:38% !important}
+html body :is(.avatar-upload-circle img,.header-profile-avatar img){width:100%;height:100%;object-fit:cover}
+html body :is(.avatar-upload-circle,.avatar-upload-placeholder){display:grid;place-items:center}
+html body .profile-card,html body .profile-card>*{min-width:0}
+
+/* nav: shorter + see-through */
+html body nav.bottom-nav{left:0 !important;right:0 !important;width:calc(100% - 64px) !important;max-width:312px !important;margin:0 auto !important;height:54px !important;background:transparent !important;-webkit-backdrop-filter:blur(8px) saturate(1.4) !important;backdrop-filter:blur(8px) saturate(1.4) !important;box-shadow:0 8px 22px -10px rgba(17,19,24,.25) !important;padding:0 4px !important;grid-template-columns:1fr 1fr 58px 1fr 1fr !important}
+html body nav.bottom-nav::before{background:rgba(255,255,255,.22) !important;border:1px solid rgba(255,255,255,.55) !important;box-shadow:none !important}
+html body nav.bottom-nav::after{background:transparent !important;box-shadow:none !important;border:0 !important}
+html body nav.bottom-nav{filter:none !important}
+html body nav.bottom-nav .nav-item .nav-label{font-size:9.5px !important}
+html body nav.bottom-nav .nav-item .ui-icon{width:19px !important;height:19px !important}
+
+/* packages: blue name cell + green price cell */
+html body #detail-package-list .package-card{display:grid !important;grid-template-columns:44px minmax(0,1fr) auto;align-items:stretch !important;gap:8px !important;padding:8px !important;min-height:0 !important}
+html body #detail-package-list .package-card .pc-img-wrap{align-self:center}
+html body .package-card :is(.pc-label-wrap,.pc-amount-badge){display:flex !important;align-items:center;min-width:0;padding:8px 12px !important;border-radius:14px !important;background:linear-gradient(135deg,rgba(59,130,246,.16),rgba(59,130,246,.07)) !important;border:1px solid rgba(59,130,246,.35) !important;color:#1D4ED8 !important;font-weight:700 !important}
+html body .package-card :is(.pc-label,.pc-amount-badge .x){color:#1D4ED8 !important;background:none !important;padding:0 !important}
+html body .package-card .pc-price-bar{display:flex !important;align-items:center;margin:0 !important;padding:8px 12px !important;border-radius:14px !important;background:linear-gradient(135deg,rgba(16,185,129,.18),rgba(16,185,129,.07)) !important;border:1px solid rgba(16,185,129,.4) !important}
+html body .package-card .pc-price{color:#047857 !important;font-weight:800 !important}
+html body .package-card .pc-cur{color:#059669 !important}
+html body .package-card.selected :is(.pc-label-wrap,.pc-amount-badge){background:linear-gradient(135deg,#3B82F6,#2563EB) !important;border-color:#2563EB !important;color:#fff !important}
+html body .package-card.selected .pc-label{color:#fff !important}
+html body .package-card.selected .pc-price-bar{background:linear-gradient(135deg,#10B981,#059669) !important;border-color:#059669 !important}
+html body .package-card.selected :is(.pc-price,.pc-cur){color:#fff !important}
+html body .package-card .pc-selected-check{position:absolute !important;top:-6px;right:-6px;z-index:3}
+
+/* payment methods: glass grid */
+html body :is(#detail-payment-methods,#wallet-topup-payment-methods){display:grid !important;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px !important}
+html body :is(#detail-payment-methods,#wallet-topup-payment-methods) .payment-option{flex-direction:column;align-items:center !important;text-align:center;gap:8px !important;padding:14px 8px !important;border-radius:22px !important;background:linear-gradient(160deg,rgba(255,255,255,.7),rgba(255,255,255,.28)) !important;border:1px solid rgba(255,255,255,.85) !important;box-shadow:0 0 0 1px rgba(17,19,24,.06),0 10px 22px -14px rgba(17,19,24,.3),inset 0 1px 0 #fff !important;-webkit-backdrop-filter:blur(10px) !important;backdrop-filter:blur(10px) !important;min-width:0}
+html body :is(#detail-payment-methods,#wallet-topup-payment-methods) .payment-option.selected{border-color:var(--pca-acc,#E11D2E) !important;background:linear-gradient(160deg,rgba(var(--pca-rgb,225,29,46),.16),rgba(255,255,255,.4)) !important;box-shadow:0 0 0 2px rgba(var(--pca-rgb,225,29,46),.55),0 10px 22px -14px rgba(var(--pca-rgb,225,29,46),.6) !important}
+html body .payment-option .payment-option-icon{width:46px !important;height:46px !important;border-radius:30% !important}
+html body .payment-option .payment-option-text{align-items:center;min-width:0;max-width:100%}
+html body .payment-option .payment-option-name{font-size:12.5px;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+
+/* wallet card redesign */
+html body .wallet-balance-card.wbc2{position:relative;overflow:hidden;padding:18px 18px 16px !important;border-radius:28px !important;border:0 !important;color:#fff;background:radial-gradient(120% 90% at 100% 0%,rgba(255,255,255,.28),rgba(255,255,255,0) 55%),linear-gradient(135deg,var(--pca-acc,#E11D2E),color-mix(in srgb,var(--pca-acc,#E11D2E) 45%,#2b0a40)) !important;box-shadow:0 18px 30px -16px rgba(var(--pca-rgb,225,29,46),.7) !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important}
+html body .wbc2::before{content:"" !important;position:absolute !important;right:-40px !important;top:-40px !important;left:auto !important;width:150px !important;height:150px !important;border-radius:50% !important;border:22px solid rgba(255,255,255,.12) !important;background:none !important}
+html body .wbc2::after{content:"" !important;position:absolute !important;left:-30px !important;bottom:-50px !important;width:130px !important;height:130px !important;border-radius:50% !important;background:rgba(255,255,255,.08) !important;border:0 !important}
+html body .wbc2 .wallet-balance-card-glow{display:none !important}
+html body .wbc2>*{position:relative;z-index:2}
+html body .wbc2 .wbc2-tag{background:rgba(255,255,255,.18) !important;border:1px solid rgba(255,255,255,.35) !important;color:#fff !important;border-radius:999px !important;padding:5px 12px !important;font-size:11px !important;font-weight:700;letter-spacing:.4px}
+html body .wbc2 .wbc2-tag::before{background:#fff !important}
+html body .wbc2 .wbc2-ic{background:rgba(255,255,255,.2) !important;border:1px solid rgba(255,255,255,.4) !important;width:38px !important;height:38px !important;border-radius:32% !important}
+html body .wbc2 .wbc2-ic :is(svg,.ui-icon){stroke:#fff !important;color:#fff !important}
+html body .wbc2 .wallet-balance-label{color:rgba(255,255,255,.8) !important;font-size:12px !important;text-transform:none !important}
+html body .wbc2 .wallet-balance-amount{color:#fff !important;font-size:34px !important;font-weight:800 !important;letter-spacing:-.5px;margin:4px 0 14px !important;text-shadow:0 2px 10px rgba(0,0,0,.18) !important}
+html body .wbc2 .wbc2-actions{display:flex;gap:10px}
+html body .wbc2 .wbc2-actions .btn{flex:1;min-height:42px !important;border-radius:16px !important;font-weight:700;border:1px solid rgba(255,255,255,.45) !important;background:rgba(255,255,255,.18) !important;color:#fff !important;box-shadow:none !important}
+html body .wbc2 .wbc2-actions .wallet-topup-btn{background:#fff !important;color:var(--pca-acc,#E11D2E) !important;border-color:#fff !important}
+html body .wbc2 .wallet-topup-btn-icon{background:rgba(var(--pca-rgb,225,29,46),.12) !important}
+html body .wbc2 .wallet-min-hint{color:rgba(255,255,255,.75) !important;margin:10px 0 0 !important;font-size:11px}
+html body .profile-hero-edit-btn{border-radius:16px !important;height:44px !important;min-height:0 !important;max-height:44px;width:100% !important;display:flex !important;align-items:center;justify-content:center;gap:8px;padding:0 14px !important;margin-top:12px}
+html body .profile-hero-edit-btn .ui-icon{width:16px !important;height:16px !important}
+html body #detail-package-list .package-card .pc-label{color:#1D4ED8 !important}
+html body #detail-package-list .package-card.selected .pc-label{color:#fff !important}
+
+/* ===== v5c: tabs redesign + layout alignment ===== */
+html body :is(.pkg-type-tabs,.pay-type-tabs,.history-status-tabs){display:flex !important;flex-wrap:nowrap !important;gap:4px !important;padding:4px !important;margin:0 0 12px !important;border-radius:20px !important;background:rgba(17,19,24,.055) !important;border:0 !important;box-shadow:inset 0 1px 2px rgba(17,19,24,.08) !important;overflow-x:auto;scrollbar-width:none;-webkit-overflow-scrolling:touch;box-sizing:border-box;width:100%;position:relative}
+html body :is(.pkg-type-tabs,.pay-type-tabs,.history-status-tabs)::-webkit-scrollbar{display:none}
+html body :is(.pkg-type-tab,.pay-type-tab,.history-status-tab){flex:1 1 0;min-width:max-content;height:38px;padding:0 14px !important;margin:0 !important;border:0 !important;border-radius:16px !important;background:transparent !important;color:var(--text-secondary,#6b7280) !important;font-size:12.5px !important;font-weight:600 !important;letter-spacing:0 !important;white-space:nowrap;display:inline-flex !important;align-items:center;justify-content:center;gap:6px;box-shadow:none !important;transition:background-color .18s,color .18s,box-shadow .18s !important}
+html body :is(.pkg-type-tab,.pay-type-tab,.history-status-tab).active{background:#fff !important;color:var(--pca-acc,#E11D2E) !important;font-weight:800 !important;box-shadow:0 2px 8px -2px rgba(17,19,24,.18),0 0 0 1px rgba(var(--pca-rgb,225,29,46),.18) !important}
+html body :is(.pkg-type-tab,.pay-type-tab,.history-status-tab):active{transform:scale(.97)}
+html body .history-status-count{min-width:18px;height:18px;padding:0 5px;border-radius:9px !important;background:rgba(var(--pca-rgb,225,29,46),.12) !important;color:var(--pca-acc,#E11D2E) !important;font-size:10.5px;font-weight:800;display:inline-grid;place-items:center}
+html body .history-status-tab.active .history-status-count{background:var(--pca-acc,#E11D2E) !important;color:#fff !important}
+html body .pay-type-tab{flex:1 1 50%}
+html body .htabs{gap:6px !important}
+
+/* layout alignment: game detail page */
+html body .detail-section-title{display:flex !important;align-items:center;gap:10px;margin:20px 2px 10px !important;font-size:15px !important;line-height:1.2 !important;min-height:28px}
+html body .detail-section-title::before{flex:none;width:26px !important;height:26px !important;border-radius:50% !important;display:inline-grid !important;place-items:center;font-size:12px !important;position:static !important;margin:0 !important}
+html body .detail-form-card{padding:14px !important;margin:0 0 12px !important;box-sizing:border-box}
+html body .detail-form-card input:not([type=checkbox]):not([type=radio]):not([type=file]),html body .detail-form-card select{height:48px;box-sizing:border-box;width:100%;border-radius:16px !important;padding:0 14px !important;font-size:15px}
+html body #detail-package-list{display:flex !important;flex-direction:column;gap:8px !important;padding:0 !important;margin:0 !important}
+html body #detail-package-list .package-card{width:100% !important;box-sizing:border-box;margin:0 !important;border-radius:20px !important}
+html body #detail-package-list .package-card .pc-img-wrap{width:44px !important;height:44px !important;border-radius:30% !important;background:rgba(17,19,24,.04)}
+html body #detail-package-list .package-card .pc-label-wrap{justify-content:flex-start}
+html body #detail-package-list .package-card .pc-price-bar{justify-content:flex-end;white-space:nowrap}
+html body .package-card.out-of-stock{opacity:.55}
+html body :is(#detail-payment-section,#detail-package-section) .qty-stepper{display:inline-flex;align-items:center;gap:10px}
+}
+</style>
+<script id="pca-v5-js">
+(function(){
+ 'use strict';
+ var q=0;
+ function run(){
+  q=0;
+  var els=document.querySelectorAll('.game-card-name:not([data-mq]),.voucher-card-name:not([data-mq])');
+  var batch=[];
+  for(var i=0;i<els.length;i++){var e=els[i];if(!e.offsetParent)continue;e.setAttribute('data-mq','1');
+   var t=document.createElement('span');t.className='mq-in';t.textContent=e.textContent;e.textContent='';e.appendChild(t);batch.push(e)}
+  batch.forEach(function(e){
+   var t=e.firstChild,over=t.offsetWidth-e.clientWidth;
+   if(over>2){e.classList.add('mq-on');e.style.setProperty('--mqd',(-(over+6))+'px');e.style.setProperty('--mqt',Math.max(4,(over+6)/18+1.5).toFixed(1)+'s')}
+  });
+ }
+ function sched(){if(!q)q=setTimeout(run,120)}
+ function init(){
+  sched();
+  ['home','voucher','game-detail'].forEach(function(id){var n=document.getElementById(id);if(n)new MutationObserver(sched).observe(n,{childList:true,subtree:true})});
+  addEventListener('resize',function(){document.querySelectorAll('[data-mq]').forEach(function(e){e.removeAttribute('data-mq');e.classList.remove('mq-on');if(e.firstChild&&e.firstChild.className==='mq-in')e.textContent=e.firstChild.textContent});sched()},{passive:true});
+ }
+ if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
 </body>
 </html>
