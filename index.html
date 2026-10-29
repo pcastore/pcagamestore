@@ -2128,6 +2128,24 @@ html.logged-out #profile>:not(.title-header):not(.auth-gate):not(.modal-overlay)
 .wbc2-ic{width:34px !important;height:34px !important;box-shadow:none !important}
 .title-header{margin-bottom:var(--fx-gap) !important}
 }</style>
+<style id="pca-grid-table-css">
+/* Order / Wallet Top Up details: Telegram-style bordered grid table (label | value) */
+#order-detail-body .od-rows,#wallet-topup-detail-body .detail-grid{display:flex !important;flex-direction:column;gap:0 !important;margin-top:10px;border:1px solid #D5D8DE;border-radius:6px;overflow:hidden;background:#fff}
+#order-detail-body .od-rows .od-row{display:flex;align-items:stretch;justify-content:flex-start;padding:0 !important;border:0 !important;border-top:1px solid #D5D8DE !important;font-size:13px}
+#order-detail-body .od-rows .od-row:first-child{border-top:0 !important}
+#order-detail-body .od-rows .od-row>span{flex:0 0 38%;max-width:38%;padding:9px 10px;background:#F4F4F6;border-right:1px solid #D5D8DE;font-weight:600;display:flex;align-items:center}
+#order-detail-body .od-rows .od-row>b{flex:1;min-width:0;padding:9px 10px;text-align:left;display:flex;align-items:center;word-break:break-word}
+#wallet-topup-detail-body .detail-grid-item{display:flex;align-items:stretch;border:0 !important;border-top:1px solid #D5D8DE !important;border-radius:0 !important;background:transparent !important;padding:0 !important}
+#wallet-topup-detail-body .detail-grid-item:first-child{border-top:0 !important}
+#wallet-topup-detail-body .detail-grid-item>span{flex:0 0 38%;max-width:38%;margin:0 !important;padding:9px 10px;background:#F4F4F6;border-right:1px solid #D5D8DE;text-transform:none !important;font-size:12px !important;font-weight:600 !important;color:var(--text-secondary);display:flex;align-items:center}
+#wallet-topup-detail-body .detail-grid-item>b{flex:1;min-width:0;padding:9px 10px;font-size:13px !important;font-weight:500 !important;display:flex;align-items:center}
+#wallet-topup-detail-body .detail-grid-item.full{flex-wrap:wrap}
+#wallet-topup-detail-body .detail-grid-item.full>img{flex:1 1 100%;margin:8px !important;width:auto}
+/* skeleton shown while a tab's data is being fetched */
+.pca-skel-wrap{display:flex;flex-direction:column;gap:10px;padding:4px 0}
+.pca-skel-row{height:68px;border-radius:14px;background:linear-gradient(90deg,#F1F2F4 25%,#fff 50%,#F1F2F4 75%);background-size:200% 100%;animation:pcaSkelShimmer 1.2s linear infinite}
+@keyframes pcaSkelShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+</style>
 </head>
 <body><svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="pcaG" gradientUnits="userSpaceOnUse" x1="3" y1="3" x2="21" y2="21"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".5" stop-color="#EAF1FF"/><stop offset="1" stop-color="#CFE0FF"/></linearGradient><linearGradient id="pcaG2" gradientUnits="userSpaceOnUse" x1="21" y1="3" x2="3" y2="21"><stop offset="0" stop-color="#FFFFFF"/><stop offset=".55" stop-color="#EAF1FF"/><stop offset="1" stop-color="#FFFFFF"/></linearGradient><linearGradient id="pcaF" gradientUnits="userSpaceOnUse" x1="0" y1="2" x2="0" y2="22"><stop offset="0" stop-color="#FFFFFF" stop-opacity=".55"/><stop offset=".45" stop-color="#EAF1FF" stop-opacity=".38"/><stop offset="1" stop-color="#CFE0FF" stop-opacity=".28"/></linearGradient><linearGradient id="pcaGlass" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--pca-acc,#E11D2E)" stop-opacity=".30"/><stop offset="1" style="stop-color:var(--pca-acc,#E11D2E)" stop-opacity=".07"/></linearGradient><linearGradient id="pcaLogoBg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#36D6FF"/><stop offset=".5" stop-color="#2F7BFF"/><stop offset="1" stop-color="#6D3BFF"/></linearGradient><radialGradient id="pcaLogoGlow"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><linearGradient id="pcaLogoSheen" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".3"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient><linearGradient id="pcaGame" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#FF7A86"/><stop offset="1" stop-color="#D91426"/></linearGradient></defs></svg>
 
@@ -3817,6 +3835,8 @@ b,strong{font-weight:600}
         };
         window.LOADER_MARKUP = LOADER_MARKUP;
         function loadingStateHTML(type = 'grid') {
+            // List-type tabs (History, Wallet, ...) show skeleton rows while data is fetched; the real data replaces them on arrival.
+            if (type === 'bars' || type === 'ripple') return '<div class="pca-skel-wrap">' + '<div class="pca-skel-row"></div>'.repeat(5) + '</div>';
             return `<div class="empty-state page-loading">${LOADER_MARKUP[type] || LOADER_MARKUP.grid}<div class="pca-anim"><span>P</span><span>C</span><span>A</span></div></div>`;
         }
         window.loadingStateHTML = loadingStateHTML;
@@ -5373,7 +5393,7 @@ b,strong{font-weight:600}
         // already fetched this category recently, reuse that instead.
         // Best-effort only: any Firestore read/write failure here just falls
         // through to the normal direct fetch below.
-        const G2BULK_SHARED_CACHE_TTL_MS = 12000;
+        const G2BULK_SHARED_CACHE_TTL_MS = 360000; // the Worker refreshes g2bulk_cache about every 4 min
         async function readSharedG2BulkCache(categoryId) {
             try {
                 const snap = await getDoc(doc(db, 'g2bulk_cache', 'cat_' + categoryId));
@@ -5383,9 +5403,8 @@ b,strong{font-weight:600}
                 return data;
             } catch (e) { return null; }
         }
-        function writeSharedG2BulkCache(categoryId, data) {
-            setDoc(doc(db, 'g2bulk_cache', 'cat_' + categoryId), { data, fetchedAt: Date.now() }).catch(() => {});
-        }
+        // Customers never write g2bulk_cache: firestore.rules make it admin-write-only (so nobody can
+        // poison it with fake prices), and a browser write is always denied. Read-only from here.
 
         async function fetchG2BulkCategoryLive(categoryId) {
             const cached = g2bulkCategoryCache.get(categoryId);
@@ -5394,15 +5413,18 @@ b,strong{font-weight:600}
                 if (Date.now() - cached.ts < G2BULK_CATEGORY_CACHE_TTL_MS) return cached.data;
             }
             const promise = readSharedG2BulkCache(categoryId).then(sharedData => {
-                if (sharedData) {
+                if (sharedData && sharedData.success !== false) { // never serve a cached error body
                     g2bulkCategoryCache.set(categoryId, { data: sharedData, ts: Date.now() });
                     return sharedData;
                 }
                 return fetch(`https://api.g2bulk.com/v1/category/${encodeURIComponent(categoryId)}`)
-                    .then(res => res.json())
+                    // Never cache/share an error body (404/429 -> {success:false}) as if it were category data.
+                    .then(res => res.json().then(data => {
+                        if (!res.ok || !data || data.success === false) throw new Error((data && data.message) || ('G2Bulk category HTTP ' + res.status));
+                        return data;
+                    }))
                     .then(data => {
                         g2bulkCategoryCache.set(categoryId, { data, ts: Date.now() });
-                        writeSharedG2BulkCache(categoryId, data);
                         return data;
                     });
             }).catch(error => {
@@ -5956,7 +5978,7 @@ b,strong{font-weight:600}
                 // reach out. Only shown for orders that were actually
                 // code-linked in the first place, never for a normal top-up
                 // order.
-                if (!data.g2bulkVoucherProductId && !data.jcplaysProductId && !data.fazercardGiftCardId) return '';
+                if (!data.codeLinked && !data.g2bulkVoucherProductId && !data.jcplaysProductId && !data.fazercardGiftCardId) return '';
                 return `
                     <div class="voucher-code-highlight">
                         <div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">
@@ -6060,7 +6082,7 @@ b,strong{font-weight:600}
                 try { if (localStorage.getItem('gz_tg_offer_dismissed') === '1') return; } catch (e) { /* storage blocked */ }
                 const gid = window.getGuestId ? window.getGuestId() : null;
                 if (!gid) return;
-                const snap = await window.getDoc(window.doc(window.db, 'users', gid));
+                const snap = await window.pcaUserSnap();
                 const data = snap.exists() ? snap.data() : {};
                 if (data.telegramId || data.telegramUsername) return;
                 if (document.getElementById('success-overlay').classList.contains('show')) el.style.display = 'block';
@@ -6105,7 +6127,7 @@ b,strong{font-weight:600}
             timelineEl.innerHTML = orderTimelineHTML(initialData || { status: 'Pending' });
             document.getElementById('success-voucher-code-block').innerHTML = voucherCodeBlockHTML(initialData || {}, orderId);
 
-            successOrderUnsubscribe = window.onSnapshot(window.doc(window.db, "orders", orderId), (snap) => {
+            successOrderUnsubscribe = window.pcaWatchOrder(orderId, (snap) => {
                 if (!snap.exists()) return;
                 const data = snap.data();
                 timelineEl.innerHTML = orderTimelineHTML(data);
@@ -6783,9 +6805,103 @@ b,strong{font-weight:600}
                 err.code = data.code || '';
                 throw err;
             }
+            // a write just happened (order / top-up / profile): refresh the shared snapshot shortly
+            if (path !== '/my-state') setTimeout(() => { if (window.pcaPoll) window.pcaPoll(true); }, 700);
             return data;
         }
         window.workerCall = workerCall;
+        // ===== Private data comes ONLY from the Worker (/my-state). The browser no longer reads
+        // users / orders / walletTopups / inbox from Firestore (firestore.rules are admin-only for them).
+        // These helpers hand the old onSnapshot/getDoc call sites the same snapshot shape they expect.
+        // One shared poll (not one per listener): ~4s while an order/top-up is pending, else ~20s, paused while the tab is hidden. =====
+        const PS = { subs: new Map(), data: {}, inflight: null, timer: null, last: 0, seq: 0, err: null, uid: '' };
+        const PS_ISO = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?Z$/;
+        function psTs(v) { const t = Date.parse(v); return { seconds: Math.floor(t / 1000), nanoseconds: 0, toMillis: () => t, toDate: () => new Date(t), valueOf: () => t }; }
+        function psFix(o) { if (!o || typeof o !== 'object') return o; for (const k in o) { const v = o[k]; if (typeof v === 'string' && PS_ISO.test(v)) o[k] = psTs(v); else if (v && typeof v === 'object') psFix(v); } return o; }
+        function psDoc(id, data) { return { id, ref: null, exists: () => !!data, data: () => data || {} }; }
+        function psQuery(items, prev) {
+            const docs = items.map(it => psDoc(it.id, it));
+            const cur = new Map(items.map(it => [it.id, JSON.stringify(it)]));
+            const changes = [];
+            docs.forEach(d => { if (!prev.has(d.id)) changes.push({ type: 'added', doc: d }); else if (prev.get(d.id) !== cur.get(d.id)) changes.push({ type: 'modified', doc: d }); });
+            prev.forEach((_, id) => { if (!cur.has(id)) changes.push({ type: 'removed', doc: psDoc(id, null) }); });
+            prev.clear(); cur.forEach((v, k) => prev.set(k, v));
+            return { docs, empty: !docs.length, size: docs.length, metadata: { fromCache: false }, forEach: f => docs.forEach(f), docChanges: () => changes };
+        }
+        const PS_DAYFMT = new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Yangon', year: 'numeric', month: '2-digit', day: '2-digit' });
+        function psDayKey() { return PS_DAYFMT.format(new Date()); }
+        // History: a past day is read ONLY when the customer opens it (cached 60 s).
+        const PS_DAYS = new Map();
+        window.pcaDayOrders = async function (day) {
+            const c = PS_DAYS.get(day);
+            if (c && Date.now() - c.at < 60000) return c.items;
+            const r = psFix(await workerCall('/my-state', { parts: ['dayOrders'], day, tzMin: 390 }));
+            const items = r.dayOrders || [];
+            PS_DAYS.set(day, { at: Date.now(), items });
+            return items;
+        };
+        function psSync() { const uid = auth.currentUser ? auth.currentUser.uid : ''; if (uid !== PS.uid) { PS.uid = uid; PS.data = {}; PS.last = 0; PS.err = null; } }
+        function psPending() { const d = PS.data; return (d.orders || []).some(o => o.status === 'Pending' || o.status === 'Processing') || (d.topups || []).some(t => t.status === 'Pending'); }
+        function psSchedule() {
+            clearTimeout(PS.timer);
+            if (!PS.subs.size) return;
+            PS.timer = setTimeout(() => { if (document.hidden) { psSchedule(); return; } pcaPoll(true); }, auth.currentUser ? (psPending() ? 4000 : 20000) : 2500);
+        }
+        async function pcaPoll(force, extra) {
+            psSync();
+            if (!auth.currentUser) { psSchedule(); return; }
+            if (PS.inflight) { await PS.inflight; if (!extra || extra.every(p => PS.data[p] !== undefined)) return; }
+            if (!force && Date.now() - PS.last < 1500) return;
+            const parts = new Set(extra || []);
+            PS.subs.forEach(s => s.parts.forEach(p => parts.add(p)));
+            if (!parts.size) return;
+            PS.inflight = (async () => {
+                try {
+                    const r = psFix(await workerCall('/my-state', { parts: [...parts], day: psDayKey(), tzMin: 390 }));
+                    PS.last = Date.now(); PS.err = null;
+                    ['user', 'orders', 'topups', 'inbox', 'stats'].forEach(k => { if (r[k] != null) PS.data[k] = r[k]; });
+                    PS.subs.forEach(s => { try { s.handler(PS.data); } catch (e) { console.error(e); } });
+                } catch (e) {
+                    PS.err = e;
+                    PS.subs.forEach(s => { if (s.onError) { try { s.onError(e); } catch (_) {} } });
+                } finally { PS.inflight = null; psSchedule(); }
+            })();
+            return PS.inflight;
+        }
+        document.addEventListener('visibilitychange', () => { if (!document.hidden && PS.subs.size) pcaPoll(true); });
+        function psSub(parts, handler, onError) {
+            const id = ++PS.seq;
+            PS.subs.set(id, { parts, handler, onError });
+            psSync();
+            const have = parts.every(p => PS.data[p] !== undefined);
+            if (have) { try { handler(PS.data); } catch (e) { console.error(e); } }
+            pcaPoll(!have);
+            return () => { PS.subs.delete(id); if (!PS.subs.size) clearTimeout(PS.timer); };
+        }
+        function psWatchOne(part, pick, cb, onErr) {
+            let last = '';
+            return psSub([part], d => { const o = pick(d); if (!o) return; const j = JSON.stringify(o); if (j === last) return; last = j; cb(psDoc(o.id, o)); }, onErr);
+        }
+        function psWatchList(part, cb, onErr) {
+            const prev = new Map(); let first = true;
+            return psSub([part], d => { if (!d[part]) return; const s = psQuery(d[part], prev); if (first || s.docChanges().length) { first = false; cb(s); } }, onErr);
+        }
+        window.pcaPoll = pcaPoll;
+        window.pcaWatchUser = (cb, onErr) => psWatchOne('user', d => d.user, cb, onErr);
+        window.pcaWatchOrder = (orderId, cb, onErr) => psWatchOne('orders', d => (d.orders || []).find(x => x.id === orderId), cb, onErr);
+        window.pcaWatchOrders = (cb, onErr) => psWatchList('orders', cb, onErr);
+        window.pcaWatchTopups = (cb, onErr) => psWatchList('topups', cb, onErr);
+        window.pcaWatchInbox = (cb, onErr) => psWatchList('inbox', cb, onErr);
+        // One-off fresh read of the customer's own user doc (ban check, wallet balance at submit time, link status).
+        window.pcaUserSnap = async function (force) {
+            try {
+                psSync();
+                if (force || !PS.data.user || Date.now() - PS.last > 5000) await pcaPoll(true, ['user']);
+                if (PS.err && /restricted/i.test(PS.err.message || '')) return psDoc('', { banned: true });
+                return PS.data.user ? psDoc(PS.data.user.id, PS.data.user) : psDoc('', null);
+            } catch (e) { return psDoc('', null); }
+        };
+        window.pcaStats = async function () { await pcaPoll(true, ['stats']); return PS.data.stats || null; };
 
         async function syncUserToFirestore() {
             try {
@@ -6871,7 +6987,7 @@ b,strong{font-weight:600}
             walletBalanceListenerAttached = true;
             const gid = window.getGuestId ? window.getGuestId() : null;
             if (!gid) return;
-            onSnapshot(doc(db, "users", gid), (snap) => {
+            window.pcaWatchUser((snap) => {
                 const data = snap.exists() ? snap.data() : {};
                 const bal = Number(data.walletBalance || 0);
                 currentWalletBalance = bal;
@@ -7719,6 +7835,7 @@ b,strong{font-weight:600}
         async function cleanupOldWalletTopups(guestId) {
             if (!guestId || walletTopupCleanupDone) return;
             walletTopupCleanupDone = true;
+            return; // old-top-up deletes are admin-only (firestore.rules); retention cleanup runs from the admin panel
             try {
                 const cutoffMs = Date.now() - WALLET_TOPUP_RETENTION_MS;
                 const q = query(collection(db, "walletTopups"), where("userId", "==", guestId));
@@ -7752,8 +7869,7 @@ b,strong{font-weight:600}
             const gid = window.getGuestId ? window.getGuestId() : null;
             if (!gid) return;
             cleanupOldWalletTopups(gid);
-            const q = query(collection(db, "walletTopups"), where("userId", "==", gid));
-            walletTopupsUnsub = onSnapshot(q, { includeMetadataChanges: true }, (snap) => {
+            walletTopupsUnsub = window.pcaWatchTopups((snap) => {
                 // Firestore delivers an EMPTY snapshot straight from the local cache before
                 // the server answers (slow networks especially) - treating that as "no data"
                 // flashed the empty-state. Ignore it; includeMetadataChanges brings the
@@ -7780,11 +7896,29 @@ b,strong{font-weight:600}
         window.listenWalletTopups = listenWalletTopups;
         window.stopListenWalletTopups = stopListenWalletTopups;
 
+        // Wallet top-up timeline (same look as the order timeline): Submitted -> Reviewing -> Completed / Rejected.
+        function topupTimelineHTML(t) {
+            const st = t.status || 'Pending';
+            const rank = { Pending: 0, Processing: 1, Completed: 2, Rejected: 2 }[st] ?? 0;
+            const rej = st === 'Rejected', ok = st === 'Completed';
+            const tm = (v) => (v && v.toDate) ? historyTimeFmt.format(v.toDate()) : '';
+            const check = '<svg class="ui-icon"><use href="#icon-check"></use></svg>';
+            const cross = '<svg class="ui-icon"><use href="#icon-close"></use></svg>';
+            const dot1 = rank > 1 ? `<div class="ot-dot done">${check}</div>` : rank === 1 ? '<div class="ot-dot active"></div>' : '<div class="ot-dot"></div>';
+            const dot2 = ok ? `<div class="ot-dot done">${check}</div>` : rej ? `<div class="ot-dot fail">${cross}</div>` : '<div class="ot-dot"></div>';
+            const l2 = ok ? 'done' : (rej ? 'fail' : '');
+            return `<div class="order-timeline" style="margin:12px 0 4px;">
+                <div class="ot-step"><div class="ot-dot done">${check}</div><span class="ot-label done">Submitted</span>${tm(t.timestamp) ? `<span class="ot-time">${tm(t.timestamp)}</span>` : ''}</div>
+                <div class="ot-step"><div class="ot-line ${rank >= 1 ? 'done' : ''}"></div>${dot1}<span class="ot-label ${rank > 1 ? 'done' : (rank === 1 ? 'active' : '')}">Reviewing</span></div>
+                <div class="ot-step"><div class="ot-line ${l2}"></div>${dot2}<span class="ot-label ${l2}">${rej ? 'Rejected' : 'Credited'}</span>${(ok && tm(t.confirmedAt)) ? `<span class="ot-time">${tm(t.confirmedAt)}</span>` : ''}</div>
+            </div>`;
+        }
         function openWalletTopupDetail(index) {
             const t = walletTopupCache[index];
             if (!t) return;
             const body = document.getElementById('wallet-topup-detail-body');
             body.innerHTML = `
+                ${topupTimelineHTML(t)}
                 <div class="detail-grid">
                     <div class="detail-grid-item"><span>Amount</span><b>+${(t.amount || 0).toLocaleString()} MMK</b></div>
                     <div class="detail-grid-item"><span>Status</span><b><span class="badge ${walletStatusBadgeClass(t.status)}">${orderStatusLabel(t.status)}</span></b></div>
@@ -7938,7 +8072,7 @@ b,strong{font-weight:600}
                 return;
             }
             try {
-                const snap = await getDoc(doc(db, "users", myGid));
+                const snap = await window.pcaUserSnap();
                 const data = snap.exists() ? snap.data() : {};
                 const tgUsername = data.telegramUsername || '';
                 const gEmail = data.googleEmail || '';
@@ -7993,10 +8127,7 @@ b,strong{font-weight:600}
         // still locks them out the next time the app checks.
         async function enforceGoogleAccountBan(user, myGid) {
             try {
-                const linkSnap = await getDoc(doc(db, "googleAccounts", user.uid));
-                const targetGid = (linkSnap.exists() && linkSnap.data().guestId) || myGid;
-                if (!targetGid) return false;
-                const userSnap = await getDoc(doc(db, "users", targetGid));
+                const userSnap = await window.pcaUserSnap(true);
                 if (userSnap.exists() && userSnap.data().banned) {
                     await signOut(auth);
                     if (window.showToast) window.showToast('This account has been restricted. Contact support.', 'fail');
@@ -8135,7 +8266,7 @@ b,strong{font-weight:600}
             const reg = await ensureCustomerId(user);
             if (reg.changed || reg.error) return;
             try {
-                const snap = await getDoc(doc(db, "users", reg.id));
+                const snap = await window.pcaUserSnap(true);
                 if (snap.exists() && snap.data().banned) {
                     await signOut(auth);
                     if (window.showToast) window.showToast('This account has been restricted. Contact support.', 'fail');
@@ -8469,46 +8600,9 @@ b,strong{font-weight:600}
         async function computeUserStats(guestId) {
             if (!guestId) return { total: 0, count: 0, games: 0 };
             try {
-                const q = query(collection(db, "orders"), where("userId", "==", guestId), where("status", "==", "Success"));
-                const snap = await getDocs(q);
-                let total = 0, count = 0;
-                const gameSet = new Set();
-                snap.forEach(d => {
-                    const data = d.data();
-                    total += Number(data.price) || 0;
-                    count++;
-                    if (data.game) gameSet.add(data.game);
-                });
-
-                let topupTotal = 0;
-                try {
-                    const tq = query(collection(db, "walletTopups"), where("userId", "==", guestId), where("status", "==", "Completed"));
-                    const tsnap = await getDocs(tq);
-                    tsnap.forEach(d => { topupTotal += Number(d.data().amount) || 0; });
-                } catch (topupError) {
-                    console.error("computeUserStats topup error:", topupError);
-                }
-                total += topupTotal;
-
-                // Orders/top-ups older than the retention window are removed from the
-                // live collections above; admin.html's sweeps credit them to this
-                // customer's users/{id} counters in the same transaction, so add them
-                // back here. Failure only means the older part is missing for now.
-                try {
-                    const udoc = await getDoc(doc(db, "users", guestId));
-                    if (udoc.exists()) {
-                        const u = udoc.data();
-                        total += (Number(u.archivedSpent) || 0) + (Number(u.legacyArchivedSpent) || 0) + (Number(u.archivedTopups) || 0);
-                        count += (Number(u.archivedOrders) || 0) + (Number(u.legacyArchivedOrders) || 0);
-                        [u.archivedGames, u.legacyArchivedGames].forEach(arr => {
-                            if (Array.isArray(arr)) arr.forEach(g => { if (g) gameSet.add(g); });
-                        });
-                    }
-                } catch (archivedError) {
-                    console.error("computeUserStats archived counters error:", archivedError);
-                }
-
-                return { total, count, games: gameSet.size };
+                // Totals are computed by the Worker (/my-state "stats"); the browser never reads orders/top-ups itself.
+                const st = await window.pcaStats();
+                return st ? { total: Number(st.total) || 0, count: Number(st.count) || 0, games: Number(st.games) || 0 } : { total: 0, count: 0, games: 0 };
             } catch (error) {
                 console.error("computeUserStats error:", error);
                 return { total: 0, count: 0, games: 0 };
@@ -8875,7 +8969,7 @@ b,strong{font-weight:600}
                 // submit time (not cached) so a ban applied mid-session still works.
                 if (guestId) {
                     try {
-                        const userSnap = await getDoc(doc(db, "users", guestId));
+                        const userSnap = await window.pcaUserSnap(true);
                         if (userSnap.exists() && userSnap.data().banned) {
                             window.showToast('Your account has been restricted. Contact support.', 'fail');
                             btnElement.innerText = originalText;
@@ -8989,7 +9083,7 @@ b,strong{font-weight:600}
 
                 let walletBalanceSeen = null; // filled by the ban-check read below
                 try {
-                    const userSnap = await getDoc(doc(db, "users", guestId));
+                    const userSnap = await window.pcaUserSnap(true);
                     walletBalanceSeen = userSnap.exists() ? Number(userSnap.data().walletBalance || 0) : 0;
                     if (userSnap.exists() && userSnap.data().banned) {
                         window.showToast('Your account has been restricted. Contact support.', 'fail');
@@ -9221,8 +9315,7 @@ b,strong{font-weight:600}
             // (orders: userId Ascending, timestamp Descending) — Firestore
             // will log a "requires an index" error with a direct create-it
             // link the first time this runs if it isn't there yet.
-            const q = query(collection(db, "orders"), where("userId", "==", guestId), orderBy("timestamp", "desc"), limit(50));
-            onSnapshot(q, (snap) => {
+            window.pcaWatchOrders((snap) => {
                 snap.docChanges().forEach((change) => {
                     const data = change.doc.data();
                     const orderId = change.doc.id;
@@ -9339,10 +9432,23 @@ b,strong{font-weight:600}
         // null = show every day, grouped with headers. A specific "YYYY-MM-DD"
         // key (Yangon calendar day) shows only that day's orders.
         let HISTORY_FILTER_DATE = null;
+        let HISTORY_TODAY_ORDERS = []; // only today's orders (+ any still open) are loaded; other days are fetched when opened
 
-        function setHistoryDateFilter(key) {
-            HISTORY_FILTER_DATE = key;
-            renderHistoryOrders(HISTORY_ORDERS);
+        async function setHistoryDateFilter(key) {
+            const today = yangonDateKey(Date.now());
+            HISTORY_FILTER_DATE = key || today;
+            if (HISTORY_FILTER_DATE === today) { renderHistoryOrders(HISTORY_TODAY_ORDERS); return; }
+            const container = document.getElementById('history-container');
+            const reqKey = HISTORY_FILTER_DATE; window.__histReq = reqKey;
+            container.innerHTML = historyStatusTabsHTML([]) + historyDateChipsHTML() + loadingStateHTML('bars');
+            try {
+                const items = await window.pcaDayOrders(reqKey);
+                if (window.__histReq !== reqKey || HISTORY_FILTER_DATE !== reqKey) return;
+                renderHistoryOrders(items.slice());
+            } catch (e) {
+                if (window.__histReq !== reqKey) return;
+                container.innerHTML = historyDateChipsHTML() + emptyStateHTML('icon-refresh', 'Could not load this day', 'Check your connection and try again.');
+            }
         }
         window.setHistoryDateFilter = setHistoryDateFilter;
 
@@ -9379,19 +9485,15 @@ b,strong{font-weight:600}
             ).join('')}</div>`;
         }
 
-        function historyDateChipsHTML(orders) {
-            // Unique Yangon day-keys present in the orders, newest first.
-            const seen = new Set();
-            const keys = [];
-            orders.forEach(o => {
-                const key = yangonDateKey(o.timestamp?.toMillis() || Date.now());
-                if (!seen.has(key)) { seen.add(key); keys.push(key); }
-            });
-            let chips = `<div class="history-date-chip ${HISTORY_FILTER_DATE === null ? 'active' : ''}" onclick="setHistoryDateFilter(null)">All Days</div>`;
-            chips += keys.map(key => {
-                const active = HISTORY_FILTER_DATE === key ? 'active' : '';
-                return `<div class="history-date-chip ${active}" onclick="setHistoryDateFilter('${key}')">${yangonChipLabel(key)}</div>`;
-            }).join('');
+        // Calendar chips (no order data needed): Today + the previous 29 days. Only Today is loaded
+        // automatically; tapping another day fetches just that day from the Worker.
+        function historyDateChipsHTML() {
+            const cur = HISTORY_FILTER_DATE || yangonDateKey(Date.now());
+            let chips = '';
+            for (let i = 0; i < 30; i++) {
+                const key = yangonDateKey(Date.now() - i * 86400000);
+                chips += `<div class="history-date-chip ${cur === key ? 'active' : ''}" onclick="setHistoryDateFilter('${key}')">${yangonChipLabel(key)}</div>`;
+            }
             return `<div class="history-date-filter-wrap">${chips}</div>`;
         }
 
@@ -9536,7 +9638,8 @@ b,strong{font-weight:600}
             const container = document.getElementById('history-container');
             HISTORY_ORDERS = orders; window.__hist = orders;
             if (orders.length === 0) {
-                container.innerHTML = emptyStateHTML('icon-history', 'No orders yet', 'Your top ups and purchases will show up here once you place one.');
+                const isToday = !HISTORY_FILTER_DATE || HISTORY_FILTER_DATE === yangonDateKey(Date.now());
+                container.innerHTML = historyStatusTabsHTML(orders) + historyDateChipsHTML() + emptyStateHTML('icon-history', isToday ? 'No orders today' : 'No orders on this day', isToday ? "Today's top ups and purchases show up here. Tap an earlier day above to look back." : 'Try a different day.');
                 return;
             }
             // Sort newest first (done client-side so no Firestore index is required)
@@ -9667,323 +9770,247 @@ b,strong{font-weight:600}
         // Cached so we don't hit Firestore on every download click; refreshed
         // once per page load (first call) and again whenever the admin saves a
         // new style while this tab happens to be open.
-        let cachedReceiptStyle = null;
-
-        async function getReceiptStyle() {
-            if (cachedReceiptStyle) return cachedReceiptStyle;
+        let cachedReceiptSettings = null;
+        // settings/receipt.domain is set from the admin panel (Settings -> Receipt); empty -> the default domain.
+        async function getReceiptSettings() {
+            if (cachedReceiptSettings) return cachedReceiptSettings;
+            let domain = '';
             try {
                 const snap = await getDoc(doc(db, "settings", "receipt"));
-                cachedReceiptStyle = (snap.exists() && snap.data().style) || 'premium';
-            } catch (e) {
-                console.error('Receipt style fetch error:', e);
-                cachedReceiptStyle = 'premium';
-            }
-            return cachedReceiptStyle;
+                if (snap.exists()) domain = String(snap.data().domain || '').trim();
+            } catch (e) { console.error('Receipt settings fetch error:', e); }
+            cachedReceiptSettings = { domain: domain || 'pcagamestoremm.vercel.app' };
+            return cachedReceiptSettings;
         }
 
+        function pcaLoadImage(src, cors) {
+            return new Promise(res => {
+                const im = new Image();
+                if (cors) im.crossOrigin = 'anonymous';
+                const t = setTimeout(() => res(null), 3500);
+                im.onload = () => { clearTimeout(t); res(im); };
+                im.onerror = () => { clearTimeout(t); res(null); };
+                im.src = src;
+            });
+        }
+        // The store logo (same inline SVG symbol the app uses) as a canvas-safe image.
+        function pcaLogoImage() {
+            const svg = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="256" height="256"><defs>'
+                + '<linearGradient id="a" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#36D6FF"/><stop offset=".5" stop-color="#2F7BFF"/><stop offset="1" stop-color="#6D3BFF"/></linearGradient>'
+                + '<radialGradient id="b"><stop offset="0" stop-color="#fff" stop-opacity=".55"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>'
+                + '<linearGradient id="c" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff" stop-opacity=".3"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></linearGradient>'
+                + '<clipPath id="r"><rect width="64" height="64" rx="18"/></clipPath></defs><g clip-path="url(#r)">'
+                + '<rect width="64" height="64" fill="url(#a)"/><circle cx="52" cy="10" r="26" fill="url(#b)"/><path d="M0 0h64v27C44 33 20 31 0 23z" fill="url(#c)"/>'
+                + '<path d="M24 47V17h11.5a9.5 9.5 0 0 1 0 19H24" fill="none" stroke="#fff" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round"/>'
+                + '<path d="M35.5 23.5v6M32.5 26.5h6" fill="none" stroke="#BFE9FF" stroke-width="2" stroke-linecap="round"/>'
+                + '<path d="M49 40l1.9 5.1L56 47l-5.1 1.9L49 54l-1.9-5.1L42 47l5.1-1.9z" fill="#FFD66B"/></g></svg>';
+            return pcaLoadImage('data:image/svg+xml;charset=utf-8,' + encodeURIComponent(svg), false);
+        }
+
+        // Glass-style receipt (canvas -> PNG). Order: logo, status + amount, Player Information,
+        // Payment Information, Latest Update, Verified badge + domain.
         async function downloadOrderReceipt(index) {
             const data = HISTORY_ORDERS[index];
             if (!data) return;
 
-            const style = await getReceiptStyle(); // 'minimal' | 'premium' | 'dark'
+            const [settings, logoImg] = await Promise.all([getReceiptSettings(), pcaLogoImage()]);
+            const profile = getSavedProfile();
+            const avatarImg = profile.photo ? await pcaLoadImage(profile.photo, true) : null;
+            const fmt = (ts) => (ts && ts.toDate) ? historyDateTimeFmt.format(ts.toDate()) : '-';
 
-            const W = 720, PAD = 44;
-            const canvas = document.createElement('canvas');
-            canvas.width = W;
+            const st = data.status || 'Pending';
+            const STATUS = {
+                Success:    { label: 'Payment Successful', color: '#1FA463', soft: '#E3F7EC', icon: 'check' },
+                Fail:       { label: 'Order Failed',       color: '#D93025', soft: '#FDE8E6', icon: 'cross' },
+                Processing: { label: 'Processing',         color: '#1877F2', soft: '#E4EFFE', icon: 'dots' },
+                Pending:    { label: 'Pending',            color: '#E0A100', soft: '#FFF4D6', icon: 'dots' }
+            };
+            const S = STATUS[st] || STATUS.Pending;
 
-            const providerOrderId = data.g2bulkOrderId || data.jcplaysOrderId || data.fazercardOrderId || data.id || null;
-
-            const customerRows = [
-                ['User', data.userName || '-'],
+            const customerName = data.userName || profile.name || '-';
+            const playerRows = [
+                ['Customer', customerName, 'customer'],
                 ['Game', data.game || '-'],
-                ...(data.inGameName ? [['Player Name', data.inGameName]] : []),
-                ['In-Game ID', data.playerId || '-'],
-                ...(data.serverId ? [['Server ID', data.serverId]] : [])
+                ['ID', data.playerId || '-'],
+                ['Server ID', data.serverId || data.serverRegion || '-'],
+                ['In-Game Name', data.inGameName || '-']
             ];
-            const paymentRows = [
-                ['Currency', data.itemAmount || '-'],
-                ['Payment', data.paymentMethod || '-'],
-                ['Time', data.timestamp ? historyDateTimeFmt.format(data.timestamp.toDate()) : '-'],
-                ['Transaction ID', providerOrderId || '-']
+            const payRows = [
+                ['Payment Option', data.paymentMethod || '-'],
+                ['Package', data.itemAmount || '-'],
+                ['Order ID', data.id || '-'],
+                ['Transaction ID', data.transactionId || (data.paidFromWallet ? 'Wallet Balance' : '-')],
+                ['Order Time', fmt(data.timestamp)]
             ];
+            const lastUpdate = fmt(data.confirmedAt || data.updatedAt || data.timestamp);
 
-            // ---- Palette per style ----
-            let violetDark, violet, gold, goldLight, cream, ink, inkSoft, hair;
-            if (style === 'minimal') {
-                violetDark = '#111827'; violet = '#374151'; gold = '#111827'; goldLight = '#374151';
-                cream = '#FFFFFF'; ink = '#111827'; inkSoft = '#9CA3AF'; hair = '#E5E7EB';
-            } else if (style === 'dark') {
-                violetDark = '#0B0F1A'; violet = '#22D3EE'; gold = '#22D3EE'; goldLight = '#67E8F9';
-                cream = '#0F1626'; ink = '#E5E7EB'; inkSoft = '#7C8794'; hair = '#1F2A3D';
-            } else { // premium (default) — original violet + gold
-                violetDark = '#3B0764'; violet = '#5B21B6'; gold = '#F2B705'; goldLight = '#FBD24D';
-                cream = '#FDF8F2'; ink = '#241433'; inkSoft = '#8A7B99'; hair = '#EAE1F5';
-            }
+            const W = 720, PAD = 36, CARD_X = PAD, CARD_W = W - PAD * 2;
+            const FONT = '-apple-system, "Segoe UI", Roboto, "Noto Sans Myanmar", "Padauk", sans-serif';
+            const rowH = 62, titleH = 64, cardPad = 8;
+            const topH = 176, statusH = 232, gap = 24, lastH = 70, footerH = 150;
+            const cardH = (rows) => titleH + rows.length * rowH + cardPad;
+            const H = topH + statusH + gap + cardH(playerRows) + gap + cardH(payRows) + gap + lastH + footerH;
 
-            // ---- Layout ----
-            const rowH = 44;
-            const headerH = style === 'minimal' ? 140 : 280;
-            const sectionTitleH = 32;
-            const gapAfterTable = 22;
-            const totalH = 100;
-            const footerH = 108;
-
-            const customerTableH = customerRows.length * rowH;
-            const paymentTableH = paymentRows.length * rowH;
-
-            const H = headerH
-                + sectionTitleH + customerTableH + gapAfterTable
-                + sectionTitleH + paymentTableH + gapAfterTable
-                + totalH + footerH;
-            canvas.height = H;
+            const canvas = document.createElement('canvas');
+            canvas.width = W * 2; canvas.height = H * 2;          // 2x for a sharp image on phones
             const ctx = canvas.getContext('2d');
+            ctx.scale(2, 2);
 
-            // Background
-            ctx.fillStyle = cream;
-            ctx.fillRect(0, 0, W, H);
-
-            // ---- Header (style-specific) ----
-            if (style === 'minimal') {
-                ctx.fillStyle = ink;
-                ctx.font = '700 22px -apple-system, Segoe UI, Roboto, sans-serif';
-                ctx.textAlign = 'left';
-                ctx.fillText('PCA Store', PAD, 56);
-                ctx.fillStyle = inkSoft;
-                ctx.font = '400 12px -apple-system, Segoe UI, Roboto, sans-serif';
-                ctx.fillText('Official Payment Receipt', PAD, 76);
-
-                ctx.textAlign = 'right';
-                ctx.fillStyle = ink;
-                ctx.font = '700 13px -apple-system, Segoe UI, Roboto, sans-serif';
-                ctx.fillText('RECEIPT', W - PAD, 56);
-                ctx.fillStyle = inkSoft;
-                ctx.font = '400 11px -apple-system, Segoe UI, Roboto, sans-serif';
-                ctx.fillText('#' + (providerOrderId || index), W - PAD, 72);
-                ctx.textAlign = 'left';
-
-                ctx.fillStyle = ink;
-                ctx.fillRect(PAD, 96, W - PAD * 2, 2);
-
-            } else if (style === 'dark') {
-                const grad = ctx.createLinearGradient(0, 0, W, 0);
-                grad.addColorStop(0, '#0F1626');
-                grad.addColorStop(0.5, '#141C30');
-                grad.addColorStop(1, '#0F1626');
-                ctx.fillStyle = grad;
-                ctx.fillRect(0, 0, W, 190);
-
-                ctx.strokeStyle = violet;
-                ctx.lineWidth = 2;
+            const rr = (x, y, w, h, r) => { ctx.beginPath(); ctx.moveTo(x + r, y); ctx.arcTo(x + w, y, x + w, y + h, r); ctx.arcTo(x + w, y + h, x, y + h, r); ctx.arcTo(x, y + h, x, y, r); ctx.arcTo(x, y, x + w, y, r); ctx.closePath(); };
+            const fit = (txt, maxW) => { txt = String(txt); if (ctx.measureText(txt).width <= maxW) return txt; while (txt.length > 1 && ctx.measureText(txt + '…').width > maxW) txt = txt.slice(0, -1); return txt + '…'; };
+            const glass = (x, y, w, h, r) => {
                 ctx.save();
-                ctx.shadowColor = violet;
-                ctx.shadowBlur = 12;
+                ctx.shadowColor = 'rgba(31,41,90,.14)'; ctx.shadowBlur = 30; ctx.shadowOffsetY = 10;
+                rr(x, y, w, h, r); ctx.fillStyle = 'rgba(255,255,255,.62)'; ctx.fill();
+                ctx.restore();
+                const g = ctx.createLinearGradient(x, y, x, y + h);
+                g.addColorStop(0, 'rgba(255,255,255,.55)'); g.addColorStop(1, 'rgba(255,255,255,.12)');
+                rr(x, y, w, h, r); ctx.fillStyle = g; ctx.fill();
+                rr(x + .5, y + .5, w - 1, h - 1, r); ctx.strokeStyle = 'rgba(255,255,255,.95)'; ctx.lineWidth = 1.5; ctx.stroke();
+            };
+            const statusIcon = (cx, cy, r, color, kind) => {
+                ctx.beginPath(); ctx.arc(cx, cy, r, 0, Math.PI * 2); ctx.fillStyle = color; ctx.fill();
+                ctx.strokeStyle = '#fff'; ctx.lineWidth = r * .22; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
                 ctx.beginPath();
-                ctx.moveTo(0, 190);
-                ctx.lineTo(W, 190);
+                if (kind === 'check') { ctx.moveTo(cx - r * .42, cy + r * .02); ctx.lineTo(cx - r * .1, cy + r * .34); ctx.lineTo(cx + r * .46, cy - r * .3); }
+                else if (kind === 'cross') { ctx.moveTo(cx - r * .32, cy - r * .32); ctx.lineTo(cx + r * .32, cy + r * .32); ctx.moveTo(cx + r * .32, cy - r * .32); ctx.lineTo(cx - r * .32, cy + r * .32); }
+                else { [-1, 0, 1].forEach(k => { ctx.moveTo(cx + k * r * .36, cy); ctx.lineTo(cx + k * r * .36 + .1, cy); }); }
                 ctx.stroke();
-                ctx.restore();
+            };
 
-                const logoCx = W / 2, logoCy = 80, logoR = 30;
-                ctx.save();
-                ctx.strokeStyle = violet;
-                ctx.lineWidth = 2;
-                ctx.shadowColor = violet;
-                ctx.shadowBlur = 16;
-                ctx.beginPath();
-                ctx.arc(logoCx, logoCy, logoR, 0, Math.PI * 2);
-                ctx.stroke();
-                ctx.restore();
-                ctx.fillStyle = violet;
-                ctx.beginPath();
-                ctx.moveTo(logoCx, logoCy - 14);
-                ctx.lineTo(logoCx + 14, logoCy);
-                ctx.lineTo(logoCx, logoCy + 14);
-                ctx.lineTo(logoCx - 14, logoCy);
-                ctx.closePath();
-                ctx.fill();
+            // ---- Background: soft gradient + red / blue glow so the glass has something to blur ----
+            const bg = ctx.createLinearGradient(0, 0, W, H);
+            bg.addColorStop(0, '#EAF2FF'); bg.addColorStop(.55, '#F6F7FB'); bg.addColorStop(1, '#FFEFF1');
+            ctx.fillStyle = bg; ctx.fillRect(0, 0, W, H);
+            const glowAt = (x, y, r, c) => { const g = ctx.createRadialGradient(x, y, 0, x, y, r); g.addColorStop(0, c); g.addColorStop(1, 'rgba(255,255,255,0)'); ctx.fillStyle = g; ctx.fillRect(x - r, y - r, r * 2, r * 2); };
+            glowAt(80, 120, 300, 'rgba(47,123,255,.30)');
+            glowAt(W - 60, 520, 320, 'rgba(225,29,46,.20)');
+            glowAt(120, H - 260, 300, 'rgba(109,59,255,.18)');
 
-                ctx.fillStyle = '#F5F7FA';
-                ctx.font = '700 26px -apple-system, Segoe UI, Roboto, sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('PAYMENT RECEIPT', W / 2, 140);
-                ctx.fillStyle = inkSoft;
-                ctx.font = '400 12px -apple-system, Segoe UI, Roboto, sans-serif';
-                ctx.fillText('PCA STORE', W / 2, 162);
-                ctx.textAlign = 'left';
+            // ---- Header ----
+            let y = 40;
+            if (logoImg) ctx.drawImage(logoImg, W / 2 - 30, y, 60, 60);
+            ctx.textAlign = 'center'; ctx.fillStyle = '#111318';
+            ctx.font = `800 22px ${FONT}`; ctx.fillText('PCA Game Store', W / 2, y + 90);
+            ctx.fillStyle = '#5B606A'; ctx.font = `600 13px ${FONT}`;
+            ctx.fillText('P A Y M E N T   R E C E I P T', W / 2, y + 112);
 
-            } else { // premium — curved violet band + gold wave (original design)
-                const bandH = 150;
-                ctx.fillStyle = violetDark;
-                ctx.beginPath();
-                ctx.moveTo(0, 0);
-                ctx.lineTo(W, 0);
-                ctx.lineTo(W, bandH - 26);
-                ctx.quadraticCurveTo(W * 0.5, bandH + 46, 0, bandH - 26);
-                ctx.closePath();
-                ctx.fill();
+            // ---- Status + amount card ----
+            y = topH;
+            glass(CARD_X, y, CARD_W, statusH, 30);
+            ctx.save(); rr(CARD_X, y, CARD_W, statusH, 30); ctx.clip();
+            ctx.fillStyle = S.soft; ctx.globalAlpha = .55; ctx.fillRect(CARD_X, y, CARD_W, statusH); ctx.globalAlpha = 1;
+            ctx.fillStyle = S.color; ctx.fillRect(CARD_X, y + statusH - 10, CARD_W, 10);
+            ctx.restore();
+            // status (above the amount)
+            ctx.font = `800 26px ${FONT}`; ctx.fillStyle = '#111318'; ctx.textAlign = 'center';
+            ctx.fillText(S.label, W / 2, y + 62);
+            // amount + status icon
+            const amountTxt = Number(data.price || 0).toLocaleString() + ' MMK';
+            ctx.font = `800 52px ${FONT}`;
+            const aw = ctx.measureText(amountTxt).width, iconR = 22, total = aw + 16 + iconR * 2, ax = W / 2 - total / 2;
+            ctx.textAlign = 'left'; ctx.fillStyle = '#111318'; ctx.fillText(amountTxt, ax, y + 140);
+            statusIcon(ax + aw + 16 + iconR, y + 140 - 18, iconR, S.color, S.icon);
+            ctx.textAlign = 'center'; ctx.fillStyle = '#5B606A'; ctx.font = `600 15px ${FONT}`;
+            ctx.fillText(fit(`${data.game || ''} · ${data.itemAmount || ''}`, CARD_W - 60), W / 2, y + 186);
 
-                const goldGrad = ctx.createLinearGradient(0, 0, W, 0);
-                goldGrad.addColorStop(0, gold);
-                goldGrad.addColorStop(1, goldLight);
-                ctx.fillStyle = goldGrad;
-                ctx.beginPath();
-                ctx.moveTo(0, bandH - 26);
-                ctx.quadraticCurveTo(W * 0.5, bandH + 46, W, bandH - 26);
-                ctx.lineTo(W, bandH - 8);
-                ctx.quadraticCurveTo(W * 0.5, bandH + 64, 0, bandH - 8);
-                ctx.closePath();
-                ctx.fill();
-
-                const logoCx = W / 2, logoCy = bandH - 6, logoR = 36;
-                ctx.save();
-                ctx.shadowColor = 'rgba(59,7,100,0.25)';
-                ctx.shadowBlur = 14;
-                ctx.shadowOffsetY = 4;
-                ctx.fillStyle = '#ffffff';
-                ctx.beginPath();
-                ctx.arc(logoCx, logoCy, logoR, 0, Math.PI * 2);
-                ctx.fill();
-                ctx.restore();
-
-                ctx.fillStyle = violet;
-                ctx.beginPath();
-                ctx.moveTo(logoCx, logoCy - 18);
-                ctx.lineTo(logoCx + 18, logoCy - 4);
-                ctx.lineTo(logoCx, logoCy + 18);
-                ctx.lineTo(logoCx - 18, logoCy - 4);
-                ctx.closePath();
-                ctx.fill();
-                ctx.fillStyle = goldLight;
-                ctx.beginPath();
-                ctx.moveTo(logoCx, logoCy - 18);
-                ctx.lineTo(logoCx + 18, logoCy - 4);
-                ctx.lineTo(logoCx, logoCy - 4);
-                ctx.closePath();
-                ctx.fill();
-
-                ctx.fillStyle = violetDark;
-                ctx.font = '700 28px -apple-system, Segoe UI, Roboto, sans-serif';
-                ctx.textAlign = 'center';
-                ctx.fillText('PAYMENT RECEIPT', W / 2, logoCy + logoR + 46);
-
-                ctx.fillStyle = inkSoft;
-                ctx.font = '400 13px -apple-system, Segoe UI, Roboto, sans-serif';
-                ctx.fillText('PCA Store', W / 2, logoCy + logoR + 68);
-                ctx.textAlign = 'left';
-            }
-
-            ctx.strokeStyle = hair;
-            ctx.beginPath();
-            ctx.moveTo(PAD, headerH - 14);
-            ctx.lineTo(W - PAD, headerH - 14);
-            ctx.stroke();
-
-            // ---- Helpers ----
-            function drawSectionTitle(title, y) {
-                ctx.fillStyle = style === 'dark' ? '#E5E7EB' : violetDark;
-                ctx.font = '700 15px -apple-system, Segoe UI, Roboto, sans-serif';
-                ctx.fillText(title, PAD, y + 22);
-                return y + sectionTitleH;
-            }
-
-            function drawTable(rows, y) {
-                const tableW = W - PAD * 2;
-                const tableH = rows.length * rowH;
-                const colDivider = PAD + 190;
-
-                ctx.strokeStyle = style === 'minimal' ? '#D1D5DB' : violet;
-                ctx.lineWidth = 1.4;
-                ctx.strokeRect(PAD + 0.5, y + 0.5, tableW, tableH);
-
-                rows.forEach(([label, value], i) => {
-                    const rowY = y + i * rowH;
-                    if (i > 0) {
-                        ctx.strokeStyle = hair;
-                        ctx.lineWidth = 1;
-                        ctx.beginPath();
-                        ctx.moveTo(PAD, rowY);
-                        ctx.lineTo(W - PAD, rowY);
-                        ctx.stroke();
+            // ---- Info cards ----
+            const infoCard = (title, rows, top) => {
+                glass(CARD_X, top, CARD_W, cardH(rows), 26);
+                ctx.textAlign = 'left'; ctx.fillStyle = '#111318'; ctx.font = `800 19px ${FONT}`;
+                ctx.fillText(title, CARD_X + 28, top + 40);
+                rows.forEach((r, k) => {
+                    const ry = top + titleH + k * rowH;
+                    ctx.strokeStyle = 'rgba(120,130,150,.45)'; ctx.lineWidth = 1; ctx.setLineDash([6, 5]);
+                    ctx.beginPath(); ctx.moveTo(CARD_X + 28, ry); ctx.lineTo(CARD_X + CARD_W - 28, ry); ctx.stroke(); ctx.setLineDash([]);
+                    ctx.textAlign = 'left'; ctx.fillStyle = '#6B7280'; ctx.font = `600 14px ${FONT}`;
+                    ctx.fillText(r[0], CARD_X + 28, ry + 37);
+                    ctx.textAlign = 'right'; ctx.fillStyle = '#111318'; ctx.font = `700 16px ${FONT}`;
+                    let rightEdge = CARD_X + CARD_W - 28, maxW = CARD_W - 56 - 150;
+                    if (r[2] === 'customer') {            // profile picture (or initial) next to the name
+                        const ar = 18, acx = rightEdge - ar, acy = ry + 31;
+                        ctx.save(); ctx.beginPath(); ctx.arc(acx, acy, ar, 0, Math.PI * 2); ctx.clip();
+                        if (avatarImg) ctx.drawImage(avatarImg, acx - ar, acy - ar, ar * 2, ar * 2);
+                        else { ctx.fillStyle = S.color; ctx.fillRect(acx - ar, acy - ar, ar * 2, ar * 2); ctx.fillStyle = '#fff'; ctx.textAlign = 'center'; ctx.font = `800 17px ${FONT}`; ctx.fillText((String(r[1]).trim()[0] || '?').toUpperCase(), acx, acy + 6); ctx.textAlign = 'right'; ctx.font = `700 16px ${FONT}`; ctx.fillStyle = '#111318'; }
+                        ctx.restore();
+                        rightEdge -= ar * 2 + 12; maxW -= ar * 2 + 12;
                     }
-                    ctx.strokeStyle = hair;
-                    ctx.beginPath();
-                    ctx.moveTo(colDivider, rowY);
-                    ctx.lineTo(colDivider, rowY + rowH);
-                    ctx.stroke();
-
-                    ctx.fillStyle = style === 'dark' ? '#9CA3AF' : violetDark;
-                    ctx.font = '700 13.5px -apple-system, Segoe UI, Roboto, sans-serif';
-                    ctx.fillText(label, PAD + 16, rowY + rowH / 2 + 5);
-
-                    ctx.fillStyle = ink;
-                    ctx.font = '400 14px -apple-system, Segoe UI, Roboto, sans-serif';
-                    const valueText = String(value);
-                    ctx.fillText(valueText, colDivider + 16, rowY + rowH / 2 + 5);
-
+                    ctx.fillText(fit(r[1], maxW), rightEdge, ry + 37);
                 });
-                ctx.lineWidth = 1;
-                return y + tableH;
+            };
+            y += statusH + gap;
+            infoCard('Player Information', playerRows, y);
+            y += cardH(playerRows) + gap;
+            infoCard('Payment Information', payRows, y);
+            y += cardH(payRows) + gap;
+
+            // ---- Latest update ----
+            ctx.textAlign = 'center'; ctx.fillStyle = '#6B7280'; ctx.font = `600 14px ${FONT}`;
+            ctx.fillText('Latest Update', W / 2, y + 22);
+            ctx.fillStyle = '#111318'; ctx.font = `700 17px ${FONT}`;
+            ctx.fillText(lastUpdate, W / 2, y + 48);
+            y += lastH;
+
+            // ---- Footer: Verified badge + domain ----
+            ctx.font = `800 17px ${FONT}`;
+            const vw = ctx.measureText('VERIFIED').width, bw = 30 + 10 + vw, bx = W / 2 - bw / 2, by = y + 22;
+            ctx.beginPath();     // shield
+            ctx.moveTo(bx + 15, by - 4); ctx.lineTo(bx + 29, by + 2); ctx.lineTo(bx + 29, by + 16);
+            ctx.quadraticCurveTo(bx + 29, by + 29, bx + 15, by + 35); ctx.quadraticCurveTo(bx + 1, by + 29, bx + 1, by + 16); ctx.lineTo(bx + 1, by + 2); ctx.closePath();
+            ctx.fillStyle = '#1D4ED8'; ctx.fill();
+            ctx.strokeStyle = '#fff'; ctx.lineWidth = 3; ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+            ctx.beginPath(); ctx.moveTo(bx + 8.5, by + 15); ctx.lineTo(bx + 13.5, by + 20.5); ctx.lineTo(bx + 22, by + 9.5); ctx.stroke();
+            ctx.textAlign = 'left'; ctx.fillStyle = '#1D4ED8'; ctx.fillText('VERIFIED', bx + 40, by + 24);
+            ctx.textAlign = 'center'; ctx.fillStyle = '#5B606A'; ctx.font = `600 15px ${FONT}`;
+            ctx.fillText(fit(settings.domain, CARD_W - 40), W / 2, by + 62);
+            ctx.fillStyle = '#9CA3AF'; ctx.font = `500 11.5px ${FONT}`;
+            ctx.fillText('This is a system-generated receipt.', W / 2, by + 86);
+
+            const fileName = `receipt-${data.id || index}.png`;
+            const blob = await new Promise(res => { try { canvas.toBlob(b => res(b), 'image/png'); } catch (e) { res(null); } });
+            if (!blob) { if (window.showToast) window.showToast('Receipt ပြုလုပ်၍ မရပါ၊ ထပ်ကြိုးစားပါ', 'fail'); return; }
+
+            // 1) Phones: share sheet -> "Save Image". Works in Safari / Chrome Android and most in-app browsers.
+            try {
+                const file = new File([blob], fileName, { type: 'image/png' });
+                if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+                    await navigator.share({ files: [file], title: 'Receipt' });
+                    return;
+                }
+            } catch (e) {
+                if (e && e.name === 'AbortError') return; // customer closed the share sheet
             }
 
-            // ---- Body ----
-            let y = headerH + 14;
-            y = drawSectionTitle('Customer Info', y);
-            y = drawTable(customerRows, y);
-            y += gapAfterTable;
+            const url = URL.createObjectURL(blob);
+            // 2) Telegram Mini App / in-app webviews ignore <a download>: show the image so it can be long-pressed and saved.
+            const inWebview = !!(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) || !('download' in document.createElement('a'));
+            if (inWebview) { showReceiptPreview(url); return; }
 
-            y = drawSectionTitle('Payment Info', y);
-            y = drawTable(paymentRows, y);
-            y += gapAfterTable;
-
-            // Total amount paid
-            ctx.strokeStyle = hair;
-            ctx.beginPath();
-            ctx.moveTo(PAD, y);
-            ctx.lineTo(W - PAD, y);
-            ctx.stroke();
-
-            ctx.fillStyle = inkSoft;
-            ctx.font = '400 14px -apple-system, Segoe UI, Roboto, sans-serif';
-            ctx.fillText('Total Amount Paid', PAD, y + 44);
-
-            ctx.fillStyle = style === 'minimal' ? ink : violet;
-            ctx.font = '700 30px -apple-system, Segoe UI, Roboto, sans-serif';
-            ctx.textAlign = 'right';
-            ctx.fillText(`${Number(data.price || 0).toLocaleString()} MMK`, W - PAD, y + 52);
-            ctx.textAlign = 'left';
-            y += totalH;
-
-            // Footer
-            ctx.strokeStyle = hair;
-            ctx.beginPath();
-            ctx.moveTo(PAD, y);
-            ctx.lineTo(W - PAD, y);
-            ctx.stroke();
-
-            ctx.fillStyle = style === 'dark' ? '#E5E7EB' : violetDark;
-            ctx.font = '700 16px -apple-system, Segoe UI, Roboto, sans-serif';
-            ctx.fillText('Thank You for', PAD, y + 36);
-            ctx.fillText('Your Payment!', PAD, y + 58);
-
-            ctx.fillStyle = inkSoft;
-            ctx.font = '400 11.5px -apple-system, Segoe UI, Roboto, sans-serif';
-            ctx.textAlign = 'right';
-            ctx.fillText('This is a system-generated receipt.', W - PAD, y + 36);
-            ctx.fillText(`Generated ${new Date().toLocaleString()}`, W - PAD, y + 54);
-            ctx.textAlign = 'left';
-
-            canvas.toBlob(blob => {
-                const url = URL.createObjectURL(blob);
-                const a = document.createElement('a');
-                a.href = url;
-                a.download = `receipt-${(providerOrderId || index)}.png`;
-                document.body.appendChild(a);
-                a.click();
-                a.remove();
-                URL.revokeObjectURL(url);
-            }, 'image/png');
+            // 3) Desktop / normal browsers: direct download. The URL is released later - revoking it
+            //    right after click() cancels the download in Safari and some Android browsers.
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = fileName;
+            document.body.appendChild(a);
+            a.click();
+            a.remove();
+            setTimeout(() => URL.revokeObjectURL(url), 30000);
         }
         window.downloadOrderReceipt = downloadOrderReceipt;
+        function showReceiptPreview(url) {
+            let ov = document.getElementById('receipt-preview-overlay');
+            if (!ov) {
+                ov = document.createElement('div');
+                ov.id = 'receipt-preview-overlay';
+                ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.82);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:12px';
+                ov.innerHTML = '<p style="color:#fff;font-size:13px;text-align:center;margin:0">ပုံကို ဖိနှိပ်ပြီး "Save Image" ရွေးပါ</p><img style="max-width:100%;max-height:78vh;border-radius:10px;background:#fff"><button type="button" style="padding:10px 28px;border:0;border-radius:10px;background:#fff;font-weight:600">Close</button>';
+                ov.querySelector('button').onclick = () => { ov.style.display = 'none'; };
+                ov.addEventListener('click', e => { if (e.target === ov) ov.style.display = 'none'; });
+                document.body.appendChild(ov);
+            }
+            ov.querySelector('img').src = url;
+            ov.style.display = 'flex';
+        }
 
         function closeOrderDetail() {
             document.getElementById('order-detail-overlay').classList.remove('show');
@@ -10029,12 +10056,11 @@ b,strong{font-weight:600}
             if (historyUnsubscribe) { historyUnsubscribe(); historyUnsubscribe = null; }
             historyListenerGuestId = guestId;
             historyLoadedOnce = false;
-            HISTORY_FILTER_DATE = null;
+            HISTORY_FILTER_DATE = yangonDateKey(Date.now());
             HISTORY_FILTER_STATUS = 'all';
             container.innerHTML = loadingStateHTML('bars');
 
-            const q = query(collection(db, "orders"), where("userId", "==", guestId));
-            historyUnsubscribe = onSnapshot(q, { includeMetadataChanges: true }, (snap) => {
+            historyUnsubscribe = window.pcaWatchOrders((snap) => {
                 // Firestore delivers an EMPTY snapshot straight from the local cache before
                 // the server answers (slow networks especially) - treating that as "no data"
                 // flashed the empty-state. Ignore it; includeMetadataChanges brings the
@@ -10049,6 +10075,9 @@ b,strong{font-weight:600}
                 historyLoadedOnce = true;
                 const orders = [];
                 snap.forEach(docSnap => orders.push({ id: docSnap.id, ...docSnap.data() }));
+                HISTORY_TODAY_ORDERS = orders;
+                // while a past day is open, leave it on screen (live updates only affect Today)
+                if (HISTORY_FILTER_DATE && HISTORY_FILTER_DATE !== yangonDateKey(Date.now())) return;
                 runWhenNotTouching(document.querySelector('#history-container .order-list-scroll') || container, () => renderHistoryOrders(orders));
             }, (error) => {
                 console.error("History fetch error: ", error);
@@ -11098,7 +11127,7 @@ b,strong{font-weight:600}
             inboxGid = gid; INBOX_NOTIFS = [];
             if (!gid) { mergeNotifs(); return; }
             try {
-                inboxUnsub = onSnapshot(query(collection(db, 'users', gid, 'inbox'), orderBy('timestamp', 'desc'), limit(50)), (snap) => {
+                inboxUnsub = window.pcaWatchInbox((snap) => {
                     INBOX_NOTIFS = snap.docs.map(d => ({ id: 'inbox_' + d.id, ...d.data() }));
                     mergeNotifs();
                 }, (err) => { console.error('Inbox listener error:', err); });
@@ -12942,7 +12971,7 @@ html body .title-header::before{width:4px !important;height:14px !important;bord
       if (K.status !== 'Success' && K.status !== 'Fail') showTracker(K.status);
     }, 2700);
     try {
-      K.unsub = window.onSnapshot(window.doc(window.db, 'orders', orderId), function (snap) {
+      K.unsub = window.pcaWatchOrder(orderId, function (snap) {
         if (!snap.exists() || K.id !== orderId) return;
         var d = snap.data(); K.status = d.status || 'Pending';
         if (K.status === 'Success' || K.status === 'Fail') { window.pv2OrderFinal(K.status, d, orderId); return; }
@@ -13783,6 +13812,148 @@ select[data-pcs]{display:none !important}
  },true);
  d.addEventListener('focusin',function(e){if(/^(INPUT|TEXTAREA)$/.test(e.target.tagName))setTuck(true)});
  if(nav)nav.addEventListener('click',function(){setTimeout(function(){setTuck(false)},0)});
+})();
+</script>
+<style id="pca-no-colormix">@supports not (color:color-mix(in srgb,red,blue)){:root{--c-pink:#ff8fb8;--c-cyan:#8fe9ff;--accent-dark:#1f5fd6}}</style>
+<script id="pca-layer-fallback">
+/* Old Android WebViews (Chrome < 99) ignore every `@layer x{...}` block, so nearly all of the
+   page's CSS vanishes (default grey buttons, dark-on-dark text). When @layer is unsupported,
+   copy the layered rules into one plain <style> placed first, so unlayered rules still win. */
+(function(){
+ function parse(css){
+  var plain='',layers=[],i=0,n=css.length,d=0,s=0;
+  function str(i,q){i++;while(i<n&&css[i]!==q){if(css[i]==='\\')i++;i++}return i}
+  function com(i){var e=css.indexOf('*/',i+2);return e<0?n:e+1}
+  function close(j){var k=j,dd=0;for(;k<n;k++){var c=css[k];
+   if(c==='/'&&css[k+1]==='*'){k=com(k);continue}
+   if(c==='"'||c==="'"){k=str(k,c);continue}
+   if(c==='{')dd++;else if(c==='}'){dd--;if(!dd)return k}}return n}
+  while(i<n){var c=css[i];
+   if(c==='/'&&css[i+1]==='*'){i=com(i)+1;continue}
+   if(c==='"'||c==="'"){i=str(i,c)+1;continue}
+   if(c==='{'){d++}else if(c==='}'){d--}
+   else if(!d&&c==='@'&&css.substr(i,6)==='@layer'&&/[\s{]/.test(css[i+6]||'')){
+    var j=i+6;while(j<n&&css[j]!==';'&&css[j]!=='{')j++;
+    if(css[j]===';'){plain+=css.slice(s,i);i=s=j+1;continue}
+    var k=close(j);plain+=css.slice(s,i);
+    layers.push({name:css.slice(i+6,j).trim(),css:parse(css.slice(j+1,k)).plain});
+    i=s=k+1;continue}
+   i++}
+  return{plain:plain+css.slice(s),layers:layers}}
+ try{
+  var t=document.createElement('style'),p=document.createElement('i');
+  t.textContent='@layer pcaT{#pca-lt{color:rgb(1,2,3)}}';p.id='pca-lt';
+  document.head.appendChild(t);document.body.appendChild(p);
+  var ok=getComputedStyle(p).color==='rgb(1, 2, 3)';
+  t.remove();p.remove();if(ok)return;
+  var ORDER=['legacy','tokens','base','layout','motion','components','pages','utilities','pcafix'],all=[],q=0;
+  [].forEach.call(document.querySelectorAll('style'),function(el){
+   var x=el.textContent;if(x.indexOf('@layer')<0)return;
+   parse(x).layers.forEach(function(l){l.seq=q++;l.rank=ORDER.indexOf(l.name);all.push(l)})});
+  all.sort(function(a,b){return a.rank-b.rank||a.seq-b.seq});
+  var low=document.createElement('style');low.id='pca-layer-flat';
+  low.textContent=all.map(function(l){return l.css}).join('\n');
+  document.head.insertBefore(low,document.head.firstChild);
+ }catch(e){}
+})();
+</script>
+<style>.pca-spin{display:inline-block;width:16px;height:16px;border-radius:50%;border:2px solid currentColor;border-right-color:transparent;vertical-align:-3px;animation:pcaSpinRot .7s linear infinite}@keyframes pcaSpinRot{to{transform:rotate(360deg)}}</style>
+<script id="pca-spin-js">
+/* Any button whose text turns into "Saving..." / "Updating..." / "Checking..." etc. shows a spinner instead. */
+(function(){
+  var RE=/^\s*(Saving|Updating|Checking|Sending|Loading|Syncing|Processing|Verifying|Deleting|Refreshing|Fetching|Importing|Resyncing|Approving|Rejecting|Confirming|Cancelling|Uploading|Submitting|Placing|Paying)\b[^]{0,40}?(\.\.\.|\u2026)\s*$/i;
+  var busy=false;
+  function fix(btn){
+    if(!btn||btn.tagName!=='BUTTON')return;
+    var has=btn.querySelector(':scope>.pca-spin');
+    var txt=(btn.textContent||'').trim();
+    if(!has&&txt&&txt.length<48&&RE.test(txt)){
+      busy=true;
+      var w=btn.offsetWidth;
+      if(w&&!btn.dataset.pcaMinW){btn.dataset.pcaMinW='1';btn.style.minWidth=w+'px';}
+      btn.setAttribute('aria-label',txt);
+      btn.innerHTML='<span class="pca-spin"></span>';
+      busy=false;
+    }else if(!has&&btn.dataset.pcaMinW){
+      btn.style.minWidth='';delete btn.dataset.pcaMinW;
+    }else if(has&&btn.childNodes.length>1){ /* new text arrived next to the spinner */
+      busy=true;has.remove();busy=false;
+    }
+  }
+  new MutationObserver(function(ms){
+    if(busy)return;
+    ms.forEach(function(m){
+      var n=m.target.nodeType===1?m.target:m.target.parentElement;
+      var b=n&&n.closest?n.closest('button'):null;
+      if(b)fix(b);
+    });
+  }).observe(document.documentElement,{childList:true,characterData:true,subtree:true});
+})();
+</script>
+<style>
+#pca-steps{display:flex;align-items:center;gap:6px;margin:4px 0 14px;padding:10px 12px;background:#fff;border:1px solid #ECEDF0;border-radius:14px}
+#pca-steps .st{flex:1;display:flex;align-items:center;gap:8px;min-width:0;font-size:12px;font-weight:600;color:#8A8F99}
+#pca-steps .st i{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:11px;background:#F1F2F4;color:#8A8F99}
+#pca-steps .st span{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+#pca-steps .st.on{color:#111318}#pca-steps .st.on i{background:var(--acc,#E11D2E);color:#fff}
+#pca-steps .st.ok{color:#1E8E4F}#pca-steps .st.ok i{background:#1E8E4F;color:#fff}
+#pca-steps .ln{flex:0 0 14px;height:2px;background:#ECEDF0}
+</style>
+<script id="pca-steps-js">
+/* Game detail: 3-step guide (Account ID -> Package -> Pay) that follows what the customer has already done. */
+(function(){
+  function init(){
+    var g=document.getElementById('game-detail'),host=document.getElementById('account-info-section');
+    if(!g||!host||document.getElementById('pca-steps'))return;
+    var bar=document.createElement('div');bar.id='pca-steps';
+    bar.innerHTML='<div class="st" data-s="1"><i>1</i><span>Account ID</span></div><div class="ln"></div><div class="st" data-s="2"><i>2</i><span>Package</span></div><div class="ln"></div><div class="st" data-s="3"><i>3</i><span>Pay</span></div>';
+    host.parentNode.insertBefore(bar,host);
+    function upd(){
+      var idEl=document.getElementById('detail-ingame-id');
+      var idOk=!!(g.querySelector('.confirm-id-btn.confirmed')||(idEl&&idEl.value.trim().length>=5));
+      var pkOk=!!g.querySelector('.package-card.selected');
+      var st=[idOk,pkOk,false],cur=st.indexOf(false);
+      [].forEach.call(bar.querySelectorAll('.st'),function(e,i){e.classList.toggle('ok',st[i]);e.classList.toggle('on',i===cur);var n=e.querySelector('i');n.textContent=st[i]?'\u2713':String(i+1)});
+    }
+    new MutationObserver(upd).observe(g,{subtree:true,attributes:true,attributeFilter:['class']});
+    g.addEventListener('input',upd);upd();
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
+<style>
+.header-profile-text{position:relative}
+.header-profile-name.pca-wait{opacity:0}
+.header-profile-name{transition:opacity .45s ease}
+#pca-intro{position:absolute;left:0;top:0;height:22px;display:flex;align-items:center;pointer-events:none;white-space:nowrap}
+#pca-intro .pi{position:absolute;left:0;display:flex;align-items:center;gap:5px;font-size:15px;font-weight:800;letter-spacing:.2px;opacity:0;transform:translateY(8px);animation:pcaIntroIn .5s cubic-bezier(.2,.8,.2,1) forwards}
+#pca-intro .pi.out{animation:pcaIntroOut .35s ease forwards}
+#pca-intro .pca-tag{background:#E11D2E;color:#fff;padding:1px 9px;border-radius:7px}
+#pca-intro .g{color:#E11D2E}#pca-intro .s{color:#1D4ED8}
+@keyframes pcaIntroIn{to{opacity:1;transform:none}}
+@keyframes pcaIntroOut{from{opacity:1;transform:none}to{opacity:0;transform:translateY(-8px)}}
+</style>
+<script id="pca-intro-js">
+/* Header intro: "PCA" (white on red) -> "Game Store" (red + blue), each tucked away in turn, then "Hello, <name>" fades in. */
+(function(){
+  function run(){
+    var name=document.getElementById('header-profile-name'),box=name&&name.parentNode;
+    if(!name||!box||document.getElementById('pca-intro'))return;
+    if(window.matchMedia&&matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+    name.classList.add('pca-wait');
+    var w=document.createElement('div');w.id='pca-intro';box.insertBefore(w,name);
+    function show(html,hold,next){
+      var e=document.createElement('span');e.className='pi';e.innerHTML=html;w.appendChild(e);
+      setTimeout(function(){e.classList.add('out');setTimeout(function(){e.remove();next()},350)},hold);
+    }
+    show('<span class="pca-tag">PCA</span>',850,function(){
+      show('<span class="g">Game</span><span class="s">Store</span>',900,function(){
+        w.remove();name.classList.remove('pca-wait');
+      });
+    });
+    setTimeout(function(){name.classList.remove('pca-wait');if(w.parentNode)w.remove()},6000); /* safety: never leave the name hidden */
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',run);else run();
 })();
 </script>
 </body>
