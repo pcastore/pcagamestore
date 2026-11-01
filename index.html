@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="en" data-theme="light">
 <head>
+<script>/* vibration temporarily disabled */try{Object.defineProperty(navigator,'vibrate',{value:function(){return false},configurable:true,writable:true})}catch(e){try{navigator.vibrate=function(){return false}}catch(_){}}</script>
 <style id="pca-layer-order">@layer pcafix,legacy,tokens,base,layout,motion,components,pages,utilities;</style>
 <script id="pca-theme-boot">
 (function(){
@@ -17,7 +18,7 @@
   t=t||{};var h=document.documentElement,s=h.style;
   put(s,ACC,rgb(t.acc));put(s,NAV,rgb(t.nav));
   if(t.r&&R[t.r])s.setProperty('--pca-r',R[t.r]+'px');else s.removeProperty('--pca-r');
-  if(t.glass===false)h.setAttribute('data-glass','off');else h.removeAttribute('data-glass');
+  h.setAttribute('data-glass','off');
  }
  window.pcaTheme={load:load,save:save,apply:apply};
  apply(load());
@@ -2110,9 +2111,9 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;bac
 .skel-game-card .skel,.skel-game-card [class*="skel-"]{border-radius:12px !important}
 
 /* ===== 4. WALLET / HISTORY / PROFILE: Login မဝင်ရသေးရင် Login form ပဲပြ ===== */
-html.logged-out #wallet>:not(.title-header):not(.auth-gate):not(.modal-overlay),
-html.logged-out #history>:not(.title-header):not(.auth-gate):not(.modal-overlay),
-html.logged-out #profile>:not(.title-header):not(.auth-gate):not(.modal-overlay){display:none !important}
+html.logged-out-TEMP-OFF #wallet>:not(.title-header):not(.auth-gate):not(.modal-overlay),
+html.logged-out-TEMP-OFF #history>:not(.title-header):not(.auth-gate):not(.modal-overlay),
+html.logged-out-TEMP-OFF #profile>:not(.title-header):not(.auth-gate):not(.modal-overlay){display:none !important}
 
 /* ===== 5. Login gate + wallet card ပါးပါး ===== */
 .auth-gate{padding:20px 16px !important;margin:0 0 var(--fx-gap) !important}
@@ -2202,6 +2203,7 @@ html.logged-out #profile>:not(.title-header):not(.auth-gate):not(.modal-overlay)
         <symbol id="icon-user" viewBox="0 0 24 24"><path d="M12 4.4a3.6 3.6 0 1 1 0 7.2 3.6 3.6 0 0 1 0-7.2z" fill="url(#pcaGlass)" stroke="none"/><path d="M12 4.4a3.6 3.6 0 1 1 0 7.2 3.6 3.6 0 0 1 0-7.2z" fill="none"/><path d="M4.5 20.5c0-4 3.4-6.5 7.5-6.5s7.5 2.5 7.5 6.5z" fill="url(#pcaGlass)" stroke="none"/><path d="M4.5 20.5c0-4 3.4-6.5 7.5-6.5s7.5 2.5 7.5 6.5z" fill="none"/></symbol>
 
         <symbol id="icon-haptic" viewBox="0 0 24 24"><path d="M9 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" fill="url(#pcaGlass)" stroke="none"/><path d="M9 3h6a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H9a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2z" fill="none"/><path d="M3.8 9v6M20.2 9v6M1.6 11v2M22.4 11v2" fill="none" style="stroke:var(--ic2)"/></symbol>
+        <symbol id="icon-inbox" viewBox="0 0 24 24"><path d="M3.5 13.5 6 6.2A2 2 0 0 1 7.9 5h8.2A2 2 0 0 1 18 6.2l2.5 7.3V18a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z" fill="url(#pcaGlass)" stroke="none"/><path d="M3.5 13.5 6 6.2A2 2 0 0 1 7.9 5h8.2A2 2 0 0 1 18 6.2l2.5 7.3V18a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2z" fill="none"/><path d="M3.5 13.5h4.6l1.2 2.2h5.4l1.2-2.2h4.6" fill="none" style="stroke:var(--ic2)"/></symbol>
         <symbol id="icon-bell" viewBox="0 0 24 24"><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z" fill="url(#pcaGlass)" stroke="none"/><path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2h-15z" fill="none"/><path d="M10 21a2.2 2.2 0 0 0 4 0M12 3.5V5" fill="none" style="stroke:var(--ic2)"/></symbol>
         <symbol id="icon-check" viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5" fill="none"/></symbol>
         <symbol id="icon-refresh" viewBox="0 0 24 24"><path d="M20 11.5a8 8 0 1 0-2.3 5.7M20.5 4.5v5h-5" fill="none"/></symbol>
@@ -2261,34 +2263,17 @@ html.logged-out #profile>:not(.title-header):not(.auth-gate):not(.modal-overlay)
     
 
     <!-- Header -->
-    <header class="header">
+    <header class="header" id="app-header">
         <div class="header-row">
-        <div class="header-profile" id="header-profile-btn" onclick="showPage('profile')" role="button" aria-label="Open Profile">
-            <span class="header-profile-avatar" id="header-profile-avatar">
-                <img id="header-profile-avatar-img" src="" alt="" style="display:none;">
-                <svg class="ui-icon" id="header-profile-avatar-icon"><use href="#icon-user"></use></svg>
-            </span>
-            <span class="header-profile-text">
-                <span class="header-profile-name" id="header-profile-name">Hello, Guest</span>
-                <span class="header-profile-id" id="header-profile-id"></span>
-            </span>
-        </div>
+        <div class="header-brand" aria-label="PCA Store"><span class="hb-pca">PCA</span><span class="hb-store">Store</span></div>
         <div class="header-icons-group" style="display:flex;align-items:center;">
-            <div class="header-icon header-menu-btn" id="notif-header-btn" onclick="openNotificationsPage()" role="button" aria-label="Notifications">
-                <svg class="ui-icon" style="width:22px;height:22px;color:var(--text);"><use href="#icon-bell"></use></svg>
+            <div class="header-icon header-menu-btn" id="notif-header-btn" onclick="openNotificationsPage()" role="button" aria-label="Inbox">
+                <svg class="ui-icon"><use href="#icon-inbox"></use></svg>
                 <span class="notif-badge" id="notif-badge-header"></span>
             </div>
         </div>
         </div>
 </header>
-
-    <!-- Admin online/offline status: reflects settings/presence, written every 60s
-         by admin.html while an admin is signed in there. Hidden until the first
-         reading arrives so it never flashes a wrong state on load. -->
-    <div class="admin-status-bar" id="admin-status-bar" style="display:none;">
-        <span class="admin-status-dot" id="admin-status-dot"></span>
-        <span id="admin-status-text">Checking admin status...</span>
-    </div>
 
     <div class="bullet-chat-wrapper" id="bullet-chat-wrapper">
         <div class="bullet-chat-badge"><span class="live-dot"></span>LIVE</div>
@@ -2301,12 +2286,7 @@ html.logged-out #profile>:not(.title-header):not(.auth-gate):not(.modal-overlay)
     <main class="content-area">
         
         <!-- Balance + section tabs: live OUTSIDE the pages so they never disappear when switching Popular / Top Up / Voucher. -->
-        <section class="dash" id="home-dash">
-<div class="hdr-bal dash-card pvw" id="hdr-bal">
-<div class="hdr-bal-info"><small>Available balance</small><div class="hdr-bal-amt" id="home-balance-amount">0 MMK</div></div>
-<button type="button" class="dash-add" onclick="openDepositFromHeader()" aria-label="Deposit"><span class="pvw-plus"><svg class="ui-icon"><use href="#icon-plus"></use></svg></span><span>Deposit</span></button>
-</div>
-        </section>
+        <div id="hdr-bal" hidden aria-hidden="true"><span id="home-balance-amount">0 MMK</span></div>
         <div class="htabs-wrap" id="home-tabs-wrap">
             <div class="htabs" id="home-tabs" role="tablist" aria-label="Home sections">
                 <button type="button" class="htab active" data-htab="popular" role="tab" aria-selected="true" onclick="pcaHomeTab('popular')"><span class="htab-ic"><svg class="ui-icon"><use href="#icon-star"></use></svg></span><span class="htab-t">Popular</span></button>
@@ -2324,12 +2304,12 @@ html.logged-out #profile>:not(.title-header):not(.auth-gate):not(.modal-overlay)
             </div>
             <div id="popular-games-section">
                 <h2 class="title-header" data-i18n="title_popular_games">Popular Games</h2>
-                <div class="popular-scroll-wrap" id="popular-games-scroll">
+                <div class="popular-scroll-wrap" id="popular-games-scroll"><div class="gsk-tile gsk-pop"><div class="gsk gsk-img"></div><div class="gsk gsk-line"></div></div><div class="gsk-tile gsk-pop"><div class="gsk gsk-img"></div><div class="gsk gsk-line"></div></div><div class="gsk-tile gsk-pop"><div class="gsk gsk-img"></div><div class="gsk gsk-line"></div></div><div class="gsk-tile gsk-pop"><div class="gsk gsk-img"></div><div class="gsk gsk-line"></div></div><div class="gsk-tile gsk-pop"><div class="gsk gsk-img"></div><div class="gsk gsk-line"></div></div><div class="gsk-tile gsk-pop"><div class="gsk gsk-img"></div><div class="gsk gsk-line"></div></div>
                 </div>
             </div>
             <div id="popular-vouchers-section">
                 <h2 class="title-header">Popular Vouchers</h2>
-                <div class="popular-scroll-wrap" id="popular-vouchers-scroll">
+                <div class="popular-scroll-wrap" id="popular-vouchers-scroll"><div class="gsk-tile gsk-vpop"><div class="gsk gsk-img"></div><div class="gsk gsk-line"></div></div><div class="gsk-tile gsk-vpop"><div class="gsk gsk-img"></div><div class="gsk gsk-line"></div></div><div class="gsk-tile gsk-vpop"><div class="gsk gsk-img"></div><div class="gsk gsk-line"></div></div><div class="gsk-tile gsk-vpop"><div class="gsk gsk-img"></div><div class="gsk gsk-line"></div></div>
                 </div>
             </div>
             <div class="all-games-title-row section-title-spaced" id="all-games-title-row">
@@ -3261,7 +3241,7 @@ b,strong{font-weight:600}
             </div>
             </div>
 
-            <h3 class="detail-section-title" data-i18n="sec_select_currency_pkg">Select Currency Package</h3>
+            <h3 class="detail-section-title" id="detail-pkg-title">Select Currency Package</h3>
             <div class="pkg-type-tabs" id="pkg-type-tabs" style="display:none;"></div>
             <div class="package-grid-scroll"><div id="detail-package-list" class="package-grid"></div></div>
 
@@ -3627,7 +3607,7 @@ b,strong{font-weight:600}
                 title_wallet: 'My Wallet', title_profile: 'My Profile',
                 sec_account_info: 'Account Info', 
                 sec_how_pay: 'How do you want to pay?',
-                sec_select_currency_pkg: 'Select Currency Package', sec_order_info: 'Order Info',
+                sec_select_currency_pkg: 'Select Currency Package', sec_select_x: 'Select {x}', sec_order_info: 'Order Info',
                 sec_payment_receipt: 'Payment Receipt', sec_reason: 'Reason', sec_note: 'Note',
                 sec_verify_review: 'Verification in review', sec_verify_rejected: 'Verification rejected',
                 sec_verify_continue: 'Verify your identity to continue',
@@ -3737,7 +3717,7 @@ b,strong{font-weight:600}
                 title_wallet: 'ကျွန်ုပ်၏ပိုက်ဆံအိတ်', title_profile: 'ကျွန်ုပ်၏ပရိုဖိုင်',
                 sec_account_info: 'အကောင့်အချက်အလက်', 
                 sec_how_pay: 'ဘယ်လိုငွေပေးချေမလဲ?',
-                sec_select_currency_pkg: 'ငွေကြေးပက်ကေ့ချ်ရွေးပါ', sec_order_info: 'အော်ဒါအချက်အလက်',
+                sec_select_currency_pkg: 'ငွေကြေးပက်ကေ့ချ်ရွေးပါ', sec_select_x: '{x} ရွေးပါ', sec_order_info: 'အော်ဒါအချက်အလက်',
                 sec_payment_receipt: 'ငွေပေးချေမှုပြေစာ', sec_reason: 'အကြောင်းအရင်း', sec_note: 'မှတ်ချက်',
                 sec_verify_review: 'အတည်ပြုချက် စစ်ဆေးနေဆဲ', sec_verify_rejected: 'အတည်ပြုချက် ငြင်းပယ်ခံရ',
                 sec_verify_continue: 'ဆက်လက်လုပ်ဆောင်ရန် မိမိကိုယ်ကို အတည်ပြုပါ',
@@ -3793,6 +3773,7 @@ b,strong{font-weight:600}
                 if (mmFlag) mmFlag.style.display = showEn ? 'none' : 'block';
             });
             if (window.onNotifLangChange) window.onNotifLangChange();
+            if (window.updatePkgTitle) window.updatePkgTitle();
         }
         window.applyI18n = applyI18n;
         function setLanguage(lang) {
@@ -3835,9 +3816,9 @@ b,strong{font-weight:600}
         };
         window.LOADER_MARKUP = LOADER_MARKUP;
         function loadingStateHTML(type = 'grid') {
-            // List-type tabs (History, Wallet, ...) show skeleton rows while data is fetched; the real data replaces them on arrival.
-            if (type === 'bars' || type === 'ripple') return '<div class="pca-skel-wrap">' + '<div class="pca-skel-row"></div>'.repeat(5) + '</div>';
-            return `<div class="empty-state page-loading">${LOADER_MARKUP[type] || LOADER_MARKUP.grid}<div class="pca-anim"><span>P</span><span>C</span><span>A</span></div></div>`;
+            // Skeletons only (no spinners): list tabs get rows, game/voucher grids get icon tiles.
+            if (type === 'bars' || type === 'ripple' || type === 'dots' || type === 'bar') return '<div class="pca-skel-wrap">' + '<div class="pca-skel-row"></div>'.repeat(5) + '</div>';
+            return '<div class="gsk-grid">' + '<div class="gsk-tile"><div class="gsk gsk-img"></div><div class="gsk gsk-line"></div></div>'.repeat(12) + '</div>';
         }
         window.loadingStateHTML = loadingStateHTML;
 
@@ -4145,6 +4126,13 @@ b,strong{font-weight:600}
             if (tabId === 'currency') return currentGameTabLabels.currency || 'Currency';
             return tabId;
         }
+        // Section title follows the active tab of the open game: "Select Diamonds" / "Select Bandle" ...
+        function updatePkgTitle() {
+            const el = document.getElementById('detail-pkg-title');
+            if (!el) return;
+            el.textContent = t('sec_select_x').replace('{x}', pkgTabLabel(activePackageTab));
+        }
+        window.updatePkgTitle = updatePkgTitle;
         // A package's organizational tab is its `tab` field. Older saved
         // packages (or ones synced from before the admin's custom-tab
         // feature) may not have one, so fall back to `type` — which itself
@@ -4769,7 +4757,7 @@ b,strong{font-weight:600}
                 if (y < 40) {
                     if (headerEl) headerEl.classList.remove('header-hidden');
                     if (navEl) navEl.classList.remove('nav-hidden');
-                } else if (y > lastY + 4) {
+                } else if (y > 90 && y > lastY + 4) {
                     if (headerEl) headerEl.classList.add('header-hidden');
                     /* nav hide motion removed */
                 } else if (y < lastY - 4) {
@@ -5325,6 +5313,7 @@ b,strong{font-weight:600}
                 tabsEl.innerHTML = orderedTabs.map(t => `
                     <button type="button" class="pkg-type-tab ${t === activePackageTab ? 'active' : ''}" data-type="${t}" onclick="switchPackageTab('${t.replace(/'/g, "\\'")}')">${pkgTabLabel(t)}</button>
                 `).join('');
+                updatePkgTitle();
                 renderDetailPackageList();
             } catch (err) {
                 console.error('openGameDetail: package list render failed for', gameId, err);
@@ -5357,6 +5346,7 @@ b,strong{font-weight:600}
             activePackageTab = tabId;
             pkgZoomDone = false;
             document.querySelectorAll('.pkg-type-tab').forEach(el => el.classList.toggle('active', el.dataset.type === tabId));
+            updatePkgTitle();
             renderDetailPackageList();
         }
         window.switchPackageTab = switchPackageTab;
@@ -8812,6 +8802,7 @@ b,strong{font-weight:600}
             const bar = document.getElementById('admin-status-bar');
             const dot = document.getElementById('admin-status-dot');
             const text = document.getElementById('admin-status-text');
+            if (!bar || !dot || !text) return; // admin status bar removed from the UI
             if (lastAdminActiveMs === null) {
                 bar.style.display = 'none';
                 return;
@@ -9263,8 +9254,8 @@ b,strong{font-weight:600}
             track.style.animation = 'none';
             void track.offsetWidth; // force reflow so the animation restarts
             const distance = window.innerWidth + track.offsetWidth;
-            const PIXELS_PER_SECOND = 70; // slowed down from 110 for easier reading
-            const duration = Math.min(45, Math.max(14, distance / PIXELS_PER_SECOND));
+            const PIXELS_PER_SECOND = 32; // slowed down further for easier reading
+            const duration = Math.min(95, Math.max(30, distance / PIXELS_PER_SECOND));
             track.style.animation = '';
             track.style.animationDuration = duration + 's';
             track.classList.add('bullet-chat');
@@ -11568,6 +11559,7 @@ b,strong{font-weight:600}
         function init() {
             var page = document.getElementById('game-detail'), list = document.getElementById('detail-package-list');
             if (!page || !list) return;
+            return; /* bottom Continue bar removed */
             var bar = document.createElement('div');
             bar.id = 'pay-summary-bar';
             bar.innerHTML = '<div class="psb-info"><span class="psb-label"></span><b class="psb-price"></b></div><button type="button" class="psb-btn">Continue</button>';
@@ -11618,7 +11610,7 @@ b,strong{font-weight:600}
                 if (chevron) chevron.style.transform = opening ? 'rotate(90deg)' : 'rotate(0deg)';
             };
         }
-        window.gzHapticOn = function () { try { return localStorage.getItem('gz_haptic') !== '0'; } catch (e) { return true; } };
+        window.gzHapticOn = function () { return false; }; /* vibration temporarily disabled */
         // 1) Capacitor native shell -> Haptics plugin (works on Android + iOS, needs @capacitor/haptics in the shell)
         // 2) Android browser/WebView -> navigator.vibrate (durations floored: <20ms pulses are not felt on most phones)
         // 3) iOS Safari 17.4+ -> hidden <input type=checkbox switch> label click (no vibrate API on iOS)
@@ -13808,7 +13800,7 @@ select[data-pcs]{display:none !important}
   if(!el||el.nodeType!==1)return;
   if(el!==d.scrollingElement&&(el.clientHeight<innerHeight*.5||el.scrollHeight<el.clientHeight*1.2))return;
   var y=el.scrollTop,p=last.has(el)?last.get(el):y;last.set(el,y);var dy=y-p;
-  if(y<48||dy<-6)setTuck(false);else if(dy>8&&y>120)setTuck(true);
+  if(y<48||dy<-6)setTuck(false);else if(dy>6&&y>90)setTuck(true);
  },true);
  d.addEventListener('focusin',function(e){if(/^(INPUT|TEXTAREA)$/.test(e.target.tagName))setTuck(true)});
  if(nav)nav.addEventListener('click',function(){setTimeout(function(){setTuck(false)},0)});
@@ -14044,5 +14036,121 @@ html body :is(input,textarea,select):focus{outline:0 !important;border-color:var
 html body #pca-intro .g{color:var(--nd-tx)}
 }</style>
 
+
+<style id="pca-float">@layer pcafix{
+/* ===== floating glass header + nav, smooth hide on scroll ===== */
+:root{--gl-bg:rgba(255,255,255,.58);--gl-bd:rgba(255,255,255,.78);--gl-ic:rgba(255,255,255,.55);--gl-sh:0 12px 30px -10px rgba(16,24,40,.30),0 2px 6px rgba(16,24,40,.06);--gl-hi:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(255,255,255,.35)}
+html[data-theme="dark"]{--gl-bg:rgba(19,28,46,.58);--gl-bd:rgba(255,255,255,.14);--gl-ic:rgba(255,255,255,.08);--gl-sh:0 14px 34px -10px rgba(0,0,0,.7);--gl-hi:inset 0 1px 0 rgba(255,255,255,.12)}
+html body header#app-header{position:fixed !important;top:calc(10px + env(safe-area-inset-top,0px)) !important;left:12px !important;right:12px !important;width:auto !important;max-width:460px !important;margin:0 auto !important;box-sizing:border-box !important;
+ height:58px !important;min-height:58px !important;padding:0 8px 0 18px !important;display:flex !important;align-items:center !important;justify-content:space-between !important;gap:10px;
+ border-radius:22px !important;background:var(--gl-bg) !important;border:1px solid var(--gl-bd) !important;
+ -webkit-backdrop-filter:blur(18px) saturate(180%) !important;backdrop-filter:blur(18px) saturate(180%) !important;box-shadow:var(--gl-sh),var(--gl-hi) !important;
+ transform:translate3d(0,0,0) !important;opacity:1 !important;will-change:transform,opacity;transition:transform .75s cubic-bezier(.22,1,.36,1),opacity .55s ease !important}
+html body header#app-header.pca-hide,html body header#app-header.header-hidden{transform:translate3d(0,calc(-100% - 28px - env(safe-area-inset-top,0px)),0) !important;opacity:0 !important;pointer-events:none !important}
+html body header#app-header .header-row{display:contents}
+html body header#app-header .header-brand{flex:1;min-width:0;display:flex;align-items:baseline;gap:5px;font-size:19px;font-weight:800;letter-spacing:-.3px;line-height:1;color:var(--nd-tx)}
+html body header#app-header .hb-pca{color:var(--nb)}
+html body header#app-header .header-icon{width:42px !important;height:42px !important;min-width:42px;border-radius:50% !important;background:var(--gl-ic) !important;border:1px solid var(--gl-bd) !important;box-shadow:var(--gl-hi) !important;display:flex !important;align-items:center;justify-content:center;position:relative}
+html body header#app-header .header-icon .ui-icon{width:22px !important;height:22px !important;stroke:var(--nd-tx) !important;color:var(--nd-tx) !important;filter:none !important}
+html body header#app-header .notif-badge{top:-3px;right:-3px}
+html body nav#bottom-nav{position:fixed !important;top:auto !important;bottom:calc(12px + env(safe-area-inset-bottom,0px)) !important;left:14px !important;right:14px !important;width:auto !important;max-width:430px !important;margin:0 auto !important;box-sizing:border-box !important;
+ height:64px !important;padding:6px !important;display:grid !important;grid-template-columns:repeat(5,minmax(0,1fr)) !important;align-items:stretch !important;gap:2px !important;
+ border-radius:28px !important;background:var(--gl-bg) !important;border:1px solid var(--gl-bd) !important;
+ -webkit-backdrop-filter:blur(18px) saturate(180%) !important;backdrop-filter:blur(18px) saturate(180%) !important;box-shadow:var(--gl-sh),var(--gl-hi) !important;filter:none !important;
+ transform:translate3d(0,0,0) !important;opacity:1 !important;will-change:transform,opacity;transition:transform .75s cubic-bezier(.22,1,.36,1),opacity .55s ease !important}
+html body.no-bottom-nav nav#bottom-nav{display:none !important}
+html body nav#bottom-nav::before,html body nav#bottom-nav::after{display:none !important;content:none !important}
+html body nav#bottom-nav.nav-tuck,html body nav#bottom-nav.nav-hidden{transform:translate3d(0,calc(100% + 44px + env(safe-area-inset-bottom,0px)),0) !important;opacity:0 !important;pointer-events:none !important}
+html body nav#bottom-nav .nav-item{position:relative;display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;gap:3px !important;min-width:0;height:auto !important;border-radius:22px !important;background:transparent !important;border:0 !important;box-shadow:none !important;color:var(--nd-mu) !important;transition:background .3s ease,color .3s ease}
+html body nav#bottom-nav .nav-item.active{background:rgba(var(--pca-rgb,37,87,245),.14) !important;color:var(--nb) !important}
+html body nav#bottom-nav .nav-icon-wrap{width:auto !important;height:auto !important;margin:0 !important;padding:0 !important;border-radius:0 !important;background:transparent !important;display:flex !important;align-items:center;justify-content:center}
+html body nav#bottom-nav .nav-item.active .nav-icon-wrap{background:transparent !important}
+html body nav#bottom-nav .nav-item .ui-icon{width:22px !important;height:22px !important;stroke:currentColor !important;color:inherit !important;filter:none !important;animation:none !important}
+html body nav#bottom-nav .nav-label{display:block !important;font-size:10.5px !important;font-weight:600 !important;line-height:1.1 !important;color:currentColor !important}
+html body nav#bottom-nav .nav-item-wallet .nav-icon-wrap-wallet{position:static !important;width:34px !important;height:34px !important;margin:0 !important;border-radius:50% !important;background:var(--nb) !important;border:0 !important;box-shadow:0 6px 14px -4px rgba(var(--pca-rgb,37,87,245),.55) !important}
+html body nav#bottom-nav .nav-item-wallet .nav-icon-wrap-wallet .ui-icon{width:18px !important;height:18px !important;stroke:#fff !important;color:#fff !important;animation:none !important}
+html body nav#bottom-nav .nav-item-wallet :is(.wallet-glow,.wallet-halo){display:none !important}
+html body .htabs-wrap{top:calc(78px + env(safe-area-inset-top,0px))}
+@media(prefers-reduced-motion:reduce){html body header#app-header,html body nav#bottom-nav{transition:none !important}}
+}</style>
+
+<style id="pca-flat">@layer pcafix{
+/* ===== skeletons (no spinners) ===== */
+@keyframes gskShimmer{0%{background-position:200% 0}100%{background-position:-200% 0}}
+html body :is(.gsk,.game-card-img-wrap:not(.gsk-done),.popular-card .game-card-img-wrap:not(.gsk-done),.pc-img-wrap:not(.gsk-done)){background:linear-gradient(90deg,var(--nd-bd) 25%,var(--nd-sf) 50%,var(--nd-bd) 75%) 0 0/200% 100% !important;animation:gskShimmer 1.3s linear infinite}
+html body .gsk-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:20px 10px;grid-column:1/-1;width:100%}
+html body .gsk-tile{display:flex;flex-direction:column;align-items:center;gap:8px;min-width:0}
+html body .gsk-pop{flex:0 0 76px;width:76px}
+html body .gsk-vpop{flex:0 0 118px;width:118px}
+html body .gsk-img{width:100%;max-width:78px;aspect-ratio:1/1;border-radius:22px}
+html body .gsk-vpop .gsk-img{max-width:none;aspect-ratio:1/1.1;border-radius:16px}
+html body .gsk-line{width:70%;height:11px;border-radius:6px}
+@media(prefers-reduced-motion:reduce){html body :is(.gsk,.game-card-img-wrap,.pc-img-wrap){animation:none !important}}
+
+/* ===== login form removed (temporary): delete this line to bring it back ===== */
+html body .auth-gate{display:none !important}
+/* ===== bottom Continue bar removed ===== */
+html body #pay-summary-bar{display:none !important}
+html body #game-detail{padding-bottom:24px}
+html body.no-bottom-nav #pca-pill{bottom:calc(16px + env(safe-area-inset-bottom,0px)) !important}
+
+/* ===== flat instead of glass (header + nav stay glass) ===== */
+html body :is(.pca-fl,#pca-pill,.title-header,.htabs,.htabs-wrap,.bullet-chat-wrapper,.gc-b,.pc-tag,.id-result-card,.id-fail-card,.pcs-p,.detail-form-card,.profile-card,.game-desc-card,.wallet-pay-info-card,.google-account-card,.game-search-wrap,.pkg-type-tabs,#pca-steps,.modal-box){-webkit-backdrop-filter:none !important;backdrop-filter:none !important}
+html body #pca-pill{background:var(--nd-sf) !important;border:1px solid var(--nd-bd) !important;box-shadow:0 6px 18px -8px rgba(16,24,40,.25) !important}
+html body #pca-top{background:var(--nd-sf) !important;border:1px solid var(--nd-bd) !important;box-shadow:0 6px 18px -8px rgba(16,24,40,.25) !important;color:var(--nd-tx) !important}
+html body #pca-top .ui-icon{stroke:var(--nd-tx) !important}
+html body :is(#home,#voucher,#history,#wallet,#profile,.content-area) .title-header{display:flex !important;background:none !important;border:0 !important;box-shadow:none !important;padding:0 !important;height:auto !important;border-radius:0 !important}
+html body .htabs-wrap{background:var(--nd-bg) !important}
+html body .bullet-chat-wrapper{background:var(--nd-sf) !important;border:1px solid var(--nd-bd) !important;box-shadow:none !important}
+html body :is(.gc-b,.pc-tag){background:var(--nd-sf) !important;border:1px solid var(--nd-bd) !important;box-shadow:none !important}
+html body .pcs-p{background:var(--nd-sf) !important;border:1px solid var(--nd-bd) !important}
+}</style>
+<script>/* image cards: shimmer skeleton shows until the picture has loaded */
+(function(){function done(e){var t=e.target;if(t&&t.tagName==='IMG'&&t.parentNode&&t.parentNode.classList)t.parentNode.classList.add('gsk-done')}
+document.addEventListener('load',done,true);document.addEventListener('error',done,true)})();</script>
+
+<style id="pca-smooth">@layer pcafix{
+/* ===== package tabs: fit the row, no clipped last tab, no ring ===== */
+html body #pkg-type-tabs{display:flex;flex-wrap:nowrap !important;overflow-x:auto;overflow-y:hidden;scrollbar-width:none;box-sizing:border-box;max-width:100%;gap:6px !important;padding:4px !important;border-radius:20px !important;background:var(--nd-bd) !important}
+html body #pkg-type-tabs::-webkit-scrollbar{display:none}
+html body #pkg-type-tabs .pkg-type-tab{flex:1 1 auto !important;min-width:0 !important;height:40px !important;padding:0 14px !important;white-space:nowrap;border:0 !important;border-radius:16px !important;background:var(--nd-sf) !important;color:var(--nd-tx) !important;box-shadow:none !important;font-size:13px !important;font-weight:600 !important}
+html body #pkg-type-tabs .pkg-type-tab.active{background:var(--nb) !important;color:#fff !important;box-shadow:none !important}
+
+/* ===== smooth press / select (no snapping, no overshoot) ===== */
+html body :is(.btn,.btn-primary,.confirm-id-btn,.wallet-topup-btn,.pc-topup-btn,.pv-btn,.package-card,#detail-package-list .package-card,.game-card,.game-row,.voucher-card,.history-card,.list-card,.pkg-type-tab,.pay-type-tab,.history-status-tab,.payment-option,.htab,.qa,.dash-add,.prefs-row,.prefs-tile,.load-more-games-btn,.qty-ctrl button){
+ transition:transform .3s cubic-bezier(.22,1,.36,1),background-color .25s ease,border-color .25s ease,box-shadow .25s ease,color .2s ease,opacity .2s ease !important;
+ -webkit-tap-highlight-color:transparent;touch-action:manipulation}
+html body :is(.btn,.btn-primary,.confirm-id-btn,.wallet-topup-btn,.pc-topup-btn,.pv-btn,.package-card,.game-card,.game-row,.voucher-card,.history-card,.list-card,.pkg-type-tab,.pay-type-tab,.history-status-tab,.payment-option,.htab,.qa,.dash-add,.prefs-row,.prefs-tile,.load-more-games-btn):active{transform:scale(.975) !important;filter:none !important}
+/* package cards: selecting must not change the box size (it used to jump 1px) */
+html body #detail-package-list .package-card{border-width:1px !important}
+html body #detail-package-list .package-card.selected{border-width:1px !important;border-color:var(--nb) !important;box-shadow:0 0 0 1px var(--nb) !important}
+html body #detail-package-list .package-card :is(.pc-label-wrap,.pc-amount-badge,.pc-price-bar,.pc-label,.pc-price,.pc-cur,.pc-selected-check){transition:background-color .25s ease,border-color .25s ease,color .25s ease,opacity .25s ease !important}
+html body #detail-package-list .package-card.selected :is(.pc-label-wrap,.pc-amount-badge){background:#2563EB !important;border-color:#2563EB !important}
+html body #detail-package-list .package-card.selected .pc-price-bar{background:#059669 !important;border-color:#059669 !important}
+/* selected-package pill glides in instead of popping */
+html body #pca-pill{transition:transform .5s cubic-bezier(.22,1,.36,1),opacity .35s ease !important}
+}</style>
+
+<style id="pca-cards">@layer pcafix{
+/* ===== one card per game: square image on top, light-blue name box below, same size everywhere ===== */
+html body :is(#home,#voucher,#server-select,.content-area) :is(.game-card,.voucher-card){display:flex !important;flex-direction:column !important;align-items:stretch !important;gap:6px !important;padding:6px !important;min-width:0;
+ background:var(--nd-sf) !important;border:1px solid var(--nd-bd) !important;border-radius:18px !important;box-shadow:none !important;aspect-ratio:auto !important}
+html body :is(#home,#voucher,#server-select,.content-area) .popular-scroll-wrap :is(.game-card,.voucher-card,.popular-voucher-card){flex:0 0 88px !important;width:88px !important;aspect-ratio:auto !important}
+html body :is(#home,#voucher,.content-area) .popular-scroll-wrap{gap:10px !important}
+html body :is(#home,#voucher,.content-area) :is(.game-list,.cards-grid){display:grid !important;grid-template-columns:repeat(4,minmax(0,1fr)) !important;gap:10px !important}
+html body :is(.game-list,.cards-grid)>:not(.gsk-grid){grid-column:auto !important}
+html body :is(#home,#voucher,#server-select,.content-area) :is(.game-card-img-wrap,.voucher-card-stack){position:relative !important;width:100% !important;max-width:none !important;height:auto !important;aspect-ratio:1/1 !important;margin:0 !important;border-radius:13px !important;overflow:hidden !important;box-shadow:none !important}
+html body :is(#home,#voucher,#server-select,.content-area) :is(.game-card-img-wrap,.voucher-card-stack) img{width:100% !important;height:100% !important;object-fit:cover !important}
+html body :is(#home,#voucher,#server-select,.content-area) :is(.game-card,.voucher-card) :is(.game-card-name,.voucher-card-name){display:block !important;width:100% !important;box-sizing:border-box !important;height:28px !important;min-height:28px !important;margin:0 !important;padding:0 6px !important;
+ background:var(--nb-soft) !important;color:var(--nb-d) !important;border:0 !important;border-radius:10px !important;font-size:11px !important;font-weight:600 !important;line-height:28px !important;text-align:center !important;white-space:nowrap !important;overflow:hidden !important;text-overflow:ellipsis !important}
+html body :is(#home,#voucher,#server-select,.content-area) .game-row-body{display:block !important;width:100% !important;padding:0 !important}
+html body :is(#home,#voucher,#server-select,.content-area) .voucher-card-tag{display:none !important}
+/* skeleton cards match the real ones */
+html body :is(.gsk-tile,.gsk-pop,.gsk-vpop){align-items:stretch;gap:6px;padding:6px;border:1px solid var(--nd-bd);border-radius:18px;background:var(--nd-sf);box-sizing:border-box}
+html body :is(.gsk-pop,.gsk-vpop){flex:0 0 88px;width:88px}
+html body .gsk-grid{gap:10px}
+html body :is(.gsk-img,.gsk-vpop .gsk-img){max-width:none;aspect-ratio:1/1;border-radius:13px}
+html body .gsk-line{width:100%;height:28px;border-radius:10px}
+}</style>
 </body>
 </html>
