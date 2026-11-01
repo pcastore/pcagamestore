@@ -2287,7 +2287,7 @@ html.logged-out-TEMP-OFF #profile>:not(.title-header):not(.auth-gate):not(.modal
         <symbol id="icon-haptic" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="3" width="10" height="18" rx="2.4"/><path d="M11 18h2M3.5 9v6M20.5 9v6"/></symbol>
         <symbol id="icon-inbox" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.7 1.1z"/></symbol>
         <symbol id="icon-bell" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></symbol>
-        <symbol id="icon-check" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12.5l4.5 4.5L19 7.5"/></symbol>
+        <symbol id="icon-check" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 12.8l4.4 4.4 8.6-9.4"/></symbol>
         <symbol id="icon-refresh" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/></symbol>
         <symbol id="icon-rocket" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2.1-.1-2.9a2.2 2.2 0 0 0-2.9-.1zM12 15l-3-3a22 22 0 0 1 2-3.9A12.9 12.9 0 0 1 22 2c0 2.7-.8 7.5-6 11a22 22 0 0 1-4 2zM9 12H4s.6-3 2-4c1.6-1.1 5 0 5 0M12 15v5s3-.6 4-2c1.1-1.6 0-5 0-5"/></symbol>
         <symbol id="icon-megaphone" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v3a1 1 0 0 0 1 1h2l8 4V6L6 10H4a1 1 0 0 0-1 1zM17.5 9a4 4 0 0 1 0 6M20 6.5a7.5 7.5 0 0 1 0 11"/></symbol>
@@ -3904,7 +3904,7 @@ b,strong{font-weight:600}
         window.LOADER_MARKUP = LOADER_MARKUP;
         function loadingStateHTML(type = 'grid') {
             // Skeletons only (no spinners): list tabs get rows, game/voucher grids get icon tiles.
-            if (type === 'bars' || type === 'ripple' || type === 'dots' || type === 'bar') return '<div class="pca-skel-wrap">' + '<div class="pca-skel-row"></div>'.repeat(5) + '</div>';
+            if (type === 'bars' || type === 'ripple' || type === 'dots' || type === 'bar') return '<div class="pca-osk"><div class="pca-osk-chips">' + '<i></i>'.repeat(5) + '</div>' + '<div class="pca-osk-row"><span class="osk-ic"></span><span class="osk-tx"><b></b><b></b></span><span class="osk-pr"><b></b><b></b></span></div>'.repeat(6) + '</div>';
             return '<div class="gsk-grid">' + '<div class="gsk-tile"><div class="gsk gsk-img"></div><div class="gsk gsk-line"></div></div>'.repeat(12) + '</div>';
         }
         window.loadingStateHTML = loadingStateHTML;
@@ -4840,6 +4840,7 @@ b,strong{font-weight:600}
             const headerEl = document.querySelector('.header');
             const navEl = document.getElementById('bottom-nav');
             function applyHeaderVisibility() {
+                if (window.__pcaScrollV10) { ticking = false; return; }
                 const y = window.scrollY;
                 if (y < 40) {
                     if (headerEl) headerEl.classList.remove('header-hidden');
@@ -5605,7 +5606,7 @@ b,strong{font-weight:600}
                 // Admin-assigned promo star pill — 'top' or 'hot' (see admin
                 // package editor). Same star icon for both, colored differently.
                 const tagHtml = (pkg.badge === 'top' || pkg.badge === 'hot')
-                    ? `<span class="pc-tag pc-tag-${pkg.badge}"><svg class="pc-tag-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.9 6.8 19.7l1-5.9L3.5 9.7l5.9-.8z"/></svg>${pkg.badge === 'top' ? 'TOP' : 'HOT'}</span>`
+                    ? `<span class="pc-tag pc-tag-${pkg.badge}"><svg class="pc-tag-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="${pkg.badge === 'top' ? 'M3.5 8.5l4.2 3.6L12 5l4.3 7.1 4.2-3.6-1.7 9.9H5.2z' : 'M12 2.8c.7 3.6 5 5.3 5 10.2a5 5 0 0 1-10 0c0-2.2 1-3.6 2.3-4.7.3 1.3 1 2.2 1.9 2.5C11 8.4 11.2 5.7 12 2.8z'}"/></svg>${pkg.badge === 'top' ? 'TOP' : 'HOT'}</span>`
                     : '';
                 const bodyHTML = isVoucher
                     ? `<div class="pc-amount-badge">${escapeHtml(pkg.amount)}</div>
@@ -10653,7 +10654,7 @@ b,strong{font-weight:600}
             let h = '';
             if (fam) h += `<span class="gc-b gc-p" title="${PROV_LABEL[fam]}">${PROV_LABEL[fam]}</span>`;
             const tag = (g.badge === 'top' || g.badge === 'hot') ? g.badge : '';
-            if (tag === 'top') h += '<span class="gc-b gc-top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.5l2.6 5.4 5.9.8-4.3 4.1 1 5.9L12 16.9 6.8 19.7l1-5.9L3.5 9.7l5.9-.8z"/></svg>Top</span>';
+            if (tag === 'top') h += '<span class="gc-b gc-top"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3.5 8.5l4.2 3.6L12 5l4.3 7.1 4.2-3.6-1.7 9.9H5.2z"/></svg>Top</span>';
             if (tag === 'hot') h += '<span class="gc-b gc-hot"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.8c.7 3.6 5 5.3 5 10.2a5 5 0 0 1-10 0c0-2.2 1-3.6 2.3-4.7.3 1.3 1 2.2 1.9 2.5C11 8.4 11.2 5.7 12 2.8z"/></svg>Hot</span>';
             return h ? `<div class="gc-badges">${h}</div>` : '';
         }
@@ -12301,7 +12302,7 @@ d.addEventListener("pointerdown",function(e){lit(e);if(navigator.vibrate&&e.targ
 /* header hides on scroll down; back-to-top */
 var h=d.querySelector("header.header"),top=d.createElement("button");top.id="pca-top";top.className="pca-fl";top.innerHTML='<svg class="ui-icon" aria-hidden="true"><use href="#icon-chevron-up"></use></svg>';top.setAttribute("aria-label","Top");top.onclick=function(){scrollTo({top:0,behavior:"smooth"})};d.body.appendChild(top);
 var ly=scrollY,tk=0;addEventListener("scroll",function(){if(tk)return;tk=requestAnimationFrame(function(){tk=0;var y=scrollY,dy=y-ly;
- if(h){if(y>90&&dy>6)h.classList.add("pca-hide");else if(dy<-6||y<90)h.classList.remove("pca-hide")}
+ if(h&&!window.__pcaScrollV10){if(y>90&&dy>6)h.classList.add("pca-hide");else if(dy<-6||y<90)h.classList.remove("pca-hide")}
  top.classList.toggle("show",y>700&&!d.body.classList.contains("no-bottom-nav"));ly=y})},{passive:true});
 /* selected-package pill on the game detail page */
 var pill=d.createElement("div");pill.id="pca-pill";pill.className="pca-fl";pill.innerHTML="<span></span><button>ဆက်သွားမည်</button>";d.body.appendChild(pill);
@@ -13603,7 +13604,7 @@ html body #pca-pill button{padding:8px 16px !important;font-size:12.5px !importa
  function sched(){if(!t)t=setTimeout(run,150)}
  function init(){
   sched();
-  new MutationObserver(sched).observe(d.body,{childList:true,subtree:true,characterData:true});
+  ['detail-package-list','detail-payment-methods','wallet-topup-payment-methods','app-header','name-check'].forEach(function(id){var n=d.getElementById(id);if(n)new MutationObserver(sched).observe(n,{childList:true,subtree:true,characterData:true})});
   addEventListener('resize',function(){[].forEach.call(d.querySelectorAll(SEL),function(e){e.__mq=null});sched()},{passive:true});
   if(d.fonts&&d.fonts.ready)d.fonts.ready.then(function(){[].forEach.call(d.querySelectorAll(SEL),function(e){e.__mq=null});sched()});
  }
@@ -13914,6 +13915,7 @@ select[data-pcs]{display:none !important}
  var nav=$('bottom-nav'),last=new WeakMap(),tuck=false;
  function setTuck(v){if(v===tuck||!nav)return;tuck=v;nav.classList.toggle('nav-tuck',v);d.body.classList.toggle('nav-tucked',v)}
  d.addEventListener('scroll',function(e){
+  if(window.__pcaScrollV10)return;
   var t=e.target,el=(t===d||t===d.body||t===d.documentElement)?(d.scrollingElement||d.documentElement):t;
   if(!el||el.nodeType!==1)return;
   if(el!==d.scrollingElement&&(el.clientHeight<innerHeight*.5||el.scrollHeight<el.clientHeight*1.2))return;
@@ -14776,5 +14778,189 @@ html body main.content-area>.tab-content:last-child,html body #profile{padding-b
 html body #app-version-footer{margin-bottom:0 !important;padding-bottom:0 !important}
 }</style>
 <script id="pca-search-close">(function(){function w(){var o=window.clearGameSearch;if(typeof o!=="function"||o.__w)return;var f=function(){try{o.apply(this,arguments)}catch(e){}var i=document.getElementById("game-search-input");if(i)i.blur()};f.__w=1;window.clearGameSearch=f}if(document.readyState==="loading")document.addEventListener("DOMContentLoaded",w);else w();setTimeout(w,800)})();</script>
+
+<style id="pca-v10">@layer pcaglass{
+/* =====================================================================
+   v10 — smooth + single-layer glass + clear selection + new Top/Hot
+   (kept in the first cascade layer so it wins over every older patch)
+   ===================================================================== */
+:root{--g10-acc:var(--pca-acc,#2557F5);--g10-rgb:var(--pca-rgb,37,87,245);--g10-ease:cubic-bezier(.32,.72,0,1)}
+
+/* ---------- 0. PERFORMANCE: blur only on header + nav ---------- */
+html body *:not(#app-header):not(.bottom-nav):not(#pca-pill):not(#toast):not(#order-tracker):not(.modal-overlay),
+html body *:not(#app-header):not(.bottom-nav):not(#pca-pill):not(#toast):not(#order-tracker)::before,
+html body *:not(#app-header):not(.bottom-nav):not(#pca-pill):not(#toast):not(#order-tracker)::after{
+  -webkit-backdrop-filter:none !important;backdrop-filter:none !important}
+html body .modal-overlay{-webkit-backdrop-filter:none !important;backdrop-filter:none !important;background:rgba(18,24,48,.42) !important}
+html body .modal-box,html body .success-box{background:linear-gradient(165deg,rgba(255,255,255,.97),rgba(243,247,255,.95)) !important}
+/* aurora background: static (no endless full-screen animation) */
+html body::before{animation:none !important;will-change:auto !important}
+/* wallet ring / halo: static glow instead of endless blur+spin */
+html body nav.bottom-nav :is(.wallet-halo,.wallet-glow,.nav-icon-wrap-wallet,.nav-icon-wrap-wallet::before,.nav-icon-wrap-wallet::after,.nav-icon-wrap-wallet .ui-icon){animation:none !important}
+html body nav.bottom-nav .wallet-halo,html body nav.bottom-nav .wallet-glow{filter:blur(6px) !important;opacity:.55 !important}
+/* page change: fade + 10px lift only (no scale, no overshoot) */
+html body .page-section.active:not(.swipe-left):not(.swipe-right){animation:pcaIn10 .34s var(--g10-ease) both !important}
+@keyframes pcaIn10{from{opacity:0;transform:translate3d(0,10px,0)}to{opacity:1;transform:none}}
+html body :is(#app-header,nav.bottom-nav){will-change:transform,opacity;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+html{-webkit-tap-highlight-color:transparent}
+
+/* ---------- 1. HEADER: one glass plate, slow smooth in/out ---------- */
+html body #app-header{
+  background:linear-gradient(150deg,rgba(255,255,255,.66),rgba(255,255,255,.34)) !important;
+  -webkit-backdrop-filter:blur(18px) saturate(1.7) !important;backdrop-filter:blur(18px) saturate(1.7) !important;
+  border:1px solid rgba(255,255,255,.78) !important;
+  box-shadow:0 12px 28px -14px rgba(30,50,110,.38),inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(255,255,255,.35) !important;
+  transition:transform .6s var(--g10-ease),opacity .5s ease !important}
+html body #app-header::before,html body #app-header::after{display:none !important;content:none !important}
+html body #app-header.header-hidden,
+html body.no-bottom-nav #app-header{transform:translate3d(0,calc(-100% - 28px),0) !important;opacity:0 !important;pointer-events:none !important}
+/* sub pages (game, server, notifications, terms…): header is gone, content starts at the top */
+html body.no-bottom-nav{padding-top:calc(14px + env(safe-area-inset-top,0px)) !important}
+
+/* ---------- 2. NAV BAR: ONE glass plate (no notch mask, no second layer) ---------- */
+html body nav#bottom-nav{background:none !important;border:0 !important;box-shadow:none !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important;border-radius:33px !important;
+  transition:transform .6s var(--g10-ease),opacity .45s ease !important}
+/* ONE glass plate with the wallet notch (ချိုင့်ခွက်) */
+html body nav#bottom-nav::before{content:"" !important;display:block !important;position:absolute !important;inset:0 !important;border-radius:33px !important;pointer-events:none !important;z-index:0 !important;
+  background:linear-gradient(135deg,rgba(255,255,255,.66),rgba(255,255,255,.32) 55%,rgba(196,232,255,.38)) !important;
+  border:1px solid rgba(255,255,255,.85) !important;box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(255,255,255,.3) !important;
+  -webkit-backdrop-filter:blur(20px) saturate(1.8) !important;backdrop-filter:blur(20px) saturate(1.8) !important;
+  -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 124 66' preserveAspectRatio='none'%3E%3Cpath d='M0 0H14C30 0 30 4 34 12C38 22 46 34 62 34C78 34 86 22 90 12C94 4 94 0 110 0H124V66H0Z'/%3E%3C/svg%3E") 50% 0/124px 100% no-repeat,linear-gradient(#000,#000) 0 0/calc(50% - 61px) 100% no-repeat,linear-gradient(#000,#000) 100% 0/calc(50% - 61px) 100% no-repeat !important;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 124 66' preserveAspectRatio='none'%3E%3Cpath d='M0 0H14C30 0 30 4 34 12C38 22 46 34 62 34C78 34 86 22 90 12C94 4 94 0 110 0H124V66H0Z'/%3E%3C/svg%3E") 50% 0/124px 100% no-repeat,linear-gradient(#000,#000) 0 0/calc(50% - 61px) 100% no-repeat,linear-gradient(#000,#000) 100% 0/calc(50% - 61px) 100% no-repeat !important}
+html body nav#bottom-nav::after{display:none !important;content:none !important}
+html body nav#bottom-nav .nav-item:not(.nav-item-wallet).active,
+html body nav#bottom-nav .nav-item:not(.nav-item-wallet):active{
+  background:linear-gradient(160deg,rgba(var(--g10-rgb),.16),rgba(var(--g10-rgb),.07)) !important;
+  border:1px solid rgba(255,255,255,.9) !important;border-radius:25px !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 0 12px rgba(255,255,255,.4),0 6px 14px -8px rgba(var(--g10-rgb),.45) !important;
+  -webkit-backdrop-filter:none !important;backdrop-filter:none !important}
+html body nav.bottom-nav.nav-tuck,html body nav.bottom-nav.nav-hidden{transform:translate3d(0,calc(100% + 44px + env(safe-area-inset-bottom,0px)),0) !important;opacity:0;pointer-events:none}
+
+/* ---------- 3. BACK / FAVORITE: round glass buttons, no text ---------- */
+html body .dhero-top{display:flex;justify-content:space-between;align-items:center;padding:0 2px;margin:0 0 10px !important}
+html body .dhero-top .dh-btn:not(#z){width:46px !important;height:46px !important;min-width:46px !important;padding:0 !important;gap:0 !important;border-radius:50% !important;justify-content:center !important;
+  background:linear-gradient(150deg,rgba(255,255,255,.78),rgba(255,255,255,.38)) !important;border:1px solid rgba(255,255,255,.92) !important;
+  box-shadow:0 10px 22px -10px rgba(30,50,110,.45),inset 0 1px 0 #fff,inset 0 -1px 0 rgba(255,255,255,.4) !important}
+html body .dhero-top .dh-tx{display:none !important}
+html body .dhero-top .dh-ic{width:100% !important;height:100% !important;border-radius:50% !important;background:transparent !important;box-shadow:none !important}
+html body .dhero-top .dh-ic .ui-icon:not(#z){width:22px !important;height:22px !important;stroke:var(--g10-acc) !important;color:var(--g10-acc) !important;stroke-width:2.2 !important}
+html body .dhero-top .dh-fav.active{background:linear-gradient(150deg,rgba(255,236,170,.95),rgba(255,205,90,.6)) !important;border-color:#fff !important}
+html body .dhero-top .dh-fav.active .dh-ic{background:transparent !important;box-shadow:none !important}
+html body .dhero-top .dh-fav.active .dh-ic .ui-icon:not(#z){stroke:#C77A05 !important;color:#C77A05 !important;fill:#F5A623 !important;animation:pcaTick10 .4s cubic-bezier(.2,1.5,.4,1)}
+
+/* ---------- 4. SELECTION = visible glass check ---------- */
+@keyframes pcaTick10{0%{transform:scale(.4);opacity:0}100%{transform:scale(1);opacity:1}}
+html body :is(.payment-option,.pkg-type-tab,.pay-type-tab,.history-status-tab,.history-date-chip,.wallet-preset-chip){position:relative}
+/* rows: hollow ring when free, glass check when chosen */
+html body .payment-option::after{content:"" !important;display:block !important;position:absolute !important;right:9px !important;top:9px !important;width:22px !important;height:22px !important;margin-top:0 !important;border-radius:50% !important;
+  background:rgba(255,255,255,.55) !important;border:2px solid rgba(var(--g10-rgb),.28) !important;box-shadow:inset 0 1px 2px rgba(20,30,70,.08) !important;transition:all .25s var(--g10-ease)}
+html body .payment-option.selected{background:linear-gradient(150deg,rgba(var(--g10-rgb),.14),rgba(255,255,255,.55)) !important;border-color:var(--g10-acc) !important;box-shadow:0 0 0 1px var(--g10-acc),0 10px 22px -12px rgba(var(--g10-rgb),.55),inset 0 1px 0 rgba(255,255,255,.9) !important}
+html body .payment-option.selected::after{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 12.8l4.4 4.4 8.6-9.4'/%3E%3C/svg%3E") center/14px no-repeat,linear-gradient(145deg,#6E9BFF,var(--g10-acc) 60%,#5B4CF0) !important;
+  border:1.5px solid rgba(255,255,255,.95) !important;box-shadow:0 5px 12px -3px rgba(var(--g10-rgb),.6),inset 0 1px 0 rgba(255,255,255,.55) !important;animation:pcaTick10 .35s cubic-bezier(.2,1.5,.4,1)}
+/* package cards: corner glass badge */
+html body .package-card .pc-selected-check{display:none !important}
+html body .package-card.selected .pc-selected-check{display:grid !important;place-items:center;position:absolute !important;top:4px !important;left:4px !important;right:auto !important;bottom:auto !important;width:22px !important;height:22px !important;border-radius:50% !important;z-index:6 !important;opacity:1 !important;
+  background:linear-gradient(145deg,#6E9BFF,var(--g10-acc) 60%,#5B4CF0) !important;border:1.5px solid rgba(255,255,255,.95) !important;box-shadow:0 5px 12px -3px rgba(var(--g10-rgb),.6),inset 0 1px 0 rgba(255,255,255,.55) !important;animation:pcaTick10 .35s cubic-bezier(.2,1.5,.4,1)}
+html body .package-card.selected .pc-selected-check .ui-icon{display:block !important;width:13px !important;height:13px !important;stroke:#fff !important;color:#fff !important;stroke-width:3.2 !important;opacity:1 !important}
+/* tabs / chips: check mark in front of the label */
+html body :is(.pkg-type-tab,.pay-type-tab,.history-status-tab,.history-date-chip,.wallet-preset-chip):is(.active,.selected)::before{content:"" !important;display:inline-block !important;position:static !important;flex:none;width:14px !important;height:14px !important;margin:0 6px 0 0 !important;vertical-align:-2px;
+  background:currentColor !important;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 12.8l4.4 4.4 8.6-9.4'/%3E%3C/svg%3E") center/contain no-repeat !important;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 12.8l4.4 4.4 8.6-9.4'/%3E%3C/svg%3E") center/contain no-repeat !important;
+  width:14px !important;height:14px !important;opacity:1 !important;animation:pcaTick10 .3s cubic-bezier(.2,1.5,.4,1)}
+html body :is(.pkg-type-tab,.pay-type-tab,.history-status-tab,.history-date-chip,.wallet-preset-chip):is(.active,.selected){
+  background:linear-gradient(150deg,var(--pca-lt,#5B8CFF),var(--g10-acc)) !important;color:#fff !important;border-color:rgba(255,255,255,.85) !important;
+  box-shadow:0 8px 18px -8px rgba(var(--g10-rgb),.65),inset 0 1px 0 rgba(255,255,255,.45) !important}
+html body :is(.pkg-type-tab,.history-status-tab,.history-date-chip,.wallet-preset-chip){display:inline-flex;align-items:center;justify-content:center}
+/* custom dropdown (server list) */
+html body .pcs-o{position:relative;padding-right:40px !important}
+html body .pcs-o.sel::after{content:"" !important;position:absolute;right:12px;top:50%;width:20px;height:20px;margin-top:-10px;border-radius:50%;
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 12.8l4.4 4.4 8.6-9.4'/%3E%3C/svg%3E") center/12px no-repeat,linear-gradient(145deg,#6E9BFF,var(--g10-acc));box-shadow:0 4px 10px -3px rgba(var(--g10-rgb),.6)}
+html body svg:has(use[href="#icon-check"]){stroke-width:2.8 !important}
+
+/* ---------- 5. TOP / HOT redesign ---------- */
+html body :is(.gc-b,.pc-tag){display:inline-flex !important;align-items:center;gap:3px;height:19px !important;padding:0 8px 0 6px !important;border-radius:999px !important;font-size:9.5px !important;font-weight:800 !important;letter-spacing:.6px !important;text-transform:uppercase;line-height:1;position:relative;overflow:hidden;
+  border:1px solid rgba(255,255,255,.85) !important;text-shadow:none !important}
+html body :is(.gc-b,.pc-tag) svg{width:11px !important;height:11px !important;flex:none;stroke-width:2 !important}
+html body :is(.gc-b,.pc-tag)::after{content:"";position:absolute;left:0;right:0;top:0;height:50%;background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0));pointer-events:none}
+html body :is(.gc-top,.pc-tag-top){color:#6B3A00 !important;background:linear-gradient(135deg,#FFE9A6,#FFC23C 55%,#F59E0B) !important;box-shadow:0 5px 12px -4px rgba(245,158,11,.75),inset 0 1px 0 rgba(255,255,255,.8) !important}
+html body :is(.gc-top,.pc-tag-top) svg{fill:rgba(255,255,255,.55);stroke:#6B3A00 !important}
+html body :is(.gc-hot,.pc-tag-hot){color:#fff !important;background:linear-gradient(135deg,#FF9A5C,#FF4D4D 55%,#E11D48) !important;box-shadow:0 5px 12px -4px rgba(244,63,94,.8),inset 0 1px 0 rgba(255,255,255,.55) !important}
+html body :is(.gc-hot,.pc-tag-hot) svg{fill:rgba(255,255,255,.35);stroke:#fff !important}
+html body .gc-p{color:#1E40AF !important;background:linear-gradient(135deg,rgba(255,255,255,.9),rgba(191,219,254,.75)) !important;box-shadow:0 4px 10px -4px rgba(37,99,235,.45),inset 0 1px 0 #fff !important}
+html body .gc-p::after{display:none}
+
+/* ---------- 6. ORDER LIST SKELETON ---------- */
+html body .pca-osk{display:flex;flex-direction:column;gap:10px;padding:2px 0}
+html body .pca-osk-chips{display:flex;gap:8px;overflow:hidden;margin:0 0 4px}
+html body .pca-osk-chips i{flex:none;width:72px;height:32px;border-radius:999px}
+html body .pca-osk-row{position:relative;display:flex !important;align-items:center;gap:12px;padding:12px 14px !important;border-radius:22px !important;overflow:hidden;min-height:0 !important;height:auto !important;
+  background:linear-gradient(150deg,rgba(255,255,255,.7),rgba(255,255,255,.4));border:1px solid rgba(255,255,255,.9);box-shadow:0 8px 20px -14px rgba(30,50,110,.35),inset 0 1px 0 #fff}
+html body .pca-osk-row .osk-ic{flex:none;width:46px;height:46px;border-radius:15px}
+html body .pca-osk-row .osk-tx{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+html body .pca-osk-row .osk-tx b{display:block;height:11px;border-radius:6px}
+html body .pca-osk-row .osk-tx b:first-child{width:62%}
+html body .pca-osk-row .osk-tx b:last-child{width:38%;height:9px}
+html body .pca-osk-row .osk-pr{flex:none;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+html body .pca-osk-row .osk-pr b{display:block;width:58px;height:11px;border-radius:6px}
+html body .pca-osk-row .osk-pr b+b{width:44px;height:18px;border-radius:999px}
+html body .pca-osk :is(.osk-ic,b,i){background:rgba(120,138,190,.16)}
+html body .pca-osk-row::after,html body .pca-osk-chips::after{content:"";position:absolute;inset:0;background:linear-gradient(100deg,transparent 30%,rgba(255,255,255,.75) 50%,transparent 70%);transform:translate3d(-100%,0,0);animation:pcaOsk 1.5s ease-in-out infinite;pointer-events:none}
+html body .pca-osk-chips{position:relative}
+@keyframes pcaOsk{to{transform:translate3d(100%,0,0)}}
+
+/* ---------- 7. TAP RIPPLE (slow wave) ---------- */
+html body .pca-rip-wrap{position:absolute;inset:0;overflow:hidden;border-radius:inherit;pointer-events:none;z-index:7}
+html body .pca-rip{position:absolute;border-radius:50%;pointer-events:none;transform:translate(-50%,-50%) scale(0);will-change:transform,opacity;
+  background:radial-gradient(circle,rgba(var(--g10-rgb),.30) 0,rgba(var(--g10-rgb),.16) 42%,rgba(var(--g10-rgb),0) 70%);animation:pcaRip10 1s cubic-bezier(.22,.7,.3,1) forwards}
+html body .pca-rip.r2{background:none;border:2px solid rgba(var(--g10-rgb),.28);animation-duration:1.15s;animation-delay:.1s}
+@keyframes pcaRip10{0%{transform:translate(-50%,-50%) scale(0);opacity:1}100%{transform:translate(-50%,-50%) scale(1);opacity:0}}
+@media(prefers-reduced-motion:reduce){html body .pca-rip,html body .pca-osk-row::after{animation:none !important}}
+}
+</style>
+<script id="pca-v10-js">(function(){
+ var d=document,w=window;
+ w.__pcaScrollV10=true;
+ /* ---- 1. one scroll controller: header + nav hide/show together, with hysteresis ---- */
+ var hdr=d.getElementById('app-header'),nav=d.getElementById('bottom-nav'),lastY=w.scrollY||0,acc=0,hid=false,tk=0;
+ function setHidden(v){
+  if(v===hid)return;hid=v;
+  if(hdr)hdr.classList.toggle('header-hidden',v);
+  if(nav)nav.classList.toggle('nav-tuck',v);
+  d.body.classList.toggle('nav-tucked',v);
+ }
+ function onScroll(){
+  tk=0;var y=w.scrollY||0,dy=y-lastY;lastY=y;
+  if(y<70){acc=0;setHidden(false);return}
+  if((dy>0)!==(acc>0))acc=0;
+  acc+=dy;
+  if(acc>56)setHidden(true);else if(acc<-32)setHidden(false);
+ }
+ w.addEventListener('scroll',function(){if(!tk)tk=requestAnimationFrame(onScroll)},{passive:true});
+ /* page switch / typing: always bring them back */
+ var _sp=w.showPage;
+ if(typeof _sp==='function'){w.showPage=function(){acc=0;lastY=0;setHidden(false);return _sp.apply(this,arguments)}}
+ if(nav)nav.addEventListener('click',function(){setTimeout(function(){setHidden(false)},0)});
+ d.addEventListener('focusin',function(e){if(/^(INPUT|TEXTAREA)$/.test(e.target.tagName)&&nav){nav.classList.add('nav-tuck')}});
+ d.addEventListener('focusout',function(){setTimeout(function(){if(!hid&&nav)nav.classList.remove('nav-tuck')},80)});
+
+ /* ---- 2. tap ripple on tab buttons / grid cells ---- */
+ var SEL='.history-status-tab,.history-date-chip,.pkg-type-tab,.pay-type-tab,.htab,.nav-item:not(.nav-item-wallet),.payment-option,.package-card,.wallet-preset-chip,.pcs-t,.pcs-o,.prefs-tile,.btn';
+ d.addEventListener('pointerdown',function(e){
+  var t=e.target&&e.target.closest?e.target.closest(SEL):null;
+  if(!t||t.disabled||t.classList.contains('out-of-stock'))return;
+  var r=t.getBoundingClientRect();if(!r.width||!r.height)return;
+  if(getComputedStyle(t).position==='static')t.style.position='relative';
+  var wrap=t.querySelector(':scope>.pca-rip-wrap');
+  if(!wrap){wrap=d.createElement('span');wrap.className='pca-rip-wrap';wrap.setAttribute('aria-hidden','true');t.appendChild(wrap)}
+  var x=e.clientX-r.left,y=e.clientY-r.top;
+  var far=Math.max(Math.hypot(x,y),Math.hypot(r.width-x,y),Math.hypot(x,r.height-y),Math.hypot(r.width-x,r.height-y));
+  var s=Math.ceil(far*2);
+  ['','r2'].forEach(function(c){
+   var p=d.createElement('i');p.className='pca-rip '+c;
+   p.style.cssText='left:'+x+'px;top:'+y+'px;width:'+s+'px;height:'+s+'px';
+   wrap.appendChild(p);
+   setTimeout(function(){if(p.parentNode)p.parentNode.removeChild(p)},1400);
+  });
+ },{passive:true});
+})();
+</script>
 </body>
 </html>
