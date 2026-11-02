@@ -15921,5 +15921,96 @@ html[data-theme="dark"] body #onboarding-overlay #onboard-step-login .ob-plate:l
 function ctx(){var e=false;try{e=!!localStorage.getItem('pca_ever_login');}catch(_){}var v=e?'link':'first';if(ov.getAttribute('data-ctx')!==v)ov.setAttribute('data-ctx',v);}
 ctx();new MutationObserver(ctx).observe(ov,{attributes:true,attributeFilter:['style']});})();
 </script>
+
+<style id="pca-header-logo-center">
+/* =========================================================
+   Header logo + text — vertically centered (true middle)
+   ========================================================= */
+html body header#app-header,
+html body #app-header{
+  display: flex !important;
+  align-items: center !important;
+  justify-content: space-between !important;
+}
+
+html body header#app-header .header-row{
+  display: contents !important;
+}
+
+html body header#app-header .header-brand,
+html body header#app-header .pi,
+html body header#app-header #pca-intro{
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  align-self: center !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  line-height: 1 !important;
+  position: relative !important;
+  top: auto !important;
+  bottom: auto !important;
+  transform: none !important;
+}
+
+/* Logo image — middle of header */
+html body header#app-header .hb-logo,
+html body header#app-header #hb-logo,
+html body header#app-header .pi .hb-logo{
+  display: block !important;
+  height: 40px !important;
+  max-height: 42px !important;
+  width: auto !important;
+  margin: 0 !important;
+  padding: 0 !important;
+  object-fit: contain !important;
+  object-position: center center !important;
+  align-self: center !important;
+  position: relative !important;
+  top: auto !important;
+  transform: none !important;
+  vertical-align: middle !important;
+}
+
+/* Intro overlay text/dots also centered with logo */
+html body header#app-header .pi-over{
+  position: absolute !important;
+  left: 0 !important;
+  top: 50% !important;
+  bottom: auto !important;
+  transform: translateY(-50%) !important;
+  display: flex !important;
+  align-items: center !important;
+  height: auto !important;
+  margin: 0 !important;
+}
+
+html body header#app-header .pi-txt{
+  display: flex !important;
+  align-items: center !important;
+  height: 22px !important;
+  line-height: 22px !important;
+  margin: 0 !important;
+}
+
+html body header#app-header .pi-dots{
+  display: flex !important;
+  align-items: center !important;
+  margin: 0 !important;
+}
+
+/* Right icons stay vertically centered too */
+html body header#app-header .header-icons-group{
+  display: flex !important;
+  align-items: center !important;
+  align-self: center !important;
+  height: 100% !important;
+  margin: 0 !important;
+}
+</style>
+
 </body>
 </html>
