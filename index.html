@@ -15138,29 +15138,71 @@ html body .profile-card.pca-sk-av .avatar-upload-circle::after{content:"";positi
 <script id="pca-v10-js">(function(){
  var d=document,w=window;
  w.__pcaScrollV10=true;
- /* ---- 1. one scroll controller: header + nav hide/show together, with hysteresis ---- */
- var hdr=d.getElementById('app-header'),nav=d.getElementById('bottom-nav'),lastY=w.scrollY||0,acc=0,hid=false,tk=0;
- function setHidden(v){
-  if(v===hid)return;hid=v;
-  if(hdr)hdr.classList.toggle('header-hidden',v);
-  if(nav)nav.classList.toggle('nav-tuck',v);
-  d.body.classList.toggle('nav-tucked',v);
+ /* ---- 1. one scroll controller: header + nav ride the finger (transform only), then glide to rest.
+        No body/header class toggles and no :has() invalidation while moving. ---- */
+ var hdr=d.getElementById('app-header'),nav=d.getElementById('bottom-nav'),
+     lastY=Math.max(0,w.scrollY||0),hid=false,tk=0,pf=0,idleT=0,mvT=0,HH=0,NH=0,TD=74,kbd=false,EASE='transform 1.05s cubic-bezier(.25,.8,.25,1),opacity .7s ease';
+ function measure(){
+  if(hdr)HH=hdr.offsetHeight+(parseFloat(getComputedStyle(hdr).top)||10)+12;
+  if(nav)NH=nav.offsetHeight+(parseFloat(getComputedStyle(nav).bottom)||12)+44;
+  TD=Math.max(40,HH-6);
+ }
+ function tbs(){return d.querySelectorAll('.htabs-wrap')}
+ function mv(on){if(hdr)hdr.classList.toggle('pca-mv',on);if(nav)nav.classList.toggle('pca-mv',on);var l=tbs();for(var i=0;i<l.length;i++)l[i].classList.toggle('pca-mv',on)}
+ function putT(y,mode){var l=tbs();for(var i=0;i<l.length;i++){var st=l[i].style;st.setProperty('transition',mode===true?EASE:'transform .27s cubic-bezier(.2,.7,.3,1)','important');st.setProperty('transform','translate3d(0,'+y.toFixed(1)+'px,0)','important')}}
+ function clearT(){var l=tbs();for(var i=0;i<l.length;i++){l[i].style.removeProperty('transform');l[i].style.removeProperty('transition')}}
+ function tabs(up){
+    var pl=d.getElementById('pca-pill');if(pl)pl.classList.toggle('pca-down',up);
+ }
+ function clearInline(el){if(!el)return;var st=el.style;st.removeProperty('transform');st.removeProperty('opacity');st.removeProperty('transition');st.removeProperty('pointer-events')}
+ function put(el,y,op,anim,off){
+  if(!el)return;var st=el.style;
+  st.setProperty('transition',anim===true?EASE:anim==='f'?'transform .27s cubic-bezier(.2,.7,.3,1),opacity .27s ease-out':'none','important');
+  st.setProperty('transform','translate3d(0,'+y.toFixed(1)+'px,0)','important');
+  st.setProperty('opacity',op.toFixed(2),'important');
+  st.setProperty('pointer-events',off?'none':'auto','important');
+ }
+ function track(p){
+  pf=p<0?0:p>1?1:p;
+  var op=pf>=.98?0:1-pf*.85;
+  clearTimeout(mvT);mv(true);
+  put(hdr,-pf*HH,op,'f',pf>.9);
+  put(nav,kbd?NH:pf*NH,kbd?0:op,'f',kbd||pf>.9);
+  putT(-pf*TD,'f');
+ }
+ function settle(hide){
+  idleT=0;hid=hide;pf=hide?1:0;
+  clearTimeout(mvT);
+  if(d.body.classList.contains('no-bottom-nav')){clearInline(hdr);clearInline(nav);clearT();mv(false);return}
+  if(!HH)measure();
+  mv(true);
+  put(hdr,hide?-HH:0,hide?0:1,true,hide);
+  put(nav,(hide||kbd)?NH:0,(hide||kbd)?0:1,true,hide||kbd);
+  putT(hide?-TD:0,true);
+  tabs(hide);
+  mvT=setTimeout(function(){mv(false);if(!hide&&!kbd){clearInline(hdr);clearInline(nav)}if(!hide)clearT()},1120);
  }
  function onScroll(){
-  tk=0;var y=w.scrollY||0,dy=y-lastY;lastY=y;
-  if(y<40){acc=0;setHidden(false);return}
-  if(!dy)return;
-  if((dy>0)!==(acc>0))acc=0;
-  acc+=dy;
-  if(acc>10)setHidden(true);else if(acc<-6)setHidden(false);
+  tk=0;
+  var max=Math.max(0,d.documentElement.scrollHeight-w.innerHeight),y=w.scrollY||0;
+  if(y<0||y>max+1){lastY=Math.min(Math.max(y,0),max);return} /* iOS rubber-band */
+  var dy=y-lastY;lastY=y;
+  if(y<40){if(pf||hid)settle(false);return}
+  if(Math.abs(dy)<.3)return;
+  if(!HH)measure();
+  track(pf+(dy>0?dy/45:dy/32));
+  clearTimeout(idleT);idleT=setTimeout(function(){settle(pf>.4)},180);
  }
  w.addEventListener('scroll',function(){if(!tk)tk=requestAnimationFrame(onScroll)},{passive:true});
+ w.addEventListener('resize',function(){HH=0});
  /* page switch / typing: always bring them back */
  var _sp=w.showPage;
- if(typeof _sp==='function'){w.showPage=function(){acc=0;lastY=0;setHidden(false);return _sp.apply(this,arguments)}}
- if(nav)nav.addEventListener('click',function(){setTimeout(function(){setHidden(false)},0)});
- d.addEventListener('focusin',function(e){if(/^(INPUT|TEXTAREA)$/.test(e.target.tagName)&&nav){nav.classList.add('nav-tuck')}});
- d.addEventListener('focusout',function(){setTimeout(function(){if(!hid&&nav)nav.classList.remove('nav-tuck')},80)});
+ if(typeof _sp==='function'){w.showPage=function(){lastY=0;clearTimeout(idleT);settle(false);return _sp.apply(this,arguments)}}
+ if(nav)nav.addEventListener('click',function(){setTimeout(function(){settle(false)},0)});
+ var nb=d.body.classList.contains('no-bottom-nav');
+ new MutationObserver(function(){var n=d.body.classList.contains('no-bottom-nav');if(n===nb)return;nb=n;clearTimeout(idleT);lastY=w.scrollY||0;settle(false)}).observe(d.body,{attributes:true,attributeFilter:['class']});
+ d.addEventListener('focusin',function(e){if(/^(INPUT|TEXTAREA)$/.test(e.target.tagName)&&nav){kbd=true;settle(hid)}});
+ d.addEventListener('focusout',function(){setTimeout(function(){if(!kbd)return;kbd=false;settle(hid)},80)});
 
  /* ---- 2. tap ripple on tab buttons / grid cells ---- */
  var SEL='button,[onclick],[role="button"],a[href],label,.nav-item:not(.nav-item-wallet),.htab,.history-status-tab,.history-date-chip,.pkg-type-tab,.pay-type-tab,.payment-option,.package-card,.wallet-preset-chip,.pcs-t,.pcs-o,.btn,.game-card,.menu-item,.profile-item,.setting-item';
@@ -15921,96 +15963,113 @@ html[data-theme="dark"] body #onboarding-overlay #onboard-step-login .ob-plate:l
 function ctx(){var e=false;try{e=!!localStorage.getItem('pca_ever_login');}catch(_){}var v=e?'link':'first';if(ov.getAttribute('data-ctx')!==v)ov.setAttribute('data-ctx',v);}
 ctx();new MutationObserver(ctx).observe(ov,{attributes:true,attributeFilter:['style']});})();
 </script>
+<style id="pca-v11-fix">@layer pcamine{
+/* ===== v11: header brand alignment · scroll-follow header/nav · true circles · centred icons · transparent logo plates ===== */
 
-<style id="pca-header-logo-center">
-/* =========================================================
-   Header logo + text — vertically centered (true middle)
-   ========================================================= */
-html body header#app-header,
-html body #app-header{
-  display: flex !important;
-  align-items: center !important;
-  justify-content: space-between !important;
-}
+/* ---- 1. HEADER: logo + text were pinned to the top by the old #pca-intro{position:absolute;top:0;height:22px} rule ---- */
+html body header#app-header:not(#z):not(#y){align-items:center !important}
+html body header#app-header .header-row:not(#z):not(#y){display:contents !important}
+html body header#app-header .header-brand:not(#z):not(#y){display:flex !important;align-items:center !important;align-self:center !important;height:100% !important;min-width:0 !important;margin:0 !important;padding:0 !important;position:static !important;overflow:visible !important}
+html body header#app-header #pca-intro:not(#z):not(#y){position:relative !important;top:auto !important;left:auto !important;right:auto !important;bottom:auto !important;
+  height:48px !important;min-width:min(215px,100%) !important;max-width:100% !important;width:auto !important;margin:0 !important;padding:0 !important;display:flex !important;align-items:center !important;
+  overflow:hidden !important;white-space:nowrap;background:none !important;border:0 !important;box-shadow:none !important;filter:none !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important;pointer-events:none}
+html body header#app-header #pca-intro .pi-over:not(#z){top:0 !important;bottom:0 !important;left:0 !important;align-items:center !important;background:none !important;border:0 !important;box-shadow:none !important}
+html body header#app-header #pca-intro .pi-txt:not(#z),html body header#app-header #pca-intro .pi-dots:not(#z){background:none !important;box-shadow:none !important;align-items:center}
+/* logo itself: no plate, no ring, no blend – the glass header shows through a transparent PNG */
+html body header#app-header .hb-logo:not(#z):not(#y){height:44px !important;max-height:46px !important;width:auto !important;max-width:100% !important;margin:0 !important;padding:0 !important;display:block !important;flex:none;align-self:center;
+  object-fit:contain !important;background:none !important;border:0 !important;outline:0 !important;border-radius:0 !important;box-shadow:none !important;filter:none !important;mix-blend-mode:normal !important;backface-visibility:hidden;-webkit-backface-visibility:hidden}
 
-html body header#app-header .header-row{
-  display: contents !important;
-}
+/* ---- 2. HEADER + NAV motion: transform-only on its own layer; blur is switched off while it moves ---- */
+html body:not(.no-bottom-nav) :is(header#app-header,nav#bottom-nav):not(#z):not(#y){
+  transition:transform 1.05s cubic-bezier(.25,.8,.25,1),opacity .7s ease !important;
+  will-change:transform,opacity;contain:layout style;transform-origin:50% 50%}
+html body :is(header#app-header,nav#bottom-nav).pca-mv:not(#z):not(#y){-webkit-backdrop-filter:none !important;backdrop-filter:none !important}
+html body header#app-header.pca-mv:not(#z):not(#y){background:rgba(247,249,255,.94) !important}
+html body nav#bottom-nav.pca-mv:not(#z):not(#y)::before{-webkit-backdrop-filter:none !important;backdrop-filter:none !important;background:rgba(247,249,255,.94) !important}
+html[data-theme="dark"] body header#app-header.pca-mv:not(#z):not(#y){background:rgba(19,28,46,.95) !important}
+html[data-theme="dark"] body nav#bottom-nav.pca-mv:not(#z):not(#y)::before{background:rgba(19,28,46,.95) !important}
+/* sticky tab bar + floating pill follow the header without any body:has() / body class switch */
+html body .htabs-wrap.pca-mv:not(#z):not(#y){-webkit-backdrop-filter:none !important;backdrop-filter:none !important;will-change:transform}
+html body #pca-pill.show.pca-down:not(.pca-hold):not(#z){transform:translateY(64px)}
+@media (prefers-reduced-motion:reduce){html body:not(.no-bottom-nav) :is(header#app-header,nav#bottom-nav):not(#z):not(#y){transition-duration:.01s !important}}
 
-html body header#app-header .header-brand,
-html body header#app-header .pi,
-html body header#app-header #pca-intro{
-  display: flex !important;
-  align-items: center !important;
-  justify-content: flex-start !important;
-  align-self: center !important;
-  height: auto !important;
-  min-height: 0 !important;
-  max-height: 100% !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  line-height: 1 !important;
-  position: relative !important;
-  top: auto !important;
-  bottom: auto !important;
-  transform: none !important;
-}
+/* ---- 3. TRUE CIRCLES: guide/close buttons held an icon AND a "Close" word inside a 32px circle ---- */
+html body :is(.guide-card-close,.tab-back-btn)>span:not(#z):not(#y){display:none !important}
+html body .guide-card-close:not(#z):not(#y){display:none !important}
+html body .support-guide-item.open .guide-card-close:not(#z):not(#y){display:flex !important}
+html body :is(.guide-card-close,.modal-close):not(#z):not(#y):not(#x){width:32px !important;height:32px !important;min-width:32px !important;min-height:32px !important;padding:0 !important;gap:0 !important;border-radius:50% !important}
+/* the avatar "circles" were squircles (30%) */
+html body :is(.avatar-upload-circle,.avatar-upload-circle img,.header-profile-avatar,.header-profile-avatar img,.pc-avatar-wrap,.pc-avatar-wrap img):not(#z):not(#y){border-radius:50% !important}
+html body :is(.avatar-upload-badge,.avatar-upload-placeholder):not(#z):not(#y){border-radius:50% !important}
 
-/* Logo image — middle of header */
-html body header#app-header .hb-logo,
-html body header#app-header #hb-logo,
-html body header#app-header .pi .hb-logo{
-  display: block !important;
-  height: 40px !important;
-  max-height: 42px !important;
-  width: auto !important;
-  margin: 0 !important;
-  padding: 0 !important;
-  object-fit: contain !important;
-  object-position: center center !important;
-  align-self: center !important;
-  position: relative !important;
-  top: auto !important;
-  transform: none !important;
-  vertical-align: middle !important;
-}
+/* ---- 4. ICONS: dead-centre inside every round/tile button ---- */
+html body :is(.header-icon,.tab-back-btn,.modal-close,.guide-card-close,.pm-copy-btn,.voucher-copy-btn,.pt-ic,.ch-ic,.qa-ic,.wf-act-ic,.rdm-ic,.htab-ic,.notif-order-ic,.wbc2-ic,.wallet-balance-icon,.wallet-topup-row-icon,.wallet-topup-btn-icon,.social-link-icon,.payment-option-icon,.upload-shot-icon,.empty-state-icon,.auth-gate-icon,.game-desc-head-icon,.hdr-dep,.avatar-upload-badge,.profile-hero-edit-btn,.game-card-pin-badge,.toast-icon-circle,.dh-ic,.nav-icon-wrap):not(#z):not(#y):not(#x):not(#w){
+  align-items:center !important;justify-content:center !important;line-height:0 !important;text-align:center;box-sizing:border-box !important}
+html body :is(.header-icon,.tab-back-btn,.modal-close,.guide-card-close,.pm-copy-btn,.voucher-copy-btn,.pt-ic,.ch-ic,.qa-ic,.wf-act-ic,.rdm-ic,.htab-ic,.notif-order-ic,.wbc2-ic,.wallet-balance-icon,.wallet-topup-row-icon,.wallet-topup-btn-icon,.social-link-icon,.payment-option-icon,.upload-shot-icon,.empty-state-icon,.auth-gate-icon,.game-desc-head-icon,.hdr-dep,.avatar-upload-badge,.profile-hero-edit-btn,.game-card-pin-badge,.toast-icon-circle,.dh-ic,.nav-icon-wrap)>:is(svg,.ui-icon,.svg-icon):not(#z):not(#y):not(#x){
+  display:block !important;flex:none !important;margin:0 !important;position:static !important;inset:auto !important;vertical-align:middle}
+html body .dhero-top .dh-btn:not(#z):not(#y):not(#x){display:flex !important;align-items:center !important;justify-content:center !important;padding:0 !important;gap:0 !important}
+html body .dh-btn .dh-ic:not(#z):not(#y){width:100% !important;height:100% !important;background:none !important;border:0 !important;box-shadow:none !important;border-radius:0 !important}
+html body .dhero-top .dh-btn .ui-icon:not(#z):not(#y){width:22px !important;height:22px !important}
+/* inbox red dot sits on the circle's rim, not on the icon */
+html body header#app-header .header-icon:not(#z):not(#y){position:relative !important;overflow:visible !important}
+html body header#app-header .header-icon>.ui-icon:not(#z):not(#y){width:22px !important;height:22px !important}
+html body header#app-header #notif-badge-header.show:not(#z){top:1px !important;right:1px !important}
 
-/* Intro overlay text/dots also centered with logo */
-html body header#app-header .pi-over{
-  position: absolute !important;
-  left: 0 !important;
-  top: 50% !important;
-  bottom: auto !important;
-  transform: translateY(-50%) !important;
-  display: flex !important;
-  align-items: center !important;
-  height: auto !important;
-  margin: 0 !important;
-}
-
-html body header#app-header .pi-txt{
-  display: flex !important;
-  align-items: center !important;
-  height: 22px !important;
-  line-height: 22px !important;
-  margin: 0 !important;
-}
-
-html body header#app-header .pi-dots{
-  display: flex !important;
-  align-items: center !important;
-  margin: 0 !important;
-}
-
-/* Right icons stay vertically centered too */
-html body header#app-header .header-icons-group{
-  display: flex !important;
-  align-items: center !important;
-  align-self: center !important;
-  height: 100% !important;
-  margin: 0 !important;
-}
-</style>
+/* ---- 5. LOGO PLATES: no forced white (light) / black (dark) disc behind a transparent logo ---- */
+html body #onboarding-overlay .onboarding-logo:not(#z):not(#y),
+html[data-theme="dark"] body #onboarding-overlay .onboarding-logo:not(#z):not(#y):not(#x){background:transparent !important;border-radius:24px !important}
+html body #onboarding-overlay .onboarding-logo:not(#z):not(#y) img{border-radius:0 !important;object-fit:contain !important;background:none !important}
+html body #onboarding-overlay[data-ctx="link"] .onboarding-logo:not(#z):not(#y){border:0 !important}
+html body #onboarding-overlay[data-ctx="first"] .onboarding-logo:not(#z):not(#y){box-shadow:none !important}
+html[data-theme="dark"] body #onboarding-overlay .onboarding-logo:not(#z):not(#y):not(#x){box-shadow:none !important}
+/* never stack skeleton / default badge / image on top of each other */
+html body .onboarding-logo:has(#onboarding-logo-img[style*="block"]) :is(#onboarding-logo-skeleton,#onboarding-logo-default-icon):not(#z){display:none !important}
+html body #onboarding-logo-skeleton[style*="display: none"]:not(#z){display:none !important}
+html body #onboarding-logo-default-icon[style*="display: none"]:not(#z){display:none !important}
+html body #onboarding-logo-skeleton:not(#z){background:transparent !important;animation:none !important}
+}</style>
+<script id="pca-v11-js">
+/* Round-corner sanitiser: a % border-radius on a NON-square box draws an egg. Convert to px radius (min side x %).
+   Runs only in idle time, in small chunks, and only for newly added nodes / page switches - never during scroll. */
+(function(){
+ var d=document,w=window,done=new WeakMap(),work=[],busy=false,t0=0;
+ function fix(el){
+  if(!el||el.nodeType!==1||!el.isConnected||el.namespaceURI==='http://www.w3.org/2000/svg')return;
+  if(el.id==='app-header'||el.id==='bottom-nav')return;
+  var r=el.getBoundingClientRect(),W=r.width,H=r.height;
+  if(W<10||H<10||W>320||H>320)return;
+  var key=((W+.5)|0)+'x'+((H+.5)|0);if(done.get(el)===key)return;done.set(el,key);
+  if(Math.abs(W-H)<=1.5)return;
+  var cs=getComputedStyle(el),br=cs.borderTopLeftRadius||'';
+  if(br.indexOf('%')<0)return;
+  var pct=parseFloat(br);if(!(pct>0))return;
+  if(cs.filter&&cs.filter.indexOf('blur')>-1)return;
+  el.style.setProperty('border-radius',(Math.min(W,H)*pct/100).toFixed(1)+'px','important');
+ }
+ function collect(root){
+  if(root.nodeType!==1)return;
+  work.push(root);var l=root.querySelectorAll('[class]');for(var i=0;i<l.length;i++)work.push(l[i]);
+ }
+ function step(dl){
+  var n=0;
+  while(work.length&&n<120&&(!dl||dl.timeRemaining()>3)){fix(work.pop());n++}
+  if(work.length)sched();else busy=false;
+ }
+ function sched(){w.requestIdleCallback?requestIdleCallback(step,{timeout:500}):setTimeout(step,60)}
+ function queue(root){collect(root);if(!busy){busy=true;sched()}}
+ var rescanT=0;function rescan(){clearTimeout(rescanT);rescanT=setTimeout(function(){done=new WeakMap();queue(d.body)},350)}
+ function init(){
+  queue(d.body);
+  new MutationObserver(function(ms){
+   for(var i=0;i<ms.length;i++){var a=ms[i].addedNodes;for(var k=0;k<a.length;k++)if(a[k].nodeType===1)queue(a[k])}
+  }).observe(d.body,{childList:true,subtree:true});
+  w.addEventListener('load',function(){setTimeout(function(){queue(d.body)},500)});
+  w.addEventListener('resize',rescan);
+  d.addEventListener('click',function(){setTimeout(function(){queue(d.body)},420)},true); /* page / modal switches */
+ }
+ if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
 
 </body>
 </html>
