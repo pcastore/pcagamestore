@@ -4,7 +4,7 @@
 <script>/* vibration temporarily disabled */try{Object.defineProperty(navigator,'vibrate',{value:function(){return false},configurable:true,writable:true})}catch(e){try{navigator.vibrate=function(){return false}}catch(_){}}</script>
 <style id="pca-layer-order">@layer pcamine,pcaglass,pcafix,legacy,tokens,base,layout,motion,components,pages,utilities;</style>
 <script id="pca-check-js">
-window.PCA_CK='<svg class="pca-ck" viewBox="0 0 24 24" aria-hidden="true"><path pathLength="1" d="M5.3 12.9l4.3 4.3 9.1-9.9"/></svg>';
+window.PCA_CK='<svg class="pca-ck" viewBox="0 0 24 24" aria-hidden="true"><path pathLength="1" d="M6.4 12.8l3.7 3.7 7.5-8.2"/></svg>';
 window.pcaStatusText=function(el,text){if(!el)return;text=String(text==null?'':text);
   if(/\s*\u2713$/.test(text)){el.textContent=text.replace(/\s*\u2713$/,'');el.insertAdjacentHTML('beforeend',' '+window.PCA_CK)}else el.innerText=text};
 </script>
@@ -2316,7 +2316,7 @@ html.logged-out #profile>:not(.title-header):not(.auth-gate):not(.modal-overlay)
         <symbol id="icon-haptic" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="3" width="10" height="18" rx="2.4"/><path d="M11 18h2M3.5 9v6M20.5 9v6"/></symbol>
         <symbol id="icon-inbox" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.7 1.1z"/></symbol>
         <symbol id="icon-bell" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></symbol>
-        <symbol id="icon-check" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path pathLength="1" d="M5.3 12.9l4.3 4.3 9.1-9.9"/></symbol>
+        <symbol id="icon-check" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path pathLength="1" d="M6.4 12.8l3.7 3.7 7.5-8.2"/></symbol>
         <symbol id="icon-refresh" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/></symbol>
         <symbol id="icon-rocket" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2.1-.1-2.9a2.2 2.2 0 0 0-2.9-.1zM12 15l-3-3a22 22 0 0 1 2-3.9A12.9 12.9 0 0 1 22 2c0 2.7-.8 7.5-6 11a22 22 0 0 1-4 2zM9 12H4s.6-3 2-4c1.6-1.1 5 0 5 0M12 15v5s3-.6 4-2c1.1-1.6 0-5 0-5"/></symbol>
         <symbol id="icon-megaphone" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v3a1 1 0 0 0 1 1h2l8 4V6L6 10H4a1 1 0 0 0-1 1zM17.5 9a4 4 0 0 1 0 6M20 6.5a7.5 7.5 0 0 1 0 11"/></symbol>
@@ -2406,6 +2406,7 @@ html.logged-out #profile>:not(.title-header):not(.auth-gate):not(.modal-overlay)
         
         <!-- Balance + section tabs: live OUTSIDE the pages so they never disappear when switching Popular / Top Up / Voucher. -->
         <div id="hdr-bal" hidden aria-hidden="true"><span id="home-balance-amount">0 MMK</span></div>
+        <div id="htabs-sentinel" aria-hidden="true" style="height:0;margin:0;padding:0;border:0;pointer-events:none"></div>
         <div class="htabs-wrap" id="home-tabs-wrap">
             <div class="htabs" id="home-tabs" role="tablist" aria-label="Home sections">
                 <button type="button" class="htab active" data-htab="popular" role="tab" aria-selected="true" onclick="pcaHomeTab('popular')"><span class="htab-ic"><svg class="ui-icon"><use href="#icon-star"></use></svg></span><span class="htab-t">Popular</span></button>
@@ -2576,7 +2577,7 @@ html.logged-out #profile>:not(.title-header):not(.auth-gate):not(.modal-overlay)
                                 <div class="pmx-head">
                                     <span class="pmx-logo" id="wallet-pm-logo"><b>K</b><img alt="" src="" style="display:none"></span>
                                     <span class="pmx-ttl"><strong id="wallet-pm-brand">Payment</strong><small id="wallet-pm-sub">Mobile wallet</small></span>
-                                    <span class="pmx-ver"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path pathLength="1" d="M5.3 12.9l4.3 4.3 9.1-9.9"/></svg>Verified</span>
+                                    <span class="pmx-ver"><i class="pmx-vk" aria-hidden="true"><svg viewBox="0 0 24 24"><path pathLength="1" d="M6.4 12.8l3.7 3.7 7.5-8.2"/></svg></i>Verified</span>
                                 </div>
                                 <div class="pmx-qrpanel">
                                     <div class="pmx-qrbox"><i class="c1"></i><i class="c2"></i><i class="c3"></i><i class="c4"></i>
@@ -3381,7 +3382,7 @@ b,strong{font-weight:600}
                 <h3 class="detail-section-title" data-i18n="sec_how_pay">How do you want to pay?</h3>
                 <div class="pay-type-tabs" id="detail-pay-type-tabs">
                     <button type="button" class="pay-type-tab" data-type="wallet" onclick="choosePaymentType('wallet')"><span class="ptab-ic"><svg class="ui-icon"><use href="#icon-wallet"></use></svg></span><span class="ptab-tx">Wallet Balance</span></button>
-                    <button type="button" class="pay-type-tab" data-type="payment" onclick="choosePaymentType('payment')"><span class="ptab-ic"><svg class="ui-icon"><use href="#icon-card"></use></svg></span><span class="ptab-tx">Kpay / Wave / etc.</span></button>
+                    <button type="button" class="pay-type-tab" data-type="payment" onclick="choosePaymentType('payment')"><span class="ptab-ic"><svg class="ui-icon"><use href="#icon-card"></use></svg></span><span class="ptab-tx">Payments</span></button>
                 </div>
 
                 <!-- WALLET: shown when the customer chooses to pay from their
@@ -3401,7 +3402,7 @@ b,strong{font-weight:600}
                             <div class="pmx-head">
                                 <span class="pmx-logo" id="pm-logo"><b>K</b><img alt="" src="" style="display:none"></span>
                                 <span class="pmx-ttl"><strong id="pm-brand">Payment</strong><small id="pm-sub">Mobile wallet</small></span>
-                                <span class="pmx-ver"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path pathLength="1" d="M5.3 12.9l4.3 4.3 9.1-9.9"/></svg>Verified</span>
+                                <span class="pmx-ver"><i class="pmx-vk" aria-hidden="true"><svg viewBox="0 0 24 24"><path pathLength="1" d="M6.4 12.8l3.7 3.7 7.5-8.2"/></svg></i>Verified</span>
                             </div>
                             <div class="pmx-mid">
                                 <div class="pmx-qrcard"><img id="pm-qr" src="" alt="QR code" class="pmx-qr" style="display:none"></div>
@@ -4058,6 +4059,9 @@ b,strong{font-weight:600}
             const GAMES_PAGES = ['home', 'voucher', 'game-detail'];
             if (GAMES_PAGES.includes(pageId) && window.listenGames) window.listenGames();
             else if (!GAMES_PAGES.includes(pageId) && window.stopListenGames) window.stopListenGames();
+            // Live ticker messages: only the Home page shows the ticker.
+            if (pageId === 'home' && window.listenAnnouncements) window.listenAnnouncements();
+            else if (pageId !== 'home' && window.stopListenAnnouncements) window.stopListenAnnouncements();
             // Wallet top-up history: only needed on the Wallet page.
             if (pageId === 'wallet' && window.listenWalletTopups) { window.listenWalletTopups(); if (window.listenWalletOrders) window.listenWalletOrders(); }
             else if (pageId !== 'wallet' && window.stopListenWalletTopups) { window.stopListenWalletTopups(); if (window.stopListenWalletOrders) window.stopListenWalletOrders(); }
@@ -4136,12 +4140,13 @@ b,strong{font-weight:600}
             const MAX_TIME = 600;   // ms
             const DRAG_START_PX = 10; // horizontal px before a move counts as "dragging" vs a tap/scroll
             const DIRECTION_LOCK_RATIO = 1.3; // |dx| must exceed |dy| by this much to claim the gesture as horizontal
-            const DRAG_RESISTANCE = 0.45; // how much of the finger's motion the page follows
+            const DRAG_RESISTANCE = 1;    // page follows the finger 1:1 (like a phone home screen)
             const EDGE_RESISTANCE = 0.25; // extra resistance applied on top of that at the first/last tab
 
             let startX = 0, startY = 0, startTime = 0;
             let scrollAncestor = null, scrollStartLeft = 0;
             let dragEl = null, dragging = false, verticalIntent = false;
+            let curOff = 0, vx = 0, lastMX = 0, lastMT = 0, busy = false;
 
             function findScrollableAncestor(el) {
                 while (el && el !== content) {
@@ -4158,9 +4163,9 @@ b,strong{font-weight:600}
                 if (!dragEl) return;
                 const el = dragEl;
                 el.classList.remove('tab-dragging');
-                el.style.transition = 'transform 0.22s cubic-bezier(.22,1,.36,1)';
+                el.style.transition = 'transform 0.26s cubic-bezier(.22,1,.36,1)';
                 el.style.transform = '';
-                setTimeout(() => { el.style.transition = ''; }, 240);
+                setTimeout(() => { el.style.transition = ''; el.style.willChange = ''; }, 280);
                 dragEl = null;
             }
 
@@ -4168,11 +4173,12 @@ b,strong{font-weight:600}
                 if (e.touches.length !== 1) return;
                 const t = e.touches[0];
                 startX = t.clientX; startY = t.clientY; startTime = Date.now();
+                curOff = 0; vx = 0; lastMX = t.clientX; lastMT = performance.now();
                 scrollAncestor = findScrollableAncestor(e.target);
                 scrollStartLeft = scrollAncestor ? scrollAncestor.scrollLeft : 0;
                 dragging = false;
                 verticalIntent = false;
-                dragEl = stopIdx() !== -1 ? document.querySelector('.page-section.active') : null;
+                dragEl = (!busy && stopIdx() !== -1) ? document.querySelector('.page-section.active') : null;
             }, { passive: true });
 
             content.addEventListener('touchmove', (e) => {
@@ -4210,36 +4216,68 @@ b,strong{font-weight:600}
                     if (Math.abs(dy) > RESTRAINT) { verticalIntent = true; return; }
                     dragging = true;
                     dragEl.classList.add('tab-dragging');
+                    dragEl.style.setProperty('animation', 'none', 'important'); // the page-entrance animation (fill-mode both) would otherwise pin transform:none
                 }
                 const idx = stopIdx();
                 const atFirst = idx <= 0, atLast = idx >= stops().length - 1;
                 let follow = dx;
                 if ((dx > 0 && atFirst) || (dx < 0 && atLast)) follow = dx * EDGE_RESISTANCE;
-                dragEl.style.transform = `translateX(${follow * DRAG_RESISTANCE}px)`;
+                curOff = follow * DRAG_RESISTANCE;
+                const now = performance.now();
+                if (lastMT && now > lastMT) vx = vx * 0.6 + ((t.clientX - lastMX) / (now - lastMT)) * 0.4; // px/ms, smoothed
+                lastMX = t.clientX; lastMT = now;
+                dragEl.style.willChange = 'transform';
+                dragEl.style.transform = `translate3d(${curOff}px,0,0)`;
             }, { passive: true });
+
+            content.addEventListener('touchcancel', () => { dragging = false; curOff = 0; resetDragEl(); }, { passive: true });
 
             content.addEventListener('touchend', (e) => {
                 const t = e.changedTouches[0];
                 const dx = t.clientX - startX;
                 const dy = t.clientY - startY;
-                const dt = Date.now() - startTime;
                 const wasDragging = dragging;
                 dragging = false;
-                resetDragEl();
+                const el = dragEl;
+                const off = curOff;
+                const fast = Math.abs(vx) > 0.45 && Math.abs(dx) > 28;   // quick flick
+                const far = el ? Math.abs(off) > el.clientWidth * 0.28 : false; // dragged past ~28% of the screen
 
-                if (scrollAncestor && Math.abs(scrollAncestor.scrollLeft - scrollStartLeft) > 4) return;
-                if (verticalIntent) return;
-                if (!wasDragging) return;
-                if (dt > MAX_TIME) return;
-                if (Math.abs(dx) < THRESHOLD || Math.abs(dy) > RESTRAINT) return;
-
+                if ((scrollAncestor && Math.abs(scrollAncestor.scrollLeft - scrollStartLeft) > 4) || verticalIntent || !wasDragging || !el || Math.abs(dy) > RESTRAINT * 2 || !(fast || far)) {
+                    resetDragEl();   // not enough: spring back
+                    return;
+                }
                 const idx = stopIdx();
-                if (idx === -1) return;
                 const list = stops();
-                let nextIdx = idx;
-                if (dx < 0 && idx < list.length - 1) nextIdx = idx + 1; // swipe left -> next tab
-                else if (dx > 0 && idx > 0) nextIdx = idx - 1;         // swipe right -> previous tab
-                if (nextIdx !== idx) goStop(list[nextIdx], dx < 0 ? 'swipe-left' : 'swipe-right');
+                const dir = dx < 0 ? 1 : -1;               // 1 = next (page leaves left), -1 = previous
+                const nextIdx = idx + dir;
+                if (idx === -1 || nextIdx < 0 || nextIdx > list.length - 1) { resetDragEl(); return; }
+
+                // commit: the page keeps going the way the finger was moving, then the next one slides in behind it
+                busy = true;
+                dragEl = null;
+                el.classList.remove('tab-dragging');
+                const W = el.clientWidth || window.innerWidth;
+                const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+                const done = () => {
+                    el.style.transition = ''; el.style.transform = ''; el.style.opacity = ''; el.style.willChange = '';
+                    goStop(list[nextIdx]);
+                    document.querySelectorAll('.page-section:not(.active)').forEach((p) => p.style.removeProperty('animation'));
+                    const inc = document.querySelector('.page-section.active');
+                    if (inc && inc.animate && !reduce) {
+                        const a = inc.animate(
+                            [{ transform: `translate3d(${dir * W * 0.6}px,0,0)`, opacity: 0.2 }, { transform: 'translate3d(0,0,0)', opacity: 1 }],
+                            { duration: 280, easing: 'cubic-bezier(.2,.8,.2,1)' });
+                        a.onfinish = a.oncancel = () => { busy = false; };
+                    } else busy = false;
+                    setTimeout(() => { busy = false; }, 420);
+                };
+                if (reduce) { done(); return; }
+                const ms = Math.max(90, Math.min(190, (W - Math.abs(off)) / Math.max(0.9, Math.abs(vx)) ));
+                el.style.transition = `transform ${ms}ms cubic-bezier(.3,.1,.6,1), opacity ${ms}ms ease-out`;
+                el.style.transform = `translate3d(${-dir * W}px,0,0)`;
+                el.style.opacity = '0.35';
+                setTimeout(done, ms + 10);
             }, { passive: true });
         })();
 
@@ -5502,7 +5540,7 @@ b,strong{font-weight:600}
         // Import Products uses (GET /v1/category/:id), so no API key needed.
         var voucherStockMap = {};
         var voucherStockInterval = null;
-        const VOUCHER_STOCK_REFRESH_MS = 15000;
+        const VOUCHER_STOCK_REFRESH_MS = 30000;
         // Stock-badge color tiers: >HIGH = green (plenty), >LOW = blue (some
         // left), 1..LOW = red (running low), 0 = "outStock" + disabled card.
         const VOUCHER_STOCK_HIGH = 100;
@@ -5599,7 +5637,7 @@ b,strong{font-weight:600}
         function startVoucherStockRefresh(categoryId) {
             stopVoucherStockRefresh();
             fetchVoucherStock(categoryId);
-            voucherStockInterval = setInterval(() => fetchVoucherStock(categoryId), VOUCHER_STOCK_REFRESH_MS);
+            voucherStockInterval = setInterval(() => { if (!document.hidden) fetchVoucherStock(categoryId); }, VOUCHER_STOCK_REFRESH_MS);
         }
 
         function stopVoucherStockRefresh() {
@@ -5909,6 +5947,7 @@ b,strong{font-weight:600}
             if (p.qrImage) { qrEl.src = p.qrImage; qrEl.style.display = 'block'; }
             else { qrEl.src = ''; qrEl.style.display = 'none'; }
             document.getElementById('detail-payment-info').style.display = 'flex';
+            if (window.pcaAutoScroll) window.pcaAutoScroll('info');
         }
 
         // ---------- Auto-detect Transaction ID from the uploaded receipt (OCR) ----------
@@ -6711,9 +6750,10 @@ b,strong{font-weight:600}
 
         function renderMiniProfile() {
             const p = getSavedProfile();
-            const gid = getGuestId();
-            const signedOutNow = !gid || (window.isSignedOut && window.isSignedOut());
-            const displayName = signedOutNow ? 'Unknown user' : ((p.name && p.name.trim()) ? p.name.trim() : gid);
+            const pend = !!window.__pcaRegPending;          // Worker is still issuing / looking up this account's ID
+            const gid = pend ? '' : getGuestId();           // never show a stale or temporary ID meanwhile
+            const signedOutNow = !pend && (!gid || (window.isSignedOut && window.isSignedOut()));
+            const displayName = pend ? ((p.name && p.name.trim()) ? p.name.trim() : 'Creating account…') : (signedOutNow ? 'Unknown user' : ((p.name && p.name.trim()) ? p.name.trim() : gid));
             // Header profile chip (replaces the old header logo)
             const hdrName = document.getElementById('header-profile-name');
             const hdrImg = document.getElementById('header-profile-avatar-img');
@@ -6793,7 +6833,7 @@ b,strong{font-weight:600}
     <!-- FIREBASE CODE -->
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-app.js";
-        import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, addDoc, doc, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp, query, where, orderBy, limit, getDocs, getCountFromServer, onSnapshot, increment, runTransaction, arrayUnion, arrayRemove, deleteField } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
+        import { getFirestore, initializeFirestore, persistentLocalCache, persistentMultipleTabManager, collection, addDoc, doc, getDoc, setDoc, updateDoc, deleteDoc, writeBatch, serverTimestamp, query, where, orderBy, limit, getDocs, getCountFromServer, onSnapshot as _fsOnSnapshot, increment, runTransaction, arrayUnion, arrayRemove, deleteField } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-firestore.js";
         import { getAuth, GoogleAuthProvider, signInWithPopup, signInWithRedirect, signInWithCredential, signInWithCustomToken, getRedirectResult, onAuthStateChanged, signOut, setPersistence, browserLocalPersistence } from "https://www.gstatic.com/firebasejs/10.8.0/firebase-auth.js";
 
         const firebaseConfig = {
@@ -6823,6 +6863,23 @@ b,strong{font-weight:600}
         // live order tracking) since ES module imports aren't global.
         window.db = db;
         window.doc = doc;
+        // Every Firestore listener goes through this wrapper: while the app is in the background (tab hidden /
+        // phone locked) for more than 45 s all listeners are detached - no reads at all - and they re-attach the moment
+        // the app is visible again (the persistent cache resumes them, so only changed docs are billed).
+        const _fsLive = new Set(); let _fsHideT = 0;
+        function onSnapshot(...args) {
+            const rec = { args, unsub: null, dead: false };
+            rec.start = () => { if (rec.unsub || rec.dead) return; rec.unsub = _fsOnSnapshot(...args); };
+            rec.stop = () => { if (rec.unsub) { try { rec.unsub(); } catch (e) {} rec.unsub = null; } };
+            _fsLive.add(rec);
+            if (!document.hidden) rec.start();
+            return () => { rec.dead = true; rec.stop(); _fsLive.delete(rec); };
+        }
+        document.addEventListener('visibilitychange', () => {
+            clearTimeout(_fsHideT);
+            if (document.hidden) _fsHideT = setTimeout(() => _fsLive.forEach(r => r.stop()), 45000);
+            else _fsLive.forEach(r => r.start());
+        });
         window.onSnapshot = onSnapshot;
         // Also needed by the non-module <script> above for the Game Package
         // Link 8-digit code lookup/save (tryOpenPendingPackageLinkCode /
@@ -6950,7 +7007,7 @@ b,strong{font-weight:600}
         // users / orders / walletTopups / inbox from Firestore (firestore.rules are admin-only for them).
         // These helpers hand the old onSnapshot/getDoc call sites the same snapshot shape they expect.
         // One shared poll (not one per listener): ~4s while an order/top-up is pending, else ~20s, paused while the tab is hidden. =====
-        const PS = { subs: new Map(), data: {}, inflight: null, timer: null, last: 0, seq: 0, err: null, uid: '' };
+        const PS = { subs: new Map(), data: {}, inflight: null, timer: null, last: 0, seq: 0, err: null, uid: '', changed: Date.now(), sig: '' };
         const PS_ISO = /^\d{4}-\d\d-\d\dT\d\d:\d\d:\d\d(\.\d+)?Z$/;
         function psTs(v) { const t = Date.parse(v); return { seconds: Math.floor(t / 1000), nanoseconds: 0, toMillis: () => t, toDate: () => new Date(t), valueOf: () => t }; }
         function psFix(o) { if (!o || typeof o !== 'object') return o; for (const k in o) { const v = o[k]; if (typeof v === 'string' && PS_ISO.test(v)) o[k] = psTs(v); else if (v && typeof v === 'object') psFix(v); } return o; }
@@ -6981,13 +7038,14 @@ b,strong{font-weight:600}
         function psSchedule() {
             clearTimeout(PS.timer);
             if (!PS.subs.size) return;
-            PS.timer = setTimeout(() => { if (document.hidden) { psSchedule(); return; } pcaPoll(true); }, auth.currentUser ? (psPending() ? 4000 : 20000) : 2500);
+            PS.timer = setTimeout(() => { if (document.hidden) { psSchedule(); return; } pcaPoll(true); }, auth.currentUser ? (psPending() ? (Date.now() - PS.changed > 120000 ? 15000 : 5000) : 60000) : 5000);
         }
         async function pcaPoll(force, extra) {
             psSync();
             if (!auth.currentUser) { psSchedule(); return; }
             if (PS.inflight) { await PS.inflight; if (!extra || extra.every(p => PS.data[p] !== undefined)) return; }
             if (!force && Date.now() - PS.last < 1500) return;
+            if (document.hidden && !extra) { psSchedule(); return; }
             const parts = new Set(extra || []);
             PS.subs.forEach(s => s.parts.forEach(p => parts.add(p)));
             if (!parts.size) return;
@@ -6995,6 +7053,7 @@ b,strong{font-weight:600}
                 try {
                     const r = psFix(await workerCall('/my-state', { parts: [...parts], day: psDayKey(), tzMin: 390 }));
                     PS.last = Date.now(); PS.err = null;
+                    { const sg = JSON.stringify([r.orders, r.topups, r.inbox]); if (sg !== PS.sig) { PS.sig = sg; PS.changed = Date.now(); } }
                     ['user', 'orders', 'topups', 'inbox', 'stats'].forEach(k => { if (r[k] != null) PS.data[k] = r[k]; });
                     PS.subs.forEach(s => { try { s.handler(PS.data); } catch (e) { console.error(e); } });
                 } catch (e) {
@@ -7714,7 +7773,7 @@ b,strong{font-weight:600}
                 }
             };
             poll();
-            cryptoPollTimer = setInterval(poll, 5000);
+            cryptoPollTimer = setInterval(() => { if (!document.hidden) poll(); }, 6000);
         }
 
         function stopCryptoPolling() {
@@ -8424,7 +8483,7 @@ b,strong{font-weight:600}
         const REGISTER_USER_URL = 'https://telegram-order.pca-game-store.workers.dev/register-user';
         let customerIdPromise = null;
         let customerIdUid = null;
-        function ensureCustomerId(user) {
+        function ensureCustomerId(user, nameHint) {
             if (!user) return Promise.resolve({ id: '', changed: false });
             if (customerIdPromise && customerIdUid === user.uid) return customerIdPromise;
             customerIdUid = user.uid;
@@ -8437,27 +8496,42 @@ b,strong{font-weight:600}
                 } catch (e) { stored = memoryGuestId || ''; }
                 // Already registered for this exact sign-in on this device: nothing to ask.
                 if (stored && verifiedUid === user.uid) return { id: stored, changed: false };
+                // From here the Worker is asked: hide any old/temporary ID and show the "Account Create" popup (after a short grace).
+                window.__pcaRegPending = true;
+                try { if (window.renderMiniProfile) window.renderMiniProfile(); } catch (e) {}
+                if (window.pcaAcctPop) window.pcaAcctPop('begin');
                 try {
                     // up to 3 tries (fresh token on retries) - a single slow/failed call used to leave the account empty
                     let data = null, lastErr = null;
                     for (let attempt = 0; attempt < 3; attempt++) {
                         try {
                             const idToken = await user.getIdToken(attempt > 0);
-                            const res = await fetch(REGISTER_USER_URL, {
-                                method: 'POST',
-                                headers: { 'Content-Type': 'application/json' },
-                                body: JSON.stringify({ idToken })
-                            });
+                            // 15 s cap: on a slow connection the popup used to spin forever
+                            const ctl = new AbortController();
+                            const tmo = setTimeout(() => ctl.abort(), 15000);
+                            let res;
+                            try {
+                                res = await fetch(REGISTER_USER_URL, {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ idToken }),
+                                    signal: ctl.signal
+                                });
+                            } finally { clearTimeout(tmo); }
                             const d = await res.json().catch(() => ({}));
-                            if (!res.ok || !d.ok || !d.userId) throw new Error(d.error || ('register failed ' + res.status));
+                            if (!res.ok || !d.ok || !d.userId) { const he = new Error(d.error || ('register failed ' + res.status)); he.status = res.status; throw he; }
                             data = d; break;
                         } catch (err) {
                             lastErr = err;
+                            // 400 / 403 / 429 will not succeed on an instant retry (and 429 only burns the shared rate limit)
+                            if (err && err.status && err.status < 500 && err.status !== 401) break;
                             if (attempt < 2) await new Promise(r => setTimeout(r, 700 * (attempt + 1)));
                         }
                     }
                     if (!data) throw lastErr;
                     const id = String(data.userId);
+                    const created = !!data.created;
+                    const shownName = String(data.name || nameHint || user.displayName || '').trim();
                     const changed = id !== stored;
                     if (changed) resetLocalAccountState(); // a different customer than this device remembered
                     let persisted = true;
@@ -8470,13 +8544,21 @@ b,strong{font-weight:600}
                             localStorage.setItem('gz_profile', JSON.stringify({ name: user.displayName || '', phone: '', photo: user.photoURL || '' }));
                         }
                     } catch (e) { persisted = false; memoryGuestId = id; }
-                    if (changed && persisted) setTimeout(() => location.reload(), 400);
-                    return { id, changed: changed && persisted };
+                    // Real ID is now stored: show the result popup (Congratulations = new account, Welcome Back = existing one).
+                    window.__pcaRegPending = false;
+                    try { if (window.renderMiniProfile) window.renderMiniProfile(); } catch (e) {}
+                    const hold = window.pcaAcctPop ? window.pcaAcctPop(created ? 'done' : 'back', shownName) : 0;
+                    if (changed && persisted) setTimeout(() => location.reload(), hold + 350);   // reload only after the popup has closed
+                    return { id, changed: changed && persisted, created };
                 } catch (e) {
                     console.error('ensureCustomerId failed:', e);
                     customerIdPromise = null; // allow a retry on the next call
-                    // A device that already has an ID keeps working with it if the Worker is unreachable.
-                    if (stored) return { id: stored, changed: false };
+                    window.__pcaRegPending = false;
+                    if (window.pcaAcctPop) window.pcaAcctPop('hide');
+                    try { if (window.renderMiniProfile) window.renderMiniProfile(); } catch (e2) {}
+                    // A device keeps its ID if the Worker is unreachable - but only if that ID belongs to THIS sign-in
+                    // (or is an older account with no owner recorded). An ID left by a different account is never reused.
+                    if (stored && (!verifiedUid || verifiedUid === user.uid)) return { id: stored, changed: false };
                     return { id: '', changed: false, error: true };
                 }
             })();
@@ -8550,7 +8632,7 @@ b,strong{font-weight:600}
 
         async function applyTelegramProfile(user, tgUser) {
             // The Worker issues (or looks up) the customer ID and DMs the new customer on Telegram.
-            const reg = await ensureCustomerId(user);
+            const reg = await ensureCustomerId(user, [tgUser && tgUser.first_name, tgUser && tgUser.last_name].filter(Boolean).join(' '));
             if (reg.changed || reg.error) return;
             try {
                 const snap = await window.pcaUserSnap(true);
@@ -8855,8 +8937,19 @@ b,strong{font-weight:600}
             if (window.currentStorePage === 'history' && window.loadHistory) window.loadHistory();
         }
         setTimeout(markAuthResolved, 5000);
+        function needsRegistration(user) {
+            try { return !(localStorage.getItem('gz_guest_id') && localStorage.getItem('gz_worker_uid') === user.uid); }
+            catch (e) { return false; }
+        }
         onAuthStateChanged(auth, async (user) => {
             markAuthResolved();
+            // This sign-in has no Worker-verified ID on this device yet: flag it BEFORE anything renders, so no stale ID shows,
+            // and start the registration (the same promise is reused by applyGoogleProfile / applyTelegramProfile).
+            if (user && needsRegistration(user)) {
+                window.__pcaRegPending = true;
+                try { if (window.renderMiniProfile) window.renderMiniProfile(); } catch (e) {}
+                ensureCustomerId(user).catch(() => {});
+            } else if (!user) { window.__pcaRegPending = false; }
             try { if (user) localStorage.setItem('pca_had_session', '1'); else localStorage.removeItem('pca_had_session'); } catch (e) { /* private browsing */ }
             // Catches a persisted Google session (returning device) whose
             // linked guest account was banned after the last time they
@@ -9629,12 +9722,13 @@ b,strong{font-weight:600}
         // Admin-managed announcement messages (e.g. "Open 9AM - 9PM daily") —
         // written from the admin panel's Store Ticker page, shown in the same
         // ticker as real order activity even if no orders exist yet.
-        let announcementsListenerAttached = false;
+        let announcementsUnsub = null;
+        function stopListenAnnouncements() { if (announcementsUnsub) { announcementsUnsub(); announcementsUnsub = null; } }
+        window.stopListenAnnouncements = stopListenAnnouncements;
         function listenAnnouncements() {
-            if (announcementsListenerAttached) return;
-            announcementsListenerAttached = true;
+            if (announcementsUnsub) return;
             const q = query(collection(db, "announcements"), orderBy("createdAt", "desc"), limit(30));
-            onSnapshot(q, (snap) => {
+            announcementsUnsub = onSnapshot(q, (snap) => {
                 // Fetched newest-first (so limit() keeps the most recent ones),
                 // then reversed back to oldest-first for the ticker's scroll order.
                 latestAnnouncements = snap.docs.map(docSnap => docSnap.data()).reverse();
@@ -9643,6 +9737,7 @@ b,strong{font-weight:600}
                 console.error("Announcements listener error:", error);
             });
         }
+        window.listenAnnouncements = listenAnnouncements;
         deferInit(() => { listenAnnouncements(); });
 
         // Watches this device's own orders for status changes and pops the
@@ -9675,7 +9770,7 @@ b,strong{font-weight:600}
                     }
                     const prevStatus = orderStatusKnown[orderId];
                     orderStatusKnown[orderId] = data.status;
-                    if (change.type === 'added') return; // don't replay history on load
+                    if (change.type === 'added' && !prevStatus) return; // don't replay history on load (but DO report a change missed while in the background)
                     if (prevStatus && prevStatus !== data.status) {
                         const label = `${data.game || ''}${data.itemAmount ? ' - ' + data.itemAmount : ''}`.trim();
                         if (data.status === 'Success' && !orderStatusNotified.has(orderId + ':success')) {
@@ -10099,12 +10194,10 @@ b,strong{font-weight:600}
                     <p style="font-size:13px;line-height:1.5;color:var(--text);background:var(--surface-alt);border-radius:10px;padding:10px 12px;white-space:pre-wrap;">${data.statusNote}</p>
                 ` : ''}
 
-                ${data.status === 'Success' ? `
-                    <button type="button" class="btn btn-primary" style="width:100%;margin-top:18px;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="downloadOrderReceipt(${index})">
+                <button type="button" class="btn btn-primary od-dl" style="width:100%;margin-top:18px;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="downloadOrderReceipt(${index})">
                         <svg class="ui-icon" style="width:16px;height:16px;"><use href="#icon-download"></use></svg>
                         Download Receipt
                     </button>
-                ` : ''}
                  ${(data.status === 'Success' || data.status === 'Fail') ? `<button type="button" class="btn od-again" onclick="pcaBuyAgainIdx(${index})"><svg class="ui-icon"><use href="#icon-refresh"></use></svg>Buy again</button>` : ''}
             `;
             document.getElementById('order-detail-overlay').classList.add('show');
@@ -10160,7 +10253,7 @@ b,strong{font-weight:600}
             try { await _downloadOrderReceipt(index); } catch (e) { console.error('Receipt error:', e); if (window.showToast) window.showToast('Receipt ပြုလုပ်၍ မရပါ၊ ထပ်ကြိုးစားပါ', 'fail'); }
         }
         async function _downloadOrderReceipt(index) {
-            const data = HISTORY_ORDERS[index];
+            const data = (index && typeof index === 'object') ? index : HISTORY_ORDERS[index];
             if (!data) return;
 
             const _to = (p, ms, fb) => Promise.race([p, new Promise(r => setTimeout(() => r(fb), ms))]).catch(() => fb);
@@ -10318,50 +10411,53 @@ b,strong{font-weight:600}
             ctx.fillStyle = '#9CA3AF'; ctx.font = `500 11.5px ${FONT}`;
             ctx.fillText('This is a system-generated receipt.', W / 2, by + 86);
 
-            const fileName = `receipt-${data.id || index}.png`;
+            const fileName = `PCA-receipt-${data.id || (typeof index === 'number' ? index : Date.now())}.png`;
             let blob = await new Promise(res => { try { canvas.toBlob(b => res(b), 'image/png'); } catch (e) { res(null); } });
             if (!blob) { try { const d = canvas.toDataURL('image/png'); const bin = atob(d.split(',')[1]); const u8 = new Uint8Array(bin.length); for (let i = 0; i < bin.length; i++) u8[i] = bin.charCodeAt(i); blob = new Blob([u8], { type: 'image/png' }); } catch (e) { blob = null; } }
             if (!blob) { if (window.showToast) window.showToast('Receipt ပြုလုပ်၍ မရပါ၊ ထပ်ကြိုးစားပါ', 'fail'); return; }
 
-            // 1) Phones: share sheet -> "Save Image". Works in Safari / Chrome Android and most in-app browsers.
-            try {
-                const file = new File([blob], fileName, { type: 'image/png' });
-                if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
-                    await navigator.share({ files: [file], title: 'Receipt' });
-                    return;
-                }
-            } catch (e) {
-                if (e && e.name === 'AbortError') return; // customer closed the share sheet
-            }
-
             const url = URL.createObjectURL(blob);
-            // 2) Telegram Mini App / in-app webviews ignore <a download>: show the image so it can be long-pressed and saved.
-            const inWebview = !!(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) || !('download' in document.createElement('a'));
-            if (inWebview || /Android|iPhone|iPad|iPod/i.test(navigator.userAgent)) { showReceiptPreview(url); return; }
+            const ua = navigator.userAgent || '';
+            const isIOS = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1);
+            const inTgWebview = !!(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData);
+            const canAnchor = ('download' in document.createElement('a'));
 
-            // 3) Desktop / normal browsers: direct download. The URL is released later - revoking it
-            //    right after click() cancels the download in Safari and some Android browsers.
+            // iPhone / iPad: <a download> is unreliable -> share sheet -> "Save Image"
+            if (isIOS) {
+                try {
+                    const file = new File([blob], fileName, { type: 'image/png' });
+                    if (navigator.canShare && navigator.canShare({ files: [file] }) && navigator.share) {
+                        await navigator.share({ files: [file], title: 'Receipt' });
+                        return;
+                    }
+                } catch (e) { if (e && e.name === 'AbortError') return; }
+                showReceiptPreview(url, fileName); return;
+            }
+            // Telegram Mini App / in-app webviews ignore <a download>: show the image with a Save button.
+            if (inTgWebview || !canAnchor) { showReceiptPreview(url, fileName); return; }
+
+            // Android Chrome + desktop: real file download straight to the device.
             const a = document.createElement('a');
-            a.href = url;
-            a.download = fileName;
-            document.body.appendChild(a);
-            a.click();
-            a.remove();
-            setTimeout(() => URL.revokeObjectURL(url), 30000);
+            a.href = url; a.download = fileName; a.rel = 'noopener';
+            a.style.display = 'none';
+            document.body.appendChild(a); a.click(); a.remove();
+            if (window.showToast) window.showToast('Receipt ကို download လုပ်နေပါပြီ');
+            setTimeout(() => URL.revokeObjectURL(url), 60000);
         }
         window.downloadOrderReceipt = downloadOrderReceipt;
-        function showReceiptPreview(url) {
+        function showReceiptPreview(url, fileName) {
             let ov = document.getElementById('receipt-preview-overlay');
             if (!ov) {
                 ov = document.createElement('div');
                 ov.id = 'receipt-preview-overlay';
-                ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(0,0,0,.82);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:12px';
-                ov.innerHTML = '<p style="color:#fff;font-size:13px;text-align:center;margin:0">ပုံကို ဖိနှိပ်ပြီး "Save Image" ရွေးပါ</p><img style="max-width:100%;max-height:78vh;border-radius:10px;background:#fff"><button type="button" style="padding:10px 28px;border:0;border-radius:10px;background:#fff;font-weight:600">Close</button>';
-                ov.querySelector('button').onclick = () => { ov.style.display = 'none'; };
+                ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(10,14,28,.82);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:12px';
+                ov.innerHTML = '<p style="color:#fff;font-size:13px;text-align:center;margin:0">ပုံကို ဖိနှိပ်ပြီး "Save Image" ရွေးပါ (သို့) Download ခလုတ်ကိုနှိပ်ပါ</p><img alt="Receipt" style="max-width:100%;max-height:70vh;border-radius:14px;background:#fff"><div style="display:flex;gap:10px"><a class="rcp-save" style="padding:11px 24px;border-radius:12px;background:#2557F5;color:#fff;font-weight:600;text-decoration:none;font-size:14px">Download</a><button type="button" class="rcp-close" style="padding:11px 24px;border:0;border-radius:12px;background:#fff;font-weight:600;font-size:14px">Close</button></div>';
+                ov.querySelector('.rcp-close').onclick = () => { ov.style.display = 'none'; };
                 ov.addEventListener('click', e => { if (e.target === ov) ov.style.display = 'none'; });
                 document.body.appendChild(ov);
             }
             ov.querySelector('img').src = url;
+            const sv = ov.querySelector('.rcp-save'); sv.href = url; sv.download = fileName || 'PCA-receipt.png';
             ov.style.display = 'flex';
         }
 
@@ -11671,6 +11767,7 @@ b,strong{font-weight:600}
         // receipt image which stay in History).
         function orderNotifDetailHTML(item) {
             const d = item.raw;
+            window.__notifReceiptData = Object.assign({}, d, { id: d.id || item.id, status: d.status || item.status });
             const ok = item.status === 'Success';
             const gameImg = findGameImage(d.game, d.serverRegion);
             const providerId = ok ? orderProviderId(d) : '';
@@ -11711,7 +11808,8 @@ b,strong{font-weight:600}
                     <p style="font-size:13px;line-height:1.5;color:var(--text);background:var(--surface-alt);border-radius:10px;padding:10px 12px;white-space:pre-wrap;">${escapeHtml(d.statusNote)}</p>
                 ` : ''}
 
-                <button type="button" class="btn btn-primary" style="width:100%;margin-top:18px;" onclick="showPage('history')">${escapeHtml(t('notif_view_history'))}</button>
+                <button type="button" class="btn btn-primary od-dl" style="width:100%;margin-top:18px;display:flex;align-items:center;justify-content:center;gap:8px;" onclick="downloadOrderReceipt(window.__notifReceiptData)"><svg class="ui-icon" style="width:16px;height:16px;"><use href="#icon-download"></use></svg>Download Receipt</button>
+                <button type="button" class="btn" style="width:100%;margin-top:10px;" onclick="showPage('history')">${escapeHtml(t('notif_view_history'))}</button>
             `;
         }
 
@@ -15123,7 +15221,7 @@ html body :is(.payment-option,.pkg-type-tab,.pay-type-tab,.history-status-tab,.h
 html body .payment-option::after{content:"" !important;display:block !important;position:absolute !important;right:9px !important;top:9px !important;width:22px !important;height:22px !important;margin-top:0 !important;border-radius:50% !important;
   background:rgba(255,255,255,.55) !important;border:2px solid rgba(var(--g10-rgb),.28) !important;box-shadow:inset 0 1px 2px rgba(20,30,70,.08) !important;transition:all .25s var(--g10-ease)}
 html body .payment-option.selected{background:linear-gradient(150deg,rgba(var(--g10-rgb),.14),rgba(255,255,255,.55)) !important;border-color:var(--g10-acc) !important;box-shadow:0 0 0 1px var(--g10-acc),0 10px 22px -12px rgba(var(--g10-rgb),.55),inset 0 1px 0 rgba(255,255,255,.9) !important}
-html body .payment-option.selected::after{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.3 12.9l4.3 4.3 9.1-9.9'/%3E%3C/svg%3E") center/14px no-repeat,linear-gradient(145deg,#6E9BFF,var(--g10-acc) 60%,#5B4CF0) !important;
+html body .payment-option.selected::after{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6.4 12.8l3.7 3.7 7.5-8.2'/%3E%3C/svg%3E") center/14px no-repeat,linear-gradient(145deg,#6E9BFF,var(--g10-acc) 60%,#5B4CF0) !important;
   border:1.5px solid rgba(255,255,255,.95) !important;box-shadow:0 5px 12px -3px rgba(var(--g10-rgb),.6),inset 0 1px 0 rgba(255,255,255,.55) !important;animation:pcaTick10 .35s cubic-bezier(.2,1.5,.4,1)}
 /* package cards: corner glass badge */
 html body .package-card .pc-selected-check{display:none !important}
@@ -15132,7 +15230,7 @@ html body .package-card.selected .pc-selected-check{display:grid !important;plac
 html body .package-card.selected .pc-selected-check .ui-icon{display:block !important;width:13px !important;height:13px !important;stroke:#fff !important;color:#fff !important;stroke-width:3.2 !important;opacity:1 !important}
 /* tabs / chips: check mark in front of the label */
 html body :is(.pkg-type-tab,.pay-type-tab,.history-status-tab,.history-date-chip,.wallet-preset-chip):is(.active,.selected)::before{content:"" !important;display:inline-block !important;position:static !important;flex:none;width:14px !important;height:14px !important;margin:0 6px 0 0 !important;vertical-align:-2px;
-  background:currentColor !important;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.3 12.9l4.3 4.3 9.1-9.9'/%3E%3C/svg%3E") center/contain no-repeat !important;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.3 12.9l4.3 4.3 9.1-9.9'/%3E%3C/svg%3E") center/contain no-repeat !important;
+  background:currentColor !important;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6.4 12.8l3.7 3.7 7.5-8.2'/%3E%3C/svg%3E") center/contain no-repeat !important;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6.4 12.8l3.7 3.7 7.5-8.2'/%3E%3C/svg%3E") center/contain no-repeat !important;
   width:14px !important;height:14px !important;opacity:1 !important;animation:pcaTick10 .3s cubic-bezier(.2,1.5,.4,1)}
 html body :is(.pkg-type-tab,.pay-type-tab,.history-status-tab,.history-date-chip,.wallet-preset-chip):is(.active,.selected){
   background:linear-gradient(150deg,var(--pca-lt,#5B8CFF),var(--g10-acc)) !important;color:#fff !important;border-color:rgba(255,255,255,.85) !important;
@@ -15141,7 +15239,7 @@ html body :is(.pkg-type-tab,.history-status-tab,.history-date-chip,.wallet-prese
 /* custom dropdown (server list) */
 html body .pcs-o{position:relative;padding-right:40px !important}
 html body .pcs-o.sel::after{content:"" !important;position:absolute;right:12px;top:50%;width:20px;height:20px;margin-top:-10px;border-radius:50%;
-  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.3 12.9l4.3 4.3 9.1-9.9'/%3E%3C/svg%3E") center/12px no-repeat,linear-gradient(145deg,#6E9BFF,var(--g10-acc));box-shadow:0 4px 10px -3px rgba(var(--g10-rgb),.6)}
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6.4 12.8l3.7 3.7 7.5-8.2'/%3E%3C/svg%3E") center/12px no-repeat,linear-gradient(145deg,#6E9BFF,var(--g10-acc));box-shadow:0 4px 10px -3px rgba(var(--g10-rgb),.6)}
 html body svg:has(use[href="#icon-check"]){stroke-width:2.8 !important}
 
 /* ---------- 5. TOP / HOT redesign ---------- */
@@ -16549,39 +16647,83 @@ html body div.package-grid-scroll:not(#a):not(#b){max-height:min(74vh,660px) !im
 })();
 </script>
 <script id="auto-flow-scroll-js">
-/* Game detail flow: ID entered -> slowly glide down to the prices; package picked -> glide on to the payment method. */
+/* Smooth auto-scroll for the game-detail flow (ID verified -> prices, package picked -> payment, method picked -> transfer card).
+   - one spring-damped follower: it chases the LIVE target every frame, so layout changes / animating sections never cause a jump
+   - writes scrollTop only (no layout reads except one getBoundingClientRect per frame on the target)
+   - header / nav / sticky-tab work is paused while it runs (html.pca-gliding), the user can take over with any touch */
 (function () {
-  var raf = 0, lastKey = '';
-  function stop() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
-  ['touchstart', 'wheel', 'mousedown', 'keydown'].forEach(function (ev) { window.addEventListener(ev, stop, { passive: true }); });
-  function glide(toY, dur) {
+  var raf = 0, lastKey = '', root = document.scrollingElement || document.documentElement;
+  var GLIDE = window.__pcaGlide = { on: false };
+  function stop() {
+    if (raf) { cancelAnimationFrame(raf); raf = 0; }
+    if (GLIDE.on) { GLIDE.on = false; document.documentElement.classList.remove('pca-gliding'); window.dispatchEvent(new Event('pca-glide-end')); }
+  }
+  ['touchstart', 'wheel', 'mousedown', 'keydown'].forEach(function (ev) { window.addEventListener(ev, stop, { passive: true, capture: true }); });
+
+  function maxY() { return Math.max(0, root.scrollHeight - window.innerHeight); }
+  /* getTarget() -> desired scrollTop (re-evaluated each frame) */
+  function glide(getTarget, strength) {
     stop();
-    var fromY = window.pageYOffset, dist = toY - fromY;
-    if (Math.abs(dist) < 12) return;
-    var t0 = 0;
-    function ease(t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+    var y = root.scrollTop, v = 0, last = 0, t0 = 0, w = strength || 4.4;
+    if (Math.abs(getTarget() - y) < 10) return;
+    GLIDE.on = true; document.documentElement.classList.add('pca-gliding');
     function step(ts) {
-      if (!t0) t0 = ts;
-      var k = Math.min(1, (ts - t0) / dur);
-      window.scrollTo({ top: fromY + dist * ease(k), behavior: 'instant' });
-      if (k < 1) raf = requestAnimationFrame(step); else raf = 0;
+      if (!GLIDE.on) return;
+      if (!t0) { t0 = last = ts; raf = requestAnimationFrame(step); return; }
+      var dt = Math.min(0.034, (ts - last) / 1000); last = ts;
+      var tgt = Math.max(0, Math.min(maxY(), getTarget()));
+      /* critically-damped spring, eased in so the first frames never lurch */
+      var ramp = Math.min(1, (ts - t0) / 260); ramp = ramp * ramp * (3 - 2 * ramp);
+      var ww = w * (0.35 + 0.65 * ramp);
+      v += (ww * ww * (tgt - y) - 2 * ww * v) * dt;
+      if (v > 1500) v = 1500; else if (v < -1500) v = -1500; /* long trips never rocket */
+      y += v * dt;
+      var err = tgt - y;
+      if ((Math.abs(err) < 0.6 && Math.abs(v) < 14) || ts - t0 > 2600) { root.scrollTop = tgt; raf = 0; stop(); return; }
+      root.scrollTop = y;
+      raf = requestAnimationFrame(step);
     }
     raf = requestAnimationFrame(step);
   }
-  function target(kind) {
-    return document.getElementById(kind === 'pay' ? 'detail-payment-section' : 'detail-pkg-title');
-  }
+  window.pcaGlideTo = function (el, opts) {
+    opts = opts || {};
+    var off = opts.offset == null ? 18 : opts.offset, mode = opts.block || 'start';
+    glide(function () {
+      var r = el.getBoundingClientRect(), h = window.innerHeight, y0 = root.scrollTop;
+      if (mode === 'center') return y0 + r.top - Math.max(off, (h - r.height) / 2);
+      if (mode === 'end') return y0 + r.bottom - h + off;
+      return y0 + r.top - off;
+    }, opts.strength);
+  };
+  /* every native smooth scrollIntoView on the page now uses the same follower */
+  var nativeSIV = Element.prototype.scrollIntoView;
+  Element.prototype.scrollIntoView = function (a) {
+    if (a && typeof a === 'object' && a.behavior === 'smooth') {
+      var m = a.block || 'start';
+      if (m === 'nearest') {
+        var r = this.getBoundingClientRect();
+        if (r.top >= 0 && r.bottom <= window.innerHeight) return;
+        m = r.top < 0 ? 'start' : 'end';
+      }
+      window.pcaGlideTo(this, { block: m, offset: m === 'start' ? 16 : 24 });
+      return;
+    }
+    return nativeSIV.apply(this, arguments);
+  };
+
+  var IDS = { pkg: 'detail-pkg-title', pay: 'detail-payment-section', info: 'detail-payment-info' };
   window.pcaAutoScroll = function (kind) {
     var page = document.getElementById('game-detail');
     if (!page || !page.classList.contains('active')) return;
     setTimeout(function () {
-      var el = target(kind); if (!el || el.offsetParent === null) return;
+      var el = document.getElementById(IDS[kind] || IDS.pkg); if (!el || el.offsetParent === null) return;
       var top = el.getBoundingClientRect().top;
       if (kind === 'pkg' && top >= 0 && top < 160) return; /* already right there */
-      var y = Math.max(0, Math.min(window.pageYOffset + top - 18, document.documentElement.scrollHeight - window.innerHeight));
-      var dist = Math.abs(y - window.pageYOffset);
-      glide(y, Math.max(800, Math.min(1700, dist * 1.6)));
-    }, kind === 'pay' ? 220 : 120);
+      if (kind === 'info') { /* transfer card: keep "Transfer the exact amount" + the card in view */
+        var r = el.getBoundingClientRect(); if (r.top >= 0 && r.top < 120) return;
+      }
+      window.pcaGlideTo(el, { offset: kind === 'info' ? 14 : 18, strength: kind === 'info' ? 4.0 : 4.4 });
+    }, kind === 'pay' ? 160 : kind === 'info' ? 90 : 100);
   };
   /* games with no ID check: scroll when the customer is done typing (field loses focus and nothing else is being edited) */
   function onBlur() {
@@ -16603,58 +16745,103 @@ html body div.package-grid-scroll:not(#a):not(#b){max-height:min(74vh,660px) !im
 })();
 </script>
 <script id="hide-on-scroll-js">
-/* Header + bottom nav: tuck away when scrolling down, return when scrolling up.
-   Header is ALSO hidden for as long as an inner page is open (body.no-bottom-nav). Same logic as linn.html. */
+/* Header + bottom nav: tuck away when scrolling down, come back when scrolling up.
+   Header is ALSO hidden while an inner page is open (body.no-bottom-nav).
+   v11: no layout reads in the scroll path (the old FLIP/getBoundingClientRect pair + querySelector on every
+   frame caused the periodic hitch), dead-zone thresholds so finger jitter doesn't flip it, paused during auto-scroll. */
 (function () {
   window.__pcaScrollV10 = true; /* switches the older scroll controllers off */
-  var TH = 8, lastY = window.scrollY || 0, tick = false, scrollHidden = false, kbd = false;
-  var body = document.body;
+  var DOWN = 28, UP = 12;               /* px of continuous travel before hiding / showing */
+  var root = document.scrollingElement || document.documentElement;
+  var lastY = root.scrollTop || 0, acc = 0, dir = 0, tick = false, scrollHidden = false, kbd = false;
+  var body = document.body, html = document.documentElement;
+  var hdr = null, nav = null, pill = null;
+  function els() { hdr = document.getElementById('app-header') || document.querySelector('.header'); nav = document.getElementById('bottom-nav'); pill = document.getElementById('pca-pill'); }
   function inner() { return body.classList.contains('no-bottom-nav'); }
-  /* sticky tab bar: its `top` changes when the header hides. Snap the layout instantly, then slide the
-     element from its old spot with a compositor transform (animating `top` re-lays-out every frame = tiny jumps). */
-  function flipTabs(change) {
-    var l = document.querySelectorAll('.htabs-wrap'), before = [], i;
-    for (i = 0; i < l.length; i++) before.push(l[i].getBoundingClientRect().top);
-    change();
-    for (i = 0; i < l.length; i++) {
-      var el = l[i], dy = before[i] - el.getBoundingClientRect().top;
-      if (Math.abs(dy) < 1 || Math.abs(dy) > 200) continue;
-      el.style.setProperty('transition', 'none', 'important');
-      el.style.setProperty('transform', 'translate3d(0,' + dy.toFixed(1) + 'px,0)', 'important');
-      void el.offsetWidth;
-      el.style.setProperty('transition', 'transform .45s cubic-bezier(.4,0,.2,1)', 'important');
-      el.style.setProperty('transform', 'translate3d(0,0,0)', 'important');
-      clearTimeout(el.__flipT);
-      el.__flipT = setTimeout((function (e) { return function () { e.style.removeProperty('transition'); e.style.removeProperty('transform'); }; })(el), 520);
+
+  /* sticky tab bar: its `top` jumps 72px when the header leaves. Do ONE read before the change, then slide it
+     from the old spot with a compositor transform using the known distance (no second layout read). */
+  function slideTabs(change) { change(); } /* tabs no longer change `top`; see syncTabs() */
+  var tabsEls = null;
+  /* phase 1 = read every tab bar, phase 2 = write: one layout, never interleaved */
+  var pinTop = 0, sen = null;
+  function syncTabs() {
+    tabsEls = document.querySelectorAll('.htabs-wrap');
+    sen = sen || document.getElementById('htabs-sentinel');
+    if (!tabsEls.length) return;
+    if (!pinTop) pinTop = parseFloat(getComputedStyle(tabsEls[0]).top) || 78;
+    /* the sentinel is a zero-height node in normal flow right before the bar: its position is the bar's
+       resting spot and is NOT touched by sticky or by the slide transform, so a fast scroll can never
+       read a half-moved bar and flip the state back and forth */
+    var natural = sen ? sen.getBoundingClientRect().top : null, i, el, up, want;
+    for (i = 0; i < tabsEls.length; i++) {
+      el = tabsEls[i]; up = el.classList.contains('tabs-up');
+      want = scrollHidden && (natural === null ? true : natural <= pinTop + 2);
+      if (want !== up) el.classList.toggle('tabs-up', want);
     }
   }
   function apply() {
-    var h = document.getElementById('app-header') || document.querySelector('.header'), n = document.getElementById('bottom-nav');
-    if (h) { h.classList.toggle('header-hidden', scrollHidden || inner()); h.classList.remove('pca-hide'); }
-    flipTabs(function () { document.documentElement.classList.toggle('hdr-away', scrollHidden || inner()); });
-    if (n) { n.classList.toggle('nav-hidden', scrollHidden || kbd); n.classList.remove('nav-tuck'); }
-    var pl = document.getElementById('pca-pill'); if (pl) pl.classList.toggle('pca-down', scrollHidden);
+    if (!hdr || !document.body.contains(hdr)) els();
+    var hideH = scrollHidden || inner(), hideN = scrollHidden || kbd;
+    syncTabs();                                    /* reads first ... */
+    /* ... then every write lands in the same frame (header, nav, pill, tabs start together).
+       html.hdr-away is no longer toggled: a root-class change restyled the whole document = the hitch. */
+    if (hdr) { hdr.classList.toggle('header-hidden', hideH); hdr.classList.remove('pca-hide'); }
+    if (nav) { nav.classList.toggle('nav-hidden', hideN); nav.classList.remove('nav-tuck'); }
+    if (pill) pill.classList.toggle('pca-down', scrollHidden);
   }
-  function setHidden(v) { if (v === scrollHidden) return; scrollHidden = v; apply(); }
+  var lastSync = 0, lastToggle = 0, syncT = 0;
+  function setHidden(v) { if (v === scrollHidden) return; scrollHidden = v; lastToggle = performance.now(); apply(); }
+  var lkAt = -1000, lkV = false;
   function locked() {
-    return body.style.overflow === 'hidden' || !!document.querySelector('.drawer-overlay.show, .modal-overlay.show, .success-overlay.show');
+    if (body.style.overflow === 'hidden') return true;
+    var t = performance.now();
+    if (t - lkAt < 250) return lkV;          /* cached: a full-DOM selector search on every scroll frame was costly */
+    lkAt = t; lkV = !!document.querySelector('.drawer-overlay.show, .modal-overlay.show, .success-overlay.show');
+    return lkV;
   }
+  /* same logic as linn.html: tiny 8px drag is enough to hide / show */
+  var TH = 8;
   function update() {
     tick = false;
-    var y = Math.max(0, window.scrollY || 0), max = document.documentElement.scrollHeight - window.innerHeight, d = y - lastY;
+    var y = Math.max(0, root.scrollTop), max = root.scrollHeight - window.innerHeight, d = y - lastY;
+    /* tab-bar re-check forces a layout: run it once, after the scroll has paused AND the slide has fully finished
+       (a check landing near the end of the slide was the "hitch just before it arrives") */
+    clearTimeout(syncT);
+    if (scrollHidden) syncT = setTimeout(function () { if (scrollHidden) syncTabs(); }, Math.max(260, 900 - (performance.now() - lastToggle)));
+    if (window.__pcaGlide && window.__pcaGlide.on) { if (d > 0 && !scrollHidden && !locked()) setHidden(true); lastY = y; return; }
     if (locked() || y <= 24 || y >= max - 2) { setHidden(false); lastY = y; return; }
-    if (d > TH) { setHidden(true); lastY = y; }
-    else if (d < -TH) { setHidden(false); lastY = y; }
+    var calm = performance.now() - lastToggle > 320;   /* no flip-flop while a fast scroll is still settling */
+    if (d > TH) { if (scrollHidden || calm) { setHidden(true); lastY = y; } }
+    else if (d < -TH) { if (!scrollHidden || calm) { setHidden(false); lastY = y; } }
   }
   window.addEventListener('scroll', function () { if (!tick) { tick = true; requestAnimationFrame(update); } }, { passive: true });
   var wasInner = inner();
-  new MutationObserver(function () { var now = inner(); if (now === wasInner) return; wasInner = now; scrollHidden = false; lastY = window.scrollY || 0; apply(); }).observe(body, { attributes: true, attributeFilter: ['class'] });
-  document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('.nav-item, .drawer-overlay, .header-icon')) setTimeout(function () { setHidden(false); lastY = window.scrollY || 0; }, 0); }, true);
+  new MutationObserver(function () { var now = inner(); if (now === wasInner) return; wasInner = now; scrollHidden = false; lastY = root.scrollTop; acc = 0; apply(); }).observe(body, { attributes: true, attributeFilter: ['class'] });
+  document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('.nav-item, .drawer-overlay, .header-icon')) setTimeout(function () { setHidden(false); lastY = root.scrollTop; acc = 0; }, 0); }, true);
   document.addEventListener('focusin', function (e) { if (/^(INPUT|TEXTAREA)$/.test(e.target.tagName)) { kbd = true; apply(); } });
   document.addEventListener('focusout', function () { setTimeout(function () { var a = document.activeElement; if (a && /^(INPUT|TEXTAREA)$/.test(a.tagName)) return; kbd = false; apply(); }, 80); });
-  window.addEventListener('orientationchange', function () { setHidden(false); });
+  window.addEventListener('orientationchange', function () { pinTop = 0; setHidden(false); });
+  window.addEventListener('resize', function () { pinTop = 0; }, { passive: true });
   /* old controllers may have left inline transforms behind */
+  els();
   ['app-header', 'bottom-nav'].forEach(function (id) { var el = document.getElementById(id); if (el) ['transform', 'opacity', 'transition', 'pointer-events'].forEach(function (p) { el.style.removeProperty(p); }); });
+  /* first hide/show used to hitch once: the hidden-state style + compositor layers were computed cold on the very
+     first scroll. Do that work once while idle: flip to the hidden state and back inside ONE task with transitions
+     off (nothing is painted between the flips), so the first real scroll is as cheap as the later ones. */
+  function prewarm() {
+    try {
+      if (scrollHidden || inner() || locked() || (root.scrollTop || 0) > 4) return;
+      els(); if (!hdr || !nav) return;
+      hdr.classList.add('hn-warm'); nav.classList.add('hn-warm');
+      hdr.classList.add('header-hidden'); nav.classList.add('nav-hidden');
+      void getComputedStyle(hdr).transform; void getComputedStyle(nav).transform; void hdr.offsetHeight;
+      hdr.classList.remove('header-hidden'); nav.classList.remove('nav-hidden');
+      void getComputedStyle(hdr).transform; void getComputedStyle(nav).transform; void hdr.offsetHeight;
+      hdr.classList.remove('hn-warm'); nav.classList.remove('hn-warm');
+    } catch (e) {}
+  }
+  window.addEventListener('load', function () { setTimeout(function () { (window.requestIdleCallback || function (f) { f(); })(prewarm); }, 1200); });
   apply();
 })();
 </script>
@@ -16849,6 +17036,314 @@ html.lite[data-theme="dark"] body :is(.wallet-topup-row,.wtx-row):not(#z):not(#y
 @media (prefers-reduced-motion:reduce){html body .wtabs-ind:not(#z){transition:none}}
 }
 
+</style>
+
+<style id="pca-final-u">
+/* ===== UNLAYERED: wins over every @layer ======================================================
+   The universal reset  * {margin:0;padding:0}  lives outside any layer, so it was beating every
+   padding / margin written inside @layer pcamine -> the Payments card lost all its padding.
+   Same rules, re-emitted outside a layer. */
+
+.pmx-host{display:none;flex-direction:column;gap:0;background:none !important;border:0 !important;box-shadow:none !important;padding:0 !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important}
+.pmx-host>.pmx-wrap-inner{--pm-blue:#3b82f6;--pm-blue2:#2563eb;--pm-ink:#0f172a;--pm-mut:#64748b;--pm-lab:#6b7a99;
+  font-family:'Poppins',var(--font,inherit),system-ui,sans-serif;position:relative;padding:20px 16px 18px;border-radius:32px;
+  background:linear-gradient(160deg,rgba(241,245,254,.96),rgba(231,238,252,.9));
+  border:1px solid rgba(255,255,255,.85);
+  -webkit-backdrop-filter:blur(20px) saturate(1.6);backdrop-filter:blur(20px) saturate(1.6);
+  box-shadow:0 18px 40px -18px rgba(37,99,235,.38),inset 0 1px 0 rgba(255,255,255,.95)}
+.pmx-intro{margin:0 4px 14px !important;font-size:14px;font-weight:400;color:var(--pm-mut);line-height:1.3}
+.pmx-head{display:flex;align-items:center;gap:12px}
+.pmx-logo{flex:none;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;overflow:hidden;position:relative;
+  background:linear-gradient(160deg,#fcd34d,#f59e0b);box-shadow:0 6px 14px -6px rgba(245,158,11,.7),inset 0 1px 0 rgba(255,255,255,.6)}
+.pmx-logo b{font-size:20px;font-weight:700;color:#fff;line-height:1}
+.pmx-logo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pmx-ttl{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
+.pmx-ttl strong{font-size:17px;font-weight:700;color:var(--pm-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pmx-ttl small{font-size:13px;color:var(--pm-mut);margin-top:2px}
+.pmx-ver{flex:none;display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border-radius:999px;font-size:13px;font-weight:500}
+.pmx-lb{display:block;font-size:12px;font-weight:500;letter-spacing:1.4px;text-transform:uppercase;color:var(--pm-lab)}
+.pmx-qr{display:block;object-fit:contain;background:#fff}
+.pmx-note{display:flex;gap:10px;align-items:flex-start;margin:14px 2px 0;font-size:12.5px;line-height:1.55;color:var(--pm-mut)}
+.pmx-note svg{flex:none;margin-top:2px;color:var(--pm-blue)}
+.pmx-note a{color:var(--pm-blue);font-weight:600;text-decoration:none}
+.pmx-wrap-inner button{font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .15s ease,filter .2s ease}
+.pmx-wrap-inner button:active{transform:scale(.96)}
+
+/* ---------- Option A - ticket (wallet top-up) ---------- */
+.pmx-ticket{background:#fff;border-radius:28px;padding:16px 16px 16px;position:relative;box-shadow:0 10px 26px -16px rgba(37,99,235,.35)}
+.pmx-A .pmx-ver{background:#dcfce7;color:#15803d}
+.pmx-qrpanel{margin-top:16px;padding:22px 16px 16px;border-radius:26px;background:#eaf0fd;display:flex;flex-direction:column;align-items:center;gap:14px}
+.pmx-qrbox{position:relative;width:min(176px,56vw);aspect-ratio:1;padding:12px;border-radius:24px;background:#fff;box-shadow:0 8px 20px -10px rgba(37,99,235,.35)}
+.pmx-qrbox .pmx-qr{width:100%;height:100%;border-radius:8px}
+.pmx-qrbox i{position:absolute;width:22px;height:22px;border:3px solid var(--pm-blue);pointer-events:none}
+.pmx-qrbox .c1{left:-10px;top:-10px;border-right:0;border-bottom:0;border-radius:12px 0 0 0}
+.pmx-qrbox .c2{right:-10px;top:-10px;border-left:0;border-bottom:0;border-radius:0 12px 0 0}
+.pmx-qrbox .c3{left:-10px;bottom:-10px;border-right:0;border-top:0;border-radius:0 0 0 12px}
+.pmx-qrbox .c4{right:-10px;bottom:-10px;border-left:0;border-top:0;border-radius:0 0 12px 0}
+.pmx-save{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:999px;border:0 !important;background:#fff !important;color:var(--pm-blue) !important;font-size:15px;font-weight:600;min-height:0 !important;box-shadow:0 6px 14px -8px rgba(37,99,235,.5)}
+.pmx-tear{position:relative;height:0;margin:18px 0 18px;border-top:2px dashed #d5def2}
+.pmx-tear u{position:absolute;top:-14px;width:28px;height:28px;border-radius:50%;background:#eaf0fc}
+.pmx-tear u:first-child{left:-30px}.pmx-tear u:last-child{right:-30px}
+.pmx-row{display:flex;align-items:center;gap:10px;padding:12px 12px 12px 16px;border-radius:20px;background:#f5f8ff;margin-bottom:10px}
+.pmx-row .pmx-f{flex:1;min-width:0}
+.pmx-vl{display:flex;align-items:center;gap:8px;margin-top:3px}
+.pmx-vl p{margin:0 !important;font-size:19px;font-weight:700;color:var(--pm-ink);line-height:1.25;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pmx-vl p.num{font-size:21px;letter-spacing:2px}
+.pmx-vl svg{flex:none}
+.pmx-cp{flex:none;display:inline-flex;align-items:center;gap:7px;height:46px;padding:0 18px;border-radius:16px;border:0 !important;font-size:15px;font-weight:600;min-height:0 !important}
+.pmx-cp.soft{background:#dfe8fd !important;color:var(--pm-blue) !important}
+.pmx-cp.solid{background:var(--pm-blue) !important;color:#fff !important;box-shadow:0 10px 18px -10px rgba(37,99,235,.8)}
+
+/* ---------- Option B - bank card (purchase) ---------- */
+.pmx-bank{position:relative;overflow:hidden;border-radius:30px;padding:20px 18px 18px;color:#fff;
+  background:linear-gradient(150deg,#2563eb 0%,#3b82f6 55%,#5b9cff 100%);
+  box-shadow:0 22px 38px -18px rgba(37,99,235,.7),inset 0 1px 0 rgba(255,255,255,.35)}
+.pmx-bank::before{content:"";position:absolute;right:-70px;top:-90px;width:230px;height:230px;border-radius:50%;background:rgba(255,255,255,.12);pointer-events:none}
+.pmx-bank::after{content:"";position:absolute;left:-60px;bottom:-110px;width:210px;height:210px;border-radius:50%;background:rgba(255,255,255,.1);pointer-events:none}
+.pmx-bank>*{position:relative;z-index:1}
+.pmx-bank .pmx-ttl strong{color:#fff}.pmx-bank .pmx-ttl small{color:rgba(255,255,255,.78)}
+.pmx-B .pmx-ver{background:rgba(255,255,255,.22);color:#fff;border:1px solid rgba(255,255,255,.28);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.pmx-mid{display:flex;align-items:center;gap:16px;margin-top:16px}
+.pmx-qrcard{flex:none;width:118px;height:118px;padding:8px;border-radius:24px;background:#fff;box-shadow:0 10px 22px -12px rgba(0,0,0,.4)}
+.pmx-qrcard .pmx-qr{width:100%;height:100%;border-radius:6px}
+.pmx-info{flex:1;min-width:0;display:flex;flex-direction:column}
+.pmx-bank .pmx-lb{color:rgba(255,255,255,.78)}
+.pmx-nm{margin:4px 0 0 !important;font-size:19px;font-weight:600;color:#fff;line-height:1.25;overflow:hidden;text-overflow:ellipsis}
+.pmx-ph{margin:4px 0 0 !important;font-size:22px;font-weight:700;letter-spacing:1.6px;color:#fff;line-height:1.2;white-space:nowrap}
+.pmx-acts{display:flex;gap:12px;margin-top:16px}
+.pmx-acts button{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;height:48px;border-radius:18px;border:0 !important;font-size:15px;font-weight:600;min-height:0 !important}
+.pmx-b1{background:#fff !important;color:var(--pm-blue) !important;box-shadow:0 10px 18px -12px rgba(0,0,0,.45)}
+.pmx-b2{background:rgba(255,255,255,.24) !important;color:#fff !important;border:1px solid rgba(255,255,255,.28) !important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+
+/* no QR provided -> hide the QR bits */
+.pmx-wrap-inner.no-qr .pmx-qrpanel,.pmx-wrap-inner.no-qr .pmx-tear{display:none}
+.pmx-wrap-inner.no-qr .pmx-ticket .pmx-head{margin-bottom:6px}
+.pmx-wrap-inner.no-qr .pmx-qrcard,.pmx-wrap-inner.no-qr .pmx-b2{display:none}
+
+html[data-theme="dark"] .pmx-host>.pmx-wrap-inner{background:linear-gradient(160deg,rgba(28,38,62,.85),rgba(18,26,46,.85));border-color:rgba(255,255,255,.14);box-shadow:0 18px 40px -18px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.12)}
+html[data-theme="dark"] .pmx-intro,html[data-theme="dark"] .pmx-note{color:#9fb0d2}
+html[data-theme="dark"] .pmx-ticket{background:#18223a}
+html[data-theme="dark"] .pmx-A .pmx-ttl strong,html[data-theme="dark"] .pmx-vl p{color:#f1f5ff}
+html[data-theme="dark"] .pmx-qrpanel{background:#1e2c4d}
+html[data-theme="dark"] .pmx-row{background:#1e2a47}
+html[data-theme="dark"] .pmx-tear{border-top-color:#2c3b5f}
+html[data-theme="dark"] .pmx-tear u{background:#141d33}
+html[data-theme="dark"] .pmx-A .pmx-ver{background:rgba(34,197,94,.18);color:#86efac}
+
+/* Verified pill: crisp white chip + green tick disc */
+.pmx-wrap-inner .pmx-ver{display:inline-flex;align-items:center;gap:6px;padding:5px 13px 5px 5px;border-radius:999px;font-size:13px;font-weight:700;line-height:1;letter-spacing:.1px;white-space:nowrap;border:0;-webkit-backdrop-filter:none;backdrop-filter:none}
+.pmx-B .pmx-ver{background:#fff;color:#1D4ED8;box-shadow:0 5px 14px -7px rgba(8,30,100,.55)}
+.pmx-A .pmx-ver{background:#E9F9EF;color:#15803D}
+.pmx-vk{flex:none;display:grid;place-items:center;width:20px;height:20px;border-radius:50%;background:linear-gradient(180deg,#3DDB84,#16A34A);box-shadow:inset 0 1px 0 rgba(255,255,255,.4)}
+.pmx-vk svg{display:block;width:12px;height:12px;fill:none;stroke:#fff;stroke-width:3.6;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:0;animation:pcaTick2 .42s .12s cubic-bezier(.6,0,.3,1) both}
+html[data-theme="dark"] .pmx-A .pmx-ver{background:rgba(34,197,94,.18);color:#86EFAC}
+@keyframes pcaTick2{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes pcaPop2{0%{transform:scale(.55);opacity:0}65%{transform:scale(1.08);opacity:1}100%{transform:scale(1);opacity:1}}
+@keyframes pcaCardIn{from{opacity:0;transform:translate3d(0,12px,0)}to{opacity:1;transform:none}}
+@keyframes pcaFadeUp{from{opacity:0;transform:translate3d(0,10px,0)}to{opacity:1;transform:none}}
+
+/* Payment info panel: lay it out in one go, fade up once (opacity + transform only) */
+#detail-payment-info.pmx-host,#wallet-topup-payment-info.pmx-host{animation:pcaFadeUp .34s cubic-bezier(.22,1,.36,1) both}
+.pmx-host>.pmx-wrap-inner+label{margin-top:22px !important;margin-bottom:8px;display:block}
+.pmx-host>.upload-shot-box{margin-top:0}
+/* price cards: one cheap staggered entrance, only on the first render of a list (class set by JS) */
+#detail-package-list.pkg-enter .package-card{animation:pcaCardIn .34s cubic-bezier(.22,1,.36,1) backwards;animation-delay:calc(var(--i,0) * 26ms)}
+</style>
+<style id="pca-final-l">@layer pcamine{
+/* ===== header + bottom nav: compositor-only motion =============================================
+   - no backdrop-filter on the two bars that MOVE (re-blurring every frame was the stutter on phones)
+   - only `transform` is animated; hidden bars travel fully off-screen so no opacity fade is needed */
+:root{--gl-bg:rgba(255,255,255,.9)}
+html[data-theme="dark"]{--gl-bg:rgba(20,29,48,.92)}
+html body header#app-header:not(#z):not(#y):not(#x),html body nav#bottom-nav:not(#z):not(#y):not(#x){
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+  opacity:1!important;will-change:transform!important;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  transition:transform 1.1s cubic-bezier(.4,.1,.25,1)!important}
+html body header#app-header:not(#z):not(#y):not(#x){background:var(--gl-bg)!important;contain:layout style}
+html body header#app-header.header-hidden:not(#z):not(#y):not(#x),html body header#app-header.pca-hide:not(#z):not(#y):not(#x){
+  transform:translate3d(0,calc(-100% - 32px - env(safe-area-inset-top,0px)),0)!important;opacity:1!important;pointer-events:none!important}
+html body nav#bottom-nav:not(#z):not(#y):not(#x){background:var(--gl-bg)!important}
+html body nav#bottom-nav.nav-hidden:not(#z):not(#y):not(#x),html body nav#bottom-nav.nav-tuck:not(#z):not(#y):not(#x){
+  transform:translate3d(0,calc(100% + 40px + env(safe-area-inset-bottom,0px)),0)!important;opacity:1!important;pointer-events:none!important}
+/* pill that sits above the nav */
+html body #pca-pill:not(#z):not(#y){transition:transform 1.1s cubic-bezier(.4,.1,.25,1),opacity .3s ease!important}
+/* sticky tabs: pinned at a constant top; they ride up with the header via transform only */
+html body .htabs-wrap:not(#a):not(#b):not(#c):not(#d):not(#e){top:calc(78px + env(safe-area-inset-top,0px))!important;transition:transform 1.1s cubic-bezier(.4,.1,.25,1)!important;will-change:transform}
+html body .htabs-wrap.tabs-up:not(#a):not(#b):not(#c):not(#d):not(#e){transform:translate3d(0,-72px,0)!important}
+@media (prefers-reduced-motion:reduce){html body header#app-header:not(#z):not(#y):not(#x),html body nav#bottom-nav:not(#z):not(#y):not(#x){transition-duration:.01ms!important}}
+
+/* ===== TICKS + VERIFIED — one flat language: solid green disc, white round-cap tick, a single soft ring ====== */
+/* ID verified result */
+html body .id-result-check:not(#z):not(#y):not(#x){display:inline-grid!important;place-items:center;width:26px!important;height:26px!important;min-width:26px!important;padding:0!important;border:0!important;border-radius:50%!important;font-size:0!important;
+  background:linear-gradient(180deg,#3DDB84 0%,#16A34A 100%)!important;box-shadow:0 0 0 3px rgba(34,197,94,.16)!important;animation:pcaPop2 .38s cubic-bezier(.3,1.4,.5,1) both!important}
+html body .id-result-check:not(#z):not(#y):not(#x)::before,html body .id-result-check:not(#z):not(#y):not(#x)::after{display:none!important;content:none!important}
+html body .id-result-check .pca-ck:not(#z):not(#y):not(#x){width:14px!important;height:14px!important;margin:0!important;vertical-align:0!important;stroke:#fff!important;stroke-width:3.4!important;stroke-dasharray:1!important;stroke-dashoffset:1;animation:pcaTick2 .34s .14s cubic-bezier(.6,0,.3,1) forwards!important}
+/* success overlay disc */
+html body .order-ok-check:not(#z):not(#y):not(#x){width:60px!important;height:60px!important;margin:0 auto 10px!important;display:grid!important;place-items:center;border:0!important;border-radius:50%!important;
+  background:linear-gradient(180deg,#3DDB84 0%,#16A34A 100%)!important;box-shadow:0 0 0 8px rgba(34,197,94,.14)!important}
+html body .order-ok-check .ui-icon:not(#z):not(#y):not(#x){width:30px!important;height:30px!important;stroke:#fff!important;color:#fff!important;stroke-width:3.4!important}
+html body .order-ok-overlay.show .order-ok-check .ui-icon:not(#z):not(#y):not(#x){stroke-dasharray:1!important;stroke-dashoffset:1;animation:pcaTick2 .45s .2s cubic-bezier(.6,0,.3,1) forwards!important}
+/* tracker dot / notification / wallet row / selected price card */
+html body .ot-dot.done:not(#z):not(#y):not(#x){background:linear-gradient(180deg,#3DDB84,#16A34A)!important;color:#fff!important;box-shadow:0 0 0 3px rgba(34,197,94,.16)!important}
+html body .ot-dot.done .ui-icon:not(#z):not(#y):not(#x){stroke:#fff!important;stroke-width:3.4!important}
+html body .notif-order-ic.ok:not(#z):not(#y):not(#x){background:linear-gradient(180deg,#3DDB84,#16A34A)!important;box-shadow:none!important}
+html body .notif-order-ic.ok .ui-icon:not(#z):not(#y):not(#x){stroke:#fff!important;stroke-width:3.2!important}
+html body .wallet-topup-row-icon.st-completed:not(#z):not(#y):not(#x){background:rgba(34,197,94,.14)!important;box-shadow:none!important}
+html body .wallet-topup-row-icon.st-completed .ui-icon:not(#z):not(#y):not(#x){stroke:#16A34A!important;color:#16A34A!important;stroke-width:3.2!important}
+html body .package-card.selected .pc-selected-check:not(#z):not(#y):not(#x){background:linear-gradient(180deg,#3DDB84,#16A34A)!important;border:0!important;box-shadow:0 0 0 2px #fff,0 0 0 4px rgba(34,197,94,.22)!important;color:#fff!important}
+html body .package-card.selected .pc-selected-check .ui-icon:not(#z):not(#y):not(#x){stroke:#fff!important;color:#fff!important;stroke-width:3.6!important}
+/* "Completed" badge tick + inline OK notes */
+html body .status-anim-check .pca-ck:not(#z):not(#y):not(#x){stroke-width:3.6!important}
+html body :is(.wallet-pay-note.ok,#crypto-status-text,#aluu-status-text) .pca-ck:not(#z):not(#y):not(#x){box-sizing:border-box;width:16px!important;height:16px!important;padding:3.5px;margin-right:6px;vertical-align:-3.5px;border-radius:50%;background:linear-gradient(180deg,#3DDB84,#16A34A)!important;stroke:#fff!important;stroke-width:4!important;color:#fff;box-shadow:none!important}
+/* verified seal (profile + Google account): clean blue seal, bold white tick, no glow blob */
+html body .verified-badge:not(#z):not(#y):not(#x){width:20px!important;height:20px!important;filter:drop-shadow(0 1px 1px rgba(30,64,175,.28))!important;animation:pcaPop2 .42s cubic-bezier(.3,1.4,.5,1) both!important}
+html body #profile-hero-verified-badge:not(#z):not(#y):not(#x){width:22px!important;height:22px!important}
+html body .verified-badge path:first-child:not(#z):not(#y):not(#x){fill:url(#pcaVbGrad2)!important;stroke:none!important}
+html body .verified-badge .vb-tick:not(#z):not(#y):not(#x){fill:none!important;stroke:#fff!important;stroke-width:2.9!important;stroke-linecap:round!important;stroke-linejoin:round!important;stroke-dasharray:1!important;stroke-dashoffset:1;animation:pcaTick2 .4s .22s cubic-bezier(.6,0,.3,1) forwards!important}
+}
+</style>
+<script id="pca-final-js">
+/* price cards: play the entrance only the first time a list fills (not on every re-render) */
+(function(){
+  function watch(){
+    var list=document.getElementById('detail-package-list'); if(!list) return false;
+    var had=false,t=0;
+    new MutationObserver(function(){
+      if(!list.firstElementChild){had=false;list.classList.remove('pkg-enter');return}
+      if(had)return; had=true;
+      list.classList.add('pkg-enter'); clearTimeout(t);
+      t=setTimeout(function(){list.classList.remove('pkg-enter')},900);
+    }).observe(list,{childList:true});
+    return true;
+  }
+  if(!watch()) document.addEventListener('DOMContentLoaded',watch);
+})();
+</script>
+<style id="acct-popup-css">
+.acp-overlay{position:fixed;inset:0;z-index:2000;display:flex;align-items:center;justify-content:center;background:rgba(10,16,30,.5);opacity:0;pointer-events:none;transition:opacity .25s ease}
+.acp-overlay.show{opacity:1;pointer-events:auto}
+.acp-card{min-width:224px;max-width:min(320px,84vw);padding:26px 24px 22px;border-radius:20px;background:var(--surface,#fff);color:var(--text,#0F172A);text-align:center;
+  box-shadow:0 22px 50px -14px rgba(0,0,0,.45);transform:translateY(10px) scale(.96);transition:transform .3s cubic-bezier(.2,.9,.3,1.1)}
+.acp-overlay.show .acp-card{transform:none}
+.acp-dots{display:flex;justify-content:center;align-items:flex-end;gap:7px;height:30px;margin:0 0 14px}
+.acp-dots i{display:block;width:10px;height:10px;border-radius:50%;animation:acpBounce .62s ease-in-out infinite;animation-delay:calc(var(--j)*110ms)}
+@keyframes acpBounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-14px)}}
+.acp-ok{display:none;width:52px;height:52px;margin:0 auto 12px;border-radius:50%;place-items:center;background:linear-gradient(180deg,#3DDB84,#16A34A);box-shadow:0 0 0 7px rgba(34,197,94,.14)}
+.acp-ok svg{width:26px;height:26px;fill:none;stroke:#fff;stroke-width:3.4;stroke-linecap:round;stroke-linejoin:round}
+.acp-overlay[data-state="back"] .acp-ok{background:linear-gradient(180deg,#5AA2FF,#1877F2);box-shadow:0 0 0 7px rgba(24,119,242,.14)}
+.acp-overlay[data-state="creating"] .acp-ok{display:none}
+.acp-overlay:not([data-state="creating"]) .acp-dots{display:none}
+.acp-overlay:not([data-state="creating"]) .acp-ok{display:grid}
+.acp-title{font-size:18px;font-weight:800;letter-spacing:.2px}
+.acp-sub{margin-top:4px;font-size:12.5px;color:var(--text-secondary,#5B6475)}
+.acp-name{margin-top:6px;font-size:15px;font-weight:700;word-break:break-word}
+.acp-name:empty,.acp-sub:empty{display:none}
+@media (prefers-reduced-motion:reduce){.acp-dots i{animation-duration:1.2s}}
+</style>
+<div class="acp-overlay" id="acp-overlay" data-state="creating" role="dialog" aria-live="polite">
+  <div class="acp-card">
+    <div class="acp-dots"><i style="--j:0;background:#2F7BFF"></i><i style="--j:1;background:#FF3B30"></i><i style="--j:2;background:#FFC21A"></i><i style="--j:3;background:#34C759"></i></div>
+    <div class="acp-ok"><svg viewBox="0 0 24 24"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></div>
+    <div class="acp-title" id="acp-title">Account Create</div>
+    <div class="acp-sub" id="acp-sub">Please wait…</div>
+    <div class="acp-name" id="acp-name"></div>
+  </div>
+</div>
+<script id="acct-popup-js">
+/* Account popup. begin = Account Create (bouncing dots, shown only if the Worker takes > 450 ms)
+   done  = Congratulations + name, closes by itself after DONE_MS      (brand-new account)
+   back  = Welcome Back + name, closes by itself after BACK_MS         (existing account logging in)
+   Returns how long the popup stays open, so the caller can reload the page only after it has closed. */
+(function () {
+  var DONE_MS = 1000, BACK_MS = 1200, GRACE_MS = 450;
+  var ov = null, tHide = 0, tBegin = 0;
+  function $(id) { return document.getElementById(id); }
+  function show(state, name) {
+    ov = ov || $('acp-overlay'); if (!ov) return;
+    ov.setAttribute('data-state', state);
+    $('acp-title').textContent = state === 'creating' ? 'Account Create' : state === 'done' ? 'Congratulations' : 'Welcome Back';
+    $('acp-sub').textContent = state === 'creating' ? 'Please wait…' : '';
+    $('acp-name').textContent = state === 'creating' ? '' : (name || '');
+    ov.classList.add('show');
+  }
+  function hide() { ov = ov || $('acp-overlay'); if (ov) ov.classList.remove('show'); }
+  window.pcaAcctPop = function (state, name) {
+    clearTimeout(tHide); clearTimeout(tBegin);
+    if (state === 'begin') { tBegin = setTimeout(function () { show('creating'); }, GRACE_MS); return 0; }
+    if (state === 'hide') { hide(); return 0; }
+    if (state === 'done') { show('done', name); tHide = setTimeout(hide, DONE_MS); return DONE_MS; }
+    if (state === 'back') { show('back', name); tHide = setTimeout(hide, BACK_MS); return BACK_MS; }
+    return 0;
+  };
+})();
+</script>
+<style id="hdr-nav-smooth-final">
+/* FINAL header + nav motion: slow slide + fade, transform/opacity only, NO blur on moving layers */
+@layer pcamine{
+:root{--hn-dur:.75s;--hn-ease:cubic-bezier(.4,0,.2,1);--hn-fade:.55s;--hn-in:.75s;--hn-in-ease:cubic-bezier(.4,0,.2,1);--hn-in-fade:.55s}
+html body header#app-header.header:not(#a):not(#b):not(#c):not(#d):not(#e):not(#f):not(#g):not(#h),
+html body nav#bottom-nav.bottom-nav:not(#a):not(#b):not(#c):not(#d):not(#e):not(#f):not(#g):not(#h){
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+  transition:transform var(--hn-in) var(--hn-in-ease),opacity var(--hn-in-fade) ease!important;
+  will-change:transform,opacity;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+  opacity:1!important;transform:translate3d(0,0,0)!important}
+html body nav#bottom-nav.bottom-nav:not(#a):not(#b):not(#c):not(#d):not(#e):not(#f):not(#g):not(#h)::before{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html body header#app-header.header:not(#a):not(#b):not(#c):not(#d):not(#e):not(#f):not(#g):not(#h){background:var(--gl-bg,rgba(255,255,255,.94))!important}
+html body nav#bottom-nav.bottom-nav:not(#a):not(#b):not(#c):not(#d):not(#e):not(#f):not(#g):not(#h)::before{background:var(--gl-bg,rgba(255,255,255,.94))!important}
+html body header#app-header.header.header-hidden:not(#a):not(#b):not(#c):not(#d):not(#e):not(#f):not(#g):not(#h),
+html body header#app-header.header.pca-hide:not(#a):not(#b):not(#c):not(#d):not(#e):not(#f):not(#g):not(#h),
+html body.no-bottom-nav header#app-header.header:not(#a):not(#b):not(#c):not(#d):not(#e):not(#f):not(#g):not(#h){
+  transform:translate3d(0,calc(-100% - 36px - env(safe-area-inset-top,0px)),0)!important;opacity:0!important;pointer-events:none!important}
+html body nav#bottom-nav.bottom-nav.nav-hidden:not(#a):not(#b):not(#c):not(#d):not(#e):not(#f):not(#g):not(#h),
+html body nav#bottom-nav.bottom-nav.nav-tuck:not(#a):not(#b):not(#c):not(#d):not(#e):not(#f):not(#g):not(#h){
+  transform:translate3d(0,calc(100% + 44px + env(safe-area-inset-bottom,0px)),0)!important;opacity:0!important;pointer-events:none!important}
+html body .htabs-wrap:not(#a):not(#b):not(#c):not(#d):not(#e):not(#f):not(#g):not(#h){transition:transform var(--hn-in) var(--hn-in-ease)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;will-change:transform}
+html body #pca-pill:not(#a):not(#b):not(#c):not(#d):not(#e):not(#f):not(#g):not(#h){transition:transform var(--hn-in) var(--hn-in-ease),opacity .4s ease!important}
+/* EXIT (hiding) keeps the .8s speed; ENTRY (showing) is slower */
+html body header#app-header.header.header-hidden:not(#a):not(#b):not(#c):not(#d):not(#e):not(#f):not(#g):not(#h),
+html body header#app-header.header.pca-hide:not(#a):not(#b):not(#c):not(#d):not(#e):not(#f):not(#g):not(#h),
+html body.no-bottom-nav header#app-header.header:not(#a):not(#b):not(#c):not(#d):not(#e):not(#f):not(#g):not(#h),
+html body nav#bottom-nav.bottom-nav.nav-hidden:not(#a):not(#b):not(#c):not(#d):not(#e):not(#f):not(#g):not(#h),
+html body nav#bottom-nav.bottom-nav.nav-tuck:not(#a):not(#b):not(#c):not(#d):not(#e):not(#f):not(#g):not(#h){transition:transform var(--hn-dur) var(--hn-ease),opacity var(--hn-fade) ease!important}
+html body .htabs-wrap.tabs-up:not(#a):not(#b):not(#c):not(#d):not(#e):not(#f):not(#g):not(#h){transition:transform var(--hn-dur) var(--hn-ease)!important}
+html body #pca-pill.pca-down:not(#a):not(#b):not(#c):not(#d):not(#e):not(#f):not(#g):not(#h){transition:transform var(--hn-dur) var(--hn-ease),opacity .4s ease!important}
+/* nav: slide + fade, same as header */
+html body nav#bottom-nav.bottom-nav:not(#a):not(#b):not(#c):not(#d):not(#e):not(#f):not(#g):not(#h){transition:transform var(--hn-in) var(--hn-in-ease),opacity var(--hn-in-fade) ease!important;opacity:1!important}
+html body nav#bottom-nav.bottom-nav.nav-hidden:not(#a):not(#b):not(#c):not(#d):not(#e):not(#f):not(#g):not(#h),
+html body nav#bottom-nav.bottom-nav.nav-tuck:not(#a):not(#b):not(#c):not(#d):not(#e):not(#f):not(#g):not(#h){transition:transform var(--hn-dur) var(--hn-ease),opacity var(--hn-fade) ease!important;opacity:0!important}
+html body header#app-header.header.hn-warm:not(#a):not(#b):not(#c):not(#d):not(#e):not(#f):not(#g):not(#h):not(#i):not(#j),
+html body nav#bottom-nav.bottom-nav.hn-warm:not(#a):not(#b):not(#c):not(#d):not(#e):not(#f):not(#g):not(#h):not(#i):not(#j){transition:none!important}
+}
+@media (prefers-reduced-motion:reduce){html body header#app-header,html body nav#bottom-nav{transition-duration:.01ms!important}}
+</style>
+<style id="pca-final-fix-1">
+@layer pcamine{
+/* ===== 1) Catalog tab bar = same glass plate as the header (same fill, edge, shadow; NO blur on moving bars) ===== */
+html body .htabs:not(#a0):not(#a1):not(#a2):not(#a3):not(#a4):not(#a5):not(#a6):not(#a7):not(#a8):not(#a9):not(#a10):not(#a11){
+  background:var(--gl-bg,rgba(255,255,255,.94))!important;
+  border:1px solid rgba(255,255,255,.78)!important;
+  border-radius:999px!important;
+  box-shadow:0 12px 28px -14px rgba(30,50,110,.38),inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(255,255,255,.35)!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+  max-width:460px;margin-left:auto!important;margin-right:auto!important;box-sizing:border-box}
+html[data-theme="dark"] body .htabs:not(#a0):not(#a1):not(#a2):not(#a3):not(#a4):not(#a5):not(#a6):not(#a7):not(#a8):not(#a9):not(#a10):not(#a11){
+  box-shadow:0 8px 18px -10px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.08)!important}
+html body .htabs-wrap:not(#a0):not(#a1):not(#a2):not(#a3):not(#a4):not(#a5):not(#a6):not(#a7):not(#a8):not(#a9):not(#a10):not(#a11){padding-left:12px!important;padding-right:12px!important;background:transparent!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;contain:layout style;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+html body .htabs .htab.active:not(#a0):not(#a1):not(#a2):not(#a3):not(#a4):not(#a5):not(#a6):not(#a7):not(#a8):not(#a9):not(#a10):not(#a11){border-radius:999px!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+
+/* ===== 2) tab bars fade in slowly when they appear (data arrived) instead of popping in ===== */
+@keyframes pcaTabsFadeIn{from{opacity:0}to{opacity:1}}
+html body :is(.htabs-wrap,#pkg-type-tabs,#home-prov-tabs,#voucher-prov-tabs):not(#a0):not(#a1):not(#a2):not(#a3):not(#a4):not(#a5):not(#a6):not(#a7):not(#a8):not(#a9):not(#a10):not(#a11){animation:pcaTabsFadeIn .9s ease-out both!important}
+@media (prefers-reduced-motion:reduce){html body :is(.htabs-wrap,#pkg-type-tabs,#home-prov-tabs,#voucher-prov-tabs):not(#a0):not(#a1):not(#a2):not(#a3):not(#a4):not(#a5):not(#a6):not(#a7):not(#a8):not(#a9):not(#a10):not(#a11){animation:none!important}}
+
+/* ===== 3) bottom nav: wider + deeper notch so the Wallet orb has a clear visible gap all round (was ~5px, now ~9px) ===== */
+html body nav#bottom-nav:not(#a0):not(#a1):not(#a2):not(#a3):not(#a4):not(#a5):not(#a6):not(#a7):not(#a8):not(#a9):not(#a10):not(#a11)::before{
+ -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 66' preserveAspectRatio='none'%3E%3Cpath d='M0 0H28C34 0 37.2 9.6 40 17.1A32 32 0 0 0 100 17.1C102.8 9.6 106 0 112 0H140V66H0Z'/%3E%3C/svg%3E") 50% 0/140px 100% no-repeat,linear-gradient(#000,#000) 0 0/calc(50% - 70px) 100% no-repeat,linear-gradient(#000,#000) 100% 0/calc(50% - 70px) 100% no-repeat!important;
+         mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 66' preserveAspectRatio='none'%3E%3Cpath d='M0 0H28C34 0 37.2 9.6 40 17.1A32 32 0 0 0 100 17.1C102.8 9.6 106 0 112 0H140V66H0Z'/%3E%3C/svg%3E") 50% 0/140px 100% no-repeat,linear-gradient(#000,#000) 0 0/calc(50% - 70px) 100% no-repeat,linear-gradient(#000,#000) 100% 0/calc(50% - 70px) 100% no-repeat!important}
+/* page being dragged by finger */
+html body .page-section.tab-dragging{will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+}
 </style>
 </body>
 </html>
