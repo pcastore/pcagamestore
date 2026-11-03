@@ -2,7 +2,26 @@
 <html lang="en" data-theme="light">
 <head>
 <script>/* vibration temporarily disabled */try{Object.defineProperty(navigator,'vibrate',{value:function(){return false},configurable:true,writable:true})}catch(e){try{navigator.vibrate=function(){return false}}catch(_){}}</script>
-<style id="pca-layer-order">@layer pcamine,pcaglass,pcafix,legacy,tokens,base,layout,motion,components,pages,utilities;</style>
+<script id="pca-mo-coalesce">
+/* perf: ~27 MutationObservers (some watch the whole document) used to run once per DOM burst, per observer, per mutation.
+   Observers that watch a whole subtree now get ONE batched callback per animation frame instead. */
+(function(){var N=window.MutationObserver;if(!N||N.__pca)return;
+function W(cb){var self=this,q=[],raf=0,heavy=false;
+  function flush(){raf=0;var r=q;q=[];if(!r.length)return;try{cb.call(self,r,self)}catch(e){try{console.error(e)}catch(_){}}}
+  var real=new N(function(recs){
+    if(!heavy){cb.call(self,recs,self);return}
+    for(var i=0;i<recs.length;i++)q.push(recs[i]);
+    if(q.length>1500)q=q.slice(-1500);
+    if(!raf)raf=requestAnimationFrame(flush);
+  });
+  this.observe=function(t,o){heavy=!!(o&&o.subtree&&(o.childList||o.characterData));return real.observe(t,o)};
+  this.disconnect=function(){real.disconnect();q=[]};
+  this.takeRecords=function(){var r=q.concat(real.takeRecords());q=[];return r};
+}
+W.__pca=1;window.MutationObserver=W;
+})();
+</script>
+<style id="pca-layer-order">@layer pcapolish,pcamine,pcaglass,pcafix,legacy,tokens,base,layout,motion,components,pages,utilities;</style>
 <script id="pca-check-js">
 window.PCA_CK='<svg class="pca-ck" viewBox="0 0 24 24" aria-hidden="true"><path pathLength="1" d="M6.4 12.8l3.7 3.7 7.5-8.2"/></svg>';
 window.pcaStatusText=function(el,text){if(!el)return;text=String(text==null?'':text);
@@ -9251,7 +9270,7 @@ b,strong{font-weight:600}
             }, (error) => {
                 console.error("Admin presence fetch error:", error);
             });
-            setInterval(renderAdminStatus, 20000); // re-check the threshold even with no new snapshot
+            setInterval(function(){ if(!document.hidden) renderAdminStatus(); }, 30000); // re-check the threshold even with no new snapshot
         });
 
 
@@ -11615,7 +11634,7 @@ b,strong{font-weight:600}
             if (notifListenerAttached) return;
             notifListenerAttached = true;
             syncInboxListener();
-            setInterval(syncInboxListener, 3000); // picks up sign-in / sign-out / account switch
+            setInterval(function(){ if(!document.hidden) syncInboxListener(); }, 15000); // picks up sign-in / sign-out / account switch
             const q = query(collection(db, "notifications"), orderBy("timestamp", "desc"), limit(50));
             onSnapshot(q, (snap) => {
                 // Broadcasts (no targetUserId) show for everyone; a targeted
@@ -14317,11 +14336,12 @@ select[data-pcs]{display:none !important}
   }
   new MutationObserver(function(ms){
     if(busy)return;
-    ms.forEach(function(m){
-      var n=m.target.nodeType===1?m.target:m.target.parentElement;
+    var seen=new Set();
+    for(var k=0;k<ms.length;k++){
+      var m=ms[k],n=m.target.nodeType===1?m.target:m.target.parentElement;
       var b=n&&n.closest?n.closest('button'):null;
-      if(b)fix(b);
-    });
+      if(b&&!seen.has(b)){seen.add(b);fix(b);}
+    }
   }).observe(document.documentElement,{childList:true,characterData:true,subtree:true});
 })();
 </script>
@@ -15476,11 +15496,18 @@ html body .profile-card.pca-sk-av .avatar-upload-circle::after{content:"";positi
  d.addEventListener('pointerdown',function(e){
   var t=e.target&&e.target.closest?e.target.closest(SEL):null;
   if(!t||t.matches(SKIP))return;
-  var r=t.getBoundingClientRect();if(!r.width||!r.height||r.width*r.height>innerWidth*innerHeight*.5)return;
+  var __cx=e.clientX,__cy=e.clientY;
+  /* layout reads + DOM writes wait until the press state has painted (they used to run inside the pointerdown event = the tap lag) */
+  requestAnimationFrame(function(){setTimeout(function(){if(t.isConnected)__rip(t,__cx,__cy)},0)});
+ },{passive:true});
+ function __rip(t,__cx,__cy){
+  var __card=t.classList&&t.classList.contains('collapsible-header')?t.closest('.detail-form-card'):null;
+  if(__card)t=__card;
+  var r=t.getBoundingClientRect();if(!r.width||!r.height||(!__card&&r.width*r.height>innerWidth*innerHeight*.5))return;
   if(getComputedStyle(t).position==='static')t.style.position='relative';
   var wrap=t.querySelector(':scope>.pca-rip-wrap');
   if(!wrap){wrap=d.createElement('span');wrap.className='pca-rip-wrap';wrap.setAttribute('aria-hidden','true');t.appendChild(wrap)}
-  var x=e.clientX-r.left,y=e.clientY-r.top;
+  var x=__cx-r.left,y=__cy-r.top;
   var far=Math.max(Math.hypot(x,y),Math.hypot(r.width-x,y),Math.hypot(x,r.height-y),Math.hypot(r.width-x,r.height-y));
   var s=Math.ceil(far*2);
   ['','r2'].forEach(function(c){
@@ -15489,7 +15516,7 @@ html body .profile-card.pca-sk-av .avatar-upload-circle::after{content:"";positi
    wrap.appendChild(p);
    setTimeout(function(){if(p.parentNode)p.parentNode.removeChild(p)},1400);
   });
- },{passive:true});
+ }
 })();
 (function(){var d=document;function mv(){var b=d.getElementById('profile-edit-toggle-btn'),t=d.querySelector('.profile-card .pc-top');if(b&&t&&b.parentNode!==t)t.appendChild(b)}
 if(d.readyState==='loading')d.addEventListener('DOMContentLoaded',mv);else mv();setTimeout(mv,800)})();
@@ -16765,14 +16792,37 @@ html body div.package-grid-scroll:not(#a):not(#b){max-height:min(74vh,660px) !im
   var tabsEls = null;
   /* phase 1 = read every tab bar, phase 2 = write: one layout, never interleaved */
   var pinTop = 0, sen = null;
+  /* stuck-state is tracked by an IntersectionObserver on the sentinel (fires the very frame the bar pins, no polling,
+     no layout reads in the scroll path) - this fixes the bar being left floating mid-screen while the header is hidden */
+  var stuck = false, io = null, ioSen = null;
+  function ensureIO() {
+    var cur = document.getElementById('htabs-sentinel');
+    if (!('IntersectionObserver' in window) || !cur) return false;
+    if (io && ioSen === cur) return true;
+    try { if (io) io.disconnect(); } catch (e) {}
+    var tb = document.querySelector('.htabs-wrap');
+    if (!pinTop && tb) pinTop = parseFloat(getComputedStyle(tb).top) || 78;
+    ioSen = cur; sen = cur;
+    io = new IntersectionObserver(function (es) {
+      var e = es[es.length - 1];
+      var s2 = !e.isIntersecting && e.boundingClientRect.top < window.innerHeight / 2;
+      if (s2 !== stuck) { stuck = s2; applyTabs(); }
+    }, { rootMargin: '-' + Math.round((pinTop || 78) + 2) + 'px 0px 0px 0px', threshold: [0, 1] });
+    io.observe(cur);
+    return true;
+  }
+  function applyTabs() {
+    tabsEls = document.querySelectorAll('.htabs-wrap');
+    var want = scrollHidden && stuck, i, el;
+    for (i = 0; i < tabsEls.length; i++) { el = tabsEls[i]; if (want !== el.classList.contains('tabs-up')) el.classList.toggle('tabs-up', want); }
+  }
   function syncTabs() {
     tabsEls = document.querySelectorAll('.htabs-wrap');
-    sen = sen || document.getElementById('htabs-sentinel');
     if (!tabsEls.length) return;
+    if (ensureIO()) { applyTabs(); return; }
+    /* fallback (no IntersectionObserver / no sentinel): old behaviour */
+    sen = sen || document.getElementById('htabs-sentinel');
     if (!pinTop) pinTop = parseFloat(getComputedStyle(tabsEls[0]).top) || 78;
-    /* the sentinel is a zero-height node in normal flow right before the bar: its position is the bar's
-       resting spot and is NOT touched by sticky or by the slide transform, so a fast scroll can never
-       read a half-moved bar and flip the state back and forth */
     var natural = sen ? sen.getBoundingClientRect().top : null, i, el, up, want;
     for (i = 0; i < tabsEls.length; i++) {
       el = tabsEls[i]; up = el.classList.contains('tabs-up');
@@ -16862,15 +16912,74 @@ html body div.package-grid-scroll:not(#a):not(#b){max-height:min(74vh,660px) !im
     } catch (e) {}
   };
   window.pmxSaveQr = function (imgId, brandId) {
-    var img = document.getElementById(imgId); if (!img || !img.src) return;
-    var b = document.getElementById(brandId), fn = ((b && b.textContent) || 'payment').replace(/[^\w-]+/g, '-') + '-qr.png';
-    function dl(href) { var a = document.createElement('a'); a.href = href; a.download = fn; document.body.appendChild(a); a.click(); a.remove(); }
-    fetch(img.src).then(function (r) { return r.blob(); }).then(function (bl) {
-      var u = URL.createObjectURL(bl); dl(u); setTimeout(function () { URL.revokeObjectURL(u); }, 4000);
-      if (window.showToast) window.showToast('QR saved');
-    }).catch(function () { try { dl(img.src); } catch (e) { window.open(img.src, '_blank'); } });
+    var img = document.getElementById(imgId);
+    var srcUrl = img && (img.currentSrc || img.src);
+    if (!img || !srcUrl) return;
+    var b = document.getElementById(brandId);
+    var fn = ((b && b.textContent) || 'payment').trim().replace(/[^\w-]+/g, '-').replace(/^-+|-+$/g, '') + '-qr.png';
+    var toast = function (m, t) { if (window.showToast) try { window.showToast(m, t); } catch (e) {} };
+
+    function viaFetch() {
+      return fetch(srcUrl, { mode: 'cors', cache: 'force-cache' }).then(function (r) {
+        if (!r.ok) throw new Error('http'); return r.blob();
+      });
+    }
+    function viaCanvas() {
+      return new Promise(function (res, rej) {
+        var im = new Image(); im.crossOrigin = 'anonymous';
+        im.onload = function () {
+          try {
+            var pad = 24, w = im.naturalWidth || 512, h = im.naturalHeight || 512;
+            var c = document.createElement('canvas'); c.width = w + pad * 2; c.height = h + pad * 2;
+            var x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+            x.drawImage(im, pad, pad, w, h);
+            c.toBlob(function (bl) { bl ? res(bl) : rej(new Error('blob')); }, 'image/png');
+          } catch (e) { rej(e); }
+        };
+        im.onerror = function () { rej(new Error('img')); };
+        im.src = srcUrl;
+      });
+    }
+    function preview(url) {
+      var ov = document.getElementById('pmx-qr-preview');
+      if (!ov) {
+        ov = document.createElement('div'); ov.id = 'pmx-qr-preview';
+        ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(10,14,28,.84);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px;gap:14px';
+        ov.innerHTML = '<p style="color:#fff;font-size:13px;text-align:center;margin:0;line-height:1.5">QR ပုံကို ဖိနှိပ်ပြီး “Save Image” ရွေးပါ</p>' +
+          '<img alt="QR" style="width:min(300px,78vw);height:auto;background:#fff;border-radius:20px;padding:14px;-webkit-touch-callout:default;user-select:auto">' +
+          '<div style="display:flex;gap:10px"><a class="pq-dl" style="padding:10px 20px;border-radius:14px;background:#2557F5;color:#fff;font-size:14px;font-weight:600;text-decoration:none">Download</a>' +
+          '<button type="button" class="pq-x" style="padding:10px 20px;border-radius:14px;border:0;background:rgba(255,255,255,.2);color:#fff;font-size:14px;font-weight:600">Close</button></div>';
+        ov.querySelector('.pq-x').onclick = function () { ov.style.display = 'none'; };
+        ov.addEventListener('click', function (e) { if (e.target === ov) ov.style.display = 'none'; });
+        document.body.appendChild(ov);
+      }
+      ov.querySelector('img').src = url;
+      var a = ov.querySelector('.pq-dl'); a.href = url; a.setAttribute('download', fn);
+      ov.style.display = 'flex';
+    }
+    function deliver(bl) {
+      var url = URL.createObjectURL(bl);
+      var ua = navigator.userAgent || '';
+      var isIOS = /iPhone|iPad|iPod/i.test(ua) || (/Macintosh/i.test(ua) && navigator.maxTouchPoints > 1);
+      var inTg = !!(window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData);
+      var inAppWV = /; wv\)|FBAN|FBAV|Instagram|Line\/|MicroMessenger/i.test(ua);
+      var canAnchor = 'download' in document.createElement('a');
+      var file = null; try { file = new File([bl], fn, { type: 'image/png' }); } catch (e) {}
+      var canShare = !!(file && navigator.canShare && navigator.share && navigator.canShare({ files: [file] }));
+      if ((isIOS || (inTg || inAppWV)) && canShare) {
+        return navigator.share({ files: [file], title: 'QR' }).catch(function (e) { if (!e || e.name !== 'AbortError') preview(url); });
+      }
+      if (isIOS || inTg || inAppWV || !canAnchor) { preview(url); return; }
+      var a = document.createElement('a'); a.href = url; a.download = fn; a.rel = 'noopener'; a.style.display = 'none';
+      document.body.appendChild(a); a.click(); a.remove();
+      toast('QR ကို save လုပ်နေပါပြီ');
+      setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+    }
+    (srcUrl.indexOf('data:') === 0 ? viaFetch() : viaFetch().catch(viaCanvas)).catch(viaCanvas)
+      .then(deliver)
+      .catch(function () { preview(srcUrl); });
   };
-})();
+  })();
 </script>
 
 <script id="pca-lite-img">/* lite only: decode images off the main thread, lazy-load the ones off screen */
@@ -17339,10 +17448,307 @@ html body :is(.htabs-wrap,#pkg-type-tabs,#home-prov-tabs,#voucher-prov-tabs):not
 
 /* ===== 3) bottom nav: wider + deeper notch so the Wallet orb has a clear visible gap all round (was ~5px, now ~9px) ===== */
 html body nav#bottom-nav:not(#a0):not(#a1):not(#a2):not(#a3):not(#a4):not(#a5):not(#a6):not(#a7):not(#a8):not(#a9):not(#a10):not(#a11)::before{
- -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 66' preserveAspectRatio='none'%3E%3Cpath d='M0 0H28C34 0 37.2 9.6 40 17.1A32 32 0 0 0 100 17.1C102.8 9.6 106 0 112 0H140V66H0Z'/%3E%3C/svg%3E") 50% 0/140px 100% no-repeat,linear-gradient(#000,#000) 0 0/calc(50% - 70px) 100% no-repeat,linear-gradient(#000,#000) 100% 0/calc(50% - 70px) 100% no-repeat!important;
-         mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 66' preserveAspectRatio='none'%3E%3Cpath d='M0 0H28C34 0 37.2 9.6 40 17.1A32 32 0 0 0 100 17.1C102.8 9.6 106 0 112 0H140V66H0Z'/%3E%3C/svg%3E") 50% 0/140px 100% no-repeat,linear-gradient(#000,#000) 0 0/calc(50% - 70px) 100% no-repeat,linear-gradient(#000,#000) 100% 0/calc(50% - 70px) 100% no-repeat!important}
+ -webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 66' preserveAspectRatio='none'%3E%3Cpath d='M0 0H28C34 0 37.2 9.6 40 17.1A32 32 0 0 0 100 17.1C102.8 9.6 106 0 112 0H140V66H0Z'/%3E%3C/svg%3E") 50% 0/140px 100% no-repeat,linear-gradient(#000,#000) 0 0/calc(50% - 69px) 100% no-repeat,linear-gradient(#000,#000) 100% 0/calc(50% - 69px) 100% no-repeat!important;
+         mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 140 66' preserveAspectRatio='none'%3E%3Cpath d='M0 0H28C34 0 37.2 9.6 40 17.1A32 32 0 0 0 100 17.1C102.8 9.6 106 0 112 0H140V66H0Z'/%3E%3C/svg%3E") 50% 0/140px 100% no-repeat,linear-gradient(#000,#000) 0 0/calc(50% - 69px) 100% no-repeat,linear-gradient(#000,#000) 100% 0/calc(50% - 69px) 100% no-repeat!important}
 /* page being dragged by finger */
 html body .page-section.tab-dragging{will-change:transform;backface-visibility:hidden;-webkit-backface-visibility:hidden}
+}
+</style>
+<style id="pca-perf-fix">
+/* perf: kill backdrop blur on the surfaces that actually use it (targeted - a universal selector made every restyle slower) */
+html body :is(.header,.bottom-nav,header#app-header,nav#bottom-nav,.modal-box,.success-box,.pca-fl,#pca-pill,.title-header,.htabs,.htabs-wrap,.bullet-chat-wrapper,.gc-b,.pc-tag,.game-card,.voucher-card,.popular-card,.package-card,.list-card,.history-card,.profile-card,.detail-form-card,.wallet-balance-card,.wallet-topup-row,.wtx-row,.auth-gate,.id-result-card,.id-fail-card,.pmx-wrap-inner,.pmx-ver,.pmx-b2,.notif-item,.dash-card,.hdr-bal){-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+:root{--g-blur:none;--pg-blur:none}
+</style>
+
+<style id="pca-size-fix">
+@layer pcamine{
+/* ===== size / weight / layout fix (matches payment-card preview) ===== */
+/* --- payment card (bank style) --- */
+html body .pmx-wrap-inner:not(#q1):not(#q2):not(#q3):not(#q4){padding:16px 14px 14px !important;border-radius:26px !important}
+html body .pmx-intro:not(#q1):not(#q2):not(#q3):not(#q4){font-size:13px !important;font-weight:400 !important;margin:0 4px 12px !important}
+html body .pmx-ttl strong:not(#q1):not(#q2):not(#q3):not(#q4){font-size:15px !important;font-weight:600 !important}
+html body .pmx-ttl small:not(#q1):not(#q2):not(#q3):not(#q4){font-size:12px !important;font-weight:400 !important}
+html body .pmx-logo:not(#q1):not(#q2):not(#q3):not(#q4){width:40px !important;height:40px !important;border-radius:12px !important}
+html body .pmx-wrap-inner .pmx-ver:not(#q1):not(#q2):not(#q3):not(#q4){font-size:12px !important;font-weight:600 !important;padding:4px 11px 4px 4px !important}
+html body .pmx-lb:not(#q1):not(#q2):not(#q3):not(#q4){font-size:10.5px !important;font-weight:500 !important;letter-spacing:1.2px !important}
+html body .pmx-bank:not(#q1):not(#q2):not(#q3):not(#q4){padding:16px 14px 14px !important;border-radius:26px !important}
+html body .pmx-mid:not(#q1):not(#q2):not(#q3):not(#q4){gap:14px !important;margin-top:14px !important}
+html body .pmx-qrcard:not(#q1):not(#q2):not(#q3):not(#q4){width:104px !important;height:104px !important;padding:7px !important;border-radius:20px !important}
+html body .pmx-nm:not(#q1):not(#q2):not(#q3):not(#q4){font-size:16px !important;font-weight:600 !important;line-height:1.25 !important;white-space:normal !important;overflow-wrap:anywhere}
+html body .pmx-ph:not(#q1):not(#q2):not(#q3):not(#q4){font-size:17px !important;font-weight:600 !important;letter-spacing:.8px !important;white-space:nowrap}
+html body .pmx-acts:not(#q1):not(#q2):not(#q3):not(#q4){gap:10px !important;margin-top:14px !important}
+html body .pmx-acts button:not(#q1):not(#q2):not(#q3):not(#q4){height:42px !important;border-radius:15px !important;font-size:13.5px !important;font-weight:600 !important;gap:6px !important}
+html body .pmx-note:not(#q1):not(#q2):not(#q3):not(#q4){font-size:12px !important;line-height:1.5 !important;margin-top:12px !important}
+html body .pmx-note a:not(#q1):not(#q2):not(#q3):not(#q4){font-weight:500 !important}
+/* --- payment card (ticket style) --- */
+html body .pmx-ticket:not(#q1):not(#q2):not(#q3):not(#q4){padding:14px !important;border-radius:24px !important}
+html body .pmx-qrpanel:not(#q1):not(#q2):not(#q3):not(#q4){padding:18px 14px 14px !important;border-radius:22px !important;margin-top:14px !important}
+html body .pmx-qrbox:not(#q1):not(#q2):not(#q3):not(#q4){width:min(160px,50vw) !important}
+html body .pmx-save:not(#q1):not(#q2):not(#q3):not(#q4){font-size:13.5px !important;font-weight:600 !important;padding:8px 18px !important}
+html body .pmx-tear:not(#q1):not(#q2):not(#q3):not(#q4){margin:16px 0 !important}
+html body .pmx-row:not(#q1):not(#q2):not(#q3):not(#q4){padding:10px 10px 10px 14px !important;border-radius:18px !important;gap:8px !important}
+html body .pmx-vl:not(#q1):not(#q2):not(#q3):not(#q4){gap:6px !important;margin-top:2px !important}
+html body .pmx-vl p:not(#q1):not(#q2):not(#q3):not(#q4){font-size:16px !important;font-weight:600 !important;text-overflow:clip !important;overflow:visible !important;white-space:normal !important;overflow-wrap:anywhere}
+html body .pmx-vl p.num:not(#q1):not(#q2):not(#q3):not(#q4){font-size:17px !important;letter-spacing:.8px !important;white-space:nowrap !important}
+html body .pmx-vl svg:not(#q1):not(#q2):not(#q3):not(#q4){width:18px !important;height:18px !important}
+html body .pmx-cp:not(#q1):not(#q2):not(#q3):not(#q4){height:38px !important;padding:0 14px !important;border-radius:14px !important;font-size:13.5px !important;font-weight:600 !important;gap:5px !important}
+/* --- payment option tiles / section headings / upload box --- */
+html body .payment-option:not(#q1):not(#q2):not(#q3):not(#q4){font-size:14px !important;font-weight:500 !important}
+html body .payment-option :is(span,div,p,strong,b):not(#q1):not(#q2):not(#q3):not(#q4){font-weight:500 !important}
+html body :is(.detail-section-title,#detail-payment-info+label,.pmx-host>label,.pmx-host>.pmx-wrap-inner+label):not(#q1):not(#q2):not(#q3):not(#q4){font-size:15px !important;font-weight:600 !important}
+html body .upload-shot-box:not(#q1):not(#q2):not(#q3):not(#q4){padding:18px 14px !important}
+html body .upload-shot-box .upload-shot-label:not(#q1):not(#q2):not(#q3):not(#q4){font-size:14px !important;font-weight:600 !important}
+html body .upload-shot-box .upload-shot-hint:not(#q1):not(#q2):not(#q3):not(#q4){font-size:12px !important;font-weight:400 !important}
+html body .upload-shot-box .upload-shot-icon:not(#q1):not(#q2):not(#q3):not(#q4){width:44px !important;height:44px !important}
+/* --- Account Info form: both fields identical (input + server select) --- */
+html body .detail-form-card label:not(#q1):not(#q2):not(#q3):not(#q4){font-size:13px !important;font-weight:600 !important;margin-bottom:6px !important}
+html body .detail-form-card label span:not(#q1):not(#q2):not(#q3):not(#q4){font-size:12px !important;font-weight:400 !important}
+html body .detail-form-card :is(input[type=text],input[type=number],input[type=tel],select):not(#q1):not(#q2):not(#q3):not(#q4){height:46px !important;min-height:46px !important;box-sizing:border-box !important;width:100% !important;padding:0 14px !important;border-radius:14px !important;font-size:14px !important;font-weight:400 !important;border:1px solid #DCE3F5 !important;background-color:#fff !important;box-shadow:none !important;line-height:1.2 !important}
+html body .detail-form-card select:not(#q1):not(#q2):not(#q3):not(#q4){padding-right:34px !important;text-overflow:ellipsis;white-space:nowrap;overflow:hidden;-webkit-appearance:none;appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='14' height='14' viewBox='0 0 24 24' fill='none' stroke='%238a93a6' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E") !important;background-repeat:no-repeat !important;background-position:right 12px center !important;color:#6b7280 !important}
+html body .detail-form-card select.has-value:not(#q1):not(#q2):not(#q3):not(#q4){color:#111318 !important}
+html body .detail-form-card :is(input,select):not(#q1):not(#q2):not(#q3):not(#q4)::placeholder{font-size:14px !important;color:#9aa3b2 !important}
+/* --- order result modal --- */
+html body .pv-res-card:not(#q1):not(#q2):not(#q3):not(#q4){padding:28px 18px 18px !important}
+html body .pv-res-title:not(#q1):not(#q2):not(#q3):not(#q4){font-size:18px !important;font-weight:600 !important}
+html body .pv-res-sub:not(#q1):not(#q2):not(#q3):not(#q4){font-size:12.5px !important}
+html body .pv-res-meta .row:not(#q1):not(#q2):not(#q3):not(#q4){font-size:12px !important}
+html body .pv-res-meta .v:not(#q1):not(#q2):not(#q3):not(#q4){font-weight:500 !important}
+html body .pv-res-card .voucher-code-highlight:not(#q1):not(#q2):not(#q3):not(#q4){padding:12px !important}
+html body .pv-res-card .vch-label:not(#q1):not(#q2):not(#q3):not(#q4){font-size:12px !important;font-weight:600 !important}
+html body .pv-res-card .voucher-code-highlight :is(code,.vch-code,.voucher-code-text,[class*=code]):not(.vch-label):not(#q1):not(#q2):not(#q3):not(#q4){font-size:12.5px !important;font-weight:500 !important;letter-spacing:0 !important;word-break:break-all !important;line-height:1.4 !important}
+html body .pv-btn:not(#q1):not(#q2):not(#q3):not(#q4){font-size:13.5px !important;font-weight:600 !important;height:42px !important}
+/* --- global: soften heavy bold --- */
+html body :is(h1,h2,h3,h4):not(#q1):not(#q2):not(#q3):not(#q4){font-weight:600 !important}
+html body :is(.game-card-name,.voucher-card-name,.package-card .pkg-name,.history-card strong):not(#q1):not(#q2):not(#q3):not(#q4){font-weight:600 !important}
+
+html body .vch-code:not(#q1):not(#q2):not(#q3):not(#q4){font-size:12.5px !important;font-weight:500 !important;line-height:1.45 !important;letter-spacing:0 !important;text-align:left !important;word-break:break-all !important}
+html body .vch-row-num:not(#q1):not(#q2):not(#q3):not(#q4){font-size:11.5px !important;font-weight:600 !important}
+html body .vch-label:not(#q1):not(#q2):not(#q3):not(#q4){font-size:12px !important;font-weight:600 !important}
+html body .vch-row:not(#q1):not(#q2):not(#q3):not(#q4){padding:9px 10px !important}
+html body .pv-btn:not(#q1):not(#q2):not(#q3):not(#q4){white-space:nowrap !important;padding:0 10px !important}
+}
+</style>
+<style id="pca-scroll-perf">
+/* while the finger is scrolling/swiping: freeze decorative motion so the main thread only does scrolling */
+html.pca-scrolling :is(.mq-in,.bullet-chat,.live-dot){animation-play-state:paused !important}
+html.pca-scrolling :is(.game-card,.voucher-card,.popular-card,.history-card,.list-card,.package-card,.payment-option){transition:none !important}
+html.pca-scrolling{scroll-behavior:auto !important}
+</style>
+<script id="pca-scroll-perf-js">
+(function(){var h=document.documentElement,t=0,on=false;
+function stop(){on=false;h.classList.remove('pca-scrolling')}
+function go(){if(!on){on=true;h.classList.add('pca-scrolling')}clearTimeout(t);t=setTimeout(stop,160)}
+addEventListener('scroll',go,{passive:true,capture:true});
+addEventListener('touchmove',go,{passive:true,capture:true});
+})();
+</script>
+<style id="pca-qty">
+@layer pcamine{
+html body #detail-qty-box:not(#q1):not(#q2):not(#q3):not(#q4){margin:0 0 14px !important}
+html body .qty-stepper:not(#q1):not(#q2):not(#q3):not(#q4){display:flex !important;align-items:center !important;justify-content:space-between !important;gap:12px !important;padding:10px 14px 10px 10px !important;border-radius:18px !important;background:#fff !important;border:1px solid #E3E8F5 !important;box-shadow:0 8px 18px -14px rgba(37,87,245,.4) !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important}
+html body .qty-ctrl:not(#q1):not(#q2):not(#q3):not(#q4){display:inline-flex !important;align-items:center !important;gap:2px !important;padding:4px !important;border-radius:999px !important;background:#F1F4FB !important;box-shadow:none !important}
+html body .qty-ctrl button:not(#q1):not(#q2):not(#q3):not(#q4){width:36px !important;height:36px !important;min-width:36px !important;min-height:36px !important;max-width:36px !important;max-height:36px !important;flex:0 0 36px !important;padding:0 !important;border:0 !important;border-radius:50% !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;font-size:20px !important;font-weight:500 !important;line-height:1 !important;background:#fff !important;color:var(--pca-acc,#2557F5) !important;box-shadow:0 2px 6px -1px rgba(30,50,110,.18) !important;transition:transform .12s ease !important}
+html body .qty-ctrl #qty-plus:not(#q1):not(#q2):not(#q3):not(#q4){background:var(--pca-acc,#2557F5) !important;color:#fff !important;box-shadow:0 4px 10px -3px rgba(37,87,245,.5) !important}
+html body .qty-ctrl button:active:not(#q1):not(#q2):not(#q3):not(#q4){transform:scale(.92) !important}
+html body .qty-ctrl button:disabled:not(#q1):not(#q2):not(#q3):not(#q4){opacity:.38 !important;box-shadow:none !important;transform:none !important}
+html body .qty-ctrl #qty-num:not(#q1):not(#q2):not(#q3):not(#q4){min-width:42px !important;text-align:center !important;font-size:17px !important;font-weight:600 !important;color:#111318 !important;font-variant-numeric:tabular-nums !important}
+html body .qty-total:not(#q1):not(#q2):not(#q3):not(#q4){display:flex !important;flex-direction:column !important;align-items:flex-end !important;gap:1px !important;font-size:11.5px !important;font-weight:500 !important;color:#8A93A6 !important;line-height:1.2 !important}
+html body .qty-total b:not(#q1):not(#q2):not(#q3):not(#q4){font-size:17px !important;font-weight:600 !important;color:var(--pca-acc,#2557F5) !important;letter-spacing:.2px !important}
+html[data-theme="dark"] body .qty-stepper:not(#q1):not(#q2):not(#q3):not(#q4){background:#18223a !important;border-color:#263A57 !important}
+html[data-theme="dark"] body .qty-ctrl:not(#q1):not(#q2):not(#q3):not(#q4){background:#1e2a47 !important}
+html[data-theme="dark"] body .qty-ctrl button:not(#qty-plus):not(#q1):not(#q2):not(#q3):not(#q4){background:#2a3858 !important;color:#cfe0ff !important}
+html[data-theme="dark"] body .qty-ctrl #qty-num:not(#q1):not(#q2):not(#q3):not(#q4){color:#f1f5ff !important}
+}
+</style>
+
+<style id="pca-tabs-compact">
+@layer pcamine{
+html body .htabs:not(#t1):not(#t2):not(#t3):not(#t4):not(#t5):not(#t6):not(#t7):not(#t8):not(#t9):not(#t10):not(#t11):not(#t12):not(#t13):not(#t14):not(#t15):not(#t16){padding:3px !important}
+html body .htabs-wrap:not(#t1):not(#t2):not(#t3):not(#t4):not(#t5):not(#t6):not(#t7):not(#t8):not(#t9):not(#t10):not(#t11):not(#t12):not(#t13):not(#t14):not(#t15):not(#t16){padding-top:4px !important;padding-bottom:4px !important;margin-bottom:6px !important}
+html body .htab:not(#t1):not(#t2):not(#t3):not(#t4):not(#t5):not(#t6):not(#t7):not(#t8):not(#t9):not(#t10):not(#t11):not(#t12):not(#t13):not(#t14):not(#t15):not(#t16){height:48px !important;gap:3px !important;padding:4px 2px !important}
+html body .htab-ic:not(#t1):not(#t2):not(#t3):not(#t4):not(#t5):not(#t6):not(#t7):not(#t8):not(#t9):not(#t10):not(#t11):not(#t12):not(#t13):not(#t14):not(#t15):not(#t16){width:26px !important;height:26px !important}
+html body .htab-ic .ui-icon:not(#t1):not(#t2):not(#t3):not(#t4):not(#t5):not(#t6):not(#t7):not(#t8):not(#t9):not(#t10):not(#t11):not(#t12):not(#t13):not(#t14):not(#t15):not(#t16){width:15px !important;height:15px !important}
+html body .htab-t:not(#t1):not(#t2):not(#t3):not(#t4):not(#t5):not(#t6):not(#t7):not(#t8):not(#t9):not(#t10):not(#t11):not(#t12):not(#t13):not(#t14):not(#t15):not(#t16){font-size:10.5px !important;font-weight:500 !important}
+}
+</style>
+
+<style id="pca-glass-restore">
+/* Glass header + bottom nav + catalog bar, restored.
+   Smooth: blur is static while idle and is switched OFF while the bars move (html.glx-mv), the fill stays translucent so nothing pops.
+   Low-end phones (html.lite) never blur. */
+@layer pcamine{
+:root{
+ --glx-fill:linear-gradient(150deg,rgba(255,255,255,.74),rgba(255,255,255,.48));
+ --glx-fill-mv:linear-gradient(150deg,rgba(255,255,255,.9),rgba(246,249,255,.84));
+ --glx-bd:rgba(255,255,255,.78);
+ --glx-sh:0 10px 24px -14px rgba(30,50,110,.42),inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(255,255,255,.28);
+ --glx-blur:blur(14px) saturate(1.6);
+}
+html[data-theme="dark"]{
+ --glx-fill:linear-gradient(150deg,rgba(30,44,72,.68),rgba(18,28,48,.52));
+ --glx-fill-mv:linear-gradient(150deg,rgba(26,40,66,.92),rgba(18,28,48,.88));
+ --glx-bd:rgba(255,255,255,.14);
+ --glx-sh:0 10px 24px -14px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.1);
+}
+/* ---------- header ---------- */
+html body header#app-header.header:not(#g1):not(#g2):not(#g3):not(#g4):not(#g5):not(#g6):not(#g7):not(#g8):not(#g9):not(#g10):not(#g11):not(#g12):not(#g13):not(#g14):not(#g15):not(#g16):not(#g17):not(#g18):not(#g19):not(#g20){background:var(--glx-fill)!important;border-color:var(--glx-bd)!important;box-shadow:var(--glx-sh)!important;
+ -webkit-backdrop-filter:var(--glx-blur)!important;backdrop-filter:var(--glx-blur)!important;contain:none!important}
+/* ---------- catalog bar + floating pills ---------- */
+html body .htabs:not(#g1):not(#g2):not(#g3):not(#g4):not(#g5):not(#g6):not(#g7):not(#g8):not(#g9):not(#g10):not(#g11):not(#g12):not(#g13):not(#g14):not(#g15):not(#g16):not(#g17):not(#g18):not(#g19):not(#g20){background:var(--glx-fill)!important;border:1px solid var(--glx-bd)!important;box-shadow:var(--glx-sh)!important;
+ -webkit-backdrop-filter:var(--glx-blur)!important;backdrop-filter:var(--glx-blur)!important}
+html body :is(#pca-pill,.pca-fl):not(#g1):not(#g2):not(#g3):not(#g4):not(#g5):not(#g6):not(#g7):not(#g8):not(#g9):not(#g10):not(#g11):not(#g12):not(#g13):not(#g14):not(#g15):not(#g16):not(#g17):not(#g18):not(#g19):not(#g20){background:var(--glx-fill)!important;border:1px solid var(--glx-bd)!important;box-shadow:var(--glx-sh)!important;
+ -webkit-backdrop-filter:var(--glx-blur)!important;backdrop-filter:var(--glx-blur)!important}
+html body .htabs-wrap:not(#g1):not(#g2):not(#g3):not(#g4):not(#g5):not(#g6):not(#g7):not(#g8):not(#g9):not(#g10):not(#g11):not(#g12):not(#g13):not(#g14):not(#g15):not(#g16):not(#g17):not(#g18):not(#g19):not(#g20){background:transparent!important;contain:none!important}
+/* ---------- bottom nav: ONE glass layer with a clean round cradle ---------- */
+html body nav#bottom-nav:not(#g1):not(#g2):not(#g3):not(#g4):not(#g5):not(#g6):not(#g7):not(#g8):not(#g9):not(#g10):not(#g11):not(#g12):not(#g13):not(#g14):not(#g15):not(#g16):not(#g17):not(#g18):not(#g19):not(#g20){background:transparent!important;border:0!important;box-shadow:none!important;filter:none!important;
+ -webkit-backdrop-filter:none!important;backdrop-filter:none!important;overflow:visible!important}
+html body nav#bottom-nav:not(#g1):not(#g2):not(#g3):not(#g4):not(#g5):not(#g6):not(#g7):not(#g8):not(#g9):not(#g10):not(#g11):not(#g12):not(#g13):not(#g14):not(#g15):not(#g16):not(#g17):not(#g18):not(#g19):not(#g20)::before{content:""!important;display:block!important;position:absolute!important;inset:0!important;z-index:0!important;pointer-events:none!important;
+ border-radius:33px!important;border:0!important;background:var(--glx-fill)!important;
+ box-shadow:inset 0 0 0 1px var(--glx-bd),inset 0 1px 0 rgba(255,255,255,.95),inset 0 -10px 14px -12px rgba(30,50,110,.22)!important;
+ -webkit-backdrop-filter:var(--glx-blur)!important;backdrop-filter:var(--glx-blur)!important;
+ -webkit-mask:radial-gradient(circle 32px at 50% 6px,transparent 31px,#000 31.7px)!important;mask:radial-gradient(circle 32px at 50% 6px,transparent 31px,#000 31.7px)!important}
+/* thin rim exactly on the cradle edge (nothing else is drawn in the gap) */
+html body nav#bottom-nav:not(#g1):not(#g2):not(#g3):not(#g4):not(#g5):not(#g6):not(#g7):not(#g8):not(#g9):not(#g10):not(#g11):not(#g12):not(#g13):not(#g14):not(#g15):not(#g16):not(#g17):not(#g18):not(#g19):not(#g20)::after{content:""!important;display:block!important;position:absolute!important;z-index:0!important;pointer-events:none!important;
+ left:50%!important;top:-25.5px!important;width:63px!important;height:63px!important;margin:0 0 0 -31.5px!important;box-sizing:border-box!important;
+ border-radius:50%!important;border:1px solid var(--glx-bd)!important;background:none!important;
+ box-shadow:inset 0 -3px 8px -4px rgba(30,50,110,.2)!important;clip-path:inset(25.5px 0 0 0)!important;transform:none!important;animation:none!important;-webkit-mask:none!important;mask:none!important}
+html body nav#bottom-nav .nav-item-wallet:not(#g1):not(#g2):not(#g3):not(#g4):not(#g5):not(#g6):not(#g7):not(#g8):not(#g9):not(#g10):not(#g11):not(#g12):not(#g13):not(#g14):not(#g15):not(#g16):not(#g17):not(#g18):not(#g19):not(#g20){position:static!important;background:transparent!important;box-shadow:none!important;border:0!important;
+ -webkit-backdrop-filter:none!important;backdrop-filter:none!important;overflow:visible!important}
+html body nav#bottom-nav .nav-item-wallet :is(.wallet-glow,.wallet-halo):not(#g1):not(#g2):not(#g3):not(#g4):not(#g5):not(#g6):not(#g7):not(#g8):not(#g9):not(#g10):not(#g11):not(#g12):not(#g13):not(#g14):not(#g15):not(#g16):not(#g17):not(#g18):not(#g19):not(#g20){display:none!important}
+html body nav#bottom-nav .nav-item-wallet::after:not(#g1):not(#g2):not(#g3):not(#g4):not(#g5):not(#g6):not(#g7):not(#g8):not(#g9):not(#g10):not(#g11):not(#g12):not(#g13):not(#g14):not(#g15):not(#g16):not(#g17):not(#g18):not(#g19):not(#g20){display:none!important;content:none!important}
+html body nav#bottom-nav .nav-item-wallet .nav-icon-wrap-wallet:not(#g1):not(#g2):not(#g3):not(#g4):not(#g5):not(#g6):not(#g7):not(#g8):not(#g9):not(#g10):not(#g11):not(#g12):not(#g13):not(#g14):not(#g15):not(#g16):not(#g17):not(#g18):not(#g19):not(#g20){position:absolute!important;left:50%!important;top:-17px!important;margin:0 0 0 -23px!important;
+ width:46px!important;height:46px!important;border:0!important;border-radius:50%!important;z-index:3!important;transform:none!important;
+ box-shadow:0 8px 14px -6px rgba(37,87,245,.55)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html body nav#bottom-nav .nav-item-wallet:active .nav-icon-wrap-wallet:not(#g1):not(#g2):not(#g3):not(#g4):not(#g5):not(#g6):not(#g7):not(#g8):not(#g9):not(#g10):not(#g11):not(#g12):not(#g13):not(#g14):not(#g15):not(#g16):not(#g17):not(#g18):not(#g19):not(#g20){transform:scale(.94)!important}
+html body nav#bottom-nav .nav-item-wallet .nav-icon-wrap-wallet::before,html body nav#bottom-nav .nav-item-wallet .nav-icon-wrap-wallet::after{display:none!important;content:none!important}
+/* ---------- while bars move / low-end phones: no blur, fill stays glassy ---------- */
+html.glx-mv body header#app-header.header:not(#g1):not(#g2):not(#g3):not(#g4):not(#g5):not(#g6):not(#g7):not(#g8):not(#g9):not(#g10):not(#g11):not(#g12):not(#g13):not(#g14):not(#g15):not(#g16):not(#g17):not(#g18):not(#g19):not(#g20),html.lite body header#app-header.header:not(#g1):not(#g2):not(#g3):not(#g4):not(#g5):not(#g6):not(#g7):not(#g8):not(#g9):not(#g10):not(#g11):not(#g12):not(#g13):not(#g14):not(#g15):not(#g16):not(#g17):not(#g18):not(#g19):not(#g20),
+html body header#app-header.header.pca-mv:not(#g1):not(#g2):not(#g3):not(#g4):not(#g5):not(#g6):not(#g7):not(#g8):not(#g9):not(#g10):not(#g11):not(#g12):not(#g13):not(#g14):not(#g15):not(#g16):not(#g17):not(#g18):not(#g19):not(#g20){background:var(--glx-fill-mv)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html.glx-mv body .htabs:not(#g1):not(#g2):not(#g3):not(#g4):not(#g5):not(#g6):not(#g7):not(#g8):not(#g9):not(#g10):not(#g11):not(#g12):not(#g13):not(#g14):not(#g15):not(#g16):not(#g17):not(#g18):not(#g19):not(#g20),html.lite body .htabs:not(#g1):not(#g2):not(#g3):not(#g4):not(#g5):not(#g6):not(#g7):not(#g8):not(#g9):not(#g10):not(#g11):not(#g12):not(#g13):not(#g14):not(#g15):not(#g16):not(#g17):not(#g18):not(#g19):not(#g20),html body .htabs-wrap.pca-mv .htabs:not(#g1):not(#g2):not(#g3):not(#g4):not(#g5):not(#g6):not(#g7):not(#g8):not(#g9):not(#g10):not(#g11):not(#g12):not(#g13):not(#g14):not(#g15):not(#g16):not(#g17):not(#g18):not(#g19):not(#g20),
+html.glx-mv body :is(#pca-pill,.pca-fl):not(#g1):not(#g2):not(#g3):not(#g4):not(#g5):not(#g6):not(#g7):not(#g8):not(#g9):not(#g10):not(#g11):not(#g12):not(#g13):not(#g14):not(#g15):not(#g16):not(#g17):not(#g18):not(#g19):not(#g20),html.lite body :is(#pca-pill,.pca-fl):not(#g1):not(#g2):not(#g3):not(#g4):not(#g5):not(#g6):not(#g7):not(#g8):not(#g9):not(#g10):not(#g11):not(#g12):not(#g13):not(#g14):not(#g15):not(#g16):not(#g17):not(#g18):not(#g19):not(#g20){background:var(--glx-fill-mv)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html.glx-mv body nav#bottom-nav:not(#g1):not(#g2):not(#g3):not(#g4):not(#g5):not(#g6):not(#g7):not(#g8):not(#g9):not(#g10):not(#g11):not(#g12):not(#g13):not(#g14):not(#g15):not(#g16):not(#g17):not(#g18):not(#g19):not(#g20)::before,html.lite body nav#bottom-nav:not(#g1):not(#g2):not(#g3):not(#g4):not(#g5):not(#g6):not(#g7):not(#g8):not(#g9):not(#g10):not(#g11):not(#g12):not(#g13):not(#g14):not(#g15):not(#g16):not(#g17):not(#g18):not(#g19):not(#g20)::before,html body nav#bottom-nav.pca-mv:not(#g1):not(#g2):not(#g3):not(#g4):not(#g5):not(#g6):not(#g7):not(#g8):not(#g9):not(#g10):not(#g11):not(#g12):not(#g13):not(#g14):not(#g15):not(#g16):not(#g17):not(#g18):not(#g19):not(#g20)::before{background:var(--glx-fill-mv)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+
+/* ---------- Profile tabs: no small inner boxes, ripple spans the whole tab ---------- */
+html body #profile-prefs-body .prefs-tile:not(#g1):not(#g2):not(#g3):not(#g4):not(#g5):not(#g6):not(#g7):not(#g8):not(#g9):not(#g10):not(#g11):not(#g12):not(#g13):not(#g14):not(#g15):not(#g16):not(#g17):not(#g18):not(#g19):not(#g20){background:transparent!important;border:0!important;box-shadow:none!important;border-radius:14px!important;
+ flex:1 1 100%!important;width:100%!important;max-width:none!important;height:52px!important;max-height:52px!important;padding:0 8px!important}
+html body #profile-prefs-body .prefs-tile+.prefs-tile:not(#g1):not(#g2):not(#g3):not(#g4):not(#g5):not(#g6):not(#g7):not(#g8):not(#g9):not(#g10):not(#g11):not(#g12):not(#g13):not(#g14):not(#g15):not(#g16):not(#g17):not(#g18):not(#g19):not(#g20){border-top:0!important}
+html body #profile .detail-form-card:not(#g1):not(#g2):not(#g3):not(#g4):not(#g5):not(#g6):not(#g7):not(#g8):not(#g9):not(#g10):not(#g11):not(#g12):not(#g13):not(#g14):not(#g15):not(#g16):not(#g17):not(#g18):not(#g19):not(#g20){position:relative!important;overflow:hidden!important}
+html body #profile .collapsible-header:not(#g1):not(#g2):not(#g3):not(#g4):not(#g5):not(#g6):not(#g7):not(#g8):not(#g9):not(#g10):not(#g11):not(#g12):not(#g13):not(#g14):not(#g15):not(#g16):not(#g17):not(#g18):not(#g19):not(#g20){background:transparent!important;box-shadow:none!important;border:0!important;outline:0!important}
+}
+</style>
+<script id="pca-glass-restore-js">/* v13: blur is static now - nothing toggled while scrolling */</script>
+
+<style id="pca-glass-v13">
+/* v13: floating glass header (Telegram-style pills) + glass catalog bar + compact glass nav.
+   Perf rules: blur stays STATIC (never toggled while scrolling); bars only use transform (no opacity / filter / animation on a
+   parent of a backdrop-filter element -> those create a "backdrop root" and kill the blur). */
+@layer pcamine{
+:root{
+ --v13-fill:linear-gradient(150deg,rgba(255,255,255,.66),rgba(255,255,255,.34));
+ --v13-fill-solid:linear-gradient(150deg,rgba(255,255,255,.92),rgba(244,247,255,.86));
+ --v13-bd:rgba(255,255,255,.85);
+ --v13-sh:0 10px 26px -14px rgba(30,50,110,.45),inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(255,255,255,.3);
+ --v13-blur:blur(14px) saturate(1.5);
+ --v13-ease:cubic-bezier(.22,1,.36,1);
+}
+html[data-theme="dark"]{
+ --v13-fill:linear-gradient(150deg,rgba(40,54,90,.62),rgba(20,30,54,.42));
+ --v13-fill-solid:linear-gradient(150deg,rgba(32,46,78,.95),rgba(20,30,52,.92));
+ --v13-bd:rgba(255,255,255,.16);
+ --v13-sh:0 10px 26px -14px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.12);
+}
+
+/* ================= HEADER: transparent rail + two glass pills ================= */
+html body header#app-header.header:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){position:fixed!important;top:calc(8px + env(safe-area-inset-top,0px))!important;left:12px!important;right:12px!important;width:auto!important;max-width:460px!important;
+ margin:0 auto!important;padding:0!important;min-height:0!important;height:52px!important;display:flex!important;align-items:center!important;justify-content:space-between!important;gap:10px!important;
+ background:none!important;border:0!important;border-radius:0!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+ filter:none!important;opacity:1!important;pointer-events:none!important;contain:none!important;
+ will-change:transform!important;transition:transform .34s var(--v13-ease)!important}
+html body header#app-header.header:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24)::before,html body header#app-header.header:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24)::after{display:none!important}
+html body header#app-header.header.header-hidden:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24),html body header#app-header.header.pca-hide:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){transform:translate3d(0,calc(-100% - 28px - env(safe-area-inset-top,0px)),0)!important}
+html body header#app-header .header-row:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){display:contents!important}
+html body header#app-header .header-brand:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){display:flex!important;align-items:center!important;flex:0 1 auto!important;height:52px!important;min-width:0!important;margin:0!important;padding:0 18px 0 10px!important;
+ border-radius:999px!important;pointer-events:auto!important;background:var(--v13-fill)!important;border:1px solid var(--v13-bd)!important;box-shadow:var(--v13-sh)!important;-webkit-backdrop-filter:var(--v13-blur)!important;backdrop-filter:var(--v13-blur)!important;}
+html body header#app-header .hb-logo:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){height:38px!important;max-height:38px!important;width:auto!important}
+html body header#app-header .header-icons-group:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){display:flex!important;align-items:center!important;gap:6px!important;height:52px!important;margin:0 0 0 auto!important;padding:6px!important;
+ border-radius:999px!important;pointer-events:auto!important;background:var(--v13-fill)!important;border:1px solid var(--v13-bd)!important;box-shadow:var(--v13-sh)!important;-webkit-backdrop-filter:var(--v13-blur)!important;backdrop-filter:var(--v13-blur)!important;}
+html body header#app-header .header-icon:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){width:40px!important;height:40px!important;border-radius:50%!important;border:0!important;
+ background:linear-gradient(160deg,#4C8DFF,var(--pca-acc,#2557F5))!important;box-shadow:0 6px 12px -6px rgba(37,87,245,.6),inset 0 1px 0 rgba(255,255,255,.35)!important;
+ -webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html body header#app-header .header-icon .ui-icon:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){stroke:#fff!important;color:#fff!important;filter:none!important}
+
+/* ================= CATALOG BAR (Popular / Top Up / Voucher / Software) ================= */
+html body .htabs-wrap:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){position:sticky!important;top:calc(68px + env(safe-area-inset-top,0px))!important;z-index:40!important;background:transparent!important;
+ -webkit-backdrop-filter:none!important;backdrop-filter:none!important;animation:none!important;filter:none!important;contain:none!important;padding:4px 2px!important;margin:0 0 8px!important}
+html body .htabs-wrap.tabs-up:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){transform:translate3d(0,-60px,0)!important}
+html body .htabs:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){display:grid!important;grid-template-columns:repeat(4,minmax(0,1fr))!important;gap:0!important;padding:4px!important;border-radius:999px!important;background:var(--v13-fill)!important;border:1px solid var(--v13-bd)!important;box-shadow:var(--v13-sh)!important;-webkit-backdrop-filter:var(--v13-blur)!important;backdrop-filter:var(--v13-blur)!important;}
+html body .htab:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){height:50px!important;gap:2px!important;padding:3px 2px!important;border:0!important;border-radius:999px!important;background:transparent!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html body .htab::before:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){display:none!important}
+html body .htab+.htab::after:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){content:""!important;position:absolute!important;left:0!important;top:24%!important;bottom:24%!important;width:1px!important;background:rgba(17,19,24,.09)!important;opacity:1!important}
+html body .htab.active:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){background:linear-gradient(150deg,rgba(255,255,255,.95),rgba(226,236,255,.8))!important;
+ box-shadow:inset 0 0 0 1px rgba(var(--pca-rgb,37,87,245),.22),0 6px 14px -8px rgba(var(--pca-rgb,37,87,245),.55)!important}
+html body .htab.active::after,html body .htab.active+.htab::after:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){opacity:0!important}
+html body .htab-ic:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){width:26px!important;height:26px!important;border-radius:50%!important}
+html body .htab-ic .ui-icon:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){width:15px!important;height:15px!important}
+html body .htab-t:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){font-size:10.5px!important;font-weight:500!important}
+html body .htab.active .htab-t:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){font-weight:600!important;color:var(--pca-acc,#2557F5)!important}
+
+/* ================= BOTTOM NAV: smaller glass pill + round wallet cradle ================= */
+html body nav#bottom-nav.bottom-nav:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){position:fixed!important;top:auto!important;left:0!important;right:0!important;bottom:calc(10px + env(safe-area-inset-bottom,0px))!important;margin:0 auto!important;
+ width:calc(100% - 72px)!important;max-width:296px!important;height:52px!important;padding:0 6px!important;display:grid!important;grid-template-columns:1fr 1fr 56px 1fr 1fr!important;align-items:stretch!important;
+ border:0!important;border-radius:26px!important;background:transparent!important;box-shadow:none!important;filter:none!important;opacity:1!important;overflow:visible!important;
+ -webkit-backdrop-filter:none!important;backdrop-filter:none!important;will-change:transform!important;transition:transform .34s var(--v13-ease)!important}
+html body nav#bottom-nav.bottom-nav:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24)::before{content:""!important;display:block!important;position:absolute!important;inset:0!important;z-index:0!important;pointer-events:none!important;border:0!important;border-radius:26px!important;
+ background:var(--v13-fill)!important;box-shadow:inset 0 0 0 1px var(--v13-bd),inset 0 1px 0 rgba(255,255,255,.95),0 10px 24px -12px rgba(30,50,110,.4)!important;
+ -webkit-backdrop-filter:var(--v13-blur)!important;backdrop-filter:var(--v13-blur)!important;
+ -webkit-mask:radial-gradient(circle 25px at 50% 4px,transparent 24px,#000 24.6px)!important;mask:radial-gradient(circle 25px at 50% 4px,transparent 24px,#000 24.6px)!important}
+html body nav#bottom-nav.bottom-nav:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24)::after{content:""!important;display:block!important;position:absolute!important;z-index:0!important;pointer-events:none!important;left:50%!important;top:-20.5px!important;width:49px!important;height:49px!important;
+ margin:0 0 0 -24.5px!important;box-sizing:border-box!important;right:auto!important;bottom:auto!important;border-radius:50%!important;border:1px solid var(--v13-bd)!important;background:none!important;
+ box-shadow:inset 0 -3px 8px -4px rgba(30,50,110,.2)!important;clip-path:inset(20.5px 0 0 0)!important;transform:none!important;animation:none!important;-webkit-mask:none!important;mask:none!important}
+html body nav#bottom-nav .nav-item:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){position:relative!important;z-index:1!important;display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:2px!important;
+ margin:5px 1px!important;padding:0!important;border-radius:999px!important;background:transparent!important;box-shadow:none!important;min-width:0!important}
+html body nav#bottom-nav .nav-item.active:not(.nav-item-wallet):not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){background:rgba(var(--pca-rgb,37,87,245),.12)!important;box-shadow:inset 0 0 0 1px rgba(var(--pca-rgb,37,87,245),.18)!important}
+html body nav#bottom-nav .nav-item .ui-icon:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){width:20px!important;height:20px!important}
+html body nav#bottom-nav .nav-item .nav-label:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){font-size:9.5px!important;line-height:1.1!important}
+html body nav#bottom-nav .nav-item-wallet:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){margin:0!important;overflow:visible!important;color:var(--pca-acc,#2557F5)!important}
+html body nav#bottom-nav .nav-item-wallet::before:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){content:""!important;display:block!important;flex:none!important;width:20px!important;height:20px!important}
+html body nav#bottom-nav .nav-item-wallet::after:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){display:none!important;content:none!important}
+html body nav#bottom-nav .nav-item-wallet .nav-label:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){display:block!important;color:var(--pca-acc,#2557F5)!important;font-weight:600!important}
+html body nav#bottom-nav .nav-item-wallet :is(.wallet-glow,.wallet-halo):not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){display:none!important}
+html body nav#bottom-nav .nav-item-wallet .nav-icon-wrap-wallet:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){position:absolute!important;left:50%!important;top:-16px!important;margin:0 0 0 -20px!important;width:40px!important;height:40px!important;
+ border:0!important;border-radius:50%!important;z-index:3!important;display:flex!important;align-items:center!important;justify-content:center!important;transform:none!important;animation:none!important;
+ background:linear-gradient(160deg,#4C8DFF,var(--pca-acc,#2557F5) 60%,#3A3DF0)!important;box-shadow:0 8px 14px -6px rgba(37,87,245,.6),inset 0 1px 0 rgba(255,255,255,.35)!important;
+ -webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html body nav#bottom-nav .nav-item-wallet .nav-icon-wrap-wallet .ui-icon:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){width:20px!important;height:20px!important;stroke:#fff!important;color:#fff!important;animation:none!important}
+html body nav#bottom-nav .nav-item-wallet:active .nav-icon-wrap-wallet:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){transform:scale(.94)!important}
+html body nav#bottom-nav.nav-hidden,html body nav#bottom-nav.nav-tuck:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){transform:translate3d(0,calc(100% + 36px + env(safe-area-inset-bottom,0px)),0)!important}
+html body:not(.no-bottom-nav):not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){padding-bottom:calc(84px + env(safe-area-inset-bottom,0px))!important}
+
+/* low-end phones: no blur, solid-ish glass */
+html.lite body header#app-header .header-brand:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24),html.lite body header#app-header .header-icons-group:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24),html.lite body .htabs:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){background:var(--v13-fill-solid)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html.lite body nav#bottom-nav::before:not(#k1):not(#k2):not(#k3):not(#k4):not(#k5):not(#k6):not(#k7):not(#k8):not(#k9):not(#k10):not(#k11):not(#k12):not(#k13):not(#k14):not(#k15):not(#k16):not(#k17):not(#k18):not(#k19):not(#k20):not(#k21):not(#k22):not(#k23):not(#k24){background:var(--v13-fill-solid)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+}
+</style>
+<style id="pca-polish-1103">
+/* 1) layer is listed FIRST in #pca-layer-order, so its !important rules beat every older patch without more specificity hacks.
+   2) header + nav slide at the same speed as the tab bar / pill (they were .34s vs .75s = out of sync = the stutter). Tune with --hn-dur. */
+@layer pcapolish{
+/* header pill stretches all the way to the Inbox pill */
+html body header#app-header .header-brand{flex:1 1 0!important;min-width:0!important}
+html body header#app-header .header-icons-group{flex:0 0 auto!important}
+
+/* nav notch: rounded corners where the cradle meets the bar edge */
+html body nav#bottom-nav.bottom-nav::before{-webkit-mask:linear-gradient(#000,#000) 0 0/calc(50% - 39px) 100% no-repeat,linear-gradient(#000,#000) 100% 0/calc(50% - 39px) 100% no-repeat,url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 52' preserveAspectRatio='none'%3E%3Cpath d='M0 0H6.77A9 9 0 0 1 15.67 7.66A24.6 24.6 0 0 0 64.33 7.66A9 9 0 0 1 73.23 0H80V52H0Z'/%3E%3C/svg%3E") 50% 0/80px 100% no-repeat!important;mask:linear-gradient(#000,#000) 0 0/calc(50% - 39px) 100% no-repeat,linear-gradient(#000,#000) 100% 0/calc(50% - 39px) 100% no-repeat,url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 52' preserveAspectRatio='none'%3E%3Cpath d='M0 0H6.77A9 9 0 0 1 15.67 7.66A24.6 24.6 0 0 0 64.33 7.66A9 9 0 0 1 73.23 0H80V52H0Z'/%3E%3C/svg%3E") 50% 0/80px 100% no-repeat!important}
+html body nav#bottom-nav.bottom-nav::after{top:0!important;bottom:auto!important;width:80px!important;height:52px!important;margin:0 0 0 -40px!important;border:0!important;border-radius:0!important;box-shadow:none!important;clip-path:none!important;background:var(--v13-bd)!important;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 52' preserveAspectRatio='none'%3E%3Cpath d='M6.77 0A9 9 0 0 1 15.67 7.66A24.6 24.6 0 0 0 64.33 7.66A9 9 0 0 1 73.23 0' fill='none' stroke='%23000' stroke-width='1.2'/%3E%3C/svg%3E") 50% 0/80px 100% no-repeat!important;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 80 52' preserveAspectRatio='none'%3E%3Cpath d='M6.77 0A9 9 0 0 1 15.67 7.66A24.6 24.6 0 0 0 64.33 7.66A9 9 0 0 1 73.23 0' fill='none' stroke='%23000' stroke-width='1.2'/%3E%3C/svg%3E") 50% 0/80px 100% no-repeat!important}
+
+/* header / nav hide-show: slower and in sync with tabs + pill */
+html body header#app-header.header:not(.hn-warm),html body nav#bottom-nav.bottom-nav:not(.hn-warm){transition:transform var(--hn-dur,.75s) var(--hn-ease,cubic-bezier(.4,0,.2,1))!important}
+
+/* press feedback: no tilt, no spring overshoot, only a light dip */
+html body :is(.nav-item,.htab,.qa,.prefs-tile,.prefs-row,.header-icon):active .ui-icon{transform:scale(.94)!important}
+html body :is(.nav-item,.htab,.qa,.prefs-tile,.prefs-row,.header-icon) .ui-icon{transition:transform .14s ease-out,stroke .2s ease,filter .14s!important}
+html body nav#bottom-nav .nav-item:not(.nav-item-wallet):active .nav-icon-wrap{transform:scale(.96)!important}
+html body :is(button,[role=button],a[href],label,.nav-item,.htab,.header-icon,.btn,[onclick]){touch-action:manipulation;-webkit-tap-highlight-color:transparent}
 }
 </style>
 </body>
