@@ -3,6 +3,28 @@
 <head>
 <script>/* vibration temporarily disabled */try{Object.defineProperty(navigator,'vibrate',{value:function(){return false},configurable:true,writable:true})}catch(e){try{navigator.vibrate=function(){return false}}catch(_){}}</script>
 <style id="pca-layer-order">@layer pcamine,pcaglass,pcafix,legacy,tokens,base,layout,motion,components,pages,utilities;</style>
+<script id="pca-check-js">
+window.PCA_CK='<svg class="pca-ck" viewBox="0 0 24 24" aria-hidden="true"><path pathLength="1" d="M5.3 12.9l4.3 4.3 9.1-9.9"/></svg>';
+window.pcaStatusText=function(el,text){if(!el)return;text=String(text==null?'':text);
+  if(/\s*\u2713$/.test(text)){el.textContent=text.replace(/\s*\u2713$/,'');el.insertAdjacentHTML('beforeend',' '+window.PCA_CK)}else el.innerText=text};
+</script>
+<script id="pca-lite-detect">/* low-end phone detection -> html.lite (cheaper rendering). Force: ?lite=1 / ?lite=0 */
+(function(){try{
+var d=document.documentElement,n=navigator,c=n.connection||{},ua=n.userAgent||'',q=/[?&]lite=([01])/.exec(location.search),st=null;
+try{if(q)localStorage.setItem('pca-lite',q[1]);st=localStorage.getItem('pca-lite')}catch(e){}
+var weak=(n.deviceMemory&&n.deviceMemory<=4)||(n.hardwareConcurrency&&n.hardwareConcurrency<=4)||c.saveData===true||/Android [2-8][.;)\s]/.test(ua);
+var lite=st==='1'||(st!=='0'&&weak);
+if(lite)d.classList.add('lite');
+window.__pcaLite=lite;
+/* runtime probe: if the first real scrolling drops many frames, switch lite on and remember it */
+if(!lite&&st!=='0'){var run=0,bad=0,tot=0,last=0,idle=0,done=false;
+function loop(t){if(done)return;if(last){var dt=t-last;if(dt<250){tot++;if(dt>34)bad++}}last=t;
+if(tot>=70){done=true;if(bad/tot>.35){d.classList.add('lite');window.__pcaLite=true;try{localStorage.setItem('pca-lite','1')}catch(e){}}return}
+run=requestAnimationFrame(loop)}
+addEventListener('scroll',function(){clearTimeout(idle);if(!run&&!done){last=0;run=requestAnimationFrame(loop)}idle=setTimeout(function(){cancelAnimationFrame(run);run=0;last=0},180)},{passive:true})}
+}catch(e){}})();
+</script>
+
 <style id="pca-gate">
 /* Load gate: hide the half-loaded page (unstyled buttons / dark-on-dark text) until every style has arrived. */
 html body{visibility:hidden}
@@ -568,7 +590,7 @@ setTimeout(window.pcaReveal,25000); /* safety: never leave the screen covered */
         @media (min-width: 700px) {
             .cards-grid { grid-template-columns: repeat(auto-fill, minmax(130px, 1fr)); gap: 16px; }
         }
-        html { scroll-behavior: smooth; }
+        html { scroll-behavior: auto; }
         body { -webkit-overflow-scrolling: touch; overscroll-behavior-y: contain; }
         
         .game-card { cursor: pointer;  border-radius: 12px; overflow: hidden; background: var(--surface); border: 1px solid var(--border); box-shadow: 0 1px 2px rgba(0,0,0,0.05); contain: content; }
@@ -2128,9 +2150,9 @@ body::after{content:"";position:fixed;inset:0;z-index:-1;pointer-events:none;bac
 .skel-game-card .skel,.skel-game-card [class*="skel-"]{border-radius:12px !important}
 
 /* ===== 4. WALLET / HISTORY / PROFILE: Login မဝင်ရသေးရင် Login form ပဲပြ ===== */
-html.logged-out-TEMP-OFF #wallet>:not(.title-header):not(.auth-gate):not(.modal-overlay),
-html.logged-out-TEMP-OFF #history>:not(.title-header):not(.auth-gate):not(.modal-overlay),
-html.logged-out-TEMP-OFF #profile>:not(.title-header):not(.auth-gate):not(.modal-overlay){display:none !important}
+html.logged-out #wallet>:not(.title-header):not(.auth-gate):not(.modal-overlay),
+html.logged-out #history>:not(.title-header):not(.auth-gate):not(.modal-overlay),
+html.logged-out #profile>:not(.title-header):not(.auth-gate):not(.modal-overlay){display:none !important}
 
 /* ===== 5. Login gate + wallet card ပါးပါး ===== */
 .auth-gate{padding:20px 16px !important;margin:0 0 var(--fx-gap) !important}
@@ -2294,7 +2316,7 @@ html.logged-out-TEMP-OFF #profile>:not(.title-header):not(.auth-gate):not(.modal
         <symbol id="icon-haptic" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="7" y="3" width="10" height="18" rx="2.4"/><path d="M11 18h2M3.5 9v6M20.5 9v6"/></symbol>
         <symbol id="icon-inbox" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M22 12h-6l-2 3h-4l-2-3H2M5.5 5.1 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.5-6.9A2 2 0 0 0 16.8 4H7.2a2 2 0 0 0-1.7 1.1z"/></symbol>
         <symbol id="icon-bell" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.9 1.9 0 0 0 3.4 0"/></symbol>
-        <symbol id="icon-check" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 12.8l4.4 4.4 8.6-9.4"/></symbol>
+        <symbol id="icon-check" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path pathLength="1" d="M5.3 12.9l4.3 4.3 9.1-9.9"/></symbol>
         <symbol id="icon-refresh" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 15-6.7L21 8M21 3v5h-5M21 12a9 9 0 0 1-15 6.7L3 16M3 21v-5h5"/></symbol>
         <symbol id="icon-rocket" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M4.5 16.5c-1.5 1.3-2 5-2 5s3.7-.5 5-2c.7-.8.7-2.1-.1-2.9a2.2 2.2 0 0 0-2.9-.1zM12 15l-3-3a22 22 0 0 1 2-3.9A12.9 12.9 0 0 1 22 2c0 2.7-.8 7.5-6 11a22 22 0 0 1-4 2zM9 12H4s.6-3 2-4c1.6-1.1 5 0 5 0M12 15v5s3-.6 4-2c1.1-1.6 0-5 0-5"/></symbol>
         <symbol id="icon-megaphone" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11v3a1 1 0 0 0 1 1h2l8 4V6L6 10H4a1 1 0 0 0-1 1zM17.5 9a4 4 0 0 1 0 6M20 6.5a7.5 7.5 0 0 1 0 11"/></symbol>
@@ -2305,7 +2327,10 @@ html.logged-out-TEMP-OFF #profile>:not(.title-header):not(.auth-gate):not(.modal
         <symbol id="icon-chevron-left" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 5.5L8 12l6.5 6.5"/></symbol>
         <symbol id="icon-chevron-up" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 14.5L12 8l6.5 6.5"/></symbol>
         <symbol id="icon-chevron-down" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M5.5 9.5L12 16l6.5-6.5"/></symbol>
-        <symbol id="icon-copy" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></symbol>
+        <symbol id="icon-copy" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M8.75 15.25H6.25A3.25 3.25 0 0 1 3 12V6.25A3.25 3.25 0 0 1 6.25 3H12a3.25 3.25 0 0 1 3.25 3.25v2.5"/><rect x="8.75" y="8.75" width="12.25" height="12.25" rx="3.25" fill="currentColor" fill-opacity=".16"/></symbol>
+        <symbol id="icon-deposit" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3.6v10.2"/><path d="M7.7 9.8 12 14.1l4.3-4.3"/><path d="M4.4 14.8v2.1A3.1 3.1 0 0 0 7.5 20h9a3.1 3.1 0 0 0 3.1-3.1v-2.1" /></symbol>
+        <symbol id="icon-bag" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M5.3 8.2h13.4l-.85 9.9a2.4 2.4 0 0 1-2.4 2.2H8.55a2.4 2.4 0 0 1-2.4-2.2L5.3 8.2Z" fill="currentColor" fill-opacity=".16"/><path d="M8.8 10.4V7.7a3.2 3.2 0 0 1 6.4 0v2.7"/></symbol>
+        <symbol id="icon-receipt" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M5.1 4.5a.9.9 0 0 1 .9-.9h12a.9.9 0 0 1 .9.9v15.9l-2.4-1.6-2.25 1.6-2.25-1.6-2.25 1.6-2.4-1.6-.25.1-.0 0Z" fill="currentColor" fill-opacity=".14"/><path d="M8.7 8.6h6.6M8.7 12.1h6.6"/></symbol>
         <symbol id="icon-camera" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3z"/><circle cx="12" cy="13" r="3.5"/></symbol>
         <symbol id="icon-edit" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9M16.5 3.5a2.1 2.1 0 0 1 3 3L7 19l-4 1 1-4z"/></symbol>
         <symbol id="icon-facebook" viewBox="0 0 24 24" fill="none"><path style="fill:#fff;stroke:none" d="M13.6 21v-7.6h2.6l.4-3.1h-3V8.4c0-.9.3-1.5 1.6-1.5h1.6V4.2c-.3 0-1.2-.1-2.3-.1-2.3 0-3.9 1.4-3.9 4v2.3H8v3.1h2.6V21z"/></symbol>
@@ -2468,17 +2493,25 @@ html.logged-out-TEMP-OFF #profile>:not(.title-header):not(.auth-gate):not(.modal
                         <span class="wallet-topup-btn-icon"><svg class="ui-icon"><use href="#icon-plus"></use></svg></span>
                         Deposit
                     </button>
-                    <button type="button" class="btn wbc2-hist" onclick="showPage('history')">History</button>
+                    <button type="button" class="btn wbc2-hist" onclick="setWalletTab('txn', true)">History</button>
                 </div>
                 <p class="wallet-min-hint" id="wallet-min-hint"></p>
             </div>
 
-            <h3 class="wallet-section-title">
-                <svg class="ui-icon"><use href="#icon-history"></use></svg>
-                Top Up History
-            </h3>
-            <div id="wallet-topup-list"></div>
-            <div id="wallet-topup-empty" style="display:none;"></div>
+            <div class="wglass" id="wallet-glass">
+                <div class="wtabs" id="wallet-tabs" data-active="topup" role="tablist">
+                    <span class="wtabs-ind" aria-hidden="true"></span>
+                    <button type="button" class="wtab active" data-wtab="topup" role="tab" aria-selected="true" onclick="setWalletTab('topup')">
+                        <svg class="ui-icon"><use href="#icon-deposit"></use></svg><span>Top Up History</span>
+                    </button>
+                    <button type="button" class="wtab" data-wtab="txn" role="tab" aria-selected="false" onclick="setWalletTab('txn')">
+                        <svg class="ui-icon"><use href="#icon-receipt"></use></svg><span>Transaction History</span>
+                    </button>
+                </div>
+                <div id="wallet-topup-list"></div>
+                <div id="wallet-txn-list" style="display:none;"></div>
+                <div id="wallet-topup-empty" style="display:none;"></div>
+            </div>
         </div>
 
         <!-- WALLET GOOGLE SIGN-IN GATE: shown instead of the top-up modal when
@@ -2536,36 +2569,31 @@ html.logged-out-TEMP-OFF #profile>:not(.title-header):not(.auth-gate):not(.modal
                     </h3>
                     <div id="wallet-topup-payment-methods" style="display:flex; flex-direction:column; gap:10px;"></div>
 
-                    <div id="wallet-topup-payment-info" style="display:none; margin-top:12px; flex-direction:column; gap:4px;">
-                        <div class="wallet-pay-info-card">
-                            <p class="wallet-pay-info-label">Transfer the exact amount to</p>
-                            <div class="pm-qr-info-row">
-                                <img id="wallet-pm-qr" src="" alt="QR code" class="pm-qr-img" style="display:none; border-radius:14px; object-fit:contain; background:#fff; padding:8px; border:1px solid rgba(255,255,255,0.4);">
-                                <div class="pm-info-grid">
-                                    <div class="pm-info-box">
-                                        <span class="pm-info-box-label">No.</span>
-                                        <div class="pm-info-box-row">
-                                            <p id="wallet-pm-number"></p>
-                                            <button type="button" class="pm-copy-btn" onclick="copyPaymentField('wallet-pm-number', this)" title="Copy phone number">
-                                                <svg class="ui-icon"><use href="#icon-copy"></use></svg>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="pm-info-box">
-                                        <span class="pm-info-box-label">Name</span>
-                                        <div class="pm-info-box-row">
-                                            <p id="wallet-pm-name"></p>
-                                            <button type="button" class="pm-copy-btn" onclick="copyPaymentField('wallet-pm-name', this)" title="Copy name">
-                                                <svg class="ui-icon"><use href="#icon-copy"></use></svg>
-                                            </button>
-                                        </div>
-                                    </div>
+                    <div id="wallet-topup-payment-info" class="pmx-host" style="display:none; margin-top:12px; flex-direction:column; gap:4px;">
+                        <div class="pmx-wrap-inner pmx-A" id="wallet-pm-pmx">
+                            <p class="pmx-intro">Transfer the exact amount to:</p>
+                            <div class="pmx-ticket">
+                                <div class="pmx-head">
+                                    <span class="pmx-logo" id="wallet-pm-logo"><b>K</b><img alt="" src="" style="display:none"></span>
+                                    <span class="pmx-ttl"><strong id="wallet-pm-brand">Payment</strong><small id="wallet-pm-sub">Mobile wallet</small></span>
+                                    <span class="pmx-ver"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path pathLength="1" d="M5.3 12.9l4.3 4.3 9.1-9.9"/></svg>Verified</span>
                                 </div>
-                            </div>
-
-                            <div class="pm-verify-note">
-                                <svg class="ui-icon"><use href="#icon-shield"></use></svg>
-                                <span>Only send to the exact Number &amp; Name above. If it looks different from before, <a onclick="contactAdmin()">contact Support</a> before paying.</span>
+                                <div class="pmx-qrpanel">
+                                    <div class="pmx-qrbox"><i class="c1"></i><i class="c2"></i><i class="c3"></i><i class="c4"></i>
+                                        <img id="wallet-pm-qr" src="" alt="QR code" class="pmx-qr" style="display:none">
+                                    </div>
+                                    <button type="button" class="pmx-save" onclick="pmxSaveQr('wallet-pm-qr','wallet-pm-brand')"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg>Save QR</button>
+                                </div>
+                                <div class="pmx-tear"><u></u><u></u></div>
+                                <div class="pmx-row">
+                                    <div class="pmx-f"><span class="pmx-lb">Name</span><div class="pmx-vl"><p id="wallet-pm-name"></p><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><circle cx="12" cy="12" r="11" fill="url(#pcaOkGrad)"/><path d="M12 1.7a10.3 10.3 0 0 1 8.5 4.5C17.9 4.9 15.2 4.3 12 4.3S6.1 4.9 3.5 6.2A10.3 10.3 0 0 1 12 1.7Z" fill="#fff" fill-opacity=".24"/><path d="M7.3 12.6l3.2 3.2 6.3-6.9" fill="none" stroke="#fff" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"/></svg></div></div>
+                                    <button type="button" class="pmx-cp soft" onclick="copyPaymentField('wallet-pm-name', this)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V6.5A2.5 2.5 0 0 1 7.5 4H15"/></svg>Copy</button>
+                                </div>
+                                <div class="pmx-row">
+                                    <div class="pmx-f"><span class="pmx-lb">Phone No.</span><div class="pmx-vl"><p id="wallet-pm-number" class="num"></p></div></div>
+                                    <button type="button" class="pmx-cp solid" onclick="copyPaymentField('wallet-pm-number', this)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V6.5A2.5 2.5 0 0 1 7.5 4H15"/></svg>Copy</button>
+                                </div>
+                                <div class="pmx-note"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5.5c0 4.5-3 8.2-7 9.5-4-1.3-7-5-7-9.5V6z"/></svg><span>Only send to the exact Number &amp; Name above. If it looks different, <a onclick="contactAdmin()">contact Support</a> before paying.</span></div>
                             </div>
                         </div>
 
@@ -2884,10 +2912,7 @@ b,strong{font-weight:600}
                     <div class="pc-id-block">
                         <div class="pc-name-row">
                             <div class="profile-hero-name" id="profile-hero-name">Guest</div>
-                            <svg class="verified-badge" id="profile-hero-verified-badge" viewBox="0 0 24 24" aria-label="Google verified" style="display:none;">
-                                <path d="M12.00 1.75 L12.66 1.89 L13.28 2.26 L13.83 2.78 L14.32 3.33 L14.78 3.80 L15.27 4.10 L15.83 4.23 L16.49 4.23 L17.22 4.18 L17.98 4.21 L18.68 4.38 L19.25 4.75 L19.62 5.32 L19.79 6.02 L19.82 6.78 L19.77 7.51 L19.77 8.17 L19.90 8.73 L20.20 9.22 L20.67 9.68 L21.22 10.17 L21.74 10.72 L22.11 11.34 L22.25 12.00 L22.11 12.66 L21.74 13.28 L21.22 13.83 L20.67 14.32 L20.20 14.78 L19.90 15.27 L19.77 15.83 L19.77 16.49 L19.82 17.22 L19.79 17.98 L19.62 18.68 L19.25 19.25 L18.68 19.62 L17.98 19.79 L17.22 19.82 L16.49 19.77 L15.83 19.77 L15.27 19.90 L14.78 20.20 L14.32 20.67 L13.83 21.22 L13.28 21.74 L12.66 22.11 L12.00 22.25 L11.34 22.11 L10.72 21.74 L10.17 21.22 L9.68 20.67 L9.22 20.20 L8.73 19.90 L8.17 19.77 L7.51 19.77 L6.78 19.82 L6.02 19.79 L5.32 19.62 L4.75 19.25 L4.38 18.68 L4.21 17.98 L4.18 17.22 L4.23 16.49 L4.23 15.83 L4.10 15.27 L3.80 14.78 L3.33 14.32 L2.78 13.83 L2.26 13.28 L1.89 12.66 L1.75 12.00 L1.89 11.34 L2.26 10.72 L2.78 10.17 L3.33 9.68 L3.80 9.22 L4.10 8.73 L4.23 8.17 L4.23 7.51 L4.18 6.78 L4.21 6.02 L4.38 5.32 L4.75 4.75 L5.32 4.38 L6.02 4.21 L6.78 4.18 L7.51 4.23 L8.17 4.23 L8.73 4.10 L9.22 3.80 L9.68 3.33 L10.17 2.78 L10.72 2.26 L11.34 1.89Z" fill="#22C55E" stroke="none"></path>
-                                <path d="M8.2 12.4l2.6 2.6 5-5.4" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
-                            </svg>
+                            <svg class="verified-badge" id="profile-hero-verified-badge" viewBox="0 0 24 24" aria-label="Google verified" style="display:none;"><use href="#vb-seal"></use><path class="vb-tick" pathLength="1" d="M7.6 12.4l3.1 3.1 5.7-6.4"></path></svg>
                         </div>
                         <div class="pc-id-row">
                             <span class="profile-hero-id" id="profile-hero-id"></span>
@@ -3026,10 +3051,7 @@ b,strong{font-weight:600}
                         <div class="google-account-details">
                             <div class="google-account-name-row">
                                 <span id="google-account-name">—</span>
-                                <svg class="verified-badge" viewBox="0 0 24 24" aria-label="Verified">
-                                    <path d="M12.00 1.75 L12.66 1.89 L13.28 2.26 L13.83 2.78 L14.32 3.33 L14.78 3.80 L15.27 4.10 L15.83 4.23 L16.49 4.23 L17.22 4.18 L17.98 4.21 L18.68 4.38 L19.25 4.75 L19.62 5.32 L19.79 6.02 L19.82 6.78 L19.77 7.51 L19.77 8.17 L19.90 8.73 L20.20 9.22 L20.67 9.68 L21.22 10.17 L21.74 10.72 L22.11 11.34 L22.25 12.00 L22.11 12.66 L21.74 13.28 L21.22 13.83 L20.67 14.32 L20.20 14.78 L19.90 15.27 L19.77 15.83 L19.77 16.49 L19.82 17.22 L19.79 17.98 L19.62 18.68 L19.25 19.25 L18.68 19.62 L17.98 19.79 L17.22 19.82 L16.49 19.77 L15.83 19.77 L15.27 19.90 L14.78 20.20 L14.32 20.67 L13.83 21.22 L13.28 21.74 L12.66 22.11 L12.00 22.25 L11.34 22.11 L10.72 21.74 L10.17 21.22 L9.68 20.67 L9.22 20.20 L8.73 19.90 L8.17 19.77 L7.51 19.77 L6.78 19.82 L6.02 19.79 L5.32 19.62 L4.75 19.25 L4.38 18.68 L4.21 17.98 L4.18 17.22 L4.23 16.49 L4.23 15.83 L4.10 15.27 L3.80 14.78 L3.33 14.32 L2.78 13.83 L2.26 13.28 L1.89 12.66 L1.75 12.00 L1.89 11.34 L2.26 10.72 L2.78 10.17 L3.33 9.68 L3.80 9.22 L4.10 8.73 L4.23 8.17 L4.23 7.51 L4.18 6.78 L4.21 6.02 L4.38 5.32 L4.75 4.75 L5.32 4.38 L6.02 4.21 L6.78 4.18 L7.51 4.23 L8.17 4.23 L8.73 4.10 L9.22 3.80 L9.68 3.33 L10.17 2.78 L10.72 2.26 L11.34 1.89Z" fill="#22C55E" stroke="none"></path>
-                                    <path d="M8.2 12.4l2.6 2.6 5-5.4" fill="none" stroke="#fff" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
-                                </svg>
+                                <svg class="verified-badge" viewBox="0 0 24 24" aria-label="Verified"><use href="#vb-seal"></use><path class="vb-tick" pathLength="1" d="M7.6 12.4l3.1 3.1 5.7-6.4"></path></svg>
                             </div>
                             <small id="google-account-email">—</small>
                         </div>
@@ -3341,6 +3363,7 @@ b,strong{font-weight:600}
                 <button type="button" data-v="row" class="active" aria-label="List view" onclick="setPkgView('row')"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="6" rx="2"/><rect x="3" y="14" width="18" height="6" rx="2"/></svg><span>List</span></button>
                 <button type="button" data-v="grid" aria-label="Grid view" onclick="setPkgView('grid')"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg><span>Grid</span></button>
             </div>
+            <div class="pkg-lock-note" id="pkg-lock-note"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="5" y="11" width="14" height="9" rx="2.5"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg><span>ဈေးနှုန်းကြည့်ရုံသာ ရပါမည်။ ဝယ်ယူရန် Login ဝင်ပါ။</span><button type="button" onclick="openLoginOverlay()">Login</button></div>
             <div class="package-grid-scroll"><div id="detail-package-list" class="package-grid" data-view="row"></div></div>
 
             <div id="detail-payment-section" style="display:none;">
@@ -3371,36 +3394,31 @@ b,strong{font-weight:600}
                 <div id="detail-payment-methods-wrap" style="display:none;">
                     <div id="detail-payment-methods" style="display:flex; flex-direction:column; gap:10px;"></div>
 
-                    <div id="detail-payment-info" class="detail-form-card" style="display:none; margin-top:10px;">
-                        <p style="font-size:12px;color:var(--text-secondary);">Transfer the exact amount to:</p>
-                        <div class="pm-qr-info-row">
-                            <img id="pm-qr" src="" alt="QR code" class="pm-qr-img" style="display:none; border-radius:14px; object-fit:contain; background:#fff; padding:8px; border:1px solid var(--border-glass);">
-                            <div class="pm-info-grid">
-                                <div class="pm-info-box">
-                                    <span class="pm-info-box-label">No.</span>
-                                    <div class="pm-info-box-row">
-                                        <p id="pm-number"></p>
-                                        <button type="button" class="pm-copy-btn" onclick="copyPaymentField('pm-number', this)" title="Copy phone number">
-                                            <svg class="ui-icon"><use href="#icon-copy"></use></svg>
-                                        </button>
-                                    </div>
-                                </div>
-                                <div class="pm-info-box">
-                                    <span class="pm-info-box-label">Name</span>
-                                    <div class="pm-info-box-row">
-                                        <p id="pm-name"></p>
-                                        <button type="button" class="pm-copy-btn" onclick="copyPaymentField('pm-name', this)" title="Copy name">
-                                            <svg class="ui-icon"><use href="#icon-copy"></use></svg>
-                                        </button>
-                                    </div>
+                    <div id="detail-payment-info" class="pmx-host" style="display:none; margin-top:10px;">
+                        <div class="pmx-wrap-inner pmx-B" id="pm-pmx">
+                        <p class="pmx-intro">Transfer the exact amount to:</p>
+                        <div class="pmx-bank">
+                            <div class="pmx-head">
+                                <span class="pmx-logo" id="pm-logo"><b>K</b><img alt="" src="" style="display:none"></span>
+                                <span class="pmx-ttl"><strong id="pm-brand">Payment</strong><small id="pm-sub">Mobile wallet</small></span>
+                                <span class="pmx-ver"><svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path pathLength="1" d="M5.3 12.9l4.3 4.3 9.1-9.9"/></svg>Verified</span>
+                            </div>
+                            <div class="pmx-mid">
+                                <div class="pmx-qrcard"><img id="pm-qr" src="" alt="QR code" class="pmx-qr" style="display:none"></div>
+                                <div class="pmx-info">
+                                    <span class="pmx-lb">Name</span>
+                                    <p id="pm-name" class="pmx-nm"></p>
+                                    <span class="pmx-lb" style="margin-top:14px">Phone No.</span>
+                                    <p id="pm-number" class="pmx-ph"></p>
                                 </div>
                             </div>
+                            <div class="pmx-acts">
+                                <button type="button" class="pmx-b1" onclick="copyPaymentField('pm-number', this)"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2.5"/><path d="M5 15V6.5A2.5 2.5 0 0 1 7.5 4H15"/></svg>Copy number</button>
+                                <button type="button" class="pmx-b2" onclick="pmxSaveQr('pm-qr','pm-brand')"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg>Save QR</button>
+                            </div>
                         </div>
-
-                        <div class="pm-verify-note">
-                            <svg class="ui-icon"><use href="#icon-shield"></use></svg>
-                            <span>Only send to the exact Number &amp; Name above. If it looks different from before, <a onclick="contactAdmin()">contact Support</a> before paying.</span>
-                        </div>
+                        <div class="pmx-note"><svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3l7 3v5.5c0 4.5-3 8.2-7 9.5-4-1.3-7-5-7-9.5V6z"/></svg><span>Only send to the exact Number &amp; Name above. If it looks different, <a onclick="contactAdmin()">contact Support</a> before paying.</span></div>
+                    </div>
 
                         <label>Upload Payment Receipt</label>
                         <label class="upload-shot-box" id="upload-shot-box" for="receipt-file">
@@ -3474,7 +3492,7 @@ b,strong{font-weight:600}
 
     <!-- Main tab bar (sits just under the header): Top Up / Voucher / Wallet / History. showPage() toggles .active on #btn-<page>
          and hides the bar on sub-pages (see MAIN_TAB_PAGES). Everything else is in the drawer. -->
-    <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="pcaNavG" x1="3" y1="3" x2="21" y2="21" gradientUnits="userSpaceOnUse"><stop offset="0" style="stop-color:var(--pca-lt,#6cc3ff)"/><stop offset=".55" style="stop-color:var(--pca-acc,#2f7bff)"/><stop offset="1" style="stop-color:#8F6BFF"/></linearGradient><symbol id="nav-home" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path fill="currentColor" stroke="none" fill-rule="evenodd" d="M11.2 2.8a1.2 1.2 0 0 1 1.6 0l8.6 7.6a1 1 0 0 1-.7 1.7H19V20a1.2 1.2 0 0 1-1.2 1.2H15v-5.7a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5.7H6.2A1.2 1.2 0 0 1 5 20v-7.9H3.3a1 1 0 0 1-.7-1.7z"/></symbol><symbol id="nav-history" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path fill="currentColor" stroke="none" fill-rule="evenodd" d="M6.5 3h11A1.5 1.5 0 0 1 19 4.5v16.3a.6.6 0 0 1-.9.5L16 20l-2 1.3a.6.6 0 0 1-.6 0L12 20l-1.4 1.3a.6.6 0 0 1-.6 0L8 20l-2.1 1.3a.6.6 0 0 1-.9-.5V4.5A1.5 1.5 0 0 1 6.5 3zM8.5 8a.9.9 0 0 0 0 1.8h7a.9.9 0 0 0 0-1.8zm0 4.2a.9.9 0 0 0 0 1.8h7a.9.9 0 0 0 0-1.8z"/></symbol><symbol id="nav-wallet" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path fill="currentColor" stroke="none" fill-rule="evenodd" d="M5.5 4.5H17a1.3 1.3 0 0 1 1.3 1.3V7H20a1.5 1.5 0 0 1 1.5 1.5v9.5A2.5 2.5 0 0 1 19 20.5H6A3.5 3.5 0 0 1 2.5 17V7.5A3 3 0 0 1 5.5 4.5zM6 6.8a.9.9 0 0 0 0 1.8h12.3V6.8zm11.2 7.4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></symbol><symbol id="nav-search" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.3" fill="none" stroke="currentColor" stroke-width="2.8"/><path d="M15.4 15.4 20.5 20.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></symbol><symbol id="nav-user" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle fill="currentColor" stroke="none" cx="12" cy="7.6" r="4.4"/><path fill="currentColor" stroke="none" d="M4 20.2c0-3.8 3.6-6.2 8-6.2s8 2.4 8 6.2a.9.9 0 0 1-.9.9H4.9a.9.9 0 0 1-.9-.9z"/></symbol></defs></svg>
+    <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs><linearGradient id="pcaNavG" x1="3" y1="3" x2="21" y2="21" gradientUnits="userSpaceOnUse"><stop offset="0" style="stop-color:var(--pca-lt,#6cc3ff)"/><stop offset=".55" style="stop-color:var(--pca-acc,#2f7bff)"/><stop offset="1" style="stop-color:#8F6BFF"/></linearGradient><symbol id="nav-home" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path fill="currentColor" stroke="none" fill-rule="evenodd" d="M11.2 2.8a1.2 1.2 0 0 1 1.6 0l8.6 7.6a1 1 0 0 1-.7 1.7H19V20a1.2 1.2 0 0 1-1.2 1.2H15v-5.7a1 1 0 0 0-1-1h-4a1 1 0 0 0-1 1v5.7H6.2A1.2 1.2 0 0 1 5 20v-7.9H3.3a1 1 0 0 1-.7-1.7z"/></symbol><symbol id="nav-history" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path fill="currentColor" stroke="none" fill-rule="evenodd" d="M6.5 3h11A1.5 1.5 0 0 1 19 4.5v16.3a.6.6 0 0 1-.9.5L16 20l-2 1.3a.6.6 0 0 1-.6 0L12 20l-1.4 1.3a.6.6 0 0 1-.6 0L8 20l-2.1 1.3a.6.6 0 0 1-.9-.5V4.5A1.5 1.5 0 0 1 6.5 3zM8.5 8a.9.9 0 0 0 0 1.8h7a.9.9 0 0 0 0-1.8zm0 4.2a.9.9 0 0 0 0 1.8h7a.9.9 0 0 0 0-1.8z"/></symbol><symbol id="nav-wallet" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path fill="currentColor" stroke="none" fill-rule="evenodd" d="M5.5 4.5H17a1.3 1.3 0 0 1 1.3 1.3V7H20a1.5 1.5 0 0 1 1.5 1.5v9.5A2.5 2.5 0 0 1 19 20.5H6A3.5 3.5 0 0 1 2.5 17V7.5A3 3 0 0 1 5.5 4.5zM6 6.8a.9.9 0 0 0 0 1.8h12.3V6.8zm11.2 7.4a1.5 1.5 0 1 0 0 3 1.5 1.5 0 0 0 0-3z"/></symbol><symbol id="nav-search" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle cx="10.5" cy="10.5" r="6.3" fill="none" stroke="currentColor" stroke-width="2.8"/><path d="M15.4 15.4 20.5 20.5" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round"/></symbol><symbol id="nav-user" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><circle fill="currentColor" stroke="none" cx="12" cy="7.6" r="4.4"/><path fill="currentColor" stroke="none" d="M4 20.2c0-3.8 3.6-6.2 8-6.2s8 2.4 8 6.2a.9.9 0 0 1-.9.9H4.9a.9.9 0 0 1-.9-.9z"/></symbol><symbol id="nav-close" viewBox="0 0 24 24" fill="none" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 6.5l11 11M17.5 6.5l-11 11" fill="none" stroke="currentColor" stroke-width="3"/></symbol></defs></svg>
     <nav class="bottom-nav" id="bottom-nav" aria-label="Main navigation">
         <div class="nav-item active" id="btn-home" onclick="showPage('home')" role="button">
             <div class="nav-icon-wrap"><svg class="ui-icon"><use href="#nav-home"></use></svg></div>
@@ -3724,7 +3742,7 @@ b,strong{font-weight:600}
                 
                 drawer_footer: 'PCA Game Store',
                 guide_card_close: 'Close',
-                btn_confirm_id: 'Confirm ID', btn_confirmed_id: 'Confirmed ✓', btn_checking_id: 'Checking...',
+                btn_confirm_id: 'Confirm ID', btn_confirmed_id: 'Confirmed', btn_checking_id: 'Checking...',
                 checking_id_text: 'Checking ID...', id_not_found: 'ID not found — please double-check it.',
                 verified_prefix: 'Verified', player_verified: 'Player verified',
                 success_processing_title: 'Processing Your Order', success_processing_sub: "Our team is working on it now — this won't take long.",
@@ -3834,7 +3852,7 @@ b,strong{font-weight:600}
                 
                 drawer_footer: 'PCA Game Store',
                 guide_card_close: 'ပိတ်ရန်',
-                btn_confirm_id: 'Confirm ID', btn_confirmed_id: 'Confirmed ✓', btn_checking_id: 'စစ်ဆေးနေသည်...',
+                btn_confirm_id: 'Confirm ID', btn_confirmed_id: 'Confirmed', btn_checking_id: 'စစ်ဆေးနေသည်...',
                 checking_id_text: 'ID စစ်ဆေးနေသည်...', id_not_found: 'ID မတွေ့ပါ — ပြန်စစ်ကြည့်ပါ။',
                 verified_prefix: 'အတည်ပြုပြီး', player_verified: 'ကစားသမား အတည်ပြုပြီး',
                 success_processing_title: 'အော်ဒါ လုပ်ဆောင်နေသည်', success_processing_sub: 'ကျွန်ုပ်တို့အဖွဲ့ လက်ရှိလုပ်ဆောင်နေပါသည် — မကြာမီပြီးပါမည်။',
@@ -4041,8 +4059,8 @@ b,strong{font-weight:600}
             if (GAMES_PAGES.includes(pageId) && window.listenGames) window.listenGames();
             else if (!GAMES_PAGES.includes(pageId) && window.stopListenGames) window.stopListenGames();
             // Wallet top-up history: only needed on the Wallet page.
-            if (pageId === 'wallet' && window.listenWalletTopups) window.listenWalletTopups();
-            else if (pageId !== 'wallet' && window.stopListenWalletTopups) window.stopListenWalletTopups();
+            if (pageId === 'wallet' && window.listenWalletTopups) { window.listenWalletTopups(); if (window.listenWalletOrders) window.listenWalletOrders(); }
+            else if (pageId !== 'wallet' && window.stopListenWalletTopups) { window.stopListenWalletTopups(); if (window.stopListenWalletOrders) window.stopListenWalletOrders(); }
             // Payment methods: needed wherever a payment-method picker or the
             // Payment methods: needed wherever a payment-method picker or the
             // wallet top-up modal can appear - game-detail's checkout and the
@@ -4468,7 +4486,7 @@ b,strong{font-weight:600}
 
             const check = document.createElement('div');
             check.className = 'id-result-check';
-            check.textContent = '✓';
+            check.innerHTML = window.PCA_CK;
 
             card.appendChild(avatar);
             card.appendChild(info);
@@ -4603,7 +4621,7 @@ b,strong{font-weight:600}
                     renderIdConfirmedCard(resolvedName, verifiedLabel);
                     confirmBtn.classList.remove('checking');
                     confirmBtn.classList.add('confirmed');
-                    btnText.innerText = t('btn_confirmed_id');
+                    btnText.innerHTML = t('btn_confirmed_id') + ' ' + window.PCA_CK;
                     confirmBtn.disabled = true;
                     // Once verified, the name-check card above already says
                     // "Verified" — the button underneath it is redundant, so
@@ -4612,6 +4630,7 @@ b,strong{font-weight:600}
                     // onPlayerIdFieldChange() the moment the ID/server field
                     // is edited again.
                     confirmBtn.style.display = 'none';
+                    if (window.pcaAutoScroll) window.pcaAutoScroll('pkg');
                 } else if (outcome === 'invalid') {
                     playerIdVerified = false;
                     verifiedPlayerName = null;
@@ -4972,7 +4991,7 @@ b,strong{font-weight:600}
                 }
                 const check = document.createElement('div');
                 check.className = 'id-result-check';
-                check.textContent = '✓';
+                check.innerHTML = window.PCA_CK;
                 card.appendChild(avatar);
                 card.appendChild(info);
                 card.appendChild(check);
@@ -5661,6 +5680,8 @@ b,strong{font-weight:600}
         }
 
         function selectPackageOption(index) {
+            // Signed-out visitors can look at prices but not pick a package.
+            if (window.isSignedOut && window.isSignedOut()) { if (window.showToast) window.showToast('Login ဝင်ပြီးမှ ဝယ်ယူနိုင်ပါမည်', 'warning'); return; }
             const pkgToSelect = window.currentGamePackages[index];
             // Guard against sold-out packages being selected by any path
             // other than the disabled card's own onclick (which is already
@@ -5690,6 +5711,7 @@ b,strong{font-weight:600}
 
             document.getElementById('detail-payment-section').style.display = 'block';
             updateQtyBox();
+            if (window.pcaAutoScroll) window.pcaAutoScroll('pay');
         }
 
         // Builds a direct link to a specific package (so it can be shared)
@@ -5817,7 +5839,7 @@ b,strong{font-weight:600}
             box.innerHTML = enough ? `
                 <span class="wallet-pay-balance-label">Wallet Balance <span class="payment-option-availability" style="font-weight:400;">- Available 24/7</span></span>
                 <span class="wallet-pay-balance-amount">${bal.toLocaleString()} MMK</span>
-                <span class="wallet-pay-note ok">✓ Enough balance — ${price.toLocaleString()} MMK will be deducted when you confirm.</span>
+                <span class="wallet-pay-note ok">${window.PCA_CK} Enough balance — ${price.toLocaleString()} MMK will be deducted when you confirm.</span>
             ` : `
                 <span class="wallet-pay-balance-label">Wallet Balance <span class="payment-option-availability" style="font-weight:400;">- Available 24/7</span></span>
                 <span class="wallet-pay-balance-amount">${bal.toLocaleString()} MMK</span>
@@ -5882,6 +5904,7 @@ b,strong{font-weight:600}
 
             document.getElementById('pm-number').innerText = p.number;
             document.getElementById('pm-name').innerText = p.accountName;
+            if(window.pmxFill)window.pmxFill('pm',p);
             const qrEl = document.getElementById('pm-qr');
             if (p.qrImage) { qrEl.src = p.qrImage; qrEl.style.display = 'block'; }
             else { qrEl.src = ''; qrEl.style.display = 'none'; }
@@ -6169,6 +6192,7 @@ b,strong{font-weight:600}
         window.copyVoucherCode = copyVoucherCode;
 
         function closeGameDetail() {
+            window.__suppressNextCardClick = false;
             selectedPackage = null;
             selectedQty = 1;
             selectedPaymentMethod = null;
@@ -6688,14 +6712,15 @@ b,strong{font-weight:600}
         function renderMiniProfile() {
             const p = getSavedProfile();
             const gid = getGuestId();
-            const displayName = (p.name && p.name.trim()) ? p.name.trim() : gid;
+            const signedOutNow = !gid || (window.isSignedOut && window.isSignedOut());
+            const displayName = signedOutNow ? 'Unknown user' : ((p.name && p.name.trim()) ? p.name.trim() : gid);
             // Header profile chip (replaces the old header logo)
             const hdrName = document.getElementById('header-profile-name');
             const hdrImg = document.getElementById('header-profile-avatar-img');
             const hdrIcon = document.getElementById('header-profile-avatar-icon');
-            if (hdrName) hdrName.innerText = 'Hello, ' + ((p.name && p.name.trim()) ? p.name.trim() : 'Guest');
+            if (hdrName) hdrName.innerText = 'Hello, ' + (signedOutNow ? 'Unknown user' : ((p.name && p.name.trim()) ? p.name.trim() : 'Guest'));
             const hdrId = document.getElementById('header-profile-id');
-            if (hdrId) hdrId.innerText = gid ? 'ID: ' + gid : '';
+            if (hdrId) hdrId.innerText = (gid && !signedOutNow) ? 'ID: ' + gid : '';
             if (hdrImg && hdrIcon) {
                 if (p.photo) { hdrImg.src = p.photo; hdrImg.style.display = 'block'; hdrIcon.style.display = 'none'; }
                 else { hdrImg.src = ''; hdrImg.style.display = 'none'; hdrIcon.style.display = 'block'; }
@@ -6705,7 +6730,8 @@ b,strong{font-weight:600}
             const heroName = document.getElementById('profile-hero-name');
             const heroId = document.getElementById('profile-hero-id');
             if (heroName) heroName.innerText = displayName;
-            if (heroId) heroId.innerText = 'ID: ' + gid;
+            if (heroId) heroId.innerText = (gid && !signedOutNow) ? 'ID: ' + gid : '';
+            if (signedOutNow) { const ph = document.getElementById('profile-photo-preview'); if (ph) { ph.src = ''; ph.style.display = 'none'; } }
         }
 
         // Tapping "Edit Profile" now pops up a modal (Name/Phone in a small
@@ -6867,7 +6893,7 @@ b,strong{font-weight:600}
             const data = await res.json();
             if (!data.success) throw new Error(data.error?.message || 'Receipt upload failed');
 
-            statusEl.innerText = 'Receipt uploaded ✓';
+            statusEl.innerHTML = 'Receipt uploaded ' + window.PCA_CK;
             return data.data.url;
         }
 
@@ -6887,7 +6913,7 @@ b,strong{font-weight:600}
             const data = await res.json();
             if (!data.success) throw new Error(data.error?.message || 'Photo upload failed');
 
-            statusEl.innerText = 'Photo uploaded ✓';
+            statusEl.innerHTML = 'Photo uploaded ' + window.PCA_CK;
             return data.data.url;
         }
         window.uploadProfilePhoto = uploadProfilePhoto;
@@ -7055,7 +7081,7 @@ b,strong{font-weight:600}
             const res = await fetch(RECEIPT_UPLOAD_URL, { method: 'POST', body: form });
             const data = await res.json();
             if (!data.success) throw new Error(data.error?.message || 'Receipt upload failed');
-            statusEl.innerText = 'Receipt uploaded ✓';
+            statusEl.innerHTML = 'Receipt uploaded ' + window.PCA_CK;
             return data.data.url;
         }
 
@@ -7254,6 +7280,9 @@ b,strong{font-weight:600}
             }
 
             function onStart(e) {
+                if (e.type === 'mousedown' && Date.now() - (window.__lastTouchTs || 0) < 900) return; // emulated mouse after touch
+                if (e.type === 'touchstart') window.__lastTouchTs = Date.now();
+                window.__suppressNextCardClick = false; // a new gesture always starts clean (a stale flag swallowed real taps)
                 if (pressTimer || pressCard) clearPress(); // stray leftover from a previous gesture
                 const card = e.target.closest && e.target.closest('.game-card[data-game-id]');
                 if (!card) return;
@@ -7486,6 +7515,7 @@ b,strong{font-weight:600}
             document.querySelector(`#wallet-topup-payment-methods .payment-option[data-wallet-payment-id="${id}"]`).classList.add('selected');
             document.getElementById('wallet-pm-number').innerText = p.number;
             document.getElementById('wallet-pm-name').innerText = p.accountName;
+            if(window.pmxFill)window.pmxFill('wallet-pm',p);
             const walletQrEl = document.getElementById('wallet-pm-qr');
             if (p.qrImage) { walletQrEl.src = p.qrImage; walletQrEl.style.display = 'block'; }
             else { walletQrEl.src = ''; walletQrEl.style.display = 'none'; }
@@ -7656,7 +7686,7 @@ b,strong{font-weight:600}
         }
 
         function setCryptoStatus(text, spinning) {
-            document.getElementById('crypto-status-text').innerText = text;
+            window.pcaStatusText(document.getElementById('crypto-status-text'), text);
             document.getElementById('crypto-status-spinner').style.display = spinning ? 'inline-block' : 'none';
         }
 
@@ -7778,7 +7808,7 @@ b,strong{font-weight:600}
 
         function setAluuStatus(text, spinning) {
             document.getElementById('aluu-status-box').style.display = 'block';
-            document.getElementById('aluu-status-text').innerText = text;
+            window.pcaStatusText(document.getElementById('aluu-status-text'), text);
             document.getElementById('aluu-status-spinner').style.display = spinning ? 'inline-block' : 'none';
         }
 
@@ -7895,8 +7925,123 @@ b,strong{font-weight:600}
         }
         window.submitWalletTopup = submitWalletTopup;
 
+        /*WALLET-TABS-BEGIN*/
+        // ---------- Wallet: Top Up History / Transaction History tabs ----------
+        // Top Up History  = wallet deposits only (walletTopupCache).
+        // Transaction History = every wallet deposit + every purchase (orders), newest first.
+        let walletTab = 'topup';
+        let walletOrdersCache = [];
+        let walletOrdersLoaded = false;
+        let walletOrdersUnsub = null;
+        function listenWalletOrders() {
+            if (walletOrdersUnsub || !window.pcaWatchOrders) return;
+            const gid = window.getGuestId ? window.getGuestId() : null;
+            if (!gid) return;
+            walletOrdersUnsub = window.pcaWatchOrders((snap) => {
+                if (snap.empty && snap.metadata && snap.metadata.fromCache) return;
+                const items = [];
+                snap.forEach(d => items.push({ id: d.id, ...d.data() }));
+                items.sort((a, b) => (b.timestamp?.toMillis?.() || 0) - (a.timestamp?.toMillis?.() || 0));
+                walletOrdersCache = items;
+                walletOrdersLoaded = true;
+                renderWalletTxnList();
+            }, (error) => console.error('Wallet orders listener error:', error));
+        }
+        function stopListenWalletOrders() {
+            if (walletOrdersUnsub) { walletOrdersUnsub(); walletOrdersUnsub = null; }
+            walletOrdersLoaded = false;
+        }
+        window.listenWalletOrders = listenWalletOrders;
+        window.stopListenWalletOrders = stopListenWalletOrders;
+
+        function setWalletTab(tab, scroll) {
+            walletTab = tab === 'txn' ? 'txn' : 'topup';
+            const tabs = document.getElementById('wallet-tabs');
+            if (tabs) {
+                tabs.dataset.active = walletTab;
+                tabs.querySelectorAll('.wtab').forEach(b => {
+                    const on = b.dataset.wtab === walletTab;
+                    b.classList.toggle('active', on);
+                    b.setAttribute('aria-selected', on ? 'true' : 'false');
+                });
+            }
+            const tl = document.getElementById('wallet-topup-list');
+            const xl = document.getElementById('wallet-txn-list');
+            if (tl) tl.style.display = walletTab === 'topup' ? '' : 'none';
+            if (xl) xl.style.display = walletTab === 'txn' ? '' : 'none';
+            if (walletTab === 'topup') renderWalletTopupList(); else renderWalletTxnList();
+            if (scroll && tabs && tabs.scrollIntoView) tabs.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+        window.setWalletTab = setWalletTab;
+
+        function openWalletTxnOrder(i) {
+            HISTORY_ORDERS = walletOrdersCache; window.__hist = walletOrdersCache;
+            openOrderDetail(i);
+        }
+        window.openWalletTxnOrder = openWalletTxnOrder;
+
+        function walletTxnRowHTML(e) {
+            const when = e.hasTs ? historyTimeFmt.format(new Date(e.ms)) : 'Just now';
+            if (e.kind === 'topup') {
+                const t = e.t, sm = walletStatusIconMeta(t.status);
+                return `
+                <div class="wtx-row wtx-topup ${sm.cls}" onclick="openWalletTopupDetail(${e.i})">
+                    <div class="wtx-ic ${sm.cls}"><svg class="ui-icon"><use href="#icon-deposit"></use></svg></div>
+                    <div class="wtx-body">
+                        <div class="wtx-top"><span class="wtx-title">Wallet Top Up</span><span class="wtx-amt in">+${(t.amount || 0).toLocaleString()} MMK</span></div>
+                        <div class="wtx-sub"><span class="wtx-meta">${escapeHtml(t.paymentMethod || '-')} • ${when}</span><span class="badge ${walletStatusBadgeClass(t.status)}">${orderStatusLabel(t.status)}</span></div>
+                    </div>
+                </div>`;
+            }
+            const o = e.o;
+            const img = findGameImage(o.game, o.serverRegion);
+            const dead = (o.status === 'Fail');
+            return `
+                <div class="wtx-row wtx-order ${historyStatusClassFor(o.status)}" onclick="openWalletTxnOrder(${e.i})">
+                    <div class="wtx-ic wtx-shop">${img ? `<img src="${escapeHtml(img)}" alt="" onerror="this.remove()">` : ''}<svg class="ui-icon"><use href="#icon-bag"></use></svg></div>
+                    <div class="wtx-body">
+                        <div class="wtx-top"><span class="wtx-title">${escapeHtml(o.game || 'Purchase')}${o.itemAmount ? ' · ' + escapeHtml(o.itemAmount) : ''}</span><span class="wtx-amt out${dead ? ' void' : ''}">-${Number(o.price || 0).toLocaleString()} MMK</span></div>
+                        <div class="wtx-sub"><span class="wtx-meta">${escapeHtml(o.paymentMethod || '-')} • ${when}</span><span class="badge ${historyBadgeClassFor(o.status)}">${historyStatusIconHTML(o.status)}${orderStatusLabel(o.status)}</span></div>
+                    </div>
+                </div>`;
+        }
+
+        function renderWalletTxnList() {
+            if (walletTab !== 'txn') return;
+            const list = document.getElementById('wallet-txn-list');
+            const empty = document.getElementById('wallet-topup-empty');
+            if (!list || !empty) return;
+            if (!walletTopupsLoaded || !walletOrdersLoaded) {
+                list.innerHTML = '';
+                empty.innerHTML = '<div class="gsk-rows">' + '<div class="gsk-row"><span class="gsk gsk-ric"></span><span class="gsk-rtx"><b class="gsk"></b><b class="gsk"></b></span><span class="gsk gsk-rpr"></span></div>'.repeat(4) + '</div>';
+                empty.style.display = 'block';
+                return;
+            }
+            const entries = [];
+            walletTopupCache.forEach((t, i) => { const ms = t.timestamp?.toMillis?.(); entries.push({ kind: 'topup', t, i, ms: ms || Date.now(), hasTs: !!ms }); });
+            walletOrdersCache.forEach((o, i) => { const ms = o.timestamp?.toMillis?.(); entries.push({ kind: 'order', o, i, ms: ms || Date.now(), hasTs: !!ms }); });
+            if (!entries.length) {
+                list.innerHTML = '';
+                empty.innerHTML = emptyStateHTML('icon-receipt', 'No transactions yet', 'Your wallet top ups and purchases will show up here.');
+                empty.style.display = 'block';
+                return;
+            }
+            entries.sort((a, b) => b.ms - a.ms);
+            empty.style.display = 'none';
+            let html = '', lastKey = null;
+            entries.forEach(e => {
+                const key = yangonDateKey(e.ms);
+                if (key !== lastKey) { html += `<div class="history-date-header wtx-date">${yangonDateLabel(key)}</div>`; lastKey = key; }
+                html += walletTxnRowHTML(e);
+            });
+            list.innerHTML = html;
+        }
+        window.renderWalletTxnList = renderWalletTxnList;
+        /*WALLET-TABS-END*/
+
         // ---------- Top Up History (live, this user only) ----------
         function renderWalletTopupList() {
+            if (walletTab !== 'topup') { renderWalletTxnList(); return; }
             const list = document.getElementById('wallet-topup-list');
             const empty = document.getElementById('wallet-topup-empty');
             if (!walletTopupsLoaded) {
@@ -7904,7 +8049,7 @@ b,strong{font-weight:600}
                 // neutral loading state, not the "No top up requests" empty
                 // state (which would misleadingly flash before real data).
                 list.innerHTML = '';
-                empty.innerHTML = '<div class="skel skel-topup-row"></div><div class="skel skel-topup-row"></div><div class="skel skel-topup-row"></div>';
+                empty.innerHTML = '<div class="gsk-rows">' + '<div class="gsk-row"><span class="gsk gsk-ric"></span><span class="gsk-rtx"><b class="gsk"></b><b class="gsk"></b></span><span class="gsk gsk-rpr"></span></div>'.repeat(4) + '</div>';
                 empty.style.display = 'block';
                 return;
             }
@@ -8293,14 +8438,25 @@ b,strong{font-weight:600}
                 // Already registered for this exact sign-in on this device: nothing to ask.
                 if (stored && verifiedUid === user.uid) return { id: stored, changed: false };
                 try {
-                    const idToken = await user.getIdToken();
-                    const res = await fetch(REGISTER_USER_URL, {
-                        method: 'POST',
-                        headers: { 'Content-Type': 'application/json' },
-                        body: JSON.stringify({ idToken })
-                    });
-                    const data = await res.json().catch(() => ({}));
-                    if (!res.ok || !data.ok || !data.userId) throw new Error(data.error || ('register failed ' + res.status));
+                    // up to 3 tries (fresh token on retries) - a single slow/failed call used to leave the account empty
+                    let data = null, lastErr = null;
+                    for (let attempt = 0; attempt < 3; attempt++) {
+                        try {
+                            const idToken = await user.getIdToken(attempt > 0);
+                            const res = await fetch(REGISTER_USER_URL, {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/json' },
+                                body: JSON.stringify({ idToken })
+                            });
+                            const d = await res.json().catch(() => ({}));
+                            if (!res.ok || !d.ok || !d.userId) throw new Error(d.error || ('register failed ' + res.status));
+                            data = d; break;
+                        } catch (err) {
+                            lastErr = err;
+                            if (attempt < 2) await new Promise(r => setTimeout(r, 700 * (attempt + 1)));
+                        }
+                    }
+                    if (!data) throw lastErr;
                     const id = String(data.userId);
                     const changed = id !== stored;
                     if (changed) resetLocalAccountState(); // a different customer than this device remembered
@@ -8340,7 +8496,23 @@ b,strong{font-weight:600}
         async function applyGoogleProfile(user) {
             // The Worker issues (or looks up) the customer ID - the browser never makes one.
             const reg = await ensureCustomerId(user);
-            if (reg.changed || reg.error) return; // reloading under the Worker-issued ID, or registration failed
+            if (reg.error) {
+                // Registration failed: still show who is signed in, tell the user, and retry in the background.
+                try {
+                    const ex = window.getSavedProfile ? window.getSavedProfile() : {};
+                    if (!ex.name && !ex.photo) localStorage.setItem('gz_profile', JSON.stringify({ name: user.displayName || '', phone: ex.phone || '', photo: user.photoURL || '' }));
+                } catch (e) { /* private browsing */ }
+                if (window.renderProfileFields) window.renderProfileFields();
+                if (window.renderMiniProfile) window.renderMiniProfile();
+                window.__gpRetry = (window.__gpRetry || 0) + 1;
+                if (window.__gpRetry <= 4) {
+                    if (window.__gpRetry === 1 && window.showToast) window.showToast('Setting up your account… please wait', 'fail');
+                    setTimeout(() => { customerIdPromise = null; applyGoogleProfile(user); }, 3000 * window.__gpRetry);
+                }
+                return;
+            }
+            window.__gpRetry = 0;
+            if (reg.changed) return; // reloading under the Worker-issued ID
             if (await enforceGoogleAccountBan(user, reg.id)) return;
 
             const existing = window.getSavedProfile ? window.getSavedProfile() : { name: '', phone: '', photo: '' };
@@ -8627,6 +8799,7 @@ b,strong{font-weight:600}
             onboardAuthChecked = true;
             if (user) { try { localStorage.setItem('pca_ever_login', '1'); } catch (e) {} }
             document.documentElement.classList.toggle('logged-out', !user);
+            if (window.renderMiniProfile) { try { window.renderMiniProfile(); } catch (e) {} }
             if (!overlay) return;
             if (user) {
                 loginFormRequested = false;
@@ -8695,6 +8868,11 @@ b,strong{font-weight:600}
                 if (await enforceGoogleAccountBan(user, myGid)) return;
             }
             renderGoogleAccountUI(user);
+            // Signed in but this device has no customer ID yet (earlier registration failed / was interrupted): finish it now.
+            if (user && !String(user.uid).startsWith('tg_') && !(window.getGuestId && window.getGuestId()) && !window.__gpBusy) {
+                window.__gpBusy = true;
+                try { await applyGoogleProfile(user); } catch (e) { console.error(e); } finally { window.__gpBusy = false; }
+            }
             if (window.loadProfileStats) window.loadProfileStats();
             handleOnboardAuthState(user);
             if (user && walletGatePending) {
@@ -9558,7 +9736,7 @@ b,strong{font-weight:600}
         // dot while Pending, a spinner while Processing, a pop-in check on Success.
         function historyStatusIconHTML(status) {
             if (status === 'Processing') return '<span class="status-anim-spin"></span>';
-            if (status === 'Success') return '<span class="status-anim-check">✓</span>';
+            if (status === 'Success') return '<span class="status-anim-check">' + window.PCA_CK + '</span>';
             if (status === 'Fail') return '';
             return '<span class="status-anim-pulse"></span>'; // Pending
         }
@@ -12887,7 +13065,6 @@ html body .dash{display:block !important;margin:12px 0 2px !important}
 /* ---------- HOME TABS: small glass grid cards, stay on top ---------- */
 html body .htabs-wrap{position:sticky;top:calc(76px + env(safe-area-inset-top,0px));z-index:40;margin:0 -15px 8px;padding:8px 15px;
  background:rgba(247,247,249,.93);-webkit-backdrop-filter:blur(14px) saturate(1.2);backdrop-filter:blur(14px) saturate(1.2);transition:top .3s ease}
-body:has(header.header.header-hidden) .htabs-wrap{top:calc(4px + env(safe-area-inset-top,0px))}
 html body .htabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 html body .htab{position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:64px;padding:6px 2px 5px;margin:0;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;
  border-radius:calc(var(--pca-r,16px) - 2px);border:1px solid rgba(255,255,255,.95);color:#5B606A;
@@ -13286,7 +13463,7 @@ html body .title-header::before{width:4px !important;height:14px !important;bord
     searchOpen = on;
     var b = $('btn-search'); if (!b) return;
     b.classList.toggle('is-close', on);
-    var u = b.querySelector('use'); if (u) u.setAttribute('href', on ? '#icon-close' : '#icon-search');
+    var u = b.querySelector('use'); if (u) u.setAttribute('href', on ? '#nav-close' : '#nav-search');
     var l = b.querySelector('.nav-label'); if (l) l.textContent = on ? 'Close' : 'Search';
   }
   window.openNavSearch = function () {
@@ -14012,7 +14189,7 @@ select[data-pcs]{display:none !important}
   var y=el.scrollTop,p=last.has(el)?last.get(el):y;last.set(el,y);var dy=y-p;
   if(y<48||dy<-6)setTuck(false);else if(dy>6&&y>90)setTuck(true);
  },true);
- d.addEventListener('focusin',function(e){if(/^(INPUT|TEXTAREA)$/.test(e.target.tagName))setTuck(true)});
+ 
  if(nav)nav.addEventListener('click',function(){setTimeout(function(){setTuck(false)},0)});
 })();
 </script>
@@ -14946,7 +15123,7 @@ html body :is(.payment-option,.pkg-type-tab,.pay-type-tab,.history-status-tab,.h
 html body .payment-option::after{content:"" !important;display:block !important;position:absolute !important;right:9px !important;top:9px !important;width:22px !important;height:22px !important;margin-top:0 !important;border-radius:50% !important;
   background:rgba(255,255,255,.55) !important;border:2px solid rgba(var(--g10-rgb),.28) !important;box-shadow:inset 0 1px 2px rgba(20,30,70,.08) !important;transition:all .25s var(--g10-ease)}
 html body .payment-option.selected{background:linear-gradient(150deg,rgba(var(--g10-rgb),.14),rgba(255,255,255,.55)) !important;border-color:var(--g10-acc) !important;box-shadow:0 0 0 1px var(--g10-acc),0 10px 22px -12px rgba(var(--g10-rgb),.55),inset 0 1px 0 rgba(255,255,255,.9) !important}
-html body .payment-option.selected::after{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 12.8l4.4 4.4 8.6-9.4'/%3E%3C/svg%3E") center/14px no-repeat,linear-gradient(145deg,#6E9BFF,var(--g10-acc) 60%,#5B4CF0) !important;
+html body .payment-option.selected::after{background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.3 12.9l4.3 4.3 9.1-9.9'/%3E%3C/svg%3E") center/14px no-repeat,linear-gradient(145deg,#6E9BFF,var(--g10-acc) 60%,#5B4CF0) !important;
   border:1.5px solid rgba(255,255,255,.95) !important;box-shadow:0 5px 12px -3px rgba(var(--g10-rgb),.6),inset 0 1px 0 rgba(255,255,255,.55) !important;animation:pcaTick10 .35s cubic-bezier(.2,1.5,.4,1)}
 /* package cards: corner glass badge */
 html body .package-card .pc-selected-check{display:none !important}
@@ -14955,7 +15132,7 @@ html body .package-card.selected .pc-selected-check{display:grid !important;plac
 html body .package-card.selected .pc-selected-check .ui-icon{display:block !important;width:13px !important;height:13px !important;stroke:#fff !important;color:#fff !important;stroke-width:3.2 !important;opacity:1 !important}
 /* tabs / chips: check mark in front of the label */
 html body :is(.pkg-type-tab,.pay-type-tab,.history-status-tab,.history-date-chip,.wallet-preset-chip):is(.active,.selected)::before{content:"" !important;display:inline-block !important;position:static !important;flex:none;width:14px !important;height:14px !important;margin:0 6px 0 0 !important;vertical-align:-2px;
-  background:currentColor !important;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 12.8l4.4 4.4 8.6-9.4'/%3E%3C/svg%3E") center/contain no-repeat !important;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 12.8l4.4 4.4 8.6-9.4'/%3E%3C/svg%3E") center/contain no-repeat !important;
+  background:currentColor !important;-webkit-mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.3 12.9l4.3 4.3 9.1-9.9'/%3E%3C/svg%3E") center/contain no-repeat !important;mask:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23000' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.3 12.9l4.3 4.3 9.1-9.9'/%3E%3C/svg%3E") center/contain no-repeat !important;
   width:14px !important;height:14px !important;opacity:1 !important;animation:pcaTick10 .3s cubic-bezier(.2,1.5,.4,1)}
 html body :is(.pkg-type-tab,.pay-type-tab,.history-status-tab,.history-date-chip,.wallet-preset-chip):is(.active,.selected){
   background:linear-gradient(150deg,var(--pca-lt,#5B8CFF),var(--g10-acc)) !important;color:#fff !important;border-color:rgba(255,255,255,.85) !important;
@@ -14964,7 +15141,7 @@ html body :is(.pkg-type-tab,.history-status-tab,.history-date-chip,.wallet-prese
 /* custom dropdown (server list) */
 html body .pcs-o{position:relative;padding-right:40px !important}
 html body .pcs-o.sel::after{content:"" !important;position:absolute;right:12px;top:50%;width:20px;height:20px;margin-top:-10px;border-radius:50%;
-  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.5 12.8l4.4 4.4 8.6-9.4'/%3E%3C/svg%3E") center/12px no-repeat,linear-gradient(145deg,#6E9BFF,var(--g10-acc));box-shadow:0 4px 10px -3px rgba(var(--g10-rgb),.6)}
+  background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5.3 12.9l4.3 4.3 9.1-9.9'/%3E%3C/svg%3E") center/12px no-repeat,linear-gradient(145deg,#6E9BFF,var(--g10-acc));box-shadow:0 4px 10px -3px rgba(var(--g10-rgb),.6)}
 html body svg:has(use[href="#icon-check"]){stroke-width:2.8 !important}
 
 /* ---------- 5. TOP / HOT redesign ---------- */
@@ -15193,16 +15370,7 @@ html body .profile-card.pca-sk-av .avatar-upload-circle::after{content:"";positi
   track(pf+(dy>0?dy/45:dy/32));
   clearTimeout(idleT);idleT=setTimeout(function(){settle(pf>.4)},180);
  }
- w.addEventListener('scroll',function(){if(!tk)tk=requestAnimationFrame(onScroll)},{passive:true});
- w.addEventListener('resize',function(){HH=0});
- /* page switch / typing: always bring them back */
- var _sp=w.showPage;
- if(typeof _sp==='function'){w.showPage=function(){lastY=0;clearTimeout(idleT);settle(false);return _sp.apply(this,arguments)}}
- if(nav)nav.addEventListener('click',function(){setTimeout(function(){settle(false)},0)});
- var nb=d.body.classList.contains('no-bottom-nav');
- new MutationObserver(function(){var n=d.body.classList.contains('no-bottom-nav');if(n===nb)return;nb=n;clearTimeout(idleT);lastY=w.scrollY||0;settle(false)}).observe(d.body,{attributes:true,attributeFilter:['class']});
- d.addEventListener('focusin',function(e){if(/^(INPUT|TEXTAREA)$/.test(e.target.tagName)&&nav){kbd=true;settle(hid)}});
- d.addEventListener('focusout',function(){setTimeout(function(){if(!kbd)return;kbd=false;settle(hid)},80)});
+ /* scroll controller replaced by #hide-on-scroll-js (same as linn.html) */
 
  /* ---- 2. tap ripple on tab buttons / grid cells ---- */
  var SEL='button,[onclick],[role="button"],a[href],label,.nav-item:not(.nav-item-wallet),.htab,.history-status-tab,.history-date-chip,.pkg-type-tab,.pay-type-tab,.payment-option,.package-card,.wallet-preset-chip,.pcs-t,.pcs-o,.btn,.game-card,.menu-item,.profile-item,.setting-item';
@@ -15297,6 +15465,7 @@ html body #detail-qty-box .qty-ctrl button:not(#z),.qty-ctrl button,#qty-minus,#
 #order-review-overlay.show .modal-box{transform:translateY(0) scale(1)!important;opacity:1}
 </style>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
+<linearGradient id="pcaOkGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5BE38D"/><stop offset="1" stop-color="#16A34A"/></linearGradient><linearGradient id="pcaVbGrad2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6CB4FF"/><stop offset=".55" stop-color="#2F6BFF"/><stop offset="1" stop-color="#2146E0"/></linearGradient><symbol id="vb-seal" viewBox="0 0 24 24"><path d="M12.00 0.85 L12.29 0.88 L12.58 0.95 L12.86 1.07 L13.13 1.24 L13.39 1.44 L13.64 1.67 L13.87 1.92 L14.09 2.17 L14.30 2.43 L14.50 2.68 L14.69 2.91 L14.89 3.12 L15.08 3.29 L15.29 3.44 L15.50 3.55 L15.73 3.62 L15.98 3.66 L16.24 3.68 L16.52 3.67 L16.82 3.64 L17.14 3.61 L17.47 3.58 L17.81 3.55 L18.15 3.54 L18.48 3.55 L18.81 3.59 L19.12 3.67 L19.40 3.78 L19.66 3.93 L19.88 4.12 L20.07 4.34 L20.22 4.60 L20.33 4.88 L20.41 5.19 L20.45 5.52 L20.46 5.85 L20.45 6.19 L20.42 6.53 L20.39 6.86 L20.36 7.17 L20.33 7.48 L20.32 7.76 L20.34 8.02 L20.38 8.27 L20.45 8.50 L20.56 8.71 L20.71 8.92 L20.88 9.11 L21.09 9.31 L21.32 9.50 L21.57 9.70 L21.83 9.91 L22.08 10.13 L22.33 10.36 L22.56 10.61 L22.76 10.87 L22.93 11.14 L23.05 11.42 L23.12 11.71 L23.15 12.00 L23.12 12.29 L23.05 12.58 L22.93 12.86 L22.76 13.13 L22.56 13.39 L22.33 13.64 L22.08 13.87 L21.83 14.09 L21.57 14.30 L21.32 14.50 L21.09 14.69 L20.88 14.89 L20.71 15.08 L20.56 15.29 L20.45 15.50 L20.38 15.73 L20.34 15.98 L20.32 16.24 L20.33 16.52 L20.36 16.82 L20.39 17.14 L20.42 17.47 L20.45 17.81 L20.46 18.15 L20.45 18.48 L20.41 18.81 L20.33 19.12 L20.22 19.40 L20.07 19.66 L19.88 19.88 L19.66 20.07 L19.40 20.22 L19.12 20.33 L18.81 20.41 L18.48 20.45 L18.15 20.46 L17.81 20.45 L17.47 20.42 L17.14 20.39 L16.82 20.36 L16.52 20.33 L16.24 20.32 L15.98 20.34 L15.73 20.38 L15.50 20.45 L15.29 20.56 L15.08 20.71 L14.89 20.88 L14.69 21.09 L14.50 21.32 L14.30 21.57 L14.09 21.83 L13.87 22.08 L13.64 22.33 L13.39 22.56 L13.13 22.76 L12.86 22.93 L12.58 23.05 L12.29 23.12 L12.00 23.15 L11.71 23.12 L11.42 23.05 L11.14 22.93 L10.87 22.76 L10.61 22.56 L10.36 22.33 L10.13 22.08 L9.91 21.83 L9.70 21.57 L9.50 21.32 L9.31 21.09 L9.11 20.88 L8.92 20.71 L8.71 20.56 L8.50 20.45 L8.27 20.38 L8.02 20.34 L7.76 20.32 L7.48 20.33 L7.18 20.36 L6.86 20.39 L6.53 20.42 L6.19 20.45 L5.85 20.46 L5.52 20.45 L5.19 20.41 L4.88 20.33 L4.60 20.22 L4.34 20.07 L4.12 19.88 L3.93 19.66 L3.78 19.40 L3.67 19.12 L3.59 18.81 L3.55 18.48 L3.54 18.15 L3.55 17.81 L3.58 17.47 L3.61 17.14 L3.64 16.83 L3.67 16.52 L3.68 16.24 L3.66 15.98 L3.62 15.73 L3.55 15.50 L3.44 15.29 L3.29 15.08 L3.12 14.89 L2.91 14.69 L2.68 14.50 L2.43 14.30 L2.17 14.09 L1.92 13.87 L1.67 13.64 L1.44 13.39 L1.24 13.13 L1.07 12.86 L0.95 12.58 L0.88 12.29 L0.85 12.00 L0.88 11.71 L0.95 11.42 L1.07 11.14 L1.24 10.87 L1.44 10.61 L1.67 10.36 L1.92 10.13 L2.17 9.91 L2.43 9.70 L2.68 9.50 L2.91 9.31 L3.12 9.11 L3.29 8.92 L3.44 8.71 L3.55 8.50 L3.62 8.27 L3.66 8.02 L3.68 7.76 L3.67 7.48 L3.64 7.17 L3.61 6.86 L3.58 6.53 L3.55 6.19 L3.54 5.85 L3.55 5.52 L3.59 5.19 L3.67 4.88 L3.78 4.60 L3.93 4.34 L4.12 4.12 L4.34 3.93 L4.60 3.78 L4.88 3.67 L5.19 3.59 L5.52 3.55 L5.85 3.54 L6.19 3.55 L6.53 3.58 L6.86 3.61 L7.18 3.64 L7.48 3.67 L7.76 3.68 L8.02 3.66 L8.27 3.62 L8.50 3.55 L8.71 3.44 L8.92 3.29 L9.11 3.12 L9.31 2.91 L9.50 2.68 L9.70 2.43 L9.91 2.17 L10.13 1.92 L10.36 1.67 L10.61 1.44 L10.87 1.24 L11.14 1.07 L11.42 0.95 L11.71 0.88Z" fill="url(#pcaVbGrad2)"/><path d="M5.2 9.4C6.5 5.9 9.1 4 12 4s5.5 1.9 6.8 5.4c-2.2-1.3-4.3-1.9-6.8-1.9s-4.6.6-6.8 1.9Z" fill="#fff" fill-opacity=".2"/><path d="M12.00 0.85 L12.29 0.88 L12.58 0.95 L12.86 1.07 L13.13 1.24 L13.39 1.44 L13.64 1.67 L13.87 1.92 L14.09 2.17 L14.30 2.43 L14.50 2.68 L14.69 2.91 L14.89 3.12 L15.08 3.29 L15.29 3.44 L15.50 3.55 L15.73 3.62 L15.98 3.66 L16.24 3.68 L16.52 3.67 L16.82 3.64 L17.14 3.61 L17.47 3.58 L17.81 3.55 L18.15 3.54 L18.48 3.55 L18.81 3.59 L19.12 3.67 L19.40 3.78 L19.66 3.93 L19.88 4.12 L20.07 4.34 L20.22 4.60 L20.33 4.88 L20.41 5.19 L20.45 5.52 L20.46 5.85 L20.45 6.19 L20.42 6.53 L20.39 6.86 L20.36 7.17 L20.33 7.48 L20.32 7.76 L20.34 8.02 L20.38 8.27 L20.45 8.50 L20.56 8.71 L20.71 8.92 L20.88 9.11 L21.09 9.31 L21.32 9.50 L21.57 9.70 L21.83 9.91 L22.08 10.13 L22.33 10.36 L22.56 10.61 L22.76 10.87 L22.93 11.14 L23.05 11.42 L23.12 11.71 L23.15 12.00 L23.12 12.29 L23.05 12.58 L22.93 12.86 L22.76 13.13 L22.56 13.39 L22.33 13.64 L22.08 13.87 L21.83 14.09 L21.57 14.30 L21.32 14.50 L21.09 14.69 L20.88 14.89 L20.71 15.08 L20.56 15.29 L20.45 15.50 L20.38 15.73 L20.34 15.98 L20.32 16.24 L20.33 16.52 L20.36 16.82 L20.39 17.14 L20.42 17.47 L20.45 17.81 L20.46 18.15 L20.45 18.48 L20.41 18.81 L20.33 19.12 L20.22 19.40 L20.07 19.66 L19.88 19.88 L19.66 20.07 L19.40 20.22 L19.12 20.33 L18.81 20.41 L18.48 20.45 L18.15 20.46 L17.81 20.45 L17.47 20.42 L17.14 20.39 L16.82 20.36 L16.52 20.33 L16.24 20.32 L15.98 20.34 L15.73 20.38 L15.50 20.45 L15.29 20.56 L15.08 20.71 L14.89 20.88 L14.69 21.09 L14.50 21.32 L14.30 21.57 L14.09 21.83 L13.87 22.08 L13.64 22.33 L13.39 22.56 L13.13 22.76 L12.86 22.93 L12.58 23.05 L12.29 23.12 L12.00 23.15 L11.71 23.12 L11.42 23.05 L11.14 22.93 L10.87 22.76 L10.61 22.56 L10.36 22.33 L10.13 22.08 L9.91 21.83 L9.70 21.57 L9.50 21.32 L9.31 21.09 L9.11 20.88 L8.92 20.71 L8.71 20.56 L8.50 20.45 L8.27 20.38 L8.02 20.34 L7.76 20.32 L7.48 20.33 L7.18 20.36 L6.86 20.39 L6.53 20.42 L6.19 20.45 L5.85 20.46 L5.52 20.45 L5.19 20.41 L4.88 20.33 L4.60 20.22 L4.34 20.07 L4.12 19.88 L3.93 19.66 L3.78 19.40 L3.67 19.12 L3.59 18.81 L3.55 18.48 L3.54 18.15 L3.55 17.81 L3.58 17.47 L3.61 17.14 L3.64 16.83 L3.67 16.52 L3.68 16.24 L3.66 15.98 L3.62 15.73 L3.55 15.50 L3.44 15.29 L3.29 15.08 L3.12 14.89 L2.91 14.69 L2.68 14.50 L2.43 14.30 L2.17 14.09 L1.92 13.87 L1.67 13.64 L1.44 13.39 L1.24 13.13 L1.07 12.86 L0.95 12.58 L0.88 12.29 L0.85 12.00 L0.88 11.71 L0.95 11.42 L1.07 11.14 L1.24 10.87 L1.44 10.61 L1.67 10.36 L1.92 10.13 L2.17 9.91 L2.43 9.70 L2.68 9.50 L2.91 9.31 L3.12 9.11 L3.29 8.92 L3.44 8.71 L3.55 8.50 L3.62 8.27 L3.66 8.02 L3.68 7.76 L3.67 7.48 L3.64 7.17 L3.61 6.86 L3.58 6.53 L3.55 6.19 L3.54 5.85 L3.55 5.52 L3.59 5.19 L3.67 4.88 L3.78 4.60 L3.93 4.34 L4.12 4.12 L4.34 3.93 L4.60 3.78 L4.88 3.67 L5.19 3.59 L5.52 3.55 L5.85 3.54 L6.19 3.55 L6.53 3.58 L6.86 3.61 L7.18 3.64 L7.48 3.67 L7.76 3.68 L8.02 3.66 L8.27 3.62 L8.50 3.55 L8.71 3.44 L8.92 3.29 L9.11 3.12 L9.31 2.91 L9.50 2.68 L9.70 2.43 L9.91 2.17 L10.13 1.92 L10.36 1.67 L10.61 1.44 L10.87 1.24 L11.14 1.07 L11.42 0.95 L11.71 0.88Z" fill="none" stroke="rgba(255,255,255,.55)" stroke-width=".6"/></symbol>
 <linearGradient id="pcaVbGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4FC3FF"/><stop offset=".5" stop-color="#2F7BFF"/><stop offset="1" stop-color="#6D3BFF"/></linearGradient>
 </defs></svg>
 <style id="pca-v12">
@@ -15618,7 +15787,6 @@ html body #detail-package-list .package-card.pc-in{opacity:1 !important;transfor
 html body *:not(#pca_a):not(#pca_b):not(header#app-header):not(nav#bottom-nav){-webkit-backdrop-filter:none !important;backdrop-filter:none !important}
 html body header#app-header,html body nav#bottom-nav{-webkit-backdrop-filter:blur(10px) saturate(140%) !important;backdrop-filter:blur(10px) saturate(140%) !important}
 /* no looping animations while the finger is scrolling */
-html.is-scrolling body *,html.is-scrolling body *::before,html.is-scrolling body *::after{animation-play-state:paused !important}
 @media (prefers-reduced-motion:reduce){
  html body #detail-package-list .package-card.pc-h-bot,html body #detail-package-list .package-card.pc-h-top{opacity:1 !important;transform:none !important}
 }
@@ -15630,7 +15798,6 @@ html body #detail-package-list .package-card.pc-in{opacity:1 !important;transfor
   transition:transform .55s cubic-bezier(.2,.85,.25,1),opacity .4s ease,border-color .15s,background-color .15s,box-shadow .15s !important}
 html body *:not(#pca_a):not(#pca_b):not(header#app-header):not(nav#bottom-nav){-webkit-backdrop-filter:none !important;backdrop-filter:none !important}
 html body header#app-header,html body nav#bottom-nav{-webkit-backdrop-filter:blur(10px) saturate(140%) !important;backdrop-filter:blur(10px) saturate(140%) !important}
-html.is-scrolling body *,html.is-scrolling body *::before,html.is-scrolling body *::after{animation-play-state:paused !important}
 @media (prefers-reduced-motion:reduce){
  html body #detail-package-list .package-card.pc-h-bot,html body #detail-package-list .package-card.pc-h-top{opacity:1 !important;transform:none !important}
 }
@@ -15646,8 +15813,6 @@ html.is-scrolling body *,html.is-scrolling body *::before,html.is-scrolling body
       var y=isDoc?(window.pageYOffset||0):t.scrollTop, k=isDoc?document:t, p=last.get(k);
       if(p!==undefined&&Math.abs(y-p)>1) dir=y>p?1:-1;
       last.set(k,y);
-      if(!root.classList.contains('is-scrolling')) root.classList.add('is-scrolling');
-      clearTimeout(st); st=setTimeout(function(){root.classList.remove('is-scrolling');},140);
     },{capture:true,passive:true});
 
     var io=null, list=null;
@@ -16071,5 +16236,619 @@ html body #onboarding-logo-skeleton:not(#z){background:transparent !important;an
 })();
 </script>
 
+<style id="hdr-nav-linn-css">
+/* Header + bottom nav open/close - same motion as linn.html:
+   slide away while scrolling down / on inner pages, glide back on scroll up. */
+@layer pcamine{
+html body header#app-header.header:not(#a):not(#b):not(#c):not(#d){
+  transition:transform .8s cubic-bezier(.22,.8,.3,1),opacity .5s ease !important;backface-visibility:hidden;
+  will-change:transform,opacity;contain:none !important}
+html body header#app-header.header.header-hidden:not(#a):not(#b):not(#c):not(#d),
+html body header#app-header.header.pca-hide:not(#a):not(#b):not(#c):not(#d){
+  transform:translate3d(0,calc(-100% - 36px - env(safe-area-inset-top,0px)),0) !important;opacity:1 !important;pointer-events:none !important}
+html body.no-bottom-nav header#app-header.header:not(#a):not(#b):not(#c):not(#d){
+  transform:translate3d(0,calc(-100% - 36px - env(safe-area-inset-top,0px)),0) !important;opacity:0 !important;pointer-events:none !important}
+html body nav#bottom-nav.bottom-nav:not(#a):not(#b):not(#c):not(#d){
+  transition:transform .8s cubic-bezier(.22,.8,.3,1),opacity .5s ease !important;backface-visibility:hidden;
+  will-change:transform,opacity;contain:none !important}
+html body nav#bottom-nav.bottom-nav.nav-hidden:not(#a):not(#b):not(#c):not(#d),
+html body nav#bottom-nav.bottom-nav.nav-tuck:not(#a):not(#b):not(#c):not(#d){
+  transform:translate3d(0,calc(100% + 60px + env(safe-area-inset-bottom,0px)),0) !important;opacity:1 !important;pointer-events:none !important}
+html body .htabs-wrap:not(#a):not(#b):not(#c){top:calc(78px + env(safe-area-inset-top,0px)) !important;transition:none !important}
+html.hdr-away body .htabs-wrap:not(#a):not(#b):not(#c){top:calc(6px + env(safe-area-inset-top,0px)) !important}
+html body #pca-pill:not(#a):not(#b){transition:transform .8s cubic-bezier(.22,.8,.3,1),opacity .5s ease !important}
+/* blur is switched off while moving (see .pca-mv in pca-v11-fix) - re-enabling it here caused the stutter */
+}
+@media (prefers-reduced-motion:reduce){html body header#app-header,html body nav#bottom-nav{transition-duration:.01s !important}}
+</style>
+<style id="pca-lite">@layer pcamine{
+/* ===== Top Up history skeleton: same tile look + shimmer as the Home grid ===== */
+html body .gsk-rows{display:flex;flex-direction:column;gap:10px;width:100%;padding:2px 0;text-align:left}
+html body .gsk-row{display:flex;align-items:center;gap:12px;padding:6px 12px 6px 6px;box-sizing:border-box;border:1px solid var(--nd-bd);border-radius:18px;background:var(--nd-sf)}
+html body .gsk-row .gsk-ric{flex:none;width:46px;height:46px;border-radius:13px}
+html body .gsk-row .gsk-rtx{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+html body .gsk-row .gsk-rtx b{display:block;height:11px;width:62%;border-radius:6px}
+html body .gsk-row .gsk-rtx b:last-child{width:38%;height:9px}
+html body .gsk-row .gsk-rpr{flex:none;width:58px;height:22px;border-radius:999px}
+/* skeleton shine (all devices): light sweeps across the block */
+/* skeleton tiles: ONE look everywhere (Home popular, All Games, Voucher, Software) - solid white shell, no ring, image inset 6px */
+html body :is(.gsk-tile,.gsk-pop,.gsk-vpop):not(#z):not(#y):not(#x){display:flex !important;flex-direction:column !important;align-items:stretch !important;gap:6px !important;box-sizing:border-box !important;
+  padding:6px !important;margin:0 !important;background:var(--nd-sf) !important;border:1px solid var(--nd-sf) !important;border-radius:18px !important;box-shadow:none !important;min-width:0 !important}
+html body :is(.gsk-tile,.gsk-pop,.gsk-vpop) .gsk-img:not(#z):not(#y){width:100% !important;max-width:none !important;height:auto !important;aspect-ratio:1/1 !important;border-radius:13px !important;margin:0 !important}
+html body :is(.gsk-tile,.gsk-pop,.gsk-vpop) .gsk-line:not(#z):not(#y){width:100% !important;height:24px !important;border-radius:10px !important;margin:0 !important}
+/* empty provider-tab strip above the grid shows as a stray white bar while loading */
+html body .pkg-type-tabs:empty{display:none !important}
+@keyframes pcaGsh{from{transform:translate3d(-100%,0,0)}to{transform:translate3d(100%,0,0)}}
+html body .gsk{position:relative;overflow:hidden}
+html body .gsk::after{content:"";position:absolute;inset:0;pointer-events:none;background:linear-gradient(100deg,rgba(255,255,255,0) 20%,rgba(255,255,255,.85) 50%,rgba(255,255,255,0) 80%);transform:translate3d(-100%,0,0);animation:pcaGsh 1.25s ease-in-out infinite}
+html[data-theme="dark"] body .gsk::after{background:linear-gradient(100deg,rgba(255,255,255,0) 20%,rgba(255,255,255,.16) 50%,rgba(255,255,255,0) 80%)}
+html body .gsk{animation:none !important;background:var(--nd-bd) !important}
+
+/* ===== LITE MODE (low-end phones): no blur, no big shadows/filters, no looping decoration, shorter slides ===== */
+html.lite *,html.lite *::before,html.lite *::after{-webkit-backdrop-filter:none !important;backdrop-filter:none !important}
+html.lite body header#app-header:not(#a):not(#b){background:#fff !important;border-color:#E6E9F2 !important;box-shadow:0 2px 10px -4px rgba(30,50,110,.22) !important}
+html.lite[data-theme="dark"] body header#app-header:not(#a):not(#b){background:#162338 !important;border-color:#263A57 !important}
+html.lite body nav#bottom-nav:not(#a):not(#b){filter:none !important}
+html.lite body nav#bottom-nav:not(#a):not(#b)::before{background:#fff !important;border-color:#E6E9F2 !important;box-shadow:0 -1px 8px -3px rgba(30,50,110,.25) !important}
+html.lite[data-theme="dark"] body nav#bottom-nav:not(#a):not(#b)::before{background:#162338 !important;border-color:#263A57 !important}
+html.lite body :is(.game-card,.voucher-card,.popular-card,.history-card,.list-card,.profile-card,.wallet-balance-card,.detail-form-card,.wallet-topup-row,.notif-item,.modal-box,.success-box,.pca-fl,#pca-pill,.bullet-chat-wrapper,.pmx-wrap-inner):not(#a){box-shadow:none !important;filter:none !important}
+html.lite body::before{display:none !important}
+html.lite body .page-section.active{animation:none !important}
+html.lite body #detail-package-list .package-card:not(#a):not(#b){opacity:1 !important;transform:none !important;transition:none !important}
+/* looping decoration runs once; spinners, skeletons and the live ticker keep going */
+html.lite :not(.pca-spin):not(.spinner):not(.gsk):not(.pca-osk-row):not(.pca-osk-chips):not(.confirm-id-spinner):not([class*="ld-"]):not([class*="bullet"]):not([class*="marquee"]):not([class*="ticker"]):not([id$="-spinner"]),
+html.lite :not(.gsk):not(.pca-osk-row):not(.pca-osk-chips):not([class*="bullet"]):not([class*="ticker"])::before,
+html.lite :not(.gsk):not(.pca-osk-row):not(.pca-osk-chips):not([class*="bullet"]):not([class*="ticker"])::after{animation-iteration-count:1 !important}
+/* skeleton: static base, shine sweep is the (compositor-only) ::after below */
+html.lite body .gsk{animation:none !important;background:var(--nd-bd) !important}
+/* header / nav slide: shorter and transform-only so a hard flick still shows motion */
+html.lite body header#app-header.header:not(#a):not(#b):not(#c):not(#d),
+html.lite body nav#bottom-nav.bottom-nav:not(#a):not(#b):not(#c):not(#d){transition:transform .6s cubic-bezier(.22,.8,.3,1),opacity .4s ease !important}
+html.lite body .htabs-wrap:not(#a):not(#b):not(#c){transition:none !important}
+}</style>
+<style id="hdr-nav-solid-css">
+/* Glass header + nav, light version.
+   - same motion as linn.html: transform .45s cubic-bezier(.4,0,.2,1), header also fades
+   - blur is STATIC (small, never toggled while sliding) on normal phones
+   - lite (low-end) phones: no blur at all, glass look is faked with a near-opaque tint + highlight */
+@layer pcamine{
+html body header#app-header.header:not(#a):not(#b):not(#c):not(#d):not(#e){
+  background:linear-gradient(150deg,rgba(255,255,255,.78),rgba(255,255,255,.56)) !important;
+  -webkit-backdrop-filter:blur(10px) !important;backdrop-filter:blur(10px) !important;
+  box-shadow:0 8px 18px -10px rgba(30,50,110,.28),inset 0 1px 0 rgba(255,255,255,.95) !important;
+  transition:transform .45s cubic-bezier(.4,0,.2,1),opacity .35s ease !important;
+  will-change:transform;backface-visibility:hidden;contain:none !important}
+html[data-theme="dark"] body header#app-header.header:not(#a):not(#b):not(#c):not(#d):not(#e){background:linear-gradient(150deg,rgba(24,38,62,.8),rgba(18,30,50,.62)) !important;box-shadow:0 8px 18px -10px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.08) !important}
+html body header#app-header.header.header-hidden:not(#a):not(#b):not(#c):not(#d):not(#e),
+html body header#app-header.header.pca-hide:not(#a):not(#b):not(#c):not(#d):not(#e){
+  transform:translate3d(0,calc(-100% - 36px - env(safe-area-inset-top,0px)),0) !important;opacity:0 !important;pointer-events:none !important}
+html body nav#bottom-nav.bottom-nav:not(#a):not(#b):not(#c):not(#d):not(#e){
+  -webkit-backdrop-filter:none !important;backdrop-filter:none !important;
+  transition:transform .45s cubic-bezier(.4,0,.2,1) !important;
+  will-change:transform;backface-visibility:hidden;contain:none !important}
+html body nav#bottom-nav.bottom-nav:not(#a):not(#b):not(#c):not(#d):not(#e)::before{
+  background:linear-gradient(150deg,rgba(255,255,255,.78),rgba(255,255,255,.56)) !important;
+  -webkit-backdrop-filter:blur(10px) !important;backdrop-filter:blur(10px) !important;
+  box-shadow:0 -1px 10px -4px rgba(30,50,110,.3),inset 0 1px 0 rgba(255,255,255,.95) !important}
+html[data-theme="dark"] body nav#bottom-nav.bottom-nav:not(#a):not(#b):not(#c):not(#d):not(#e)::before{background:linear-gradient(150deg,rgba(24,38,62,.8),rgba(18,30,50,.62)) !important;box-shadow:0 -1px 10px -4px rgba(0,0,0,.6),inset 0 1px 0 rgba(255,255,255,.08) !important}
+html body nav#bottom-nav.bottom-nav.nav-hidden:not(#a):not(#b):not(#c):not(#d):not(#e),
+html body nav#bottom-nav.bottom-nav.nav-tuck:not(#a):not(#b):not(#c):not(#d):not(#e){
+  transform:translate3d(0,calc(100% + 44px + env(safe-area-inset-bottom,0px)),0) !important;opacity:1 !important;pointer-events:none !important}
+html body .htabs-wrap:not(#a):not(#b):not(#c):not(#d){transition:none !important}
+
+/* lite: faked glass, zero blur */
+html.lite body header#app-header.header:not(#a):not(#b):not(#c):not(#d):not(#e){
+  background:linear-gradient(150deg,rgba(255,255,255,.97),rgba(246,249,255,.93)) !important;
+  -webkit-backdrop-filter:none !important;backdrop-filter:none !important}
+html.lite[data-theme="dark"] body header#app-header.header:not(#a):not(#b):not(#c):not(#d):not(#e){background:linear-gradient(150deg,rgba(26,40,66,.98),rgba(19,31,52,.95)) !important}
+html.lite body nav#bottom-nav.bottom-nav:not(#a):not(#b):not(#c):not(#d):not(#e)::before{
+  background:linear-gradient(150deg,rgba(255,255,255,.97),rgba(246,249,255,.93)) !important;
+  -webkit-backdrop-filter:none !important;backdrop-filter:none !important}
+html.lite[data-theme="dark"] body nav#bottom-nav.bottom-nav:not(#a):not(#b):not(#c):not(#d):not(#e)::before{background:linear-gradient(150deg,rgba(26,40,66,.98),rgba(19,31,52,.95)) !important}
+}
+</style>
+<style id="pca-check-css">
+@layer pcamine{
+/* one check language: green gradient disc + white drawn tick (success), blue seal (verified) */
+html body .pca-ck{width:1.1em;height:1.1em;vertical-align:-.17em;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+
+/* --- verified seal (profile + Google account) --- */
+html body .verified-badge{width:19px !important;height:19px !important;filter:drop-shadow(0 1px 2px rgba(33,70,224,.45)) !important;animation:pcaPop .5s cubic-bezier(.3,1.5,.5,1) both !important}
+html body #profile-hero-verified-badge{width:21px !important;height:21px !important}
+html body .verified-badge .vb-tick{fill:none !important;stroke:#fff !important;stroke-width:2.5 !important;stroke-linecap:round !important;stroke-linejoin:round !important;stroke-dasharray:14 !important;stroke-dashoffset:14;animation:pcaCk14 .45s .22s ease-out forwards !important}
+
+/* --- "ID verified" result cards (player check + name check) --- */
+html body .id-result-check{position:relative;width:28px !important;height:28px !important;min-width:28px !important;padding:0 !important;font-size:0 !important;border-radius:50% !important;display:grid !important;place-items:center;
+  background:linear-gradient(145deg,#4ADE80,#16A34A) !important;border:1.5px solid rgba(255,255,255,.92) !important;
+  box-shadow:0 5px 12px -3px rgba(22,163,74,.55),inset 0 1px 0 rgba(255,255,255,.55) !important;
+  animation:pcaPop .45s cubic-bezier(.3,1.5,.5,1) both,pcaRingG 1.1s .2s ease-out 1 !important}
+html body .id-result-check::after{display:none !important;content:none !important}
+html body .id-result-check .pca-ck{width:15px;height:15px;stroke:#fff;stroke-width:3.1;stroke-dasharray:22;stroke-dashoffset:22;animation:pcaCk22 .4s .22s ease-out forwards}
+
+/* --- history status badge "Success" --- */
+html body .status-anim-check{display:inline-flex !important;align-items:center;justify-content:center;width:13px !important;height:13px !important;margin-right:4px !important;border-radius:0 !important;background:none !important;box-shadow:none !important;color:inherit !important;font-size:0 !important;vertical-align:-2px}
+html body .status-anim-check .pca-ck{width:13px;height:13px;stroke-width:3.4;stroke-dasharray:22;stroke-dashoffset:22;animation:pcaCk22 .4s .1s ease-out forwards}
+
+/* --- inline notes / buttons --- */
+html body .wallet-pay-note.ok .pca-ck{width:14px;height:14px;margin-right:4px;vertical-align:-2px;stroke-width:3.2}
+html body .confirm-id-btn .pca-ck{width:15px;height:15px;stroke-width:3.2;vertical-align:-3px}
+html body :is(#crypto-status-text,#aluu-status-text) .pca-ck{width:14px;height:14px;stroke-width:3.2;vertical-align:-2px;color:#16A34A}
+
+/* --- order tracker dot, notification icon, success overlay --- */
+html body .ot-dot.done{background:linear-gradient(145deg,#4ADE80,#16A34A) !important;box-shadow:0 3px 8px -2px rgba(22,163,74,.55)}
+html body .notif-order-ic.ok{background:linear-gradient(145deg,#4ADE80,#16A34A) !important;box-shadow:0 4px 10px -3px rgba(22,163,74,.5)}
+html body .order-ok-check{background:linear-gradient(145deg,#4ADE80,#16A34A) !important;border:2px solid rgba(255,255,255,.9);box-shadow:0 8px 22px -6px rgba(22,163,74,.6),inset 0 1px 0 rgba(255,255,255,.55) !important}
+html body .order-ok-overlay.show .order-ok-check .ui-icon{stroke:#fff !important;stroke-width:3.2 !important;stroke-dasharray:24;stroke-dashoffset:24;animation:pcaCk24 .5s .2s ease-out forwards}
+}
+@keyframes pcaCk14{to{stroke-dashoffset:0}}
+@keyframes pcaCk22{to{stroke-dashoffset:0}}
+@keyframes pcaCk24{to{stroke-dashoffset:0}}
+@keyframes pcaRingG{0%{box-shadow:0 0 0 0 rgba(34,197,94,.45),0 5px 12px -3px rgba(22,163,74,.55)}100%{box-shadow:0 0 0 9px rgba(34,197,94,0),0 5px 12px -3px rgba(22,163,74,.55)}}
+</style>
+<style id="pmx-css">
+@layer pcamine{
+.pmx-host{display:none;flex-direction:column;gap:0;background:none !important;border:0 !important;box-shadow:none !important;padding:0 !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important}
+.pmx-host>.pmx-wrap-inner{--pm-blue:#3b82f6;--pm-blue2:#2563eb;--pm-ink:#0f172a;--pm-mut:#64748b;--pm-lab:#6b7a99;
+  font-family:'Poppins',var(--font,inherit),system-ui,sans-serif;position:relative;padding:20px 16px 18px;border-radius:32px;
+  background:linear-gradient(160deg,rgba(241,245,254,.96),rgba(231,238,252,.9));
+  border:1px solid rgba(255,255,255,.85);
+  -webkit-backdrop-filter:blur(20px) saturate(1.6);backdrop-filter:blur(20px) saturate(1.6);
+  box-shadow:0 18px 40px -18px rgba(37,99,235,.38),inset 0 1px 0 rgba(255,255,255,.95)}
+.pmx-intro{margin:0 4px 14px !important;font-size:14px;font-weight:400;color:var(--pm-mut);line-height:1.3}
+.pmx-head{display:flex;align-items:center;gap:12px}
+.pmx-logo{flex:none;width:44px;height:44px;border-radius:14px;display:grid;place-items:center;overflow:hidden;position:relative;
+  background:linear-gradient(160deg,#fcd34d,#f59e0b);box-shadow:0 6px 14px -6px rgba(245,158,11,.7),inset 0 1px 0 rgba(255,255,255,.6)}
+.pmx-logo b{font-size:20px;font-weight:700;color:#fff;line-height:1}
+.pmx-logo img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.pmx-ttl{flex:1;min-width:0;display:flex;flex-direction:column;line-height:1.25}
+.pmx-ttl strong{font-size:17px;font-weight:700;color:var(--pm-ink);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.pmx-ttl small{font-size:13px;color:var(--pm-mut);margin-top:2px}
+.pmx-ver{flex:none;display:inline-flex;align-items:center;gap:5px;padding:7px 12px;border-radius:999px;font-size:13px;font-weight:500}
+.pmx-lb{display:block;font-size:12px;font-weight:500;letter-spacing:1.4px;text-transform:uppercase;color:var(--pm-lab)}
+.pmx-qr{display:block;object-fit:contain;background:#fff}
+.pmx-note{display:flex;gap:10px;align-items:flex-start;margin:14px 2px 0;font-size:12.5px;line-height:1.55;color:var(--pm-mut)}
+.pmx-note svg{flex:none;margin-top:2px;color:var(--pm-blue)}
+.pmx-note a{color:var(--pm-blue);font-weight:600;text-decoration:none}
+.pmx-wrap-inner button{font-family:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .15s ease,filter .2s ease}
+.pmx-wrap-inner button:active{transform:scale(.96)}
+
+/* ---------- Option A - ticket (wallet top-up) ---------- */
+.pmx-ticket{background:#fff;border-radius:28px;padding:16px 16px 16px;position:relative;box-shadow:0 10px 26px -16px rgba(37,99,235,.35)}
+.pmx-A .pmx-ver{background:#dcfce7;color:#15803d}
+.pmx-qrpanel{margin-top:16px;padding:22px 16px 16px;border-radius:26px;background:#eaf0fd;display:flex;flex-direction:column;align-items:center;gap:14px}
+.pmx-qrbox{position:relative;width:min(176px,56vw);aspect-ratio:1;padding:12px;border-radius:24px;background:#fff;box-shadow:0 8px 20px -10px rgba(37,99,235,.35)}
+.pmx-qrbox .pmx-qr{width:100%;height:100%;border-radius:8px}
+.pmx-qrbox i{position:absolute;width:22px;height:22px;border:3px solid var(--pm-blue);pointer-events:none}
+.pmx-qrbox .c1{left:-10px;top:-10px;border-right:0;border-bottom:0;border-radius:12px 0 0 0}
+.pmx-qrbox .c2{right:-10px;top:-10px;border-left:0;border-bottom:0;border-radius:0 12px 0 0}
+.pmx-qrbox .c3{left:-10px;bottom:-10px;border-right:0;border-top:0;border-radius:0 0 0 12px}
+.pmx-qrbox .c4{right:-10px;bottom:-10px;border-left:0;border-top:0;border-radius:0 0 12px 0}
+.pmx-save{display:inline-flex;align-items:center;gap:8px;padding:10px 22px;border-radius:999px;border:0 !important;background:#fff !important;color:var(--pm-blue) !important;font-size:15px;font-weight:600;min-height:0 !important;box-shadow:0 6px 14px -8px rgba(37,99,235,.5)}
+.pmx-tear{position:relative;height:0;margin:18px 0 18px;border-top:2px dashed #d5def2}
+.pmx-tear u{position:absolute;top:-14px;width:28px;height:28px;border-radius:50%;background:#eaf0fc}
+.pmx-tear u:first-child{left:-30px}.pmx-tear u:last-child{right:-30px}
+.pmx-row{display:flex;align-items:center;gap:10px;padding:12px 12px 12px 16px;border-radius:20px;background:#f5f8ff;margin-bottom:10px}
+.pmx-row .pmx-f{flex:1;min-width:0}
+.pmx-vl{display:flex;align-items:center;gap:8px;margin-top:3px}
+.pmx-vl p{margin:0 !important;font-size:19px;font-weight:700;color:var(--pm-ink);line-height:1.25;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.pmx-vl p.num{font-size:21px;letter-spacing:2px}
+.pmx-vl svg{flex:none}
+.pmx-cp{flex:none;display:inline-flex;align-items:center;gap:7px;height:46px;padding:0 18px;border-radius:16px;border:0 !important;font-size:15px;font-weight:600;min-height:0 !important}
+.pmx-cp.soft{background:#dfe8fd !important;color:var(--pm-blue) !important}
+.pmx-cp.solid{background:var(--pm-blue) !important;color:#fff !important;box-shadow:0 10px 18px -10px rgba(37,99,235,.8)}
+
+/* ---------- Option B - bank card (purchase) ---------- */
+.pmx-bank{position:relative;overflow:hidden;border-radius:30px;padding:20px 18px 18px;color:#fff;
+  background:linear-gradient(150deg,#2563eb 0%,#3b82f6 55%,#5b9cff 100%);
+  box-shadow:0 22px 38px -18px rgba(37,99,235,.7),inset 0 1px 0 rgba(255,255,255,.35)}
+.pmx-bank::before{content:"";position:absolute;right:-70px;top:-90px;width:230px;height:230px;border-radius:50%;background:rgba(255,255,255,.12);pointer-events:none}
+.pmx-bank::after{content:"";position:absolute;left:-60px;bottom:-110px;width:210px;height:210px;border-radius:50%;background:rgba(255,255,255,.1);pointer-events:none}
+.pmx-bank>*{position:relative;z-index:1}
+.pmx-bank .pmx-ttl strong{color:#fff}.pmx-bank .pmx-ttl small{color:rgba(255,255,255,.78)}
+.pmx-B .pmx-ver{background:rgba(255,255,255,.22);color:#fff;border:1px solid rgba(255,255,255,.28);-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+.pmx-mid{display:flex;align-items:center;gap:16px;margin-top:16px}
+.pmx-qrcard{flex:none;width:118px;height:118px;padding:8px;border-radius:24px;background:#fff;box-shadow:0 10px 22px -12px rgba(0,0,0,.4)}
+.pmx-qrcard .pmx-qr{width:100%;height:100%;border-radius:6px}
+.pmx-info{flex:1;min-width:0;display:flex;flex-direction:column}
+.pmx-bank .pmx-lb{color:rgba(255,255,255,.78)}
+.pmx-nm{margin:4px 0 0 !important;font-size:19px;font-weight:600;color:#fff;line-height:1.25;overflow:hidden;text-overflow:ellipsis}
+.pmx-ph{margin:4px 0 0 !important;font-size:22px;font-weight:700;letter-spacing:1.6px;color:#fff;line-height:1.2;white-space:nowrap}
+.pmx-acts{display:flex;gap:12px;margin-top:16px}
+.pmx-acts button{flex:1;display:inline-flex;align-items:center;justify-content:center;gap:8px;height:48px;border-radius:18px;border:0 !important;font-size:15px;font-weight:600;min-height:0 !important}
+.pmx-b1{background:#fff !important;color:var(--pm-blue) !important;box-shadow:0 10px 18px -12px rgba(0,0,0,.45)}
+.pmx-b2{background:rgba(255,255,255,.24) !important;color:#fff !important;border:1px solid rgba(255,255,255,.28) !important;-webkit-backdrop-filter:blur(10px);backdrop-filter:blur(10px)}
+
+/* no QR provided -> hide the QR bits */
+.pmx-wrap-inner.no-qr .pmx-qrpanel,.pmx-wrap-inner.no-qr .pmx-tear{display:none}
+.pmx-wrap-inner.no-qr .pmx-ticket .pmx-head{margin-bottom:6px}
+.pmx-wrap-inner.no-qr .pmx-qrcard,.pmx-wrap-inner.no-qr .pmx-b2{display:none}
+
+html[data-theme="dark"] .pmx-host>.pmx-wrap-inner{background:linear-gradient(160deg,rgba(28,38,62,.85),rgba(18,26,46,.85));border-color:rgba(255,255,255,.14);box-shadow:0 18px 40px -18px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.12)}
+html[data-theme="dark"] .pmx-intro,html[data-theme="dark"] .pmx-note{color:#9fb0d2}
+html[data-theme="dark"] .pmx-ticket{background:#18223a}
+html[data-theme="dark"] .pmx-A .pmx-ttl strong,html[data-theme="dark"] .pmx-vl p{color:#f1f5ff}
+html[data-theme="dark"] .pmx-qrpanel{background:#1e2c4d}
+html[data-theme="dark"] .pmx-row{background:#1e2a47}
+html[data-theme="dark"] .pmx-tear{border-top-color:#2c3b5f}
+html[data-theme="dark"] .pmx-tear u{background:#141d33}
+html[data-theme="dark"] .pmx-A .pmx-ver{background:rgba(34,197,94,.18);color:#86efac}
+}
+</style>
+<style id="signed-out-css">
+.pkg-lock-note{display:none;align-items:center;gap:10px;margin:0 0 10px;padding:10px 12px 10px 14px;border-radius:18px;font-size:13px;line-height:1.4;color:#92400e;background:rgba(251,191,36,.18);border:1px solid rgba(251,191,36,.45)}
+.pkg-lock-note span{flex:1;min-width:0}
+.pkg-lock-note button{flex:none;border:0;border-radius:999px;padding:8px 16px;font:inherit;font-weight:700;color:#fff;background:#2563eb;min-height:0}
+html.logged-out .pkg-lock-note{display:flex}
+@layer pcamine{
+html.logged-out body #detail-package-list>*:not(#a){pointer-events:none !important;cursor:default;filter:saturate(.85)}
+html.logged-out body #detail-package-list .package-card:not(#a)::after{pointer-events:none}
+html.logged-out body #detail-package-list .selected:not(#a){box-shadow:none !important}
+html.logged-out body #detail-confirm-btn,html.logged-out body #pca-pill{display:none !important}
+}
+</style>
+<style id="ui-fix-3">
+@layer pcamine{
+/* ---- inbox red dot: always visible calm wave ---- */
+html body header#app-header .header-icon:not(#a):not(#b){overflow:visible !important}
+html body header#app-header #notif-badge-header.show:not(#a):not(#b){width:11px !important;height:11px !important;top:1px !important;right:1px !important;background:#ef2b45 !important;border:2px solid #fff !important;border-radius:50% !important;z-index:3;overflow:visible !important}
+html body header#app-header #notif-badge-header.show:not(#a):not(#b)::before,html body header#app-header #notif-badge-header.show:not(#a):not(#b)::after{content:"" !important;display:block !important;position:absolute;left:50%;top:50%;width:11px;height:11px;margin:-5.5px 0 0 -5.5px;border-radius:50%;background:rgba(239,43,69,.5);pointer-events:none;animation:inboxWave2 1.8s ease-out infinite}
+html body header#app-header #notif-badge-header.show:not(#a):not(#b)::after{animation-delay:.9s}
+/* ---- inbox page ---- */
+html body #notif-page .notif-item:not(#a){position:relative;padding:16px 16px 14px 18px !important;border-radius:22px !important;margin-bottom:12px !important;border:1px solid rgba(255,255,255,.85) !important;
+  background:linear-gradient(150deg,rgba(255,255,255,.82),rgba(255,255,255,.55)) !important;-webkit-backdrop-filter:blur(16px) saturate(1.6);backdrop-filter:blur(16px) saturate(1.6);
+  box-shadow:0 12px 26px -16px rgba(37,99,235,.35),inset 0 1px 0 rgba(255,255,255,.95) !important;overflow:hidden;transition:transform .2s ease}
+html body #notif-page .notif-item:active{transform:scale(.985)}
+html body #notif-page .notif-item h5{font-size:15px !important;font-weight:700 !important;margin-bottom:5px !important;color:var(--text)}
+html body #notif-page .notif-item p{font-size:13px !important;line-height:1.5;color:var(--text-secondary);display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+html body #notif-page .notif-item>span{display:block;margin-top:6px;font-size:11.5px !important;color:var(--text-muted)}
+html body #notif-page .notif-item.unread::before,html body #notif-page .notif-item.is-unread::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:4px;border-radius:0 4px 4px 0;background:linear-gradient(180deg,#3b82f6,#2563eb)}
+html body #notif-page .notif-order-ic{width:42px !important;height:42px !important;border-radius:15px !important}
+html body #notif-page .notif-kv-wrap{border-top:1px dashed rgba(100,116,139,.3) !important}
+html body #notif-page #notif-tabs{margin-bottom:14px}
+html body #notif-page .notif-markall{font-weight:600;color:#2563eb;background:rgba(59,130,246,.12) !important;border-radius:999px !important;padding:7px 14px !important}
+html[data-theme="dark"] body #notif-page .notif-item:not(#a){background:linear-gradient(150deg,rgba(32,44,72,.8),rgba(22,32,54,.7)) !important;border-color:rgba(255,255,255,.12) !important}
+
+/* ---- game detail: banner / description gap + nicer description ---- */
+html body #game-detail .dhero:not(#a){margin-bottom:18px !important}
+html body #game-detail .detail-banner-col:not(#a){margin-top:2px}
+html body #game-detail .game-desc-card:not(#a):not(#b){margin:0 0 20px !important;padding:16px 18px !important;border-radius:26px !important;border:1px solid rgba(255,255,255,.85) !important;
+  background:linear-gradient(150deg,rgba(255,255,255,.85),rgba(255,255,255,.55)) !important;-webkit-backdrop-filter:blur(18px) saturate(1.7);backdrop-filter:blur(18px) saturate(1.7);
+  box-shadow:0 14px 30px -18px rgba(37,99,235,.4),inset 0 1px 0 rgba(255,255,255,.95) !important}
+html body #game-detail .game-desc-head{display:flex;align-items:center;gap:10px;margin-bottom:8px}
+html body #game-detail .game-desc-head h4{font-size:15px;font-weight:700;margin:0}
+html body #game-detail .game-desc-text{font-size:13.5px;line-height:1.65;color:var(--text-secondary)}
+html[data-theme="dark"] body #game-detail .game-desc-card:not(#a):not(#b){background:linear-gradient(150deg,rgba(32,44,72,.82),rgba(22,32,54,.7)) !important;border-color:rgba(255,255,255,.12) !important}
+
+/* ---- ID inputs: slimmer, Server shorter ---- */
+html body #detail-ingame-id:not(#a),html body #detail-server-id:not(#a),html body #detail-server-id-wrap .pcs-t:not(#a){height:44px !important;min-height:0 !important;padding:0 14px !important;font-size:15px !important;border-radius:15px !important;line-height:44px}
+html body #detail-server-id-wrap:not(#a){flex:0 0 36% !important;max-width:36%}
+html body #account-info-section label{font-size:12.5px !important;margin-bottom:5px !important}
+
+/* ---- package container: taller ---- */
+html body div.package-grid-scroll:not(#a):not(#b){max-height:min(74vh,660px) !important;min-height:260px}
+}
+@keyframes inboxWave2{0%{transform:scale(1);opacity:.8}100%{transform:scale(3.6);opacity:0}}
+</style>
+<script id="eruda-auto">
+/* Eruda mobile console: loads automatically so errors can be inspected.
+   Turn off:  localStorage.setItem('pca_eruda','off')  (or open the site with ?eruda=off) ; back on: ?eruda=on */
+(function () {
+  try {
+    var q = (location.search.match(/[?&]eruda=(on|off)/) || [])[1];
+    if (q) localStorage.setItem('pca_eruda', q);
+    if (localStorage.getItem('pca_eruda') === 'off') return;
+  } catch (e) {}
+  function load() {
+    if (window.eruda) return;
+    var s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/eruda@3.4.1/eruda.min.js';
+    s.onload = function () { try { eruda.init(); } catch (e) {} };
+    document.head.appendChild(s);
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', load); else load();
+})();
+</script>
+<script id="auto-flow-scroll-js">
+/* Game detail flow: ID entered -> slowly glide down to the prices; package picked -> glide on to the payment method. */
+(function () {
+  var raf = 0, lastKey = '';
+  function stop() { if (raf) { cancelAnimationFrame(raf); raf = 0; } }
+  ['touchstart', 'wheel', 'mousedown', 'keydown'].forEach(function (ev) { window.addEventListener(ev, stop, { passive: true }); });
+  function glide(toY, dur) {
+    stop();
+    var fromY = window.pageYOffset, dist = toY - fromY;
+    if (Math.abs(dist) < 12) return;
+    var t0 = 0;
+    function ease(t) { return t < .5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2; }
+    function step(ts) {
+      if (!t0) t0 = ts;
+      var k = Math.min(1, (ts - t0) / dur);
+      window.scrollTo({ top: fromY + dist * ease(k), behavior: 'instant' });
+      if (k < 1) raf = requestAnimationFrame(step); else raf = 0;
+    }
+    raf = requestAnimationFrame(step);
+  }
+  function target(kind) {
+    return document.getElementById(kind === 'pay' ? 'detail-payment-section' : 'detail-pkg-title');
+  }
+  window.pcaAutoScroll = function (kind) {
+    var page = document.getElementById('game-detail');
+    if (!page || !page.classList.contains('active')) return;
+    setTimeout(function () {
+      var el = target(kind); if (!el || el.offsetParent === null) return;
+      var top = el.getBoundingClientRect().top;
+      if (kind === 'pkg' && top >= 0 && top < 160) return; /* already right there */
+      var y = Math.max(0, Math.min(window.pageYOffset + top - 18, document.documentElement.scrollHeight - window.innerHeight));
+      var dist = Math.abs(y - window.pageYOffset);
+      glide(y, Math.max(800, Math.min(1700, dist * 1.6)));
+    }, kind === 'pay' ? 220 : 120);
+  };
+  /* games with no ID check: scroll when the customer is done typing (field loses focus and nothing else is being edited) */
+  function onBlur() {
+    setTimeout(function () {
+      var a = document.activeElement;
+      if (a && (/^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) || (a.closest && a.closest('.pcs')))) return;
+      var idEl = document.getElementById('detail-ingame-id'); if (!idEl || !idEl.value.trim()) return;
+      var checked = (typeof selectedGameG2BulkCode !== 'undefined' && selectedGameG2BulkCode) || (typeof selectedGameFazerCardCategory !== 'undefined' && selectedGameFazerCardCategory) || (typeof selectedGameAluuCode !== 'undefined' && selectedGameAluuCode);
+      if (checked) return; /* verified games scroll after the check succeeds */
+      if (typeof selectedPackage !== 'undefined' && selectedPackage) return;
+      var sv = document.getElementById('detail-server-id');
+      var key = idEl.value.trim() + '|' + (sv ? sv.value.trim() : '');
+      if (key === lastKey) return; lastKey = key;
+      window.pcaAutoScroll('pkg');
+    }, 450);
+  }
+  ['detail-ingame-id', 'detail-server-id'].forEach(function (id) { var e = document.getElementById(id); if (e) e.addEventListener('blur', onBlur); });
+  document.getElementById('detail-server-id-wrap') && document.getElementById('detail-server-id-wrap').addEventListener('focusout', onBlur);
+})();
+</script>
+<script id="hide-on-scroll-js">
+/* Header + bottom nav: tuck away when scrolling down, return when scrolling up.
+   Header is ALSO hidden for as long as an inner page is open (body.no-bottom-nav). Same logic as linn.html. */
+(function () {
+  window.__pcaScrollV10 = true; /* switches the older scroll controllers off */
+  var TH = 8, lastY = window.scrollY || 0, tick = false, scrollHidden = false, kbd = false;
+  var body = document.body;
+  function inner() { return body.classList.contains('no-bottom-nav'); }
+  /* sticky tab bar: its `top` changes when the header hides. Snap the layout instantly, then slide the
+     element from its old spot with a compositor transform (animating `top` re-lays-out every frame = tiny jumps). */
+  function flipTabs(change) {
+    var l = document.querySelectorAll('.htabs-wrap'), before = [], i;
+    for (i = 0; i < l.length; i++) before.push(l[i].getBoundingClientRect().top);
+    change();
+    for (i = 0; i < l.length; i++) {
+      var el = l[i], dy = before[i] - el.getBoundingClientRect().top;
+      if (Math.abs(dy) < 1 || Math.abs(dy) > 200) continue;
+      el.style.setProperty('transition', 'none', 'important');
+      el.style.setProperty('transform', 'translate3d(0,' + dy.toFixed(1) + 'px,0)', 'important');
+      void el.offsetWidth;
+      el.style.setProperty('transition', 'transform .45s cubic-bezier(.4,0,.2,1)', 'important');
+      el.style.setProperty('transform', 'translate3d(0,0,0)', 'important');
+      clearTimeout(el.__flipT);
+      el.__flipT = setTimeout((function (e) { return function () { e.style.removeProperty('transition'); e.style.removeProperty('transform'); }; })(el), 520);
+    }
+  }
+  function apply() {
+    var h = document.getElementById('app-header') || document.querySelector('.header'), n = document.getElementById('bottom-nav');
+    if (h) { h.classList.toggle('header-hidden', scrollHidden || inner()); h.classList.remove('pca-hide'); }
+    flipTabs(function () { document.documentElement.classList.toggle('hdr-away', scrollHidden || inner()); });
+    if (n) { n.classList.toggle('nav-hidden', scrollHidden || kbd); n.classList.remove('nav-tuck'); }
+    var pl = document.getElementById('pca-pill'); if (pl) pl.classList.toggle('pca-down', scrollHidden);
+  }
+  function setHidden(v) { if (v === scrollHidden) return; scrollHidden = v; apply(); }
+  function locked() {
+    return body.style.overflow === 'hidden' || !!document.querySelector('.drawer-overlay.show, .modal-overlay.show, .success-overlay.show');
+  }
+  function update() {
+    tick = false;
+    var y = Math.max(0, window.scrollY || 0), max = document.documentElement.scrollHeight - window.innerHeight, d = y - lastY;
+    if (locked() || y <= 24 || y >= max - 2) { setHidden(false); lastY = y; return; }
+    if (d > TH) { setHidden(true); lastY = y; }
+    else if (d < -TH) { setHidden(false); lastY = y; }
+  }
+  window.addEventListener('scroll', function () { if (!tick) { tick = true; requestAnimationFrame(update); } }, { passive: true });
+  var wasInner = inner();
+  new MutationObserver(function () { var now = inner(); if (now === wasInner) return; wasInner = now; scrollHidden = false; lastY = window.scrollY || 0; apply(); }).observe(body, { attributes: true, attributeFilter: ['class'] });
+  document.addEventListener('click', function (e) { if (e.target.closest && e.target.closest('.nav-item, .drawer-overlay, .header-icon')) setTimeout(function () { setHidden(false); lastY = window.scrollY || 0; }, 0); }, true);
+  document.addEventListener('focusin', function (e) { if (/^(INPUT|TEXTAREA)$/.test(e.target.tagName)) { kbd = true; apply(); } });
+  document.addEventListener('focusout', function () { setTimeout(function () { var a = document.activeElement; if (a && /^(INPUT|TEXTAREA)$/.test(a.tagName)) return; kbd = false; apply(); }, 80); });
+  window.addEventListener('orientationchange', function () { setHidden(false); });
+  /* old controllers may have left inline transforms behind */
+  ['app-header', 'bottom-nav'].forEach(function (id) { var el = document.getElementById(id); if (el) ['transform', 'opacity', 'transition', 'pointer-events'].forEach(function (p) { el.style.removeProperty(p); }); });
+  apply();
+})();
+</script>
+<script id="pmx-js">
+(function () {
+  window.pmxFill = function (prefix, p) {
+    try {
+      var $ = function (id) { return document.getElementById(id); };
+      var name = (p && p.name) || 'Payment';
+      var b = $(prefix + '-brand'); if (b) b.textContent = name;
+      var logo = $(prefix + '-logo');
+      if (logo) {
+        var im = logo.querySelector('img'), ch = logo.querySelector('b');
+        if (ch) ch.textContent = (name.trim().charAt(0) || 'K').toUpperCase();
+        if (im) { if (p && p.image) { im.src = p.image; im.style.display = 'block'; } else { im.removeAttribute('src'); im.style.display = 'none'; } }
+      }
+      var wrap = $(prefix + '-pmx'); if (wrap) wrap.classList.toggle('no-qr', !(p && p.qrImage));
+    } catch (e) {}
+  };
+  window.pmxSaveQr = function (imgId, brandId) {
+    var img = document.getElementById(imgId); if (!img || !img.src) return;
+    var b = document.getElementById(brandId), fn = ((b && b.textContent) || 'payment').replace(/[^\w-]+/g, '-') + '-qr.png';
+    function dl(href) { var a = document.createElement('a'); a.href = href; a.download = fn; document.body.appendChild(a); a.click(); a.remove(); }
+    fetch(img.src).then(function (r) { return r.blob(); }).then(function (bl) {
+      var u = URL.createObjectURL(bl); dl(u); setTimeout(function () { URL.revokeObjectURL(u); }, 4000);
+      if (window.showToast) window.showToast('QR saved');
+    }).catch(function () { try { dl(img.src); } catch (e) { window.open(img.src, '_blank'); } });
+  };
+})();
+</script>
+
+<script id="pca-lite-img">/* lite only: decode images off the main thread, lazy-load the ones off screen */
+(function(){if(!window.__pcaLite)return;
+function set(i){try{if(!i.decoding||i.decoding==='auto')i.decoding='async';if(!i.hasAttribute('loading')&&!i.closest('header,nav'))i.loading='lazy'}catch(e){}}
+function all(r){(r.querySelectorAll?r.querySelectorAll('img'):[]).forEach(set)}
+all(document);
+new MutationObserver(function(ms){ms.forEach(function(m){m.addedNodes.forEach(function(n){if(n.nodeType!==1)return;if(n.tagName==='IMG')set(n);else all(n)})})}).observe(document.documentElement,{childList:true,subtree:true});
+})();
+</script>
+<style id="pca-icons-v2">
+@keyframes pcaTickDraw{from{stroke-dashoffset:1}to{stroke-dashoffset:0}}
+@keyframes pcaCopied{0%{transform:scale(.8)}55%{transform:scale(1.12)}100%{transform:scale(1)}}
+@layer pcamine{
+/* =====================================================================
+   ICONS v2 — one tick language, one copy language
+   ticks use pathLength=1, so every dash value below is 1
+   ===================================================================== */
+
+/* ---------- plain inline tick ---------- */
+html body .pca-ck:not(#z){width:1.05em;height:1.05em;vertical-align:-.16em;fill:none;stroke:currentColor;stroke-width:3;stroke-linecap:round;stroke-linejoin:round}
+
+/* ---------- ID verified / success disc (green, white tick) ---------- */
+html body .id-result-check:not(#z):not(#y){position:relative;display:inline-grid!important;place-items:center;width:26px!important;height:26px!important;min-width:26px!important;padding:0!important;border:0!important;border-radius:50%!important;font-size:0!important;
+  background:linear-gradient(145deg,#5BE38D 0%,#16A34A 100%)!important;
+  box-shadow:0 0 0 3px rgba(34,197,94,.16),0 6px 14px -5px rgba(22,163,74,.6),inset 0 1px 0 rgba(255,255,255,.55)!important;
+  animation:pcaPop .45s cubic-bezier(.3,1.5,.5,1) both!important}
+html body .id-result-check:not(#z)::before,html body .id-result-check:not(#z)::after{display:none!important;content:none!important}
+html body .id-result-check .pca-ck:not(#z){width:14px;height:14px;margin:0;vertical-align:0;stroke:#fff;stroke-width:3.2;stroke-dasharray:1;stroke-dashoffset:1;animation:pcaTickDraw .38s .16s cubic-bezier(.6,0,.3,1) forwards}
+
+/* ---------- status badge tick (Completed) ---------- */
+html body .status-anim-check:not(#z):not(#y){display:inline-flex!important;align-items:center;justify-content:center;width:12px!important;height:12px!important;margin:0 4px 0 0!important;padding:0!important;border:0!important;outline:0!important;border-radius:0!important;background:none!important;box-shadow:none!important;font-size:0!important;color:inherit!important;vertical-align:-1.5px;animation:none!important}
+html body .status-anim-check .pca-ck:not(#z){width:12px;height:12px;margin:0;vertical-align:0;stroke:currentColor;stroke-width:3.4;stroke-dasharray:1;stroke-dashoffset:1;animation:pcaTickDraw .36s .08s cubic-bezier(.6,0,.3,1) forwards}
+
+/* ---------- inline "ok" notes: tiny green disc + white tick ---------- */
+html body :is(.wallet-pay-note.ok,#crypto-status-text,#aluu-status-text) .pca-ck:not(#z):not(#y){box-sizing:border-box;width:16px;height:16px;padding:3.5px;margin-right:6px;vertical-align:-3.5px;border-radius:50%;
+  background:linear-gradient(145deg,#5BE38D,#16A34A);stroke:#fff;stroke-width:3.6;color:#fff;box-shadow:0 2px 6px -2px rgba(22,163,74,.6)}
+html body .confirm-id-btn .pca-ck:not(#z){width:15px;height:15px;stroke-width:3.3;vertical-align:-3px}
+
+/* ---------- success overlay ---------- */
+html body .order-ok-check:not(#z){background:linear-gradient(145deg,#5BE38D,#16A34A)!important;border:3px solid rgba(255,255,255,.92)!important;
+  box-shadow:0 0 0 6px rgba(34,197,94,.16),0 12px 26px -8px rgba(22,163,74,.62),inset 0 1px 0 rgba(255,255,255,.5)!important}
+html body .order-ok-check .ui-icon:not(#z){stroke:#fff!important;color:#fff!important;stroke-width:3.3!important}
+html body .order-ok-overlay.show .order-ok-check .ui-icon:not(#z){stroke-dasharray:1;stroke-dashoffset:1;animation:pcaTickDraw .5s .22s cubic-bezier(.6,0,.3,1) forwards}
+
+/* ---------- order tracker dot / notification icon / row icon ---------- */
+html body .ot-dot.done:not(#z){background:linear-gradient(145deg,#5BE38D,#16A34A)!important;color:#fff!important;box-shadow:0 0 0 3px rgba(34,197,94,.16),0 3px 8px -2px rgba(22,163,74,.55)!important}
+html body .ot-dot.done .ui-icon:not(#z){stroke:#fff!important;stroke-width:3.2!important}
+html body .notif-order-ic.ok:not(#z){background:linear-gradient(145deg,#5BE38D,#16A34A)!important;box-shadow:0 4px 10px -3px rgba(22,163,74,.5),inset 0 1px 0 rgba(255,255,255,.5)!important}
+html body .notif-order-ic.ok .ui-icon:not(#z){stroke:#fff!important;stroke-width:3!important}
+html body .wallet-topup-row-icon.st-completed:not(#z):not(#y){background:rgba(34,197,94,.14)!important;box-shadow:inset 0 0 0 1px rgba(34,197,94,.28)!important}
+html body .wallet-topup-row-icon.st-completed .ui-icon:not(#z){stroke:#16A34A!important;color:#16A34A!important;stroke-width:3!important}
+html body .hc-success-time:not(#z) .ui-icon{width:11px;height:11px;stroke:#16A34A;stroke-width:3.2}
+html body .or-note.ok:not(#z) .ui-icon{stroke-width:3}
+
+/* ---------- verified seal (profile + Google account) ---------- */
+html body .verified-badge:not(#z){width:20px!important;height:20px!important;filter:drop-shadow(0 1px 1.5px rgba(30,70,220,.38))!important;animation:pcaPop .5s cubic-bezier(.3,1.5,.5,1) both!important}
+html body #profile-hero-verified-badge:not(#z){width:22px!important;height:22px!important}
+html body .verified-badge .vb-tick:not(#z){fill:none!important;stroke:#fff!important;stroke-width:2.6!important;stroke-linecap:round!important;stroke-linejoin:round!important;stroke-dasharray:1!important;stroke-dashoffset:1;animation:pcaTickDraw .42s .24s cubic-bezier(.6,0,.3,1) forwards!important}
+
+/* =====================================================================
+   COPY buttons — glass chip, duotone icon, green "copied" state
+   ===================================================================== */
+html body :is(.pm-copy-btn,.voucher-copy-btn):not(#z):not(#y){position:relative;display:inline-grid!important;place-items:center;padding:0!important;
+  border-radius:11px!important;border:1px solid rgba(var(--pca-rgb,37,87,245),.22)!important;
+  background:linear-gradient(160deg,rgba(var(--pca-rgb,37,87,245),.17),rgba(var(--pca-rgb,37,87,245),.07))!important;
+  color:var(--pca-acc,#2557F5)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.7),0 3px 8px -4px rgba(var(--pca-rgb,37,87,245),.5)!important;
+  -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);
+  transition:transform .15s ease,background .2s ease,border-color .2s ease,color .2s ease}
+html body :is(.pm-copy-btn,.voucher-copy-btn) .ui-icon:not(#z):not(#y){stroke:currentColor;stroke-width:1.9}
+html body :is(.pm-copy-btn,.voucher-copy-btn):not(#z):not(#y):active{transform:scale(.9)}
+/* voucher keeps its gold identity */
+html body .voucher-copy-btn:not(#z):not(#y){width:34px;height:34px;color:#6B4A00!important;border-color:rgba(176,125,0,.35)!important;
+  background:linear-gradient(160deg,#FFE08A 0%,#F0C551 55%,#E2AE2E 100%)!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 4px 10px -4px rgba(190,135,0,.6)!important}
+html body .voucher-copy-btn:is(.copy-maxed,:disabled):not(#z):not(#y){opacity:.45;background:#E5DCB8!important;border-color:rgba(120,100,40,.25)!important;color:#8a7a4a!important;box-shadow:none!important}
+/* dark theme */
+html[data-theme="dark"] body :is(.pm-copy-btn):not(#z):not(#y){background:linear-gradient(160deg,rgba(255,255,255,.14),rgba(255,255,255,.05))!important;border-color:rgba(255,255,255,.2)!important;color:var(--pca-lt,#9DB8FF)!important;box-shadow:inset 0 1px 0 rgba(255,255,255,.18),0 3px 8px -4px rgba(0,0,0,.6)!important}
+/* copied state (JS swaps the icon to the tick) */
+html body :is(button.pm-copy-btn,button.voucher-copy-btn):has(use[href="#icon-check"]):not(#z):not(#y):not(#x){
+  color:#16A34A!important;border-color:rgba(34,197,94,.45)!important;
+  background:linear-gradient(160deg,rgba(34,197,94,.26),rgba(34,197,94,.1))!important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 4px 10px -4px rgba(22,163,74,.55)!important;
+  animation:pcaCopied .35s cubic-bezier(.3,1.5,.5,1) both}
+html body :is(button.pm-copy-btn,button.voucher-copy-btn):has(use[href="#icon-check"]) svg:not(#z):not(#y):not(#x){stroke:#16A34A!important;color:#16A34A!important;stroke-width:3!important;stroke-dasharray:1;stroke-dashoffset:1;animation:pcaTickDraw .34s .05s cubic-bezier(.6,0,.3,1) forwards}
+html[data-theme="dark"] body :is(button.pm-copy-btn,button.voucher-copy-btn):has(use[href="#icon-check"]):not(#z):not(#y):not(#x){color:#4ADE80!important}
+html[data-theme="dark"] body :is(button.pm-copy-btn,button.voucher-copy-btn):has(use[href="#icon-check"]) svg:not(#z):not(#y):not(#x){stroke:#4ADE80!important;color:#4ADE80!important}
+
+/* =====================================================================
+   WALLET — Top Up History / Transaction History, glass
+   ===================================================================== */
+#wallet .wglass{position:relative;isolation:isolate;margin-top:14px}
+#wallet .wglass::before{content:"";position:absolute;z-index:-1;inset:-12px -8px -8px;border-radius:34px;pointer-events:none;
+  background:
+   radial-gradient(60% 34% at 10% 4%,rgba(var(--pca-rgb,37,87,245),.26),transparent 72%),
+   radial-gradient(52% 30% at 96% 20%,rgba(168,85,247,.20),transparent 72%),
+   radial-gradient(60% 36% at 24% 98%,rgba(255,159,10,.18),transparent 74%)}
+
+/* segmented glass tabs */
+html body .wtabs:not(#z){position:relative;display:grid;grid-template-columns:1fr 1fr;gap:0;padding:4px;margin:0 0 14px;border-radius:19px;
+  background:linear-gradient(150deg,rgba(255,255,255,.62),rgba(255,255,255,.34));border:1px solid rgba(255,255,255,.8);
+  box-shadow:0 10px 28px -14px rgba(25,50,120,.4),inset 0 1px 0 rgba(255,255,255,.95);
+  -webkit-backdrop-filter:blur(18px) saturate(1.7);backdrop-filter:blur(18px) saturate(1.7)}
+html body .wtabs-ind:not(#z){position:absolute;top:4px;bottom:4px;left:4px;width:calc(50% - 4px);border-radius:15px;pointer-events:none;
+  background:linear-gradient(150deg,#fff,rgba(255,255,255,.82));
+  box-shadow:0 6px 16px -6px rgba(25,50,120,.45),0 1px 0 #fff inset,0 0 0 1px rgba(var(--pca-rgb,37,87,245),.10);
+  transition:transform .34s cubic-bezier(.3,1.15,.4,1)}
+html body .wtabs[data-active="txn"] .wtabs-ind:not(#z){transform:translateX(100%)}
+html body .wtab:not(#z):not(#y){position:relative;z-index:1;display:flex;align-items:center;justify-content:center;gap:7px;min-width:0;height:40px;padding:0 6px;border:0!important;background:none!important;box-shadow:none!important;
+  font:600 12.5px/1 inherit;font-family:inherit;color:var(--text-secondary,#6B7280)!important;cursor:pointer;white-space:nowrap;transition:color .25s ease;-webkit-tap-highlight-color:transparent}
+html body .wtab .ui-icon:not(#z){width:16px;height:16px;flex:none;stroke-width:1.9;stroke:currentColor}
+html body .wtab span{overflow:hidden;text-overflow:ellipsis}
+html body .wtab.active:not(#z):not(#y){color:var(--pca-acc,#2557F5)!important}
+html body .wtab:active .ui-icon{transform:scale(.9)}
+
+/* glass cards — top up rows + transaction rows */
+html body :is(.wallet-topup-row,.wtx-row):not(#z):not(#y){position:relative;overflow:hidden;display:flex;align-items:center;gap:12px;padding:12px 14px 12px 16px;margin:0 0 10px;border-radius:20px;cursor:pointer;
+  background:linear-gradient(150deg,rgba(255,255,255,.8),rgba(255,255,255,.5))!important;border:1px solid rgba(255,255,255,.88)!important;
+  box-shadow:0 12px 28px -16px rgba(25,50,120,.42),inset 0 1px 0 rgba(255,255,255,.95)!important;
+  -webkit-backdrop-filter:blur(16px) saturate(1.6);backdrop-filter:blur(16px) saturate(1.6);transition:transform .15s ease}
+html body :is(.wallet-topup-row,.wtx-row):not(#z):not(#y):active{transform:scale(.985)}
+html body .wtx-row::before{content:"";position:absolute;left:0;top:14px;bottom:14px;width:3.5px;border-radius:0 4px 4px 0;background:var(--row-accent,rgba(var(--pca-rgb,37,87,245),.8))}
+html body .wtx-topup.st-completed{--row-accent:#22C55E}html body .wtx-topup.st-pending{--row-accent:#F5A524}html body .wtx-topup.st-processing{--row-accent:#405DE6}html body .wtx-topup.st-rejected{--row-accent:#EF4444}
+html body .wtx-order.st-success{--row-accent:#FF9F0A}html body .wtx-order.st-processing{--row-accent:#1877F2}html body .wtx-order.st-pending{--row-accent:#EAB308}html body .wtx-order.st-fail{--row-accent:#EF4444}
+html body .wtx-ic:not(#z){flex:none;position:relative;display:grid;place-items:center;width:42px;height:42px;border-radius:14px;overflow:hidden;
+  background:rgba(var(--pca-rgb,37,87,245),.12);color:var(--pca-acc,#2557F5);box-shadow:inset 0 0 0 1px rgba(255,255,255,.55)}
+html body .wtx-ic .ui-icon{width:21px;height:21px;stroke-width:1.9}
+html body .wtx-ic.st-completed{background:rgba(34,197,94,.15);color:#16A34A}
+html body .wtx-ic.st-pending{background:rgba(245,165,36,.16);color:#B7791F}
+html body .wtx-ic.st-processing{background:rgba(64,93,230,.13);color:#405DE6}
+html body .wtx-ic.st-rejected{background:rgba(239,68,68,.13);color:#DC2626}
+html body .wtx-shop{background:rgba(255,159,10,.15);color:#D97706}
+html body .wtx-shop img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+html body .wtx-shop:has(img) .ui-icon{display:none}
+html body .wtx-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:6px}
+html body .wtx-top,html body .wtx-sub{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0}
+html body .wtx-title{min-width:0;font-size:14px;font-weight:600;color:var(--text,#111318);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body .wtx-amt{flex:none;font-size:14px;font-weight:700;letter-spacing:-.2px;font-variant-numeric:tabular-nums;color:var(--text,#111318)}
+html body .wtx-amt.in{color:#16A34A}
+html body .wtx-amt.void{color:var(--text-muted,#9AA1AE);text-decoration:line-through;font-weight:600}
+html body .wtx-meta{min-width:0;font-size:11px;color:var(--text-muted,#8A92A0);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body .wtx-date:not(#z){margin:14px 4px 8px;font-size:12px;font-weight:700;letter-spacing:.3px;color:var(--text-secondary,#667085)}
+html body .wtx-date:first-child{margin-top:2px}
+
+/* dark */
+html[data-theme="dark"] body .wtabs:not(#z){background:linear-gradient(150deg,rgba(255,255,255,.12),rgba(255,255,255,.05));border-color:rgba(255,255,255,.16);box-shadow:0 12px 30px -14px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.18)}
+html[data-theme="dark"] body .wtabs-ind:not(#z){background:linear-gradient(150deg,rgba(255,255,255,.24),rgba(255,255,255,.1));box-shadow:0 6px 16px -6px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.3),0 0 0 1px rgba(255,255,255,.12)}
+html[data-theme="dark"] body .wtab:not(#z):not(#y){color:rgba(255,255,255,.62)!important}
+html[data-theme="dark"] body .wtab.active:not(#z):not(#y){color:#fff!important}
+html[data-theme="dark"] body :is(.wallet-topup-row,.wtx-row):not(#z):not(#y){background:linear-gradient(150deg,rgba(255,255,255,.12),rgba(255,255,255,.05))!important;border-color:rgba(255,255,255,.14)!important;box-shadow:0 12px 28px -16px rgba(0,0,0,.75),inset 0 1px 0 rgba(255,255,255,.14)!important}
+html[data-theme="dark"] body .wtx-title,html[data-theme="dark"] body .wtx-amt{color:#F3F5FA}
+html[data-theme="dark"] body .wtx-amt.in{color:#4ADE80}
+html[data-theme="dark"] body .wtx-ic:not(#z){box-shadow:inset 0 0 0 1px rgba(255,255,255,.12)}
+html[data-theme="dark"] body .wtx-ic.st-completed{color:#4ADE80}
+html[data-theme="dark"] body .wtx-shop{color:#FBBF24}
+html[data-theme="dark"] #wallet .wglass::before{opacity:.75}
+
+/* low-end phones: no blur, solid-ish glass */
+html.lite body :is(.wtabs,.wallet-topup-row,.wtx-row,.pm-copy-btn,.voucher-copy-btn):not(#z){-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html.lite body :is(.wallet-topup-row,.wtx-row):not(#z):not(#y){background:rgba(255,255,255,.92)!important}
+html.lite[data-theme="dark"] body :is(.wallet-topup-row,.wtx-row):not(#z):not(#y){background:rgba(28,38,60,.95)!important}
+@media (prefers-reduced-motion:reduce){html body .wtabs-ind:not(#z){transition:none}}
+}
+
+</style>
 </body>
 </html>
