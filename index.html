@@ -4237,9 +4237,10 @@ b,strong{font-weight:600}
         // grid never has a broken-image icon or an empty gap. Just a small "P"
         // letter mark rather than a full diamond icon.
         const DEFAULT_PACKAGE_ICON = 'data:image/svg+xml;utf8,' + encodeURIComponent(
-            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">' +
-            '<circle cx="12" cy="12" r="11" fill="#1877F2" opacity="0.12"/>' +
-            '<text x="12" y="15.8" text-anchor="middle" font-family="Arial, Helvetica, sans-serif" font-size="10.5" font-weight="700" fill="#1877F2">P</text>' +
+            '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">' +
+            '<path d="M12 28H88Q94 28 94 34V43A7 7 0 0 0 94 57V66Q94 72 88 72H12Q6 72 6 66V57A7 7 0 0 0 6 43V34Q6 28 12 28Z" fill="#ef4444"/>' +
+            '<line x1="64" y1="34" x2="64" y2="66" stroke="#fecaca" stroke-width="2" stroke-dasharray="4 3"/>' +
+            '<circle cx="35" cy="50" r="10" fill="none" stroke="#fecaca" stroke-width="3"/>' +
             '</svg>'
         );
         let selectedGameId = null;
@@ -5134,18 +5135,18 @@ b,strong{font-weight:600}
         // Resolved back to the game/package on open by
         // tryOpenPendingPackageLinkCode() above.
         async function buildPackageShareLink(gameId, pkgIndex) {
-            const code = await window.generateShortNumericId("packageLinks");
-            try {
-                await window.setDoc(window.doc(window.db, "packageLinks", code), {
-                    gameId, pkgIndex, createdAt: window.serverTimestamp()
-                });
-            } catch (e) {
-                console.error("Package link save error:", e);
-            }
+            // The 8-digit code is issued by the Worker (the browser no longer writes packageLinks).
+            const res = await fetch(ORDER_WORKER_URL + '/create-package-link', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ gameId, pkgIndex })
+            });
+            const data = await res.json().catch(() => ({}));
+            if (!res.ok || !data.ok || !data.code) throw new Error(data.error || 'Could not create the link.');
             const url = new URL(window.location.href);
             url.search = '';
             url.hash = '';
-            url.searchParams.set('code', code);
+            url.searchParams.set('code', data.code);
             return url.toString();
         }
 
@@ -5516,7 +5517,8 @@ b,strong{font-weight:600}
                 .then(shareLink => copyTextToClipboard(shareLink))
                 .then(ok => {
                     if (ok) window.showToast('Link copied — share it with a friend', 'success');
-                });
+                })
+                .catch(() => window.showToast('Could not create the link. Please try again.', 'fail'));
         }
 
         // Hold a package/price card for ~2s to copy its share link, instead
@@ -6356,7 +6358,6 @@ b,strong{font-weight:600}
                 serverRegion: selectedGameServerName,
                 amount: selectedPackage.amount,
                 price: getOrderTotal(),
-                cost: (Number(selectedPackage.cost) || 0) * getOrderQty(),
                 quantity: getOrderQty(),
                 packageTab: pkgTabLabel(pkgTabOf(selectedPackage)),
                 idVerified: playerIdVerified === true,
@@ -6387,7 +6388,6 @@ b,strong{font-weight:600}
                 serverRegion: selectedGameServerName,
                 amount: selectedPackage.amount,
                 price: getOrderTotal(),
-                cost: (Number(selectedPackage.cost) || 0) * getOrderQty(),
                 quantity: getOrderQty(),
                 packageTab: pkgTabLabel(pkgTabOf(selectedPackage)),
                 idVerified: playerIdVerified === true,
@@ -6632,7 +6632,7 @@ b,strong{font-weight:600}
         // Link 8-digit code lookup/save (tryOpenPendingPackageLinkCode /
         // buildPackageShareLink).
         window.getDoc = getDoc;
-        window.setDoc = setDoc;
+        // (window.setDoc removed: the storefront never writes Firestore - every write goes through the Worker)
         window.serverTimestamp = serverTimestamp;
 
         // PERF: on page load, ~8 Firestore realtime listeners were all being
@@ -6759,7 +6759,7 @@ b,strong{font-weight:600}
                 throw err;
             }
             // a write just happened (order / top-up / profile): refresh the shared snapshot shortly
-            if (path !== '/my-state') setTimeout(() => { if (window.pcaPoll) window.pcaPoll(true); }, 700);
+            if (path !== '/my-state' && path !== '/payment-methods') setTimeout(() => { if (window.pcaPoll) window.pcaPoll(true); }, 700);
             return data;
         }
         window.workerCall = workerCall;
@@ -8791,7 +8791,7 @@ b,strong{font-weight:600}
         }
 
         async function submitOrder(orderData, btnElement) {
-            const { gameName, serverRegion, amount, price, cost, quantity, packageTab, idVerified, inGameId, inGameName, serverId, paymentMethodName, receiptFile, transactionId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId } = orderData;
+            const { gameName, serverRegion, amount, price, quantity, packageTab, idVerified, inGameId, inGameName, serverId, paymentMethodName, receiptFile, transactionId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId } = orderData;
 
             const originalText = btnElement.innerText;
             btnElement.innerText = "Processing...";
@@ -8839,9 +8839,7 @@ b,strong{font-weight:600}
                     game: gameName,
                     itemAmount: amount,
                     price: price,
-                    // Provider cost snapshot at order time (for profit/margin
-                    // reporting in admin.html).
-                    cost: Number(cost) || 0,
+                    // Cost is NOT sent: the Worker sets it from the games catalogue.
                     // How many of this voucher/package are bundled into this
                     // single order (always 1 for a normal top-up order). The
                     // admin-side fulfillment flow reads this to know how many
@@ -8894,7 +8892,7 @@ b,strong{font-weight:600}
         // rendered) so two rapid orders can never both slip through on a
         // balance that only actually covers one of them.
         async function submitWalletOrder(orderData, btnElement) {
-            const { gameName, serverRegion, amount, price, cost, quantity, packageTab, idVerified, inGameId, inGameName, serverId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId } = orderData;
+            const { gameName, serverRegion, amount, price, quantity, packageTab, idVerified, inGameId, inGameName, serverId, g2bulkGameCode, g2bulkCatalogueName, jcplaysProduct, jcplaysProductId, g2bulkVoucherProductId } = orderData;
 
             const originalText = btnElement.innerText;
             btnElement.innerText = "Processing...";
@@ -8938,7 +8936,6 @@ b,strong{font-weight:600}
                     game: gameName,
                     itemAmount: amount,
                     price: price,
-                    cost: Number(cost) || 0,
                     quantity: quantity || 1,
                     paymentMethod: 'Wallet Balance',
                     paidFromWallet: true,
@@ -8991,29 +8988,36 @@ b,strong{font-weight:600}
         }
         window.submitWalletOrder = submitWalletOrder;
 
-        // ---------- Payment Methods (live from Firestore "paymentMethods" collection) ----------
-        let paymentMethodsUnsub = null;
-        function listenPaymentMethods() {
-            if (paymentMethodsUnsub) return;
-            paymentMethodsUnsub = onSnapshot(collection(db, "paymentMethods"), (snap) => {
-                const methods = {};
-                snap.forEach(docSnap => { methods[docSnap.id] = docSnap.data(); });
+        // ---------- Payment Methods (from the Worker, not Firestore) ----------
+        // paymentMethods is admin-only in firestore.rules: signed-in customers get the list from the Worker
+        // (/payment-methods). NO polling: fetched once when a payment screen opens, and again only if the copy is
+        // older than 10 minutes. Nothing is requested while the customer is on any other page.
+        let paymentMethodsBusy = false, paymentMethodsSig = '', paymentMethodsAt = 0;
+        async function loadPaymentMethods() {
+            if (paymentMethodsBusy || typeof auth === 'undefined' || !auth.currentUser) return;
+            paymentMethodsBusy = true;
+            try {
+                const data = await window.workerCall('/payment-methods', {});
+                const methods = data.methods || {};
+                paymentMethodsAt = Date.now();
+                const sig = JSON.stringify(methods);
+                if (sig === paymentMethodsSig && window.PAYMENT_METHODS) return;
+                paymentMethodsSig = sig;
                 window.PAYMENT_METHODS = methods;
-                // Re-draw whichever payment-method list is on screen right now,
-                // so an admin re-ordering payment methods shows up immediately
-                // here too — instead of only on the next time the customer
-                // closes and reopens the payment section (or reloads the page).
                 const detailWrap = document.getElementById('detail-payment-methods-wrap');
                 if (detailWrap && detailWrap.style.display !== 'none') renderPaymentMethods();
                 const walletOverlay = document.getElementById('wallet-topup-overlay');
                 if (walletOverlay && walletOverlay.classList.contains('show')) renderWalletPaymentMethods();
-            }, (error) => {
-                console.error("Payment methods listener error:", error);
-            });
+            } catch (error) {
+                console.error("Payment methods load error:", error);
+            } finally { paymentMethodsBusy = false; }
         }
-        function stopListenPaymentMethods() {
-            if (paymentMethodsUnsub) { paymentMethodsUnsub(); paymentMethodsUnsub = null; }
+        window.loadPaymentMethods = loadPaymentMethods;
+        function listenPaymentMethods() {
+            if (window.PAYMENT_METHODS && Date.now() - paymentMethodsAt < 600000) return; // fresh enough - no request
+            loadPaymentMethods();
         }
+        function stopListenPaymentMethods() { /* nothing to stop: no timer, no listener */ }
         window.listenPaymentMethods = listenPaymentMethods;
         window.stopListenPaymentMethods = stopListenPaymentMethods;
 
@@ -9948,7 +9952,7 @@ b,strong{font-weight:600}
         }
         window.stopListenHistory = stopListenHistory;
 
-        // ---------- Game Catalogue (live from Firestore "games" collection) ----------
+        // ---------- Game Catalogue (live from Firestore "gamesPublic" = Cost-free mirror written only by the Worker) ----------
         let GAMES = {};          // { docId: { name, image, packages: [{amount, price}] } } — filtered, see below
         let RAW_GAMES = {};      // unfiltered snapshot straight from Firestore
         // True once the "games" collection listener has delivered its first
@@ -10677,7 +10681,7 @@ b,strong{font-weight:600}
         let gamesUnsub = null;
         function listenGames() {
             if (gamesUnsub) return; // already subscribed
-            gamesUnsub = onSnapshot(collection(db, "games"), { includeMetadataChanges: true }, (snap) => {
+            gamesUnsub = onSnapshot(collection(db, "gamesPublic"), { includeMetadataChanges: true }, (snap) => {
                 // Firestore delivers an EMPTY snapshot straight from the local cache before
                 // the server answers (slow networks especially) - treating that as "no data"
                 // flashed the empty-state. Ignore it; includeMetadataChanges brings the
