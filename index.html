@@ -9137,7 +9137,7 @@ b,strong{font-weight:600}
         window.stopListenAnnouncements = stopListenAnnouncements;
         function listenAnnouncements() {
             if (announcementsUnsub) return;
-            const q = query(collection(db, "announcements"), orderBy("createdAt", "desc"), limit(30));
+            const q = query(collection(db, "announcements"), orderBy("createdAt", "desc"), limit(15));
             announcementsUnsub = onSnapshot(q, (snap) => {
                 // Fetched newest-first (so limit() keeps the most recent ones),
                 // then reversed back to oldest-first for the ticker's scroll order.
@@ -10681,7 +10681,10 @@ b,strong{font-weight:600}
         let gamesUnsub = null;
         function listenGames() {
             if (gamesUnsub) return; // already subscribed
-            gamesUnsub = onSnapshot(collection(db, "gamesPublic"), { includeMetadataChanges: true }, (snap) => {
+            // READ-COST FIX: the catalogue is read from catalogPublic (the whole list packed into 1-2 docs = 1-2 reads
+            // per visit). If that hasn't been built yet (admin -> Games -> "Sync Store"), fall back to the old
+            // per-game gamesPublic listener so the store never shows an empty catalogue.
+            const onGames = (snap, build) => {
                 // Firestore delivers an EMPTY snapshot straight from the local cache before
                 // the server answers (slow networks especially) - treating that as "no data"
                 // flashed the empty-state. Ignore it; includeMetadataChanges brings the
@@ -10690,9 +10693,7 @@ b,strong{font-weight:600}
                 // Cache -> server hand-off with identical data (metadata-only change):
                 // nothing to redraw, so skip the whole re-render.
                 if (gamesLoadedOnce && snap.docChanges().length === 0) return;
-                const newGames = {};
-                snap.forEach(docSnap => { newGames[docSnap.id] = docSnap.data(); });
-                RAW_GAMES = newGames;
+                RAW_GAMES = build(snap);
                 const rerenderAll = () => {
                     applyProviderFilterAndRerender();
                     if (historyUnsubscribe) {
@@ -10707,10 +10708,32 @@ b,strong{font-weight:600}
                     // Live update: wait until the user's finger/scroll is idle.
                     window.whenUiIdle('games-rerender', rerenderAll);
                 }
-            }, (error) => {
+            };
+            const fromDocs = (snap) => { const g = {}; snap.forEach(d => { g[d.id] = d.data(); }); return g; };
+            const fromCatalog = (snap) => {
+                const g = {};
+                snap.forEach(d => {
+                    try { const o = JSON.parse(d.data().json || '{}'); Object.keys(o).forEach(k => { g[k] = o[k]; }); }
+                    catch (e) { console.error('catalog chunk parse failed', d.id, e); }
+                });
+                return g;
+            };
+            const onErr = (error) => {
                 console.error("Games listener error:", error);
-                document.getElementById('all-games-grid').innerHTML = '<p class="empty-msg" style="color:red;">Could not load games. Check connection.</p>';
-            });
+                const grid = document.getElementById('all-games-grid');
+                if (grid) grid.innerHTML = '<p class="empty-msg" style="color:red;">Could not load games. Check connection.</p>';
+            };
+            let fallbackUnsub = null;
+            const catUnsub = onSnapshot(collection(db, "catalogPublic"), { includeMetadataChanges: true }, (snap) => {
+                if (snap.empty) {
+                    if (snap.metadata.fromCache) return;
+                    if (!fallbackUnsub) fallbackUnsub = onSnapshot(collection(db, "gamesPublic"), { includeMetadataChanges: true }, (s) => onGames(s, fromDocs), onErr);
+                    return;
+                }
+                if (fallbackUnsub) { fallbackUnsub(); fallbackUnsub = null; }
+                onGames(snap, fromCatalog);
+            }, onErr);
+            gamesUnsub = () => { catUnsub(); if (fallbackUnsub) { fallbackUnsub(); fallbackUnsub = null; } };
         }
         function stopListenGames() {
             if (gamesUnsub) { gamesUnsub(); gamesUnsub = null; }
@@ -11026,7 +11049,7 @@ b,strong{font-weight:600}
             notifListenerAttached = true;
             syncInboxListener();
             setInterval(function(){ if(!document.hidden) syncInboxListener(); }, 15000); // picks up sign-in / sign-out / account switch
-            const q = query(collection(db, "notifications"), orderBy("timestamp", "desc"), limit(50));
+            const q = query(collection(db, "notifications"), orderBy("timestamp", "desc"), limit(20));
             onSnapshot(q, (snap) => {
                 // Broadcasts (no targetUserId) show for everyone; a targeted
                 // notification (admin "Specific User" send) only shows for the
