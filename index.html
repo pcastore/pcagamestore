@@ -4323,7 +4323,7 @@ b,strong{font-weight:600}
             confirmBtn.style.display = 'flex';
             confirmBtn.disabled = false;
             confirmBtn.classList.remove('checking', 'confirmed');
-            document.getElementById('confirm-id-btn-text').innerText = t('btn_confirm_id');
+            { const _cb = document.getElementById('confirm-id-btn-text'); if (_cb) _cb.innerText = t('btn_confirm_id'); }
 
             playerIdCheckTimer = setTimeout(() => runPlayerIdCheck(), 700);
         }
@@ -5184,7 +5184,7 @@ b,strong{font-weight:600}
             idConfirmBtn.style.display = 'none';
             idConfirmBtn.disabled = false;
             idConfirmBtn.classList.remove('checking', 'confirmed');
-            document.getElementById('confirm-id-btn-text').innerText = t('btn_confirm_id');
+            { const _cb = document.getElementById('confirm-id-btn-text'); if (_cb) _cb.innerText = t('btn_confirm_id'); }
             selectedPaymentMethod = null;
             selectedPaymentType = null;
             editingReceiptFile = null;
@@ -13704,6 +13704,7 @@ select[data-pcs]{display:none !important}
   var busy=false;
   function fix(btn){
     if(!btn||btn.tagName!=='BUTTON')return;
+    if(btn.id==='confirm-id-btn'||btn.querySelector('[id]'))return; /* has its own spinner + id'd text span; wiping it breaks later lookups */
     var has=btn.querySelector(':scope>.pca-spin');
     var txt=(btn.textContent||'').trim();
     if(!has&&txt&&txt.length<48&&RE.test(txt)){
