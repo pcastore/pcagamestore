@@ -2409,9 +2409,20 @@ html.logged-out #profile>:not(.title-header):not(.auth-gate):not(.modal-overlay)
                 <svg class="ui-icon"><use href="#icon-inbox"></use></svg>
                 <span class="notif-badge" id="notif-badge-header"></span>
             </div>
+            <button type="button" id="tg-hdr-btn" class="tg-hdr" hidden aria-label="Telegram ချိတ်ဆက်ထားပါတယ်" aria-expanded="false" aria-controls="tg-hdr-panel">
+                <svg class="tg-hdr-logo" viewBox="0 0 24 24" aria-hidden="true"><defs><linearGradient id="tgHdrG" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#37BBFE"/><stop offset="1" stop-color="#007DBB"/></linearGradient></defs><path fill="url(#tgHdrG)" d="M11.944 0A12 12 0 0 0 0 12a12 12 0 0 0 12 12 12 12 0 0 0 12-12A12 12 0 0 0 12 0a12 12 0 0 0-.056 0zm4.962 7.224c.1-.002.321.023.465.14a.506.506 0 0 1 .171.325c.016.093.036.306.02.472-.18 1.898-.962 6.502-1.36 8.627-.168.9-.499 1.201-.82 1.23-.696.065-1.225-.46-1.9-.902-1.056-.693-1.653-1.124-2.678-1.8-1.185-.78-.417-1.21.258-1.91.177-.184 3.247-2.977 3.307-3.23.007-.032.014-.15-.056-.212s-.174-.041-.249-.024c-.106.024-1.793 1.14-5.061 3.345-.48.33-.913.49-1.302.48-.428-.008-1.252-.241-1.865-.44-.752-.245-1.349-.374-1.297-.789.027-.216.325-.437.893-.663 3.498-1.524 5.83-2.529 6.998-3.014 3.332-1.386 4.025-1.627 4.476-1.635z"/></svg>
+                <span class="tg-hdr-dot" aria-hidden="true"></span>
+                <span class="tg-hdr-count" id="tg-hdr-count" aria-live="polite"></span>
+            </button>
         </div>
         </div>
 </header>
+<div id="tg-hdr-backdrop" hidden></div>
+<div id="tg-hdr-panel" role="dialog" aria-label="Telegram messages" hidden>
+    <div class="tg-p-head"><span class="tg-p-live" aria-hidden="true"></span><b>Telegram ချိတ်ဆက်ထားပါတယ်</b></div>
+    <div class="tg-p-list" id="tg-hdr-list"></div>
+    <a class="tg-p-open" id="tg-hdr-open" href="https://t.me/pcagamestore_bot" target="_blank" rel="noopener">Telegram Bot ဖွင့်မယ်</a>
+</div>
 
     <div class="bullet-chat-wrapper" id="bullet-chat-wrapper">
         <div class="bullet-chat-badge"><span class="live-dot"></span>LIVE</div>
@@ -17225,5 +17236,151 @@ html[data-theme="dark"] #pca-steps.pca-steps-v2 .ps b{background:#22324E;color:#
 html[data-theme="dark"] #pca-steps.pca-steps-v2 .pl{background:#263A57}
 }
 </style>
+<style id="pca-tg-link-css">
+/* Telegram-linked indicator (header, far right). Own classes + high specificity so the many header-icon overrides never touch it. */
+html body header#app-header .tg-hdr{position:relative;flex:none;width:40px;height:40px;margin-left:8px;padding:0;border-radius:50%;
+ background:#DDF8E8;border:1.5px solid #8BE3AE;display:flex;align-items:center;justify-content:center;cursor:pointer;-webkit-tap-highlight-color:transparent;
+ transition:transform .15s ease}
+html body header#app-header .tg-hdr[hidden]{display:none}
+html body header#app-header .tg-hdr:active{transform:scale(.92)}
+html body header#app-header .tg-hdr .tg-hdr-logo{width:25px;height:25px;display:block}
+html body header#app-header .tg-hdr .tg-hdr-dot{position:absolute;right:0;bottom:0;width:10px;height:10px;border-radius:50%;background:#22C55E;border:2px solid #fff;box-sizing:content-box;margin:0 -2px -2px 0}
+html body header#app-header .tg-hdr .tg-hdr-dot::after{content:"";position:absolute;left:50%;top:50%;width:100%;height:100%;margin:-50% 0 0 -50%;border-radius:50%;
+ background:#22C55E;opacity:.55;animation:tgHdrRipple 1.9s ease-out infinite}
+@keyframes tgHdrRipple{0%{transform:scale(1);opacity:.55}80%,100%{transform:scale(2.7);opacity:0}}
+html body header#app-header .tg-hdr .tg-hdr-count{position:absolute;top:-4px;right:-4px;min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;border-radius:8px;
+ background:#E5223B;color:#fff;font:700 10px/16px system-ui,sans-serif;text-align:center;border:2px solid #fff;box-sizing:content-box;margin:-2px -2px 0 0;display:none}
+html body header#app-header .tg-hdr .tg-hdr-count.show{display:block}
+html[data-theme="dark"] body header#app-header .tg-hdr{background:rgba(34,197,94,.16);border-color:rgba(74,222,128,.5)}
+html[data-theme="dark"] body header#app-header .tg-hdr .tg-hdr-dot,html[data-theme="dark"] body header#app-header .tg-hdr .tg-hdr-count{border-color:#162338}
+html.lite body header#app-header .tg-hdr .tg-hdr-dot::after{animation:none;opacity:0}
+@media (prefers-reduced-motion:reduce){html body header#app-header .tg-hdr .tg-hdr-dot::after{animation:none;opacity:0}}
+
+#tg-hdr-backdrop{position:fixed;inset:0;z-index:9990;background:transparent}
+#tg-hdr-backdrop[hidden],#tg-hdr-panel[hidden]{display:none}
+#tg-hdr-panel{position:fixed;z-index:9991;right:12px;top:calc(env(safe-area-inset-top,0px) + 66px);width:min(320px,calc(100vw - 24px));box-sizing:border-box;
+ background:#fff;color:#14181F;border:1px solid #E3E8F2;border-radius:18px;box-shadow:0 18px 40px -16px rgba(15,23,42,.38);padding:12px;
+ transform-origin:top right;animation:tgPanelIn .16s ease-out}
+@keyframes tgPanelIn{from{opacity:0;transform:scale(.96) translateY(-4px)}to{opacity:1;transform:none}}
+#tg-hdr-panel .tg-p-head{display:flex;align-items:center;gap:8px;font-size:13px;margin:0 2px 8px}
+#tg-hdr-panel .tg-p-live{width:8px;height:8px;border-radius:50%;background:#22C55E;flex:none}
+#tg-hdr-panel .tg-p-list{display:flex;flex-direction:column;gap:6px;max-height:min(52vh,320px);overflow-y:auto;-webkit-overflow-scrolling:touch}
+#tg-hdr-panel .tg-p-item{display:flex;gap:10px;align-items:flex-start;padding:9px 10px;border-radius:12px;background:#F5F7FB}
+#tg-hdr-panel .tg-p-item.new{background:#EAF7EF;box-shadow:inset 0 0 0 1px #BFEBD0}
+#tg-hdr-panel .tg-p-ic{flex:none;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:12px;font-weight:800;color:#fff;margin-top:1px}
+#tg-hdr-panel .tg-p-ic.ok{background:#16A34A}
+#tg-hdr-panel .tg-p-ic.bad{background:#DC2626}
+#tg-hdr-panel .tg-p-tx{min-width:0;flex:1}
+#tg-hdr-panel .tg-p-tx b{display:block;font-size:13px;line-height:1.3}
+#tg-hdr-panel .tg-p-tx span{display:block;font-size:12px;line-height:1.35;color:#5B6577;overflow-wrap:anywhere}
+#tg-hdr-panel .tg-p-tx time{display:block;font-size:11px;color:#8A93A8;margin-top:2px}
+#tg-hdr-panel .tg-p-empty{font-size:12.5px;line-height:1.55;color:#5B6577;padding:4px 4px 6px}
+#tg-hdr-panel .tg-p-open{display:block;margin-top:10px;text-align:center;font-size:13px;font-weight:700;text-decoration:none;color:#fff;background:#229ED9;border-radius:12px;padding:10px 12px}
+html[data-theme="dark"] #tg-hdr-panel{background:#162338;color:#E8EEF9;border-color:#263A57}
+html[data-theme="dark"] #tg-hdr-panel .tg-p-item{background:#1D2D47}
+html[data-theme="dark"] #tg-hdr-panel .tg-p-item.new{background:rgba(34,197,94,.14);box-shadow:inset 0 0 0 1px rgba(74,222,128,.35)}
+html[data-theme="dark"] #tg-hdr-panel .tg-p-tx span,html[data-theme="dark"] #tg-hdr-panel .tg-p-empty{color:#A9B6CE}
+html[data-theme="dark"] #tg-hdr-panel .tg-p-tx time{color:#7F8FAE}
+</style>
+<script id="pca-tg-link-js">
+/* Telegram link indicator: shows when this account has Telegram linked (the bot DMs order / wallet top-up results),
+   with a small unread counter for those results. Opening the panel marks them read, so the counter disappears. */
+(function(){
+ var btn=document.getElementById('tg-hdr-btn'),cnt=document.getElementById('tg-hdr-count'),panel=document.getElementById('tg-hdr-panel'),
+     bd=document.getElementById('tg-hdr-backdrop'),list=document.getElementById('tg-hdr-list');
+ if(!btn||!panel||!list) return;
+ var S={gid:'',linked:false,ev:{},readUp:0,firstRun:false,got:{},orders:{},topups:{},uu:null,uo:null,ut:null};
+ function gid(){try{return (window.getGuestId&&window.getGuestId())||''}catch(e){return ''}}
+ function K(n){return 'pca_tg_'+n+'_'+S.gid}
+ function lsGet(k){try{return localStorage.getItem(k)}catch(e){return null}}
+ function lsSet(k,v){try{localStorage.setItem(k,v)}catch(e){}}
+ function esc(x){return String(x==null?'':x).replace(/[&<>"']/g,function(c){return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]})}
+ function ms(d){var v=d&&(d.confirmedAt||d.updatedAt||d.timestamp);return v&&v.toMillis?v.toMillis():0}
+ function norm(st){st=String(st||'').toLowerCase();
+  if(st==='success'||st==='completed'||st==='approved'||st==='delivered')return 'ok';
+  if(st==='fail'||st==='failed'||st==='rejected')return 'bad';return ''}
+ function save(){
+  var keys=Object.keys(S.ev);
+  if(keys.length>80){keys.sort(function(a,b){return S.ev[a]-S.ev[b]}).slice(0,keys.length-80).forEach(function(k){delete S.ev[k]})}
+  lsSet(K('ev'),JSON.stringify(S.ev));lsSet(K('rd'),String(S.readUp));
+ }
+ function load(){
+  var raw=lsGet(K('ev'));S.firstRun=(raw===null);
+  try{S.ev=raw?JSON.parse(raw)||{}:{}}catch(e){S.ev={}}
+  if(S.firstRun){S.readUp=Date.now();save()}else{S.readUp=Number(lsGet(K('rd')))||0}
+ }
+ function items(){
+  var out=[];
+  Object.keys(S.ev).forEach(function(k){
+   var p=k.split(':'),kind=p[0],id=p.slice(1,-1).join(':'),res=p[p.length-1];
+   var d=(kind==='o'?S.orders:S.topups)[id];if(!d)return;
+   out.push({k:k,kind:kind,ok:res==='ok',d:d,ts:S.ev[k],when:ms(d)||S.ev[k]});
+  });
+  out.sort(function(a,b){return (b.when||0)-(a.when||0)});
+  return out;
+ }
+ function eat(kind,snap){
+  var first=!S.got[kind];S.got[kind]=true;var src=kind==='o'?S.orders:S.topups,changed=false;
+  snap.forEach(function(doc){
+   var d=doc.data?doc.data():null;if(!d)return;
+   var r=norm(d.status);if(!r)return;
+   var data=Object.assign({id:doc.id},d);src[doc.id]=data;
+   var k=kind+':'+doc.id+':'+r;
+   if(!(k in S.ev)){S.ev[k]=(S.firstRun&&first)?0:(first?(ms(d)||Date.now()):Date.now());changed=true}
+  });
+  if(changed)save();render();
+ }
+ function unread(){return items().filter(function(i){return i.ts>S.readUp}).length}
+ function render(){
+  var on=!!(S.gid&&S.linked);btn.hidden=!on;if(!on){closePanel();return}
+  var n=unread();cnt.textContent=n?(n>99?'99+':String(n)):'';cnt.classList.toggle('show',n>0);
+  btn.setAttribute('aria-label',n?('Telegram — မက်ဆေ့ချ် '+n+' စောင်'):'Telegram ချိတ်ဆက်ထားပါတယ်');
+ }
+ function ago(t){
+  if(!t)return '';var m=Math.floor((Date.now()-t)/60000);
+  if(m<1)return 'ခုလေးတင်';if(m<60)return m+' မိနစ်က';
+  var h=Math.floor(m/60);if(h<24)return h+' နာရီက';
+  var d=Math.floor(h/24);if(d<7)return d+' ရက်က';
+  try{return new Date(t).toLocaleDateString('en-GB')}catch(e){return ''}
+ }
+ function row(i,isNew){
+  var d=i.d,title,sub;
+  if(i.kind==='o'){
+   title=i.ok?'Order ပြီးစီးပါပြီ':'Order မအောင်မြင်ပါ';
+   sub=[d.game,d.itemAmount].filter(Boolean).join(' - ');
+  }else{
+   title=i.ok?'Top Up အောင်မြင်ပါပြီ':'Top Up မအောင်မြင်ပါ';
+   sub=(Number(d.amount)>0?(i.ok?'+':'')+Number(d.amount).toLocaleString()+' MMK':'');
+  }
+  return '<div class="tg-p-item'+(isNew?' new':'')+'"><span class="tg-p-ic '+(i.ok?'ok':'bad')+'">'+(i.ok?'✓':'✕')+'</span><div class="tg-p-tx"><b>'+esc(title)+'</b>'+
+   (sub?'<span>'+esc(sub)+'</span>':'')+'<time>'+esc(ago(i.when))+'</time></div></div>';
+ }
+ function openPanel(){
+  var cut=S.readUp,its=items().slice(0,10);
+  list.innerHTML=its.length?its.map(function(i){return row(i,i.ts>cut)}).join(''):
+   '<div class="tg-p-empty">Order နဲ့ Top Up ရလဒ် (ပြီးစီး / မအောင်မြင်) တွေကို Telegram ထဲ တိုက်ရိုက်ပို့ပေးပါမယ်။</div>';
+  panel.hidden=false;bd.hidden=false;btn.setAttribute('aria-expanded','true');
+  S.readUp=Date.now();save();render(); // read -> counter disappears
+ }
+ function closePanel(){panel.hidden=true;bd.hidden=true;btn.setAttribute('aria-expanded','false')}
+ btn.addEventListener('click',function(e){e.stopPropagation();panel.hidden?openPanel():closePanel()});
+ bd.addEventListener('click',closePanel);
+ document.addEventListener('keydown',function(e){if(e.key==='Escape')closePanel()});
+ function un(k){if(typeof S[k]==='function'){try{S[k]()}catch(e){}}S[k]=null}
+ function reset(){un('uu');un('uo');un('ut');S.linked=false;S.ev={};S.got={};S.orders={};S.topups={}}
+ function tick(){
+  var g=gid();
+  if(g!==S.gid){reset();S.gid=g;if(g)load();render()}
+  if(!g)return;
+  if(!S.uu&&typeof window.pcaWatchUser==='function'){
+   try{S.uu=window.pcaWatchUser(function(doc){var x=(doc&&doc.data&&doc.data())||{};var l=!!(x.telegramId||x.telegramUsername);if(l!==S.linked){S.linked=l;render()}},function(){})||true}catch(e){}
+  }
+  if(!S.uo&&typeof window.pcaWatchOrders==='function'){try{S.uo=window.pcaWatchOrders(function(s){eat('o',s)},function(){})||true}catch(e){}}
+  if(!S.ut&&typeof window.pcaWatchTopups==='function'){try{S.ut=window.pcaWatchTopups(function(s){eat('t',s)},function(){})||true}catch(e){}}
+ }
+ tick();setInterval(function(){if(!document.hidden)tick()},3000);
+ document.addEventListener('visibilitychange',function(){if(!document.hidden){tick();render()}});
+})();
+</script>
 </body>
 </html>
