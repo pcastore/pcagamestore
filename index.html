@@ -21,7 +21,7 @@ function W(cb){var self=this,q=[],raf=0,heavy=false;
 W.__pca=1;window.MutationObserver=W;
 })();
 </script>
-<style id="pca-layer-order">@layer pcapolish,pcamine,pcaglass,pcafix,legacy,tokens,base,layout,motion,components,pages,utilities;</style>
+<style id="pca-layer-order">@layer pcadarkclean,pcapolish,pcamine,pcaglass,pcafix,legacy,tokens,base,layout,motion,components,pages,utilities;</style>
 <script id="pca-check-js">
 window.PCA_CK='<svg class="pca-ck" viewBox="0 0 24 24" aria-hidden="true"><path pathLength="1" d="M6.4 12.8l3.7 3.7 7.5-8.2"/></svg>';
 window.pcaStatusText=function(el,text){if(!el)return;text=String(text==null?'':text);
@@ -11347,7 +11347,7 @@ b,strong{font-weight:600}
             root.setAttribute('data-theme', theme);
             var _m=document.querySelector('meta[name="theme-color"]');if(_m)_m.setAttribute('content',theme==='dark'?'#0F1A33':'#F7F8FA');
             applyThemeIcon(theme);
-            if (window.renderGisButtons) window.renderGisButtons(); // re-skin the Google button (outline/filled_black) to match
+            if (window.renderGisButtons) setTimeout(window.renderGisButtons, 450); // re-skin the Google button (deferred so the theme switch itself stays instant)
             clearTimeout(setThemeSmooth._t);
             setThemeSmooth._t = setTimeout(() => root.classList.remove('theme-switching'), 380);
         }
@@ -14995,7 +14995,7 @@ html body .profile-card.pca-sk-av .avatar-upload-circle::after{content:"";positi
 
  /* ---- 2. tap ripple on tab buttons / grid cells ---- */
  var SEL='button,[onclick],[role="button"],a[href],label,.nav-item:not(.nav-item-wallet),.htab,.history-status-tab,.history-date-chip,.pkg-type-tab,.pay-type-tab,.payment-option,.package-card,.wallet-preset-chip,.pcs-t,.pcs-o,.btn,.game-card,.menu-item,.profile-item,.setting-item';
- var SKIP='.modal-overlay,.pca-fl,.page-section,#app-header,input,textarea,select,.out-of-stock,[disabled]';
+ var SKIP='.modal-overlay,.pca-fl,.page-section,#app-header,input,textarea,select,.out-of-stock,[disabled],#pca-theme-switch,#haptic-toggle,.push-toggle,.theme-toggle';
  d.addEventListener('pointerdown',function(e){
   var t=e.target&&e.target.closest?e.target.closest(SEL):null;
   if(!t||t.matches(SKIP))return;
@@ -18380,6 +18380,69 @@ html[data-theme="dark"] body #haptic-toggle#haptic-toggle:not(#tg1):not(#tg2):no
 html[data-theme="dark"] body #pca-theme-switch#pca-theme-switch[aria-checked="true"]:not(#tg1):not(#tg2):not(#tg3):not(#tg4):not(#tg5):not(#tg6):not(#tg7):not(#tg8):not(#tg9):not(#tg10):not(#tg11):not(#tg12):not(#tg13):not(#tg14):not(#tg15):not(#tg16):not(#tg17):not(#tg18):not(#tg19):not(#tg20):not(#tg21):not(#tg22):not(#tg23):not(#tg24):not(#tg25):not(#tg26),
 html[data-theme="dark"] body #haptic-toggle#haptic-toggle.on:not(#tg1):not(#tg2):not(#tg3):not(#tg4):not(#tg5):not(#tg6):not(#tg7):not(#tg8):not(#tg9):not(#tg10):not(#tg11):not(#tg12):not(#tg13):not(#tg14):not(#tg15):not(#tg16):not(#tg17):not(#tg18):not(#tg19):not(#tg20):not(#tg21):not(#tg22):not(#tg23):not(#tg24):not(#tg25):not(#tg26),
 html[data-theme="dark"] body #haptic-toggle#haptic-toggle[aria-checked="true"]:not(#tg1):not(#tg2):not(#tg3):not(#tg4):not(#tg5):not(#tg6):not(#tg7):not(#tg8):not(#tg9):not(#tg10):not(#tg11):not(#tg12):not(#tg13):not(#tg14):not(#tg15):not(#tg16):not(#tg17):not(#tg18):not(#tg19):not(#tg20):not(#tg21):not(#tg22):not(#tg23):not(#tg24):not(#tg25):not(#tg26){background:#5B8CFF !important;border-color:#5B8CFF !important}
+</style>
+<style id="pca-dark-clean">@layer pcadarkclean{/* GLOBAL: dark mode has no outline rectangles / rings / glows anywhere (:where = 0 specificity so specific rules below still win) */
+html[data-theme="dark"] body :where(*:not(input,textarea,select,img,video,canvas,.push-toggle,.push-toggle *,.theme-toggle,.theme-toggle *,#pca-theme-switch,#pca-theme-switch *)),
+html[data-theme="dark"] body :where(*:not(input,textarea,select,img,video,canvas,.push-toggle,.theme-toggle,#pca-theme-switch))::before,
+html[data-theme="dark"] body :where(*:not(input,textarea,select,img,video,canvas,.push-toggle,.theme-toggle,#pca-theme-switch))::after{border-color:transparent !important;box-shadow:none !important;text-shadow:none !important}
+
+/* Dark mode: no stray rectangles / rings, round copy button, instant (lag-free) theme switch */
+html[data-theme="dark"] body header#app-header.header:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5):not(#z6):not(#z7):not(#z8):not(#z9):not(#z10):not(#z11):not(#z12){background:#0F1A33 !important;border:0 !important;box-shadow:none !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important}
+html[data-theme="dark"] body header#app-header.header::before:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5):not(#z6):not(#z7):not(#z8):not(#z9):not(#z10):not(#z11):not(#z12){display:none !important}
+html[data-theme="dark"] body .title-header:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5):not(#z6):not(#z7):not(#z8):not(#z9):not(#z10):not(#z11):not(#z12){background:none !important;border:0 !important;box-shadow:none !important}
+html[data-theme="dark"] body .collapsible-header, .collapsible-header>label:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5):not(#z6):not(#z7):not(#z8):not(#z9):not(#z10):not(#z11):not(#z12){background:none !important;border:0 !important;box-shadow:none !important}
+html[data-theme="dark"] body .wallet-balance-card:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5):not(#z6):not(#z7):not(#z8):not(#z9):not(#z10):not(#z11):not(#z12){overflow:hidden !important;border:0 !important;box-shadow:0 18px 40px -18px rgba(37,99,235,.5) !important}
+html[data-theme="dark"] body .wallet-balance-card::before, .wallet-balance-card::after:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5):not(#z6):not(#z7):not(#z8):not(#z9):not(#z10):not(#z11):not(#z12){border-radius:inherit !important}
+html[data-theme="dark"] body .header-icon, .nav-icon-wrap, .nav-item.active, .nav-item.active .nav-icon-wrap:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5):not(#z6):not(#z7):not(#z8):not(#z9):not(#z10):not(#z11):not(#z12){border:0 !important;box-shadow:none !important;outline:0 !important}
+html[data-theme="dark"] body .pt-ic, .wbc2-ic, .wallet-balance-icon, .qa-ic, .ch-ic:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5):not(#z6):not(#z7):not(#z8):not(#z9):not(#z10):not(#z11):not(#z12){border:0 !important;box-shadow:none !important}
+html[data-theme="dark"] body .pm-copy-btn, .voucher-copy-btn:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5):not(#z6):not(#z7):not(#z8):not(#z9):not(#z10):not(#z11):not(#z12){border:0 !important;box-shadow:none !important;outline:0 !important}
+html[data-theme="dark"] body .profile-id-copy-btn:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5):not(#z6):not(#z7):not(#z8):not(#z9):not(#z10):not(#z11):not(#z12){width:30px !important;height:30px !important;min-width:30px !important;min-height:30px !important;max-width:30px !important;max-height:30px !important;flex:0 0 30px !important;align-self:center !important;padding:0 !important;border-radius:50% !important}
+html[data-theme="dark"] body header .header-icons-group:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5):not(#z6):not(#z7):not(#z8):not(#z9):not(#z10):not(#z11):not(#z12){background:none !important;border:0 !important;box-shadow:none !important;padding:0 !important}
+html[data-theme="dark"] body header .header-icon:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5):not(#z6):not(#z7):not(#z8):not(#z9):not(#z10):not(#z11):not(#z12){width:40px !important;height:40px !important;min-width:40px !important;flex:0 0 40px !important;border-radius:50% !important}
+html[data-theme="dark"] body header .header-brand:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5):not(#z6):not(#z7):not(#z8):not(#z9):not(#z10):not(#z11):not(#z12){border:0 !important;box-shadow:none !important}
+html[data-theme="dark"] body .htabs-wrap:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5):not(#z6):not(#z7):not(#z8):not(#z9):not(#z10):not(#z11):not(#z12){background:#0F1A33 !important;border:0 !important;box-shadow:none !important}
+/* ===== TOGGLES rebuilt: Dark Mode switch + Haptic switch share one look and one motion ===== */
+html body #pca-theme-switch#pca-theme-switch, html body #haptic-toggle#haptic-toggle{
+  position:relative !important;flex:none !important;display:block !important;box-sizing:border-box !important;
+  width:56px !important;height:30px !important;min-width:56px !important;min-height:30px !important;max-width:56px !important;max-height:30px !important;
+  margin:0 !important;padding:0 !important;border:1px solid #C5CCD8 !important;border-radius:10px !important;background:#E4E8F0 !important;
+  box-shadow:none !important;outline:0 !important;transform:none !important;overflow:hidden !important;cursor:pointer;
+  -webkit-appearance:none;appearance:none;-webkit-tap-highlight-color:transparent;
+  transition:background-color .3s ease,border-color .3s ease !important}
+html body #pca-theme-switch#pca-theme-switch::before, html body #haptic-toggle#haptic-toggle::before{
+  content:"" !important;display:block !important;position:absolute !important;left:34px !important;right:auto !important;top:50% !important;
+  width:10px !important;height:10px !important;margin:-5px 0 0 0 !important;box-sizing:border-box !important;
+  border:1.5px solid #57606A !important;border-radius:50% !important;background:transparent !important;opacity:1 !important;transform:none !important;
+  transition:left .32s cubic-bezier(.34,1.45,.64,1),width .25s ease,height .25s ease,margin .25s ease,border-radius .25s ease,background-color .25s ease,border-color .25s ease !important}
+html body #pca-theme-switch#pca-theme-switch > i, html body #haptic-toggle#haptic-toggle .push-toggle-thumb{
+  position:absolute !important;top:2px !important;left:2px !important;right:auto !important;bottom:auto !important;width:24px !important;height:24px !important;margin:0 !important;
+  box-sizing:border-box !important;border-radius:8px !important;background:#fff !important;border:1px solid #C5CCD8 !important;box-shadow:none !important;
+  transform:translateX(0) !important;transition:transform .32s cubic-bezier(.34,1.45,.64,1),width .15s ease,border-color .3s ease !important}
+html body #haptic-toggle#haptic-toggle .push-toggle-thumb svg{display:none !important}
+/* press feedback: thumb stretches slightly */
+html body #pca-theme-switch#pca-theme-switch:active > i, html body #haptic-toggle#haptic-toggle:active .push-toggle-thumb{width:28px !important}
+html body #pca-theme-switch#pca-theme-switch[aria-checked="true"]:active > i, html body #haptic-toggle#haptic-toggle.on:active .push-toggle-thumb, html body #haptic-toggle#haptic-toggle[aria-checked="true"]:active .push-toggle-thumb{transform:translateX(22px) !important}
+/* ON */
+html body #pca-theme-switch#pca-theme-switch[aria-checked="true"], html body #haptic-toggle#haptic-toggle.on, html body #haptic-toggle#haptic-toggle[aria-checked="true"]{background:var(--pca-acc,#2557F5) !important;border-color:var(--pca-acc,#2557F5) !important}
+html body #pca-theme-switch#pca-theme-switch[aria-checked="true"]::before, html body #haptic-toggle#haptic-toggle.on::before, html body #haptic-toggle#haptic-toggle[aria-checked="true"]::before{
+  left:15px !important;width:2px !important;height:12px !important;margin:-6px 0 0 0 !important;border-color:#fff !important;border-radius:1px !important;background:#fff !important}
+html body #pca-theme-switch#pca-theme-switch[aria-checked="true"] > i, html body #haptic-toggle#haptic-toggle.on .push-toggle-thumb, html body #haptic-toggle#haptic-toggle[aria-checked="true"] .push-toggle-thumb{transform:translateX(26px) !important;border-color:transparent !important}
+/* dark theme colours */
+html[data-theme="dark"] body #pca-theme-switch#pca-theme-switch, html[data-theme="dark"] body #haptic-toggle#haptic-toggle{background:#1E2D57 !important;border-color:#2F4478 !important}
+html[data-theme="dark"] body #pca-theme-switch#pca-theme-switch::before, html[data-theme="dark"] body #haptic-toggle#haptic-toggle::before{border-color:#9AABD3 !important}
+html[data-theme="dark"] body #pca-theme-switch#pca-theme-switch > i, html[data-theme="dark"] body #haptic-toggle#haptic-toggle .push-toggle-thumb{border-color:#2F4478 !important}
+html[data-theme="dark"] body #pca-theme-switch#pca-theme-switch[aria-checked="true"], html[data-theme="dark"] body #haptic-toggle#haptic-toggle.on, html[data-theme="dark"] body #haptic-toggle#haptic-toggle[aria-checked="true"]{background:#5B8CFF !important;border-color:#5B8CFF !important}
+html[data-theme="dark"] body #pca-theme-switch#pca-theme-switch[aria-checked="true"]::before, html[data-theme="dark"] body #haptic-toggle#haptic-toggle.on::before, html[data-theme="dark"] body #haptic-toggle#haptic-toggle[aria-checked="true"]::before{border-color:#fff !important;background:#fff !important}
+html[data-theme="dark"] body #pca-theme-switch#pca-theme-switch[aria-checked="true"] > i, html[data-theme="dark"] body #haptic-toggle#haptic-toggle.on .push-toggle-thumb, html[data-theme="dark"] body #haptic-toggle#haptic-toggle[aria-checked="true"] .push-toggle-thumb{border-color:transparent !important}
+html body :is(#pca-theme-switch,#haptic-toggle,.push-toggle,.theme-toggle) .pca-rip-wrap{display:none !important}
+html body :is(#pca-theme-switch,#haptic-toggle,.push-toggle,.theme-toggle):active{background-image:none !important}
+html body .profile-id-copy-btn:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5):not(#z6):not(#z7):not(#z8):not(#z9):not(#z10):not(#z11):not(#z12){width:30px !important;height:30px !important;min-width:30px !important;min-height:30px !important;max-width:30px !important;max-height:30px !important;flex:0 0 30px !important;align-self:center !important;padding:0 !important;border-radius:50% !important;border:0 !important;box-shadow:none !important;outline:0 !important;display:grid !important;place-items:center !important;aspect-ratio:1/1 !important}
+html[data-theme="dark"] body nav#bottom-nav .nav-item-wallet .nav-icon-wrap:not(#z1):not(#z2):not(#z3):not(#z4):not(#z5):not(#z6):not(#z7):not(#z8):not(#z9):not(#z10):not(#z11):not(#z12){background:linear-gradient(145deg,#4A86FF 0%,#2F5FE8 100%) !important;background-color:#2F5FE8 !important;opacity:1 !important;border:0 !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important;color:#fff !important}
+html[data-theme="dark"] body nav#bottom-nav .nav-item-wallet .nav-icon-wrap :is(svg,.ui-icon):not(#z1):not(#z2):not(#z3):not(#z4):not(#z5):not(#z6):not(#z7):not(#z8):not(#z9):not(#z10):not(#z11):not(#z12){stroke:#fff !important;color:#fff !important;opacity:1 !important}
+html.theme-fade, html.theme-fade *, html.theme-fade *::before, html.theme-fade *::after,
+html.theme-switching, html.theme-switching *, html.theme-switching *::before, html.theme-switching *::after{transition:none !important}
+html.theme-switching header#app-header, html.theme-switching nav#bottom-nav{-webkit-backdrop-filter:none !important;backdrop-filter:none !important}
+}
 </style>
 </body>
 </html>
