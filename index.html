@@ -1630,6 +1630,12 @@ b,strong{font-weight:600}}
                         <span class="pt-label">Haptic</span>
                         <small id="haptic-toggle-state" class="pt-state">On</small>
                     </button>
+                    <button type="button" class="prefs-tile" onclick="togglePush()" aria-label="Notifications">
+                        <span class="push-toggle" id="push-toggle" role="switch" aria-checked="false"><span class="push-toggle-thumb"><svg class="svg-icon" style="stroke:currentColor;"><use href="#icon-bell"></use></svg></span></span>
+                        <span class="pt-ic"><svg class="ui-icon"><use href="#icon-bell"></use></svg></span>
+                        <span class="pt-label" data-i18n="nav_notifications">Notifications</span>
+                        <small id="push-toggle-state" class="pt-state">Off</small>
+                    </button>
                     <button type="button" class="prefs-tile" onclick="toggleLanguage()" aria-label="Switch language / ဘာသာစကားပြောင်းရန်">
                         <span class="lang-toggle-btn" id="lang-toggle-btn">
                             <svg class="lang-toggle-flag" id="lang-toggle-flag-en"><use href="#flag-en"></use></svg>
@@ -4215,6 +4221,7 @@ b,strong{font-weight:600}}
             // stripped out for out-of-stock cards - see renderDetailPackageList).
             if (pkgToSelect && pkgToSelect.voucherId && voucherStockMap[String(pkgToSelect.voucherId)] === 0) return;
             selectedPackage = pkgToSelect;
+            try { if (window.pcaCartIntent) window.pcaCartIntent(pkgToSelect); } catch (e) {}
             selectedQty = 1;
             document.querySelectorAll('#detail-package-list .package-card').forEach(el => el.classList.remove('selected'));
             document.querySelector(`#detail-package-list .package-card[data-index="${index}"]`).classList.add('selected');
@@ -7792,6 +7799,7 @@ b,strong{font-weight:600}}
                 // Pass the new doc's id so the success screen can live-track this
                 // exact order's status (Pending -> Processing -> Success/Fail).
                 window.openSuccessOverlay(orderRef.id, { status: 'Pending', timestamp: { toDate: () => new Date() } });
+                try { if (window.pcaAskPushAfterOrder) window.pcaAskPushAfterOrder(); } catch (e) {}
             } catch (error) {
                 console.error("Firebase Error: ", error);
                 window.showToast(error.message || "Failed to place order! Check Connection.", 'fail');
@@ -7888,6 +7896,7 @@ b,strong{font-weight:600}}
                 btnElement.innerText = "Order Sent";
                 btnElement.style.backgroundColor = "#28a745";
                 window.openSuccessOverlay(orderRef.id, { status: 'Pending', timestamp: { toDate: () => new Date() } });
+                try { if (window.pcaAskPushAfterOrder) window.pcaAskPushAfterOrder(); } catch (e) {}
             } catch (error) {
                 console.error("Wallet order error: ", error);
                 const msg = error.message === 'INVALID_PRICE'
@@ -9876,7 +9885,174 @@ b,strong{font-weight:600}}
         function isNativeApp() {
             return !!(window.Capacitor && window.Capacitor.isNativePlatform && window.Capacitor.isNativePlatform());
         }
-        window.renderPushToggleUI = function () {};
+        // ---------- Push notifications (installed app shows them under its OWN name/icon) ----------
+        // Paste your Web Push key pair (Firebase Console > Project settings > Cloud Messaging >
+        // Web Push certificates > Generate key pair) here:
+        const PCA_VAPID_KEY = 'BPEfKUCGbR5lny1p59iD3QnSA-EoPoPTbztAN1mmPtDhYexYvam7JLMd_7J8o1D_xCOtI0YBhWkCNYt7SlIzJlg';
+        const FCM_SDK_URL = 'https://www.gstatic.com/firebasejs/10.8.0/firebase-messaging.js';
+        function pushSupported() {
+            return !isNativeApp() && 'serviceWorker' in navigator && 'PushManager' in window && 'Notification' in window;
+        }
+        function pushWanted() { try { return localStorage.getItem('gz_push_on') === '1'; } catch (e) { return false; } }
+        window.renderPushToggleUI = function () {
+            const sw = document.getElementById('push-toggle');
+            const st = document.getElementById('push-toggle-state');
+            if (!sw || !st) return;
+            const supported = pushSupported();
+            const blocked = supported && Notification.permission === 'denied';
+            const on = supported && !blocked && Notification.permission === 'granted' && pushWanted();
+            sw.classList.toggle('on', on);
+            sw.classList.toggle('blocked', !supported || blocked);
+            sw.setAttribute('aria-checked', on ? 'true' : 'false');
+            st.textContent = !supported ? 'Unsupported' : blocked ? 'Blocked' : on ? 'On' : 'Off';
+        };
+        async function pushGetToken() {
+            const { getMessaging, getToken } = await import(FCM_SDK_URL);
+            const reg = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+            await navigator.serviceWorker.ready;
+            return getToken(getMessaging(app), { vapidKey: PCA_VAPID_KEY, serviceWorkerRegistration: reg });
+        }
+        async function pushSyncToken(token) {
+            let last = '', lastLang = '';
+            try { last = localStorage.getItem('gz_fcm_token_registered') || ''; lastLang = localStorage.getItem('gz_fcm_lang_registered') || ''; } catch (e) {}
+            const lang = (typeof currentLang !== 'undefined' && currentLang === 'en') ? 'en' : 'my';
+            if (token === last && (!token || lang === lastLang)) return;
+            // token '' = turn this phone off: `old` tells the server which device (others keep working)
+            await workerCall('/register-push', token ? { token, lang } : { token: '', old: last, lang });
+            try {
+                if (token) { localStorage.setItem('gz_fcm_token_registered', token); localStorage.setItem('gz_fcm_lang_registered', lang); }
+                else { localStorage.removeItem('gz_fcm_token_registered'); localStorage.removeItem('gz_fcm_lang_registered'); }
+            } catch (e) {}
+        }
+        window.togglePush = async function () {
+            if (!pushSupported()) { window.showToast('ဒီ browser မှာ Notification မရနိုင်ပါ (iPhone ဆိုရင် Home Screen ထဲ Add လုပ်ပါ)', 'warning'); return; }
+            if (Notification.permission === 'denied') { window.showToast('Notification ပိတ်ထားပါတယ်။ Browser/Phone Settings ထဲမှာ ခွင့်ပြုပေးပါ', 'warning'); return; }
+            if (!(auth.currentUser)) { window.showToast('Login ဝင်ပြီးမှ ဖွင့်နိုင်ပါမည်', 'warning'); return; }
+            try {
+                if (pushWanted() && Notification.permission === 'granted') {
+                    try { const { getMessaging, deleteToken } = await import(FCM_SDK_URL); await deleteToken(getMessaging(app)); } catch (e) {}
+                    await pushSyncToken('');
+                    try { localStorage.removeItem('gz_push_on'); } catch (e) {}
+                    window.showToast('Notification ပိတ်လိုက်ပါပြီ', 'info');
+                } else {
+                    if (!PCA_VAPID_KEY || PCA_VAPID_KEY.indexOf('PASTE_') === 0) { window.showToast('VAPID key မထည့်ရသေးပါ', 'fail'); return; }
+                    const perm = await Notification.requestPermission();
+                    if (perm !== 'granted') { window.renderPushToggleUI(); return; }
+                    const token = await pushGetToken();
+                    if (!token) throw new Error('no token');
+                    await pushSyncToken(token);
+                    try { localStorage.setItem('gz_push_on', '1'); } catch (e) {}
+                    window.showToast('Notification ဖွင့်လိုက်ပါပြီ', 'success');
+                }
+            } catch (e) {
+                console.error('push toggle failed', e);
+                window.showToast('Notification ဖွင့်လို့မရပါ၊ ပြန်ကြိုးစားပါ', 'fail');
+            }
+            window.renderPushToggleUI();
+        };
+        // Tokens rotate: quietly refresh after sign-in when the customer already opted in.
+        onAuthStateChanged(auth, (u) => {
+            if (!u || !pushSupported() || !pushWanted() || Notification.permission !== 'granted') return;
+            setTimeout(() => { pushGetToken().then(pushSyncToken).catch(() => {}); }, 4000);
+        });
+        // Notification language follows the store's language toggle
+        try {
+            new MutationObserver(() => {
+                if (!auth.currentUser || !pushSupported() || !pushWanted() || Notification.permission !== 'granted') return;
+                let tok = ''; try { tok = localStorage.getItem('gz_fcm_token_registered') || ''; } catch (e) {}
+                if (tok) pushSyncToken(tok).catch(() => {});
+            }).observe(document.documentElement, { attributes: true, attributeFilter: ['lang'] });
+        } catch (e) {}
+        // Picked a package: lets the server send ONE reminder if no order follows (only for customers who have push on)
+        let _cartT = null;
+        window.pcaCartIntent = function (pkg) {
+            try {
+                if (!auth.currentUser || !pushSupported() || !pushWanted() || Notification.permission !== 'granted') return;
+                clearTimeout(_cartT);
+                _cartT = setTimeout(() => {
+                    window.workerCall('/cart-intent', { game: selectedGameName || '', item: String((pkg && (pkg.amount || pkg.name)) || '') }).catch(() => {});
+                }, 4000);
+            } catch (e) {}
+        };
+        // Right after a successful order is the best moment to ask for notifications (once a day at most)
+        window.pcaAskPushAfterOrder = function () {
+            try {
+                if (!pushSupported() || Notification.permission !== 'default' || pushWanted()) return;
+                const t = Number(localStorage.getItem('gz_push_asked_order') || 0);
+                if (t && Date.now() - t < 864e5) return;
+                localStorage.setItem('gz_push_asked_order', String(Date.now()));
+                setTimeout(() => { if (auth.currentUser && Notification.permission === 'default') showPushAskCard(); }, 2500);
+            } catch (e) {}
+        };
+        // Tapping a notification while the app is already open
+        if ('serviceWorker' in navigator) navigator.serviceWorker.addEventListener('message', (e) => {
+            if (e.data && e.data.type === 'pca-notif-click') pcaDeepLink(e.data.url);
+        });
+        // Opening a notification lands on the matching page: ?open=history | wallet | notifications
+        function pcaDeepLink(raw) {
+            try {
+                const q = new URL(raw, location.origin).searchParams;
+                const t = q.get('open');
+                if (t === 'history' || t === 'wallet') window.showPage(t);
+                else if (t === 'notifications') window.openNotificationsPage();
+                else if (t === 'order') {
+                    // Open the order's detail sheet once the history list has loaded it
+                    const id = q.get('id') || '';
+                    window.showPage('history');
+                    let tries = 0;
+                    const iv = setInterval(() => {
+                        const list = (typeof HISTORY_ORDERS !== 'undefined' && HISTORY_ORDERS) || [];
+                        const i = list.findIndex(o => o && o.id === id);
+                        if (i >= 0) { clearInterval(iv); try { window.openOrderDetail(i); } catch (_) {} }
+                        else if (++tries > 24) clearInterval(iv);
+                    }, 500);
+                }
+            } catch (_) {}
+        }
+        (function () {
+            let handled = false;
+            onAuthStateChanged(auth, (u) => {
+                if (!u || handled) return;
+                handled = true;
+                if (!new URLSearchParams(location.search).get('open')) return;
+                setTimeout(() => { pcaDeepLink(location.href); try { history.replaceState(null, '', location.pathname); } catch (_) {} }, 1200);
+            });
+        })();
+        // Opening the app clears the icon badge and the notifications already read
+        function pcaClearBadge() {
+            try { if (navigator.clearAppBadge) navigator.clearAppBadge(); } catch (_) {}
+            try { if ('serviceWorker' in navigator) navigator.serviceWorker.ready.then(r => r.getNotifications().then(l => l.forEach(n => n.close()))).catch(() => {}); } catch (_) {}
+        }
+        document.addEventListener('visibilitychange', () => { if (document.visibilityState === 'visible') pcaClearBadge(); });
+        pcaClearBadge();
+        window.renderPushToggleUI();
+
+        // ---------- Friendly "turn on notifications?" card (installed app only) ----------
+        // Asking the browser cold gets denied a lot (and a denial is permanent), so we show our own
+        // card first; only the "ဖွင့်မည်" tap triggers the real permission popup.
+        function pushAskedRecently() {
+            try { const t = Number(localStorage.getItem('gz_push_asked') || 0); return t && Date.now() - t < 7 * 864e5; } catch (e) { return false; }
+        }
+        function showPushAskCard() {
+            if (document.getElementById('push-ask-card')) return;
+            const st = document.createElement('style');
+            st.textContent = '#push-ask-card{position:fixed;left:14px;right:14px;bottom:calc(14px + env(safe-area-inset-bottom,0px));max-width:480px;margin:0 auto;z-index:99999;background:#fff;color:#111;border-radius:20px;padding:16px;box-shadow:0 12px 40px rgba(0,0,0,.28);display:flex;gap:12px;align-items:center;transform:translateY(140%);transition:transform .45s cubic-bezier(.2,.9,.3,1.1)}#push-ask-card.show{transform:none}#push-ask-card .pa-ic{flex:none;width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#00c6ff,#2557F5);display:flex;align-items:center;justify-content:center;color:#fff}#push-ask-card .pa-ic svg{width:24px;height:24px;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}#push-ask-card .pa-tx{flex:1;min-width:0}#push-ask-card .pa-t{font-weight:700;font-size:15px}#push-ask-card .pa-s{font-size:12.5px;color:#666;margin-top:2px;line-height:1.35}#push-ask-card .pa-b{display:flex;flex-direction:column;gap:6px}#push-ask-card button{border:0;border-radius:12px;padding:9px 14px;font-size:13.5px;font-weight:700;font-family:inherit}#push-ask-card .pa-y{background:#2557F5;color:#fff}#push-ask-card .pa-n{background:#eef0f4;color:#555}';
+            document.head.appendChild(st);
+            const c = document.createElement('div');
+            c.id = 'push-ask-card';
+            c.innerHTML = '<div class="pa-ic"><svg viewBox="0 0 24 24"><path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9M10.3 21a1.94 1.94 0 0 0 3.4 0"/></svg></div>' +
+                '<div class="pa-tx"><div class="pa-t">အော်ဒါ အသိပေးချက် ရယူမလား?</div><div class="pa-s">ငွေသွင်း/အော်ဒါ ပြီးတာနဲ့ ဖုန်းထဲ ချက်ချင်း သိရပါမယ်</div></div>' +
+                '<div class="pa-b"><button class="pa-y" type="button">ဖွင့်မည်</button><button class="pa-n" type="button">နောက်မှ</button></div>';
+            document.body.appendChild(c);
+            requestAnimationFrame(() => requestAnimationFrame(() => c.classList.add('show')));
+            const close = () => { c.classList.remove('show'); setTimeout(() => c.remove(), 500); };
+            c.querySelector('.pa-n').onclick = () => { try { localStorage.setItem('gz_push_asked', String(Date.now())); } catch (e) {} close(); };
+            c.querySelector('.pa-y').onclick = () => { try { localStorage.setItem('gz_push_asked', String(Date.now())); } catch (e) {} close(); window.togglePush(); };
+        }
+        onAuthStateChanged(auth, (u) => {
+            if (!u || !pushSupported() || Notification.permission !== 'default' || pushAskedRecently() || !isAppInstalled()) return;
+            setTimeout(() => { if (auth.currentUser && Notification.permission === 'default') showPushAskCard(); }, 8000);
+        });
 
         // ---------- PWA installability + custom "Download App" button ----------
         // Chrome only offers to install a site as an app (WebAPK) if a service
@@ -15312,13 +15488,13 @@ html body .page-section.pca-enter :is(.game-card,.popular-card,.voucher-card,.hi
 })();
 </script>
 <style id="sys-hdr-css">
-#sys-hdr-pop{position:fixed;top:calc(env(safe-area-inset-top,0px) + 62px);right:12px;z-index:100000;min-width:210px;padding:14px 16px;background:#fff;color:#111;border:1px solid #ECEDF0;border-radius:16px;box-shadow:0 12px 32px -8px rgba(16,24,40,.35);font:600 14px/1.3 system-ui,-apple-system,sans-serif;display:none}
+#sys-hdr-pop{position:fixed;top:calc(env(safe-area-inset-top,0px) + 62px);right:12px;z-index:100000;min-width:150px;max-width:230px;padding:8px 12px;background:#fff;color:#111;border:1px solid #ECEDF0;border-radius:12px;box-shadow:0 12px 32px -8px rgba(16,24,40,.35);font:600 12.5px/1.25 system-ui,-apple-system,sans-serif;display:none}
 #sys-hdr-pop.open{display:block}
-#sys-hdr-pop .r{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:7px 0}
+#sys-hdr-pop .r{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:4px 0}
 #sys-hdr-pop .r+.r{border-top:1px solid #F0F1F4}
 #sys-hdr-pop .k{color:#6B7280;font-weight:500}
 #sys-hdr-pop .v{font-variant-numeric:tabular-nums;text-align:right}
-#sys-hdr-pop .bar{height:6px;border-radius:4px;background:#E5E7EB;margin-top:4px;overflow:hidden}
+#sys-hdr-pop .bar{height:4px;border-radius:4px;background:#E5E7EB;margin-top:4px;overflow:hidden}
 #sys-hdr-pop .bar i{display:block;height:100%;width:0;background:#22C55E;transition:width .3s}
 </style>
 <div id="sys-hdr-pop" role="dialog" aria-label="Device status">
@@ -15327,8 +15503,7 @@ html body .page-section.pca-enter :is(.game-card,.popular-card,.voucher-card,.hi
   <div class="r"><span class="k">Time</span><span class="v" id="sys-time">—</span></div>
   <div class="r"><span class="k">Network</span><span class="v" id="sys-net">—</span></div>
   <div class="r"><span class="k">Speed</span><span class="v" id="sys-spd">—</span></div>
-  <div class="r"><span class="k">Location</span><span class="v" id="sys-loc"><button type="button" id="sys-loc-btn" style="border:0;border-radius:10px;background:#2557F5;color:#fff;font:600 13px system-ui,-apple-system,sans-serif;padding:6px 12px">ကြည့်မယ်</button></span></div>
-  <div style="margin-top:8px;padding-top:8px;border-top:1px solid #F0F1F4;font:500 11px/1.4 system-ui,-apple-system,sans-serif;color:#6B7280">ဒီနေရာက Location ကို ဖုန်းပေါ်မှာပဲ ပြပါတယ်၊ မသိမ်းပါ။ မြို့နာမည်ရဖို့ lat/lng ကို BigDataCloud သို့ ပို့ပါတယ်။ Order တင်တဲ့အခါ ခွင့်ပြုထားရင် Location ကို order နဲ့အတူ သိမ်းပြီး admin ကသာ မြင်ရပါမယ်။</div>
+  <div class="r"><span class="k">Location</span><span class="v" id="sys-loc"><button type="button" id="sys-loc-btn" style="border:0;border-radius:10px;background:#2557F5;color:#fff;font:600 12px system-ui,-apple-system,sans-serif;padding:3px 10px">Show</button></span></div>
 </div>
 <script id="sys-hdr-js">
 (function(){
@@ -15339,7 +15514,7 @@ html body .page-section.pca-enter :is(.game-card,.popular-card,.voucher-card,.hi
   function time(){var d=new Date();$('sys-time').textContent=pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds())}
   function battery(){
     var el=$('sys-bat'),bar=$('sys-bat-bar'),fill=$('sys-hdr-fill');
-    if(!bat){el.textContent='ဒီ browser မှာ မပံ့ပိုးပါ';bar.style.width='0';return}
+    if(!bat){el.textContent='N/A';bar.style.width='0';return}
     var p=Math.round(bat.level*100);
     el.innerHTML=p+'%'+(bat.charging?' <svg viewBox="0 0 24 24" width="13" height="13" fill="#22C55E" style="vertical-align:-1px"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>':'');
     bar.style.width=p+'%';bar.style.background=p<=20&&!bat.charging?'#EF4444':'#22C55E';
@@ -15355,18 +15530,18 @@ html body .page-section.pca-enter :is(.game-card,.popular-card,.voucher-card,.hi
   }
   function loc(){
     var el=$('sys-loc');
-    if(!navigator.geolocation){el.textContent='မပံ့ပိုးပါ';return}
-    el.textContent='ရှာနေသည်...';
+    if(!navigator.geolocation){el.textContent='N/A';return}
+    el.textContent='...';
     navigator.geolocation.getCurrentPosition(function(p){
       var la=p.coords.latitude.toFixed(5),lo=p.coords.longitude.toFixed(5);
-      el.innerHTML='<div id="sys-city" style="font-weight:700"></div><a href="https://maps.google.com/?q='+la+','+lo+'" target="_blank" rel="noopener" style="color:#2557F5;text-decoration:none">'+la+', '+lo+'</a><div style="font-weight:500;color:#6B7280;font-size:12px">±'+Math.round(p.coords.accuracy)+' m</div>';
+      el.innerHTML='<div id="sys-city" style="font-weight:700"></div><a href="https://maps.google.com/?q='+la+','+lo+'" target="_blank" rel="noopener" style="color:#2557F5;text-decoration:none">'+la+', '+lo+'</a><div style="font-weight:500;color:#6B7280;font-size:11px">±'+Math.round(p.coords.accuracy)+' m</div>';
       fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude='+p.coords.latitude+'&longitude='+p.coords.longitude+'&localityLanguage=en').then(function(r){return r.json()}).then(function(j){
         var c=$('sys-city');if(!c)return;
         var t=[j.locality||j.city,j.principalSubdivision,j.countryName].filter(Boolean).join(', ');
         c.textContent=t;
       }).catch(function(){});
     },function(e){
-      el.textContent=e.code===1?'ခွင့်မပြုထားပါ (Settings မှာ ဖွင့်ပါ)':e.code===3?'အချိန်ကုန်သွားပါပြီ':'ရှာမတွေ့ပါ';
+      el.textContent=e.code===1?'Blocked':e.code===3?'Timeout':'N/A';
     },{enableHighAccuracy:true,timeout:10000,maximumAge:60000});
   }
   document.addEventListener('click',function(e){if(e.target&&e.target.id==='sys-loc-btn'){e.stopPropagation();loc()}});
