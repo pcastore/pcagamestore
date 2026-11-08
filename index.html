@@ -1219,6 +1219,7 @@ html.logged-out #wallet>:not(.title-header):not(.auth-gate):not(.modal-overlay),
         <div class="header-brand" aria-label="PCA Game Store"><div class="pi" id="pca-intro" data-ph="pre"><img decoding="async" class="hb-logo" id="hb-logo" alt="PCA Game Store" draggable="false" style="visibility:hidden"><div class="pi-over" aria-hidden="true"><div class="pi-txt"><span class="pi-l" style="--i:0">P</span><span class="pi-l" style="--i:1">C</span><span class="pi-l" style="--i:2">A</span><span class="pi-sp"></span><span class="pi-l" style="--i:4">G</span><span class="pi-l" style="--i:5">A</span><span class="pi-l" style="--i:6">M</span><span class="pi-l" style="--i:7">E</span><span class="pi-sp"></span><span class="pi-l" style="--i:9">S</span><span class="pi-l" style="--i:10">T</span><span class="pi-l" style="--i:11">O</span><span class="pi-l" style="--i:12">R</span><span class="pi-l" style="--i:13">E</span></div><div class="pi-dots"><i class="pi-d" style="--j:0;background:#2F7BFF"></i><i class="pi-d" style="--j:1;background:#FF3B30"></i><i class="pi-d" style="--j:2;background:#FFC21A"></i><i class="pi-d" style="--j:3;background:#34C759"></i></div></div></div></div>
         <div class="header-icons-group" style="display:flex;align-items:center;">
             <button id="install-app-btn" class="hdr-install" type="button" onclick="installApp()" aria-label="App ကို Download လုပ်ပါ" title="App ကို Download လုပ်ပါ" style="display:none;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg><span>Get App</span></button>
+            <div class="header-icon header-menu-btn" id="sys-hdr-btn" role="button" aria-label="Device status" aria-expanded="false" style="margin-right:6px"><svg class="ui-icon" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><rect x="2" y="7" width="17" height="10" rx="2.5"/><path d="M22 11v2"/><rect id="sys-hdr-fill" x="4.5" y="9.5" width="12" height="5" rx="1" fill="#fff" stroke="none"/></svg></div>
             <div class="header-icon header-menu-btn" id="notif-header-btn" onclick="openNotificationsPage()" role="button" aria-label="Inbox">
                 <svg class="ui-icon"><use href="#icon-inbox"></use></svg>
                 <span class="notif-badge" id="notif-badge-header"></span>
@@ -1480,7 +1481,7 @@ html.logged-out #wallet>:not(.title-header):not(.auth-gate):not(.modal-overlay),
 .cards-grid > .game-card{padding:3px;border-radius:12px}
 .cards-grid > .game-card .game-card-img-wrap{border-radius:9px}
 .cards-grid > .game-card .game-card-name{font-size:8.5px;margin-top:3px;padding:2px 3px}
-:root{--coin:#F5A524; --coin-soft:#FFF3D9; --coin-line:rgba(224,148,16,.38); --coin-ink:#3F2600; --font-num:'Manrope','Inter','Noto Sans Myanmar','Myanmar Text',system-ui,sans-serif; --bg:#F1F3F8; --surface-alt:#F5F7FB; --line:#E3E7F0; --border:#E3E7F0; --text:#0D1426; --text-secondary:#525C72; --text-muted:#838CA2; --accent-soft:#E8F1FE; --r-tile:20px;}
+:root{--coin:#F5A524; --coin-soft:#FFF3D9; --coin-line:rgba(224,148,16,.38); --coin-ink:#3F2600; --font-num:-apple-system,BlinkMacSystemFont,'SF Pro Display','Inter','Noto Sans Myanmar','Myanmar Text',system-ui,sans-serif; --bg:#F1F3F8; --surface-alt:#F5F7FB; --line:#E3E7F0; --border:#E3E7F0; --text:#0D1426; --text-secondary:#525C72; --text-muted:#838CA2; --accent-soft:#E8F1FE; --r-tile:20px;}
 .header{display:grid; grid-template-columns:minmax(0,1fr) auto auto; align-items:center; column-gap:8px; row-gap:0; height:auto; overflow:visible; padding:calc(env(safe-area-inset-top,0px) + 8px) 14px 8px; background:var(--surface); border-bottom:1px solid var(--line); box-shadow:none;}
 .header::before{display:none}
 body,body:not(.no-bottom-nav){padding-top:calc(68px + env(safe-area-inset-top,0px))}
@@ -12159,7 +12160,7 @@ select[data-pcs]{display:none !important}
 </script>
 <style id="pca-redesign">
 @layer pcafix{:root{--nb:#2557F5;--nb-d:#1B45D6;--nb-soft:#EEF3FF;--nb-line:#C9D8FF;--nd-bg:#F7F8FA;--nd-sf:#FFFFFF;--nd-bd:#EAECF0;--nd-tx:#111827;--nd-mu:#667085;--nd-sh:0 1px 2px rgba(16,24,40,.05),0 8px 24px rgba(16,24,40,.06); --pca-acc:#2557F5;--pca-rgb:37,87,245;--pca-dark:#1F4DE0;--pca-deep:#1B45D6;--pca-lt:#4A74F7;--pca-soft:#EEF3FF;--pca-line:#C9D8FF;--accent:#2557F5;--accent-dark:#1B45D6;--accent-soft:#EEF3FF;--accent-rgb:37,87,245;--bg:#F7F8FA;--surface:#fff;--card-bg:#fff;--panel-bg:#fff;--line:#EAECF0;--border:#EAECF0;--text:#111827;--text-secondary:#667085}
-html body,html body button,html body input,html body textarea,html body select{font-family:'Plus Jakarta Sans','Noto Sans Myanmar',Inter,system-ui,sans-serif !important}
+html body,html body button,html body input,html body textarea,html body select{font-family:-apple-system,BlinkMacSystemFont,'SF Pro Text','SF Pro Display',Inter,'Noto Sans Myanmar','Myanmar Sangam MN',system-ui,sans-serif !important}
 html body{background:var(--nd-bg) !important;color:var(--nd-tx)}
 html body .content-area{padding-bottom:calc(112px + env(safe-area-inset-bottom,0px)) !important}
 html body header.header{background:var(--nd-bg) !important;border:0 !important;box-shadow:none !important;}
@@ -15290,6 +15291,95 @@ html body .page-section.pca-enter :is(.game-card,.popular-card,.voucher-card,.hi
   }
   if(modal)syncModal();if(hv)syncHv();
  }).observe(b,{childList:true,subtree:true,attributes:true,attributeFilter:['href','disabled','class']});
+})();
+</script>
+<script id="pca-no-double-render">
+/* Skip rebuilding a list when the new HTML is identical to what is already drawn.
+   Data arriving twice (cache -> server, providerFlags, poll) used to rebuild the same
+   cards, replaying their fade-in = the "shows twice / vanishes and reappears" flicker. */
+(function(){
+  var d=Object.getOwnPropertyDescriptor(Element.prototype,'innerHTML');
+  ['all-games-grid','popular-games-scroll','popular-vouchers-scroll','voucher-games-grid','favorite-games-scroll','history-container','wallet-topup-list'].forEach(function(id){
+    var el=document.getElementById(id); if(!el) return;
+    Object.defineProperty(el,'innerHTML',{configurable:true,
+      get:function(){return d.get.call(this)},
+      set:function(v){
+        v=String(v);
+        if(this.__h===v && this.firstElementChild) return;
+        this.__h=v; d.set.call(this,v);
+      }});
+  });
+})();
+</script>
+<style id="sys-hdr-css">
+#sys-hdr-pop{position:fixed;top:calc(env(safe-area-inset-top,0px) + 62px);right:12px;z-index:100000;min-width:210px;padding:14px 16px;background:#fff;color:#111;border:1px solid #ECEDF0;border-radius:16px;box-shadow:0 12px 32px -8px rgba(16,24,40,.35);font:600 14px/1.3 system-ui,-apple-system,sans-serif;display:none}
+#sys-hdr-pop.open{display:block}
+#sys-hdr-pop .r{display:flex;justify-content:space-between;align-items:center;gap:16px;padding:7px 0}
+#sys-hdr-pop .r+.r{border-top:1px solid #F0F1F4}
+#sys-hdr-pop .k{color:#6B7280;font-weight:500}
+#sys-hdr-pop .v{font-variant-numeric:tabular-nums;text-align:right}
+#sys-hdr-pop .bar{height:6px;border-radius:4px;background:#E5E7EB;margin-top:4px;overflow:hidden}
+#sys-hdr-pop .bar i{display:block;height:100%;width:0;background:#22C55E;transition:width .3s}
+</style>
+<div id="sys-hdr-pop" role="dialog" aria-label="Device status">
+  <div class="r"><span class="k">Battery</span><span class="v" id="sys-bat">—</span></div>
+  <div class="bar"><i id="sys-bat-bar"></i></div>
+  <div class="r"><span class="k">Time</span><span class="v" id="sys-time">—</span></div>
+  <div class="r"><span class="k">Network</span><span class="v" id="sys-net">—</span></div>
+  <div class="r"><span class="k">Speed</span><span class="v" id="sys-spd">—</span></div>
+  <div class="r"><span class="k">Location</span><span class="v" id="sys-loc"><button type="button" id="sys-loc-btn" style="border:0;border-radius:10px;background:#2557F5;color:#fff;font:600 13px system-ui,-apple-system,sans-serif;padding:6px 12px">ကြည့်မယ်</button></span></div>
+  <div style="margin-top:8px;padding-top:8px;border-top:1px solid #F0F1F4;font:500 11px/1.4 system-ui,-apple-system,sans-serif;color:#6B7280">ဒီနေရာက Location ကို ဖုန်းပေါ်မှာပဲ ပြပါတယ်၊ မသိမ်းပါ။ မြို့နာမည်ရဖို့ lat/lng ကို BigDataCloud သို့ ပို့ပါတယ်။ Order တင်တဲ့အခါ ခွင့်ပြုထားရင် Location ကို order နဲ့အတူ သိမ်းပြီး admin ကသာ မြင်ရပါမယ်။</div>
+</div>
+<script id="sys-hdr-js">
+(function(){
+  var btn=document.getElementById('sys-hdr-btn'),pop=document.getElementById('sys-hdr-pop');
+  if(!btn||!pop)return;
+  var $=function(i){return document.getElementById(i)},bat=null,tick=null;
+  function pad(n){return n<10?'0'+n:''+n}
+  function time(){var d=new Date();$('sys-time').textContent=pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds())}
+  function battery(){
+    var el=$('sys-bat'),bar=$('sys-bat-bar'),fill=$('sys-hdr-fill');
+    if(!bat){el.textContent='ဒီ browser မှာ မပံ့ပိုးပါ';bar.style.width='0';return}
+    var p=Math.round(bat.level*100);
+    el.innerHTML=p+'%'+(bat.charging?' <svg viewBox="0 0 24 24" width="13" height="13" fill="#22C55E" style="vertical-align:-1px"><path d="M13 2 4 14h6l-1 8 9-12h-6z"/></svg>':'');
+    bar.style.width=p+'%';bar.style.background=p<=20&&!bat.charging?'#EF4444':'#22C55E';
+    if(fill)fill.setAttribute('width',Math.max(1,12*bat.level));
+  }
+  function net(){
+    var c=navigator.connection||navigator.mozConnection||navigator.webkitConnection,n=$('sys-net'),s=$('sys-spd');
+    if(!navigator.onLine){n.textContent='Offline';s.textContent='—';return}
+    if(!c){n.textContent='Online';s.textContent='—';return}
+    var t=c.type,e=(c.effectiveType||'').toUpperCase();
+    n.textContent=t==='wifi'?'WiFi':t==='cellular'?'Mobile Data'+(e?' ('+e+')':''):t==='ethernet'?'Ethernet':(e?e:'Online');
+    s.textContent=(c.downlink?c.downlink+' Mbps':'—')+(c.rtt?' · '+c.rtt+' ms':'');
+  }
+  function loc(){
+    var el=$('sys-loc');
+    if(!navigator.geolocation){el.textContent='မပံ့ပိုးပါ';return}
+    el.textContent='ရှာနေသည်...';
+    navigator.geolocation.getCurrentPosition(function(p){
+      var la=p.coords.latitude.toFixed(5),lo=p.coords.longitude.toFixed(5);
+      el.innerHTML='<div id="sys-city" style="font-weight:700"></div><a href="https://maps.google.com/?q='+la+','+lo+'" target="_blank" rel="noopener" style="color:#2557F5;text-decoration:none">'+la+', '+lo+'</a><div style="font-weight:500;color:#6B7280;font-size:12px">±'+Math.round(p.coords.accuracy)+' m</div>';
+      fetch('https://api.bigdatacloud.net/data/reverse-geocode-client?latitude='+p.coords.latitude+'&longitude='+p.coords.longitude+'&localityLanguage=en').then(function(r){return r.json()}).then(function(j){
+        var c=$('sys-city');if(!c)return;
+        var t=[j.locality||j.city,j.principalSubdivision,j.countryName].filter(Boolean).join(', ');
+        c.textContent=t;
+      }).catch(function(){});
+    },function(e){
+      el.textContent=e.code===1?'ခွင့်မပြုထားပါ (Settings မှာ ဖွင့်ပါ)':e.code===3?'အချိန်ကုန်သွားပါပြီ':'ရှာမတွေ့ပါ';
+    },{enableHighAccuracy:true,timeout:10000,maximumAge:60000});
+  }
+  document.addEventListener('click',function(e){if(e.target&&e.target.id==='sys-loc-btn'){e.stopPropagation();loc()}});
+  function refresh(){time();battery();net();
+    if(navigator.permissions&&navigator.permissions.query){navigator.permissions.query({name:'geolocation'}).then(function(r){if(r.state==='granted'&&$('sys-loc-btn'))loc()}).catch(function(){})}
+  }
+  function open(){pop.classList.add('open');btn.setAttribute('aria-expanded','true');refresh();clearInterval(tick);tick=setInterval(time,1000)}
+  function close(){pop.classList.remove('open');btn.setAttribute('aria-expanded','false');clearInterval(tick)}
+  btn.addEventListener('click',function(e){e.stopPropagation();pop.classList.contains('open')?close():open()});
+  document.addEventListener('click',function(e){if(!pop.contains(e.target))close()});
+  if(navigator.getBattery){navigator.getBattery().then(function(b){bat=b;['levelchange','chargingchange'].forEach(function(ev){b.addEventListener(ev,battery)});battery()}).catch(function(){})}
+  var c=navigator.connection;if(c&&c.addEventListener)c.addEventListener('change',net);
+  window.addEventListener('online',net);window.addEventListener('offline',net);
 })();
 </script>
 </body>
