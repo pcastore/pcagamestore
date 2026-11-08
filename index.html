@@ -77,7 +77,8 @@ setTimeout(window.pcaReveal,25000); /* safety: never leave the screen covered */
   h.setAttribute('data-glass','off');
  }
  window.pcaTheme={load:load,save:save,apply:apply};
- apply(load());
+ try{localStorage.removeItem(KEY)}catch(e){} /* Theme customizer removed: always the default look */
+ apply({});
 })();
 </script>
     <script src="https://accounts.google.com/gsi/client" async defer></script>
@@ -416,24 +417,24 @@ img[loading="lazy"]:not(.lz-done){background: url("data:image/svg+xml,%3Csvg xml
 .btn-primary:active{background-color: var(--accent-dark);}
 .btn:disabled{opacity: 0.55; cursor: not-allowed;}
 .slide-confirm-wrap{position: relative; touch-action: pan-y; height: 54px; border-radius: 27px; overflow: hidden; box-shadow: 0 8px 20px -8px rgba(var(--accent-rgb),0.55); flex-shrink: 0; -webkit-user-select: none; user-select: none;}
-.slide-confirm-wrap:has(> .btn:disabled){box-shadow: none;}
+.slide-confirm-wrap.pca-dis{box-shadow: none;}
 .slide-confirm-wrap .btn{height: 100%; padding-left: 56px; pointer-events: none; border-radius: 27px; display: flex; align-items: center; justify-content: center;}
 .slide-confirm-fill{position: absolute; top: 0; left: 0; height: 100%; width: 0; background: var(--surface); pointer-events: none; z-index: 1;}
 .slide-confirm-wrap.completed .slide-confirm-fill{width: 100%; background: var(--surface);}
 .slide-confirm-hint{position: absolute; top: 0; right: 20px; height: 100%; display: flex; align-items: center; gap: 1px; pointer-events: none; z-index: 1;}
 .slide-confirm-hint svg{width: 14px; height: 14px; color: #fff; opacity: 0.3;}
-.slide-confirm-wrap.in-progress .slide-confirm-hint,.slide-confirm-wrap.completed .slide-confirm-hint,.slide-confirm-wrap:has(> .btn:disabled) .slide-confirm-hint{opacity: 0;}
+.slide-confirm-wrap.in-progress .slide-confirm-hint,.slide-confirm-wrap.completed .slide-confirm-hint,.slide-confirm-wrap.pca-dis .slide-confirm-hint{opacity: 0;}
 .slide-confirm-thumb{position: absolute; top: 3px; left: 3px; width: 48px; height: 48px; z-index: 2; border-radius: 50%; background: var(--surface); display: flex; align-items: center; justify-content: center; cursor: grab; touch-action: none; transform: translateX(0); -webkit-user-select: none; user-select: none; -webkit-touch-callout: none; -webkit-user-drag: none;}
 .slide-confirm-thumb svg{width: 20px; height: 20px; color: var(--accent);}
 .slide-confirm-thumb.dragging{cursor: grabbing;}
-.slide-confirm-wrap:has(> .btn:disabled) .slide-confirm-thumb{cursor: not-allowed; opacity: 0.55;}
+.slide-confirm-wrap.pca-dis .slide-confirm-thumb{cursor: not-allowed; opacity: 0.55;}
 .slide-confirm-thumb.completed{background: var(--surface);}
 .slide-confirm-thumb.completed svg{color: #fff;}
-.slide-confirm-wrap.completed:has(> .btn:disabled){background: #16A34A; box-shadow: 0 6px 16px -6px rgba(22,163,74,0.55); border: none;}
-.slide-confirm-wrap.completed:has(> .btn:disabled) .slide-confirm-fill{width: 100%; background: var(--surface); background-size: 220% 100%;}
-.slide-confirm-wrap.completed:has(> .btn:disabled) .btn{opacity: 1; color: #fff; font-weight: 600; letter-spacing: 0.2px; text-shadow: 0 1px 4px rgba(0,0,0,0.3);}
-.slide-confirm-wrap.completed:has(> .btn:disabled) .slide-confirm-thumb{opacity: 1; cursor: not-allowed; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.25);}
-.slide-confirm-wrap.completed:has(> .btn:disabled) .slide-confirm-thumb svg{color: #16A34A;}
+.slide-confirm-wrap.completed.pca-dis{background: #16A34A; box-shadow: 0 6px 16px -6px rgba(22,163,74,0.55); border: none;}
+.slide-confirm-wrap.completed.pca-dis .slide-confirm-fill{width: 100%; background: var(--surface); background-size: 220% 100%;}
+.slide-confirm-wrap.completed.pca-dis .btn{opacity: 1; color: #fff; font-weight: 600; letter-spacing: 0.2px; text-shadow: 0 1px 4px rgba(0,0,0,0.3);}
+.slide-confirm-wrap.completed.pca-dis .slide-confirm-thumb{opacity: 1; cursor: not-allowed; background: #fff; box-shadow: 0 2px 8px rgba(0,0,0,0.25);}
+.slide-confirm-wrap.completed.pca-dis .slide-confirm-thumb svg{color: #16A34A;}
 .bottom-nav{position: fixed; bottom: 0; left: 0; width: 100%; background: var(--surface); display: flex; justify-content: space-around; padding: 8px 0; border-top: 1px solid var(--border); z-index: 100; box-shadow: 0 -2px 5px rgba(0,0,0,0.05);}
 .nav-item{display: flex; flex-direction: column; align-items: center; gap: 2px; font-size: 11px; font-weight: 500; color: var(--text-secondary); cursor: pointer; flex: 1; min-width: 0;}
 .nav-label{max-width: 100%; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
@@ -612,7 +613,7 @@ img[loading="lazy"]:not(.lz-done){background: url("data:image/svg+xml,%3Csvg xml
 .wallet-min-note::before{content: 'i'; flex-shrink: 0; width: 15px; height: 15px; border-radius: 50%; border: 1.5px solid currentColor; font-size: 10px; font-weight: 700; display: inline-flex; align-items: center; justify-content: center;}
 .wallet-min-note.warn{color: #FF6B6B; font-weight: 600;}
 .wallet-min-hint{margin: 10px 0 0; text-align: center; font-size: 11.5px; color: rgba(255,255,255,0.6); position: relative; z-index: 2;}
-body:has(.modal-overlay.show) .bottom-nav{z-index: 0; pointer-events: none;}
+body.pca-modal-open .bottom-nav{z-index: 0; pointer-events: none;}
 .modal-box{padding-bottom: calc(20px + env(safe-area-inset-bottom, 0px));}
 .wallet-topup-row{position: relative; overflow: hidden; display: flex; align-items: center; gap: 11px; background: var(--surface); border: 1px solid var(--border); border-radius: 14px; padding: 11px 13px 11px 15px; margin-bottom: 8px; box-shadow: 0 2px 10px rgba(15,23,42,0.05); cursor: pointer;}
 .wallet-topup-row::before{content: ''; position: absolute; left: 0; top: 0; bottom: 0; width: 4px; background: var(--row-accent, var(--accent));}
@@ -1002,43 +1003,43 @@ html.logged-out #wallet>:not(.title-header):not(.auth-gate):not(.modal-overlay),
 <style id="pca-flat-icons">
 @layer pcaglass{.ui-icon,.svg-icon{overflow:visible}
 :is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic){background:var(--pca-acc,#2557F5)!important;border:0!important;box-shadow:none!important;}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-gamepad"]){background:#6366F1!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-home"]){background:#1A73FF!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-history"]){background:#FF9F0A!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-wallet"]){background:#FF9F0A!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-user"]){background:#1A73FF!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-haptic"]){background:#A855F7!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-inbox"]){background:#1A73FF!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-bell"]){background:#A855F7!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-rocket"]){background:#EC4899!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-megaphone"]){background:#29A9EA!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-search"]){background:#14B8A6!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-copy"]){background:#1A73FF!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-camera"]){background:#EC4899!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-edit"]){background:#FF9F0A!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-grid"]){background:#A855F7!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-shield"]){background:#22C55E!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-target"]){background:#EF4444!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-compass"]){background:#14B8A6!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-smile"]){background:#FF9F0A!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-feather"]){background:#14B8A6!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-sun"]){background:#FF9F0A!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-moon"]){background:#6366F1!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-download"]){background:#1A73FF!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-star"]){background:#FF9F0A!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-flame"]){background:#EF4444!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-alert"]){background:#FF9F0A!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-info"]){background:#1A73FF!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-gift"]){background:#EC4899!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-external-link"]){background:#1A73FF!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-help"]){background:#A855F7!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-globe"]){background:#1A73FF!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-pin"]){background:#EF4444!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-card"]){background:#6366F1!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-plus"]){background:#1A73FF!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-check"]){background:#22C55E!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-refresh"]){background:#1A73FF!important}
-:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic):has(use[href="#icon-close"]){background:#EF4444!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="gamepad"]{background:#6366F1!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="home"]{background:#1A73FF!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="history"]{background:#FF9F0A!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="wallet"]{background:#FF9F0A!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="user"]{background:#1A73FF!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="haptic"]{background:#A855F7!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="inbox"]{background:#1A73FF!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="bell"]{background:#A855F7!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="rocket"]{background:#EC4899!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="megaphone"]{background:#29A9EA!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="search"]{background:#14B8A6!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="copy"]{background:#1A73FF!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="camera"]{background:#EC4899!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="edit"]{background:#FF9F0A!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="grid"]{background:#A855F7!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="shield"]{background:#22C55E!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="target"]{background:#EF4444!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="compass"]{background:#14B8A6!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="smile"]{background:#FF9F0A!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="feather"]{background:#14B8A6!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="sun"]{background:#FF9F0A!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="moon"]{background:#6366F1!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="download"]{background:#1A73FF!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="star"]{background:#FF9F0A!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="flame"]{background:#EF4444!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="alert"]{background:#FF9F0A!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="info"]{background:#1A73FF!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="gift"]{background:#EC4899!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="external-link"]{background:#1A73FF!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="help"]{background:#A855F7!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="globe"]{background:#1A73FF!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="pin"]{background:#EF4444!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="card"]{background:#6366F1!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="plus"]{background:#1A73FF!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="check"]{background:#22C55E!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="refresh"]{background:#1A73FF!important}
+:is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic)[data-ic="close"]{background:#EF4444!important}
 :is(.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic) :is(.ui-icon,.svg-icon){stroke:#fff!important;color:#fff!important;filter:none!important}
 .collapsible-header,.collapsible-header>label{background:none!important;border:0!important;box-shadow:none!important;border-radius:0!important}
 .nav-item .ui-icon{color:inherit!important;filter:none!important;width:24px!important;height:24px!important}
@@ -1104,7 +1105,7 @@ html.logged-out #wallet>:not(.title-header):not(.auth-gate):not(.modal-overlay),
             <div class="onboarding-logo" id="onboarding-logo">
                 <div class="skel" id="onboarding-logo-skeleton" style="position:absolute;inset:0;border-radius:20px;"></div>
                 <svg class="pca-logo-mark" id="onboarding-logo-default-icon" aria-hidden="true" style="width:100%;height:100%;display:none;"><use href="#icon-pca-logo"></use></svg>
-                <img id="onboarding-logo-img" src="" alt="" style="display:none;">
+                <img decoding="async" id="onboarding-logo-img" src="" alt="" style="display:none;">
             </div>
             <div class="onboarding-logo-status" id="onboarding-logo-status">Connecting…</div>
             <div class="onboarding-title">PCA Game Store</div>
@@ -1215,7 +1216,7 @@ html.logged-out #wallet>:not(.title-header):not(.auth-gate):not(.modal-overlay),
     <!-- Header -->
     <header class="header" id="app-header">
         <div class="header-row">
-        <div class="header-brand" aria-label="PCA Game Store"><div class="pi" id="pca-intro" data-ph="pre"><img class="hb-logo" id="hb-logo" alt="PCA Game Store" draggable="false" style="visibility:hidden"><div class="pi-over" aria-hidden="true"><div class="pi-txt"><span class="pi-l" style="--i:0">P</span><span class="pi-l" style="--i:1">C</span><span class="pi-l" style="--i:2">A</span><span class="pi-sp"></span><span class="pi-l" style="--i:4">G</span><span class="pi-l" style="--i:5">A</span><span class="pi-l" style="--i:6">M</span><span class="pi-l" style="--i:7">E</span><span class="pi-sp"></span><span class="pi-l" style="--i:9">S</span><span class="pi-l" style="--i:10">T</span><span class="pi-l" style="--i:11">O</span><span class="pi-l" style="--i:12">R</span><span class="pi-l" style="--i:13">E</span></div><div class="pi-dots"><i class="pi-d" style="--j:0;background:#2F7BFF"></i><i class="pi-d" style="--j:1;background:#FF3B30"></i><i class="pi-d" style="--j:2;background:#FFC21A"></i><i class="pi-d" style="--j:3;background:#34C759"></i></div></div></div></div>
+        <div class="header-brand" aria-label="PCA Game Store"><div class="pi" id="pca-intro" data-ph="pre"><img decoding="async" class="hb-logo" id="hb-logo" alt="PCA Game Store" draggable="false" style="visibility:hidden"><div class="pi-over" aria-hidden="true"><div class="pi-txt"><span class="pi-l" style="--i:0">P</span><span class="pi-l" style="--i:1">C</span><span class="pi-l" style="--i:2">A</span><span class="pi-sp"></span><span class="pi-l" style="--i:4">G</span><span class="pi-l" style="--i:5">A</span><span class="pi-l" style="--i:6">M</span><span class="pi-l" style="--i:7">E</span><span class="pi-sp"></span><span class="pi-l" style="--i:9">S</span><span class="pi-l" style="--i:10">T</span><span class="pi-l" style="--i:11">O</span><span class="pi-l" style="--i:12">R</span><span class="pi-l" style="--i:13">E</span></div><div class="pi-dots"><i class="pi-d" style="--j:0;background:#2F7BFF"></i><i class="pi-d" style="--j:1;background:#FF3B30"></i><i class="pi-d" style="--j:2;background:#FFC21A"></i><i class="pi-d" style="--j:3;background:#34C759"></i></div></div></div></div>
         <div class="header-icons-group" style="display:flex;align-items:center;">
             <button id="install-app-btn" class="hdr-install" type="button" onclick="installApp()" aria-label="App ကို Download လုပ်ပါ" title="App ကို Download လုပ်ပါ" style="display:none;"><svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg><span>Get App</span></button>
             <div class="header-icon header-menu-btn" id="notif-header-btn" onclick="openNotificationsPage()" role="button" aria-label="Inbox">
@@ -1418,13 +1419,13 @@ html.logged-out #wallet>:not(.title-header):not(.auth-gate):not(.modal-overlay),
                             <p class="pmx-intro">Transfer the exact amount to:</p>
                             <div class="pmx-ticket">
                                 <div class="pmx-head">
-                                    <span class="pmx-logo" id="wallet-pm-logo"><b>K</b><img alt="" src="" style="display:none"></span>
+                                    <span class="pmx-logo" id="wallet-pm-logo"><b>K</b><img decoding="async" alt="" src="" style="display:none"></span>
                                     <span class="pmx-ttl"><strong id="wallet-pm-brand">Payment</strong><small id="wallet-pm-sub">Mobile wallet</small></span>
                                     <span class="pmx-ver"><i class="pmx-vk" aria-hidden="true"><svg viewBox="0 0 24 24"><path pathLength="1" d="M6.4 12.8l3.7 3.7 7.5-8.2"/></svg></i>Verified</span>
                                 </div>
                                 <div class="pmx-qrpanel">
                                     <div class="pmx-qrbox"><i class="c1"></i><i class="c2"></i><i class="c3"></i><i class="c4"></i>
-                                        <img id="wallet-pm-qr" src="" alt="QR code" class="pmx-qr" style="display:none">
+                                        <img decoding="async" id="wallet-pm-qr" src="" alt="QR code" class="pmx-qr" style="display:none">
                                     </div>
                                     <button type="button" class="pmx-save" onclick="pmxSaveQr('wallet-pm-qr','wallet-pm-brand')"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 20h14"/></svg>Save QR</button>
                                 </div>
@@ -1446,7 +1447,7 @@ html.logged-out #wallet>:not(.title-header):not(.auth-gate):not(.modal-overlay),
                             <div class="upload-shot-icon"><svg class="ui-icon"><use href="#icon-camera"></use></svg></div>
                             <span class="upload-shot-label">Upload Screenshot</span>
                             <span class="upload-shot-hint">Tap to choose your payment screenshot</span>
-                            <img id="wallet-receipt-preview" src="" style="display:none;">
+                            <img decoding="async" id="wallet-receipt-preview" src="" style="display:none;">
                             <span class="upload-shot-change" id="wallet-upload-shot-change" style="display:none;">
                                 <svg style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><use href="#icon-camera"></use></svg> Change
                             </span>
@@ -1554,7 +1555,7 @@ b,strong{font-weight:600}}
                         
                         <label class="avatar-upload-box" id="avatar-upload-box" for="profile-photo-file">
                             <span class="avatar-upload-circle">
-                                <img id="profile-photo-preview" src="" alt="Profile photo" style="display:none;">
+                                <img decoding="async" id="profile-photo-preview" src="" alt="Profile photo" style="display:none;">
                                 <div class="avatar-upload-placeholder" id="avatar-upload-placeholder">
                                     <svg class="ui-icon"><use href="#icon-user"></use></svg>
                                 </div>
@@ -1685,7 +1686,7 @@ b,strong{font-weight:600}}
                         <p class="google-account-hint">Optional — just auto-fills your name &amp; photo below and remembers you next visit.</p>
                     </div>
                     <div class="google-account-card google-account-signedin" id="google-account-signedin" style="display:none;">
-                        <img id="google-account-avatar" src="" alt="" class="google-account-avatar">
+                        <img decoding="async" id="google-account-avatar" src="" alt="" class="google-account-avatar">
                         <div class="google-account-details">
                             <div class="google-account-name-row">
                                 <span id="google-account-name">—</span>
@@ -1946,7 +1947,7 @@ b,strong{font-weight:600}}
 <button type="button" class="dh-btn dh-back" onclick="closeGameDetail()" aria-label="Back"><span class="dh-ic"><svg class="ui-icon"><use href="#icon-chevron-left"></use></svg></span><span class="dh-tx">Back</span></button>
 <button type="button" class="dh-btn dh-fav favorite-game-btn" id="favorite-game-btn" onclick="toggleFavoriteGame()" aria-label="Toggle favorite"><span class="dh-ic"><svg class="ui-icon"><use href="#icon-star"></use></svg></span><span class="dh-tx">Favorite</span></button>
 </div>
-<div class="dhero"><img id="detail-game-banner" src="" alt="">
+<div class="dhero"><img id="detail-game-banner" src="" alt="" decoding="async">
 <h2 class="dhero-title" id="detail-game-name">Game</h2></div>
             <div class="detail-layout">
             <div class="detail-banner-col">
@@ -2037,12 +2038,12 @@ b,strong{font-weight:600}}
                         <p class="pmx-intro">Transfer the exact amount to:</p>
                         <div class="pmx-bank">
                             <div class="pmx-head">
-                                <span class="pmx-logo" id="pm-logo"><b>K</b><img alt="" src="" style="display:none"></span>
+                                <span class="pmx-logo" id="pm-logo"><b>K</b><img decoding="async" alt="" src="" style="display:none"></span>
                                 <span class="pmx-ttl"><strong id="pm-brand">Payment</strong><small id="pm-sub">Mobile wallet</small></span>
                                 <span class="pmx-ver"><i class="pmx-vk" aria-hidden="true"><svg viewBox="0 0 24 24"><path pathLength="1" d="M6.4 12.8l3.7 3.7 7.5-8.2"/></svg></i>Verified</span>
                             </div>
                             <div class="pmx-mid">
-                                <div class="pmx-qrcard"><img id="pm-qr" src="" alt="QR code" class="pmx-qr" style="display:none"></div>
+                                <div class="pmx-qrcard"><img decoding="async" id="pm-qr" src="" alt="QR code" class="pmx-qr" style="display:none"></div>
                                 <div class="pmx-info">
                                     <span class="pmx-lb">Name</span>
                                     <p id="pm-name" class="pmx-nm"></p>
@@ -2063,7 +2064,7 @@ b,strong{font-weight:600}}
                             <div class="upload-shot-icon"><svg class="ui-icon"><use href="#icon-camera"></use></svg></div>
                             <span class="upload-shot-label">Upload Screenshot</span>
                             <span class="upload-shot-hint">Tap to choose your payment screenshot</span>
-                            <img id="receipt-preview" src="" style="display:none;">
+                            <img decoding="async" id="receipt-preview" src="" style="display:none;">
                             <span class="upload-shot-change" id="upload-shot-change" style="display:none;">
                                 <svg style="width:13px;height:13px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round;"><use href="#icon-camera"></use></svg> Change
                             </span>
@@ -3987,7 +3988,7 @@ b,strong{font-weight:600}}
             } catch (err) {
                 console.error('openGameDetail: package list render failed for', gameId, err);
                 const list = document.getElementById('detail-package-list');
-                if (list) list.innerHTML = '<p class="empty-msg">Could not load packages for this game.</p>';
+                if (list) list.innerHTML = emptyStateHTML('icon-refresh', 'Could not load packages', 'Check your connection and try again.');
             }
 
             document.getElementById('detail-payment-section').style.display = 'none';
@@ -4160,13 +4161,13 @@ b,strong{font-weight:600}}
                 .filter(({ pkg }) => pkgTabOf(pkg) === activePackageTab);
 
             if (!entries.length) {
-                list.innerHTML = '<p class="empty-msg">No packages available</p>';
+                list.innerHTML = emptyStateHTML('icon-bag', 'No packages available', 'Packages for this game will show up here.');
                 return;
             }
 
             list.innerHTML = entries.map(({ pkg, i }, pos) => {
                 const img = pkg.image || DEFAULT_PACKAGE_ICON;
-                const imgTag = `<img class="pc-img" src="${img}" alt="" loading="lazy" onerror="this.src='${DEFAULT_PACKAGE_ICON}'">`;
+                const imgTag = `<img decoding="async" class="pc-img" src="${img}" alt="" loading="lazy" onerror="this.src='${DEFAULT_PACKAGE_ICON}'">`;
                 // Small corner stock badge, live from G2Bulk stock - only
                 // shown for voucher packages we actually have a stock number
                 // for (voucherStockMap is empty for non-voucher games).
@@ -4410,7 +4411,7 @@ b,strong{font-weight:600}}
                 const p = methods[id];
                 return `
                     <div class="payment-option" data-payment-id="${id}" onclick="selectPaymentMethod('${id}')">
-                        <div class="payment-option-icon">${p.image ? `<img src="${p.image}" alt="${p.name}">` : '<svg class="ui-icon" style="width:20px;"><use href="#icon-wallet"></use></svg>'}</div>
+                        <div class="payment-option-icon">${p.image ? `<img loading="lazy" decoding="async" src="${p.image}" alt="${p.name}">` : '<svg class="ui-icon" style="width:20px;"><use href="#icon-wallet"></use></svg>'}</div>
                         <div class="payment-option-text">
                             <span class="payment-option-name">${escapeHtml(p.name)}</span>
                             ${p.availabilityNote ? `<span class="payment-option-availability">${p.availabilityNote}</span>` : ''}
@@ -4843,7 +4844,7 @@ b,strong{font-weight:600}}
             const rows = (cfg.rows || []).filter(Boolean).map(r => `<div class="od-row"><span>${r[0]}</span><b>${r[1]}</b></div>`).join('');
             document.getElementById('order-review-body').innerHTML = `
                 <div class="or-head">
-                    <div class="hc-thumb">${cfg.img ? `<img src="${cfg.img}" alt="" onerror="this.style.display='none'">` : ''}</div>
+                    <div class="hc-thumb">${cfg.img ? `<img loading="lazy" decoding="async" src="${cfg.img}" alt="" onerror="this.style.display='none'">` : ''}</div>
                     <div style="min-width:0;">
                         <div class="or-game">${esc(cfg.game || '')}</div>
                         ${cfg.sub ? `<div class="or-sub">${esc(cfg.sub)}</div>` : ''}
@@ -5443,31 +5444,51 @@ b,strong{font-weight:600}}
         // Payment receipt upload: goes through the Cloudflare Worker (Cloudinary),
         // so no API key ever ships in this file's client-side JS.
         const RECEIPT_UPLOAD_URL = 'https://imgbb-functions.pca-game-store.workers.dev';
+        // perf: phone photos / screenshots are 2-8 MB; shrink to max 1600px JPEG (~150-400 KB) before upload. Any failure -> original file.
+        async function pcaPrepImage(file) {
+            try {
+                if (!file || !/^image\//.test(file.type) || file.size < 350 * 1024 || !window.createImageBitmap) return file;
+                const bmp = await createImageBitmap(file);
+                const k = Math.min(1, 1600 / Math.max(bmp.width, bmp.height));
+                const w = Math.max(1, Math.round(bmp.width * k)), h = Math.max(1, Math.round(bmp.height * k));
+                const c = document.createElement('canvas'); c.width = w; c.height = h;
+                const x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, w, h); x.drawImage(bmp, 0, 0, w, h);
+                if (bmp.close) bmp.close();
+                const blob = await new Promise(r => c.toBlob(r, 'image/jpeg', 0.82));
+                if (!blob || blob.size >= file.size) return file;
+                return new File([blob], (file.name || 'receipt').replace(/\.\w+$/, '') + '.jpg', { type: 'image/jpeg' });
+            } catch (e) { return file; }
+        }
+        // 40s timeout per try (a stalled mobile connection used to hang forever) + one automatic retry.
+        async function pcaPostReceipt(file) {
+            let last;
+            for (let i = 0; i < 2; i++) {
+                const ac = window.AbortController ? new AbortController() : null;
+                const t = setTimeout(() => { if (ac) ac.abort(); }, 40000);
+                try {
+                    const form = new FormData(); form.append('image', file);
+                    const res = await fetch(RECEIPT_UPLOAD_URL, { method: 'POST', body: form, signal: ac ? ac.signal : undefined });
+                    const data = await res.json(); clearTimeout(t);
+                    if (data && data.success) return data.data.url;
+                    last = new Error((data && data.error && data.error.message) || 'Receipt upload failed');
+                } catch (e) { clearTimeout(t); last = new Error('Receipt upload failed. Check your connection and try again.'); }
+            }
+            throw last;
+        }
 
         async function uploadReceipt(file) {
             const statusEl = document.getElementById('receipt-upload-status');
             statusEl.style.display = 'block';
             statusEl.innerText = 'Uploading receipt...';
 
-            const form = new FormData();
-            form.append('image', file);
-
-            let data;
             try {
-                const res = await fetch(RECEIPT_UPLOAD_URL, {
-                    method: 'POST',
-                    body: form
-                });
-                data = await res.json();
+                const url = await pcaPostReceipt(await pcaPrepImage(file));
+                statusEl.innerHTML = 'Receipt uploaded ' + window.PCA_CK;
+                return url;
             } catch (e) {
-                // network drop / non-JSON reply: show a readable message instead of "Unexpected token <"
                 statusEl.innerText = 'Receipt upload failed';
-                throw new Error('Receipt upload failed. Check your connection and try again.');
+                throw e;
             }
-            if (!data.success) { statusEl.innerText = 'Receipt upload failed'; throw new Error(data.error?.message || 'Receipt upload failed'); }
-
-            statusEl.innerHTML = 'Receipt uploaded ' + window.PCA_CK;
-            return data.data.url;
         }
 
         // Same free image host, used for the user's own profile picture.
@@ -5534,9 +5555,11 @@ b,strong{font-weight:600}}
         function psTs(v) { const t = Date.parse(v); return { seconds: Math.floor(t / 1000), nanoseconds: 0, toMillis: () => t, toDate: () => new Date(t), valueOf: () => t }; }
         function psFix(o) { if (!o || typeof o !== 'object') return o; for (const k in o) { const v = o[k]; if (typeof v === 'string' && PS_ISO.test(v)) o[k] = psTs(v); else if (v && typeof v === 'object') psFix(v); } return o; }
         function psDoc(id, data) { return { id, ref: null, exists: () => !!data, data: () => data || {} }; }
+        const PS_JSON = new WeakMap();
+        function psJson(it) { let v = PS_JSON.get(it); if (v === undefined) { v = JSON.stringify(it); PS_JSON.set(it, v); } return v; }
         function psQuery(items, prev) {
             const docs = items.map(it => psDoc(it.id, it));
-            const cur = new Map(items.map(it => [it.id, JSON.stringify(it)]));
+            const cur = new Map(items.map(it => [it.id, psJson(it)]));
             const changes = [];
             docs.forEach(d => { if (!prev.has(d.id)) changes.push({ type: 'added', doc: d }); else if (prev.get(d.id) !== cur.get(d.id)) changes.push({ type: 'modified', doc: d }); });
             prev.forEach((_, id) => { if (!cur.has(id)) changes.push({ type: 'removed', doc: psDoc(id, null) }); });
@@ -5560,7 +5583,7 @@ b,strong{font-weight:600}}
         function psSchedule() {
             clearTimeout(PS.timer);
             if (!PS.subs.size) return;
-            PS.timer = setTimeout(() => { if (document.hidden) { psSchedule(); return; } pcaPoll(true); }, auth.currentUser ? (psPending() ? (Date.now() - PS.changed > 120000 ? 15000 : 5000) : 60000) : 5000);
+            PS.timer = setTimeout(() => { if (document.hidden) { psSchedule(); return; } pcaPoll(true); }, auth.currentUser ? (psPending() ? (Date.now() - PS.changed > 600000 ? 30000 : (Date.now() - PS.changed > 120000 ? 15000 : 5000)) : 60000) : 5000);
         }
         async function pcaPoll(force, extra) {
             psSync();
@@ -5650,26 +5673,27 @@ b,strong{font-weight:600}}
         // Telegram bot can handle both the same way.
         // ============================================================
         let editingWalletReceiptFile = null;
+        let walletReceiptJob = null;      // { file, up: Promise<url> } background compress+upload of the picked receipt
+        let walletPreviewUrl = null;
         let selectedWalletPaymentMethod = null;
         let walletTopupCache = []; // most recent snapshot, for the detail modal
 
         async function uploadWalletReceipt(file) {
             const statusEl = document.getElementById('wallet-receipt-upload-status');
             statusEl.style.display = 'block';
+            // already uploaded in the background right after the photo was picked -> instant
+            if (walletReceiptJob && walletReceiptJob.file === file && walletReceiptJob.up) {
+                try { const u = await walletReceiptJob.up; statusEl.innerHTML = 'Receipt uploaded ' + window.PCA_CK; return u; } catch (e) { /* fall through: fresh try */ }
+            }
             statusEl.innerText = 'Uploading receipt...';
-            const form = new FormData();
-            form.append('image', file);
-            let data;
             try {
-                const res = await fetch(RECEIPT_UPLOAD_URL, { method: 'POST', body: form });
-                data = await res.json();
+                const url = await pcaPostReceipt(await pcaPrepImage(file));
+                statusEl.innerHTML = 'Receipt uploaded ' + window.PCA_CK;
+                return url;
             } catch (e) {
                 statusEl.innerText = 'Receipt upload failed';
-                throw new Error('Receipt upload failed. Check your connection and try again.');
+                throw e;
             }
-            if (!data.success) { statusEl.innerText = 'Receipt upload failed'; throw new Error(data.error?.message || 'Receipt upload failed'); }
-            statusEl.innerHTML = 'Receipt uploaded ' + window.PCA_CK;
-            return data.data.url;
         }
 
         function walletStatusBadgeClass(status) {
@@ -5711,9 +5735,11 @@ b,strong{font-weight:600}}
             const gid = window.getGuestId ? window.getGuestId() : null;
             if (!gid) return;
             window.pcaWatchUser((snap) => {
+                document.documentElement.classList.remove('pca-bal-wait');
                 const data = snap.exists() ? snap.data() : {};
                 const bal = Number(data.walletBalance || 0);
                 currentWalletBalance = bal;
+                try { pcaWalletCreditCheck(bal); } catch (e) { console.error(e); }
                 const el = document.getElementById('wallet-balance-amount');
                 if (el && window.formatMMK) el.innerText = window.formatMMK(bal);
                 const pcBal = document.getElementById('profile-card-balance');
@@ -5727,8 +5753,98 @@ b,strong{font-weight:600}}
                 myFavoriteGames = Array.isArray(data.favoriteGames) ? data.favoriteGames : [];
                 renderFavoriteGamesRow();
                 updateFavoriteButtonState();
-            }, (error) => console.error('Wallet balance listener error:', error));
+            }, (error) => { document.documentElement.classList.remove('pca-bal-wait'); console.error('Wallet balance listener error:', error); });
         }
+
+        // ---------- Wallet credit popup ----------
+        // When the wallet balance goes UP (top-up approved, refund...), show a centred popup with the amount that came in,
+        // count it up, and close it by itself after a 3-2-1 countdown. The last seen balance is remembered per account on this
+        // device, so a top-up approved while the app was closed is shown the next time it opens. First ever load: nothing shown.
+        // Preview on a phone: open the site with ?wcredit=12000 at the end of the address.
+        let pcwSeen = null, pcwTimer = 0, pcwRaf = 0, pcwPending = 0, pcwPendingBal = 0;
+        function pcaWalletCreditCheck(bal) {
+            const gid = window.getGuestId ? window.getGuestId() : '';
+            if (!gid || !isFinite(bal)) return;
+            const key = 'pca_wbal_' + gid;
+            let prev = (pcwSeen && pcwSeen.gid === gid) ? pcwSeen.bal : null;
+            if (prev === null) { try { const v = localStorage.getItem(key); if (v !== null && v !== '') prev = Number(v); } catch (e) { /* storage blocked */ } }
+            pcwSeen = { gid, bal };
+            try { localStorage.setItem(key, String(bal)); } catch (e) { /* storage blocked */ }
+            if (prev === null || !isFinite(prev)) return;
+            const d = Math.round(bal - prev);
+            if (d > 0) pcaShowWalletCredit(d, bal);
+        }
+        function pcaShowWalletCredit(amount, bal) {
+            amount = Math.round(Number(amount) || 0);
+            if (amount <= 0) return;
+            if (document.hidden) { pcwPending += amount; pcwPendingBal = bal; return; } // shown when the customer comes back
+            const old = document.getElementById('pca-wcredit');
+            if (old) { amount += Number(old.getAttribute('data-amt')) || 0; old.remove(); } // 2nd credit while open: add up, restart
+            clearTimeout(pcwTimer); cancelAnimationFrame(pcwRaf);
+            const fmt = n => Math.round(n).toLocaleString('en-US');
+            const reduce = !!(window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches);
+            const cols = ['#FDE68A', '#fff', '#A7F3D0', '#FCD34D', '#BFDBFE'];
+            let sp = '';
+            for (let i = 0; i < 10; i++) {
+                const a = (i / 10) * Math.PI * 2 + 0.3, r = 78 + (i % 3) * 18;
+                sp += '<i class="pcw-spk" style="--x:' + Math.round(Math.cos(a) * r) + 'px;--y:' + Math.round(Math.sin(a) * r * 0.8) + 'px;--c:' + cols[i % cols.length] + ';--d:' + (0.28 + (i % 4) * 0.05).toFixed(2) + 's"></i>';
+            }
+            const root = document.createElement('div');
+            root.id = 'pca-wcredit'; root.className = 'pcw';
+            root.setAttribute('data-amt', String(amount));
+            root.setAttribute('role', 'dialog'); root.setAttribute('aria-modal', 'true'); root.setAttribute('aria-label', 'Wallet top up received');
+            root.innerHTML =
+                '<div class="pcw-bd"></div>' +
+                '<div class="pcw-card">' +
+                  '<div class="pcw-hero">' +
+                    '<i class="pcw-bub pcw-b1"></i><i class="pcw-bub pcw-b2"></i>' + sp +
+                    '<div class="pcw-badge"><span class="pcw-ring"></span><span class="pcw-ring pcw-ring2"></span>' +
+                      '<svg viewBox="0 0 48 48" aria-hidden="true"><circle class="pcw-disc" cx="24" cy="24" r="22"/><path class="pcw-ck" pathLength="1" d="M14 25.5l7 7 13-15"/></svg></div>' +
+                    '<div class="pcw-t">Wallet ထဲသို့ ငွေဝင်ပါပြီ</div>' +
+                    '<div class="pcw-amt"><em>+</em><b id="pcw-n">0</b><u>MMK</u></div>' +
+                  '</div>' +
+                  '<div class="pcw-body">' +
+                    '<div class="pcw-row"><span>လက်ကျန်ငွေ</span><b>' + fmt(bal) + ' MMK</b></div>' +
+                    '<div class="pcw-cd"><span class="pcw-cdr"><svg viewBox="0 0 36 36" aria-hidden="true"><circle class="pcw-cdt" cx="18" cy="18" r="15"/><circle class="pcw-cdp" cx="18" cy="18" r="15" pathLength="1"/></svg><b id="pcw-c">3</b></span><span>အလိုအလျောက် ပိတ်မည်</span></div>' +
+                  '</div>' +
+                  '<div class="pcw-x" role="button" tabindex="0" aria-label="Close"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg></div>' +
+                '</div>';
+            const close = () => {
+                clearTimeout(pcwTimer); cancelAnimationFrame(pcwRaf);
+                if (!root.isConnected || root.classList.contains('pcw-out')) return;
+                root.classList.add('pcw-out');
+                setTimeout(() => { root.remove(); }, 240);
+            };
+            root.addEventListener('click', e => { if (e.target.closest('.pcw-x') || e.target.classList.contains('pcw-bd')) close(); });
+            document.body.appendChild(root);
+            // amount counts up from 0
+            const nEl = root.querySelector('#pcw-n');
+            if (reduce) nEl.textContent = fmt(amount);
+            else {
+                const t0 = performance.now(), D = 800;
+                const step = t => {
+                    const k = Math.min(1, (t - t0) / D);
+                    nEl.textContent = fmt(amount * (1 - Math.pow(1 - k, 3)));
+                    if (k < 1 && root.isConnected) pcwRaf = requestAnimationFrame(step);
+                };
+                pcwRaf = requestAnimationFrame(step);
+            }
+            // 3 -> 2 -> 1 -> close
+            let left = 3;
+            const cEl = root.querySelector('#pcw-c');
+            const tickDown = () => {
+                left--;
+                if (left <= 0) { close(); return; }
+                cEl.textContent = left;
+                pcwTimer = setTimeout(tickDown, 1000);
+            };
+            pcwTimer = setTimeout(tickDown, 1000);
+        }
+        window.pcaShowWalletCredit = pcaShowWalletCredit;
+        document.addEventListener('visibilitychange', () => {
+            if (!document.hidden && pcwPending > 0) { const a = pcwPending, b = pcwPendingBal; pcwPending = 0; setTimeout(() => pcaShowWalletCredit(a, b), 400); }
+        });
+        try { const m = /[?&]wcredit=(\d{1,9})/.exec(window.location.search); if (m) setTimeout(() => pcaShowWalletCredit(Number(m[1]), Number(m[1]) + 5000), 2000); } catch (e) { /* ignore */ }
 
         // ---------- Favorite Games (My Favorites quick-access row) ----------
         // Stored as users/{gid}.favoriteGames: [gameId,...]. Kept in sync by
@@ -5752,7 +5868,7 @@ b,strong{font-weight:600}}
                 return `
                     <div class="game-card popular-card game-card-anim card-pop pinned" data-game-id="${id}" style="--i:${Math.min(i, 8)}" onclick="openGameDetail('${id}')">
                         <div class="game-card-img-wrap">
-                            <img src="${optimizedGameImg(g.image, 200)}" alt="${escapeHtml(g.name)}" loading="lazy" decoding="async">
+                            <img loading="lazy" decoding="async" src="${optimizedGameImg(g.image, 200)}" alt="${escapeHtml(g.name)}" loading="lazy" decoding="async">
                             ${pinBadgeHtml()}
                         </div>
                         <div class="game-card-name">${escapeHtml(g.serverName || g.name)}</div>
@@ -5962,6 +6078,7 @@ b,strong{font-weight:600}}
             document.getElementById('wallet-receipt-upload-status').style.display = 'none';
             document.getElementById('wallet-receipt-file').value = '';
             editingWalletReceiptFile = null;
+            walletReceiptJob = null;
             selectedWalletPaymentMethod = null;
             const btn = document.getElementById('wallet-topup-submit-btn');
             btn.disabled = true;
@@ -6062,7 +6179,7 @@ b,strong{font-weight:600}}
                 const p = methods[id];
                 return `
                     <div class="payment-option" data-wallet-payment-id="${id}" onclick="selectWalletPaymentMethod('${id}')">
-                        <div class="payment-option-icon">${p.image ? `<img src="${p.image}" alt="${p.name}">` : '<svg class="ui-icon" style="width:20px;"><use href="#icon-wallet"></use></svg>'}</div>
+                        <div class="payment-option-icon">${p.image ? `<img loading="lazy" decoding="async" src="${p.image}" alt="${p.name}">` : '<svg class="ui-icon" style="width:20px;"><use href="#icon-wallet"></use></svg>'}</div>
                         <div class="payment-option-text">
                             <span class="payment-option-name">${escapeHtml(p.name)}</span>
                             ${p.availabilityNote ? `<span class="payment-option-availability">${p.availabilityNote}</span>` : ''}
@@ -6095,15 +6212,24 @@ b,strong{font-weight:600}}
             const file = e.target.files[0];
             if (!file) return;
             editingWalletReceiptFile = file;
-            const reader = new FileReader();
-            reader.onload = (ev) => {
-                const img = document.getElementById('wallet-receipt-preview');
-                img.src = ev.target.result;
-                img.style.display = 'block';
-                document.getElementById('wallet-upload-shot-box').classList.add('has-image');
-                document.getElementById('wallet-upload-shot-change').style.display = 'flex';
-            };
-            reader.readAsDataURL(file);
+            // preview straight from the file (no multi-MB base64 string in memory)
+            try { if (walletPreviewUrl) URL.revokeObjectURL(walletPreviewUrl); walletPreviewUrl = URL.createObjectURL(file); } catch (e) { walletPreviewUrl = null; }
+            const img = document.getElementById('wallet-receipt-preview');
+            if (walletPreviewUrl) img.src = walletPreviewUrl;
+            img.style.display = 'block';
+            document.getElementById('wallet-upload-shot-box').classList.add('has-image');
+            document.getElementById('wallet-upload-shot-change').style.display = 'flex';
+            // start compressing + uploading now, while the customer fills in the rest; submit then only waits for what is left
+            const job = { file, up: null };
+            walletReceiptJob = job;
+            const st = document.getElementById('wallet-receipt-upload-status');
+            job.up = (async () => {
+                if (st) { st.style.display = 'block'; st.innerText = 'Uploading receipt...'; }
+                const url = await pcaPostReceipt(await pcaPrepImage(file));
+                if (walletReceiptJob === job && st) st.innerHTML = 'Receipt uploaded ' + window.PCA_CK;
+                return url;
+            })();
+            job.up.catch(() => { if (walletReceiptJob === job && st) st.style.display = 'none'; });
         }
         window.previewWalletReceiptImage = previewWalletReceiptImage;
 
@@ -6158,6 +6284,10 @@ b,strong{font-weight:600}}
         // Top Up History  = wallet deposits only (walletTopupCache).
         // Transaction History = every wallet deposit + every purchase (orders), newest first.
         let walletTab = 'topup';
+        const PCA_NUM_FMT = (() => { try { return new Intl.NumberFormat(); } catch (e) { return null; } })();
+        const PCA_LS_FMT = (() => { try { return new Intl.DateTimeFormat(undefined, { year: 'numeric', month: 'numeric', day: 'numeric', hour: 'numeric', minute: 'numeric', second: 'numeric' }); } catch (e) { return null; } })();
+        const pcaNum = n => PCA_NUM_FMT ? PCA_NUM_FMT.format(n) : Number(n).toLocaleString();
+        const pcaLs = d => PCA_LS_FMT ? PCA_LS_FMT.format(d) : d.toLocaleString();
         let walletOrdersCache = [];
         let walletOrdersLoaded = false;
         let walletOrdersUnsub = null;
@@ -6216,7 +6346,7 @@ b,strong{font-weight:600}}
                 <div class="wtx-row wtx-topup ${sm.cls}" onclick="openWalletTopupDetail(${e.i})">
                     <div class="wtx-ic ${sm.cls}"><svg class="ui-icon"><use href="#icon-deposit"></use></svg></div>
                     <div class="wtx-body">
-                        <div class="wtx-top"><span class="wtx-title">Wallet Top Up</span><span class="wtx-amt in">+${(t.amount || 0).toLocaleString()} MMK</span></div>
+                        <div class="wtx-top"><span class="wtx-title">Wallet Top Up</span><span class="wtx-amt in">+${pcaNum(t.amount || 0)} MMK</span></div>
                         <div class="wtx-sub"><span class="wtx-meta">${escapeHtml(t.paymentMethod || '-')} • ${when}</span><span class="badge ${walletStatusBadgeClass(t.status)}">${orderStatusLabel(t.status)}</span></div>
                     </div>
                 </div>`;
@@ -6226,7 +6356,7 @@ b,strong{font-weight:600}}
             const dead = (o.status === 'Fail');
             return `
                 <div class="wtx-row wtx-order ${historyStatusClassFor(o.status)}" onclick="openWalletTxnOrder(${e.i})">
-                    <div class="wtx-ic wtx-shop">${img ? `<img src="${escapeHtml(img)}" alt="" onerror="this.remove()">` : ''}<svg class="ui-icon"><use href="#icon-bag"></use></svg></div>
+                    <div class="wtx-ic wtx-shop">${img ? `<img loading="lazy" decoding="async" src="${escapeHtml(img)}" alt="" onerror="this.remove()">` : ''}<svg class="ui-icon"><use href="#icon-bag"></use></svg></div>
                     <div class="wtx-body">
                         <div class="wtx-top"><span class="wtx-title">${escapeHtml(o.game || 'Purchase')}${o.itemAmount ? ' · ' + escapeHtml(o.itemAmount) : ''}</span><span class="wtx-amt out${dead ? ' void' : ''}">-${Number(o.price || 0).toLocaleString()} MMK</span></div>
                         <div class="wtx-sub"><span class="wtx-meta">${escapeHtml(o.paymentMethod || '-')} • ${when}</span><span class="badge ${historyBadgeClassFor(o.status)}">${historyStatusIconHTML(o.status)}${orderStatusLabel(o.status)}</span></div>
@@ -6262,7 +6392,7 @@ b,strong{font-weight:600}}
                 if (key !== lastKey) { html += `<div class="history-date-header wtx-date">${yangonDateLabel(key)}</div>`; lastKey = key; }
                 html += walletTxnRowHTML(e);
             });
-            list.innerHTML = html;
+            if (!(list.__pcaH === html && list.firstChild)) { list.__pcaH = html; list.innerHTML = html; }
         }
         window.renderWalletTxnList = renderWalletTxnList;
         /*WALLET-TABS-END*/
@@ -6289,7 +6419,7 @@ b,strong{font-weight:600}}
                 return;
             }
             empty.style.display = 'none';
-            list.innerHTML = walletTopupCache.map((t, i) => {
+            const topupHtml = walletTopupCache.map((t, i) => {
                 const sm = walletStatusIconMeta(t.status);
                 return `
                 <div class="wallet-topup-row ${sm.cls}" onclick="openWalletTopupDetail(${i})">
@@ -6298,10 +6428,10 @@ b,strong{font-weight:600}}
                     </div>
                     <div class="wallet-topup-row-body">
                         <div class="wallet-topup-row-top">
-                            <span class="wallet-topup-amount">+${(t.amount || 0).toLocaleString()} MMK</span>
+                            <span class="wallet-topup-amount">+${pcaNum(t.amount || 0)} MMK</span>
                             <span class="badge ${walletStatusBadgeClass(t.status)}">${orderStatusLabel(t.status)}</span>
                         </div>
-                        <div class="wallet-topup-meta">${escapeHtml(t.paymentMethod || '-')} • ${t.timestamp && t.timestamp.toDate ? t.timestamp.toDate().toLocaleString() : 'Just now'}</div>
+                        <div class="wallet-topup-meta">${escapeHtml(t.paymentMethod || '-')} • ${t.timestamp && t.timestamp.toDate ? pcaLs(t.timestamp.toDate()) : 'Just now'}</div>
                         ${t.status === 'Rejected'
                             ? `<div class="wallet-topup-note rejected">${t.statusNote ? escapeHtml(t.statusNote) : 'ပယ်ချခံရပါသည် — Support ကို ဆက်သွယ်ပါ။'}</div>`
                             : (t.status === 'Completed' ? '' : '<div class="wallet-topup-note pending">Admin စစ်ဆေးနေပါသည် — ပြီးရင် Wallet ထဲ ပေါင်းထည့်ပေးပါမယ်။</div>')}
@@ -6309,6 +6439,7 @@ b,strong{font-weight:600}}
                 </div>
             `;
             }).join('');
+            if (!(list.__pcaH === topupHtml && list.firstChild)) { list.__pcaH = topupHtml; list.innerHTML = topupHtml; }
         }
 
         // ---------- Top Up History: 2-month flat auto-delete (Completed/Rejected only) ----------
@@ -6426,7 +6557,7 @@ b,strong{font-weight:600}}
                         ${t.status === 'Rejected' && t.statusNote ? `<div class="od-row"><span>Reason</span><b>${escapeHtml(t.statusNote)}</b></div>` : ''}
                     </div>
                 </div>
-                ${t.receiptUrl ? `<p class="bk-sec">Payment Receipt</p><div class="bk-shot"><img src="${t.receiptUrl}" alt=""></div>` : ''}
+                ${t.receiptUrl ? `<p class="bk-sec">Payment Receipt</p><div class="bk-shot"><img loading="lazy" decoding="async" src="${t.receiptUrl}" alt=""></div>` : ''}
             `;
             document.getElementById('wallet-topup-detail-overlay').classList.add('show');
         }
@@ -7271,7 +7402,7 @@ b,strong{font-weight:600}}
                 const iconEl = el.querySelector('.social-link-icon');
                 if (!(platform in socialDefaultIconHTML)) socialDefaultIconHTML[platform] = iconEl.innerHTML;
                 if (image) {
-                    iconEl.innerHTML = `<img src="${image}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
+                    iconEl.innerHTML = `<img decoding="async" src="${image}" alt="" style="width:100%;height:100%;object-fit:cover;border-radius:50%;">`;
                 } else {
                     iconEl.innerHTML = socialDefaultIconHTML[platform];
                 }
@@ -7603,12 +7734,13 @@ b,strong{font-weight:600}}
                     }
                 }
 
+                const locationP = getOrderLocation(); // parallel with the receipt upload
                 const receiptUrl = await uploadReceipt(receiptFile);
 
                 const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
                 // Doesn't block the order if the customer denies/ignores the
                 // permission prompt or geolocation just isn't available.
-                const location = await getOrderLocation();
+                const location = await locationP;
 
 
                 const receiptOrderPayload = {
@@ -7686,6 +7818,7 @@ b,strong{font-weight:600}}
                 const guestId = window.getGuestId ? window.getGuestId() : '';
                 if (!guestId) throw new Error('Could not identify your account. Please reload and try again.');
 
+                const locationP = getOrderLocation(); // runs in parallel with the account check below (was sequential, up to 4s extra)
                 let walletBalanceSeen = null; // filled by the ban-check read below
                 try {
                     const userSnap = await window.pcaUserSnap(true);
@@ -7706,7 +7839,7 @@ b,strong{font-weight:600}}
                 if (walletBalanceSeen !== null && walletBalanceSeen < Number(price)) throw new Error('INSUFFICIENT_BALANCE');
 
                 const savedProfile = window.getSavedProfile ? window.getSavedProfile() : {};
-                const location = await getOrderLocation();
+                const location = await locationP;
 
                 const orderPayload = {
                     playerId: inGameId,
@@ -8226,7 +8359,7 @@ b,strong{font-weight:600}}
                 <div class="list-card history-card ${historyStatusClassFor(data.status)}" style="animation-delay:${Math.min(pos, 8) * 0.03}s" onclick="openOrderDetail(${index})">
                     ${(data.status === 'Success' || data.status === 'Fail') ? `<button type="button" class="hc-again" onclick="event.stopPropagation();pcaBuyAgainIdx(${index})"><svg class="ui-icon"><use href="#icon-refresh"></use></svg>Buy again</button>` : ''}
                     <div class="hc-left">
-                        <div class="hc-thumb">${gameImg ? `<img src="${gameImg}" alt="" onerror="this.style.display='none'">` : ''}</div>
+                        <div class="hc-thumb">${gameImg ? `<img loading="lazy" decoding="async" src="${gameImg}" alt="" onerror="this.style.display='none'">` : ''}</div>
                         <div class="list-info">
                             <h5>${escapeHtml(data.game)}</h5>
                             <p>${dateStr}</p>
@@ -8361,7 +8494,7 @@ b,strong{font-weight:600}}
                     </div>
                     <div class="bk-tear"><i></i><i></i></div>
                     <div class="bk-prod">
-                        <div class="hc-thumb bk-thumb">${gameImg ? `<img src="${gameImg}" alt="" onerror="this.style.display='none'">` : ''}</div>
+                        <div class="hc-thumb bk-thumb">${gameImg ? `<img loading="lazy" decoding="async" src="${gameImg}" alt="" onerror="this.style.display='none'">` : ''}</div>
                         <div class="bk-prod-tx"><b>${escapeHtml(data.game)}</b><span>${escapeHtml(data.itemAmount || '-')}</span></div>
                     </div>
                     ${orderTimelineHTML(data)}
@@ -8381,7 +8514,7 @@ b,strong{font-weight:600}}
 
                 ${data.receiptUrl ? `
                     <p class="bk-sec">Payment Receipt</p>
-                    <div class="bk-shot"><img src="${escapeHtml(data.receiptUrl)}" alt=""></div>
+                    <div class="bk-shot"><img loading="lazy" decoding="async" src="${escapeHtml(data.receiptUrl)}" alt=""></div>
                 ` : ''}
 
                 ${data.statusNote ? `
@@ -8648,7 +8781,7 @@ b,strong{font-weight:600}}
                 ov = document.createElement('div');
                 ov.id = 'receipt-preview-overlay';
                 ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(10,14,28,.82);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:16px;gap:12px';
-                ov.innerHTML = '<p style="color:#fff;font-size:13px;text-align:center;margin:0">ပုံကို ဖိနှိပ်ပြီး "Save Image" ရွေးပါ (သို့) Download ခလုတ်ကိုနှိပ်ပါ</p><img alt="Receipt" style="max-width:100%;max-height:70vh;border-radius:14px;background:#fff"><div style="display:flex;gap:10px"><a class="rcp-save" style="padding:11px 24px;border-radius:12px;background:#2557F5;color:#fff;font-weight:600;text-decoration:none;font-size:14px">Download</a><button type="button" class="rcp-close" style="padding:11px 24px;border:0;border-radius:12px;background:#fff;font-weight:600;font-size:14px">Close</button></div>';
+                ov.innerHTML = '<p style="color:#fff;font-size:13px;text-align:center;margin:0">ပုံကို ဖိနှိပ်ပြီး "Save Image" ရွေးပါ (သို့) Download ခလုတ်ကိုနှိပ်ပါ</p><img decoding="async" alt="Receipt" style="max-width:100%;max-height:70vh;border-radius:14px;background:#fff"><div style="display:flex;gap:10px"><a class="rcp-save" style="padding:11px 24px;border-radius:12px;background:#2557F5;color:#fff;font-weight:600;text-decoration:none;font-size:14px">Download</a><button type="button" class="rcp-close" style="padding:11px 24px;border:0;border-radius:12px;background:#fff;font-weight:600;font-size:14px">Close</button></div>';
                 ov.querySelector('.rcp-close').onclick = () => { ov.style.display = 'none'; };
                 ov.addEventListener('click', e => { if (e.target === ov) ov.style.display = 'none'; });
                 document.body.appendChild(ov);
@@ -9053,7 +9186,7 @@ b,strong{font-weight:600}}
                 return `
                     <div class="game-card game-card-anim card-pop" style="--i:${Math.min(i, 8)}" onclick="openGameDetail('${id}')">
                         <div class="game-card-img-wrap">
-                            <img src="${optimizedGameImg(g.image, 200)}" alt="${escapeHtml(label)}" loading="lazy" decoding="async">
+                            <img loading="lazy" decoding="async" src="${optimizedGameImg(g.image, 200)}" alt="${escapeHtml(label)}" loading="lazy" decoding="async">
                         </div>
                         <div class="game-card-name">${escapeHtml(label)}</div>
                     </div>
@@ -9139,7 +9272,7 @@ b,strong{font-weight:600}}
             return `
                 <div class="game-card popular-card game-card-anim card-pop${isGamePinned(gr.repId) ? ' pinned' : ''}" data-game-id="${gr.repId}" style="--i:${Math.min(i, 8)}" onclick="openGameEntry(${gr.idx})">
                     <div class="game-card-img-wrap">
-                        <img src="${optimizedGameImg(g.image, 200)}" alt="${escapeHtml(g.name)}" loading="lazy" decoding="async">
+                        <img loading="lazy" decoding="async" src="${optimizedGameImg(g.image, 200)}" alt="${escapeHtml(g.name)}" loading="lazy" decoding="async">
                         ${categoryBadgeHtml(g.category)}
                         ${serverCountBadgeHtml(gr)}
                         ${pinBadgeHtml()}
@@ -9253,7 +9386,7 @@ b,strong{font-weight:600}}
             if (signature === lastHomeGamesSignature && grid.children.length > 0) return;
             lastHomeGamesSignature = signature;
             if (ids.length === 0) {
-                grid.innerHTML = gamesLoadedOnce ? '<p class="empty-msg">No games available yet.</p>' : loadingStateHTML('grid');
+                grid.innerHTML = gamesLoadedOnce ? emptyStateHTML('icon-gamepad', 'No games available yet', 'New games will show up here soon.') : loadingStateHTML('grid');
                 popularSection.style.display = 'none';
                 popularScroll.innerHTML = '';
                 if (countEl) countEl.textContent = '';
@@ -9300,8 +9433,8 @@ b,strong{font-weight:600}}
             HOME_VISIBLE_GROUPS = visibleGroups;
             if (visibleGroups.length === 0) {
                 grid.innerHTML = gameSearchQuery
-                    ? `<p class="empty-msg">No games found for "${escapeHtml(gameSearchQuery)}".</p>`
-                    : `<p class="empty-msg">No games in this category yet.</p>`;
+                    ? emptyStateHTML('icon-search', 'No games found', `Nothing matches "${escapeHtml(gameSearchQuery)}". Try another name.`)
+                    : emptyStateHTML('icon-gamepad', 'No games in this category yet', 'Try a different category.');
                 updateHomeLoadMoreBtn(0, 0);
                 return;
             }
@@ -9318,7 +9451,7 @@ b,strong{font-weight:600}}
             const motionCls = wave ? 'card-wave' : 'card-pop';
             const motionVars = wave ? `--r:${wave.r};--c:${wave.c}` : `--i:${Math.min(i, 12)}`;
             return `<div class="game-card game-row game-card-anim ${motionCls}${isGamePinned(gr.repId) ? ' pinned' : ''}" data-game-id="${gr.repId}" style="${motionVars}" onclick="openGameEntry(${gr.idx})">
-                <div class="game-card-img-wrap"><img src="${optimizedGameImg(g.image, 200)}" alt="${escapeHtml(g.name)}" loading="lazy" decoding="async">${pinBadgeHtml()}${gameBadgesHtml(g)}</div>
+                <div class="game-card-img-wrap"><img loading="lazy" decoding="async" src="${optimizedGameImg(g.image, 200)}" alt="${escapeHtml(g.name)}" loading="lazy" decoding="async">${pinBadgeHtml()}${gameBadgesHtml(g)}</div>
                 <div class="game-row-body"><div class="game-card-name">${escapeHtml(g.name)}</div><div class="game-row-meta">${categoryBadgeHtml(g.category)}${serverCountBadgeHtml(gr)}</div></div>
                 <svg class="ui-icon game-row-go"><use href="#icon-chevron-right"></use></svg>
             </div>`;
@@ -9428,7 +9561,7 @@ b,strong{font-weight:600}}
                             <div class="voucher-card popular-voucher-card game-card-anim card-pop" style="--i:${Math.min(i, 8)}" onclick="openVoucherGameEntry(${gr.idx},'home')">
                                 <span class="voucher-card-tag">Gift Card</span>
                                 <div class="voucher-card-stack">
-                                    <img src="${optimizedGameImg(g.image, 200)}" alt="${escapeHtml(g.name)}" loading="lazy" decoding="async">
+                                    <img loading="lazy" decoding="async" src="${optimizedGameImg(g.image, 200)}" alt="${escapeHtml(g.name)}" loading="lazy" decoding="async">
                                     ${gameBadgesHtml(g)}
                                 </div>
                                 <div class="voucher-card-name">${escapeHtml(g.name)}</div>
@@ -9448,7 +9581,7 @@ b,strong{font-weight:600}}
                     <div class="voucher-card game-card-anim card-pop" style="--i:${Math.min(i, 12)}" onclick="openVoucherGameEntry(${i})">
                         <span class="voucher-card-tag">Gift Card</span>
                         <div class="voucher-card-stack">
-                            <img src="${optimizedGameImg(g.image, 200)}" alt="${escapeHtml(g.name)}" loading="lazy" decoding="async">
+                            <img loading="lazy" decoding="async" src="${optimizedGameImg(g.image, 200)}" alt="${escapeHtml(g.name)}" loading="lazy" decoding="async">
                                     ${gameBadgesHtml(g)}
                         </div>
                         <div class="voucher-card-name">${escapeHtml(g.name)}</div>
@@ -9509,7 +9642,7 @@ b,strong{font-weight:600}}
             const onErr = (error) => {
                 console.error("Games listener error:", error);
                 const grid = document.getElementById('all-games-grid');
-                if (grid) grid.innerHTML = '<p class="empty-msg" style="color:red;">Could not load games. Check connection.</p>';
+                if (grid) grid.innerHTML = emptyStateHTML('icon-refresh', 'Could not load games', 'Check your connection and try again.');
             };
             let fallbackUnsub = null;
             const catUnsub = onSnapshot(collection(db, "catalogPublic"), { includeMetadataChanges: true }, (snap) => {
@@ -9998,7 +10131,7 @@ b,strong{font-weight:600}}
             const row = (label, value, style) => value ? `<div class="od-row"><span>${label}</span><b${style ? ` style="${style}"` : ''}>${value}</b></div>` : '';
             return `
                 <div style="display:flex;align-items:center;gap:12px;margin-bottom:14px;">
-                    <div class="hc-thumb" style="width:52px;height:52px;">${gameImg ? `<img src="${gameImg}" alt="" onerror="this.style.display='none'">` : ''}</div>
+                    <div class="hc-thumb" style="width:52px;height:52px;">${gameImg ? `<img loading="lazy" decoding="async" src="${gameImg}" alt="" onerror="this.style.display='none'">` : ''}</div>
                     <div style="flex:1;min-width:0;">
                         <h4 style="font-size:17px;font-weight:600;color:var(--text);white-space:nowrap;overflow:hidden;text-overflow:ellipsis;">${escapeHtml(d.game || '')}</h4>
                         <p style="font-size:12px;color:var(--text-muted);margin-top:2px;">${historyDateTimeFmt.format(new Date(item.ts))}</p>
@@ -10898,7 +11031,7 @@ html body #success-overlay.show .success-box.pv-bk{opacity:1 !important;transfor
 #success-overlay.show .pv-bk-badge .cf.c5{animation-delay:1.6s}
 #success-overlay.show .pv-bk-badge .cf.c6{animation-delay:2s}
 @keyframes pvCf{0%{opacity:0;transform:translateY(8px) rotate(0)}30%{opacity:1}100%{opacity:0;transform:translateY(-14px) rotate(80deg)}}
-.pv-bk-body{position:relative;z-index:1;max-height:calc(100vh - 230px);overflow-y:auto;padding:70px 22px 22px}
+.pv-bk-body{position:relative;z-index:1;max-height:calc(100vh - 230px);max-height:calc(100dvh - 230px);overflow-y:auto;padding:70px 22px 22px}
 .pv-bk-label{font-size:15px;letter-spacing:.6px;color:#9AA0A8;font-weight:400}
 html body #success-overlay .pv-bk-title{margin:4px 0 8px !important;font-size:22px !important;font-weight:600 !important;letter-spacing:.2px;color:#23262D !important}
 html body #success-overlay .pv-bk-sub{margin:0 0 16px !important;font-size:13.5px !important;line-height:1.5;color:#6B7480 !important}
@@ -10909,7 +11042,7 @@ html body .pv-btn.main{background:#22C55E !important;color:#fff !important}
 html body .pv-btn.ghost{background:#F1F2F4 !important;color:#111318 !important}
 html body .pv-res-ov{position:fixed;inset:0;z-index:1200;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(17,19,24,.5);opacity:0;pointer-events:none;transition:opacity .25s ease}
 html body .pv-res-ov.show{opacity:1;pointer-events:auto}
-html body .pv-res-card{position:relative;width:min(100%,340px);max-height:calc(100vh - 60px);overflow-y:auto;background:#fff;border-radius:26px;padding:34px 20px 20px;text-align:center; box-shadow:0 30px 60px -24px rgba(17,19,24,.5);opacity:0;transform:translateY(26px) scale(.95);transition:transform .5s cubic-bezier(.2,1.2,.3,1),opacity .3s ease}
+html body .pv-res-card{position:relative;width:min(100%,340px);max-height:calc(100vh - 60px);max-height:calc(100dvh - 60px);overflow-y:auto;background:#fff;border-radius:26px;padding:34px 20px 20px;text-align:center; box-shadow:0 30px 60px -24px rgba(17,19,24,.5);opacity:0;transform:translateY(26px) scale(.95);transition:transform .5s cubic-bezier(.2,1.2,.3,1),opacity .3s ease}
 html body .pv-res-ov.show .pv-res-card{opacity:1;transform:none}
 .pv-res-card.pv-ok{--b1:rgba(134,239,172,.6);--b2:rgba(125,211,252,.42);--b3:rgba(190,242,100,.38);--hc:34,197,94}
 .pv-res-card.pv-bad{--b1:rgba(253,164,175,.62);--b2:rgba(251,146,60,.42);--b3:rgba(244,114,182,.36);--hc:255,90,31}
@@ -10989,7 +11122,7 @@ html body .prefs-group .prefs-grid{grid-template-columns:repeat(2,minmax(0,1fr))
 </style>
 <style id="pca-v4">
 @layer pcafix{html body main.content-area{overflow:visible !important;overflow-x:clip !important}
-body:not(:has(#home.active)):not(:has(#voucher.active)) #home-dash,body:not(:has(#home.active)):not(:has(#voucher.active)) #home-tabs-wrap{display:none !important}
+body:not(.pca-hv) #home-dash,body:not(.pca-hv) #home-tabs-wrap{display:none !important}
 html body .htabs-wrap{position:sticky;top:calc(76px + env(safe-area-inset-top,0px));z-index:40;margin:0 -15px 8px;padding:8px 15px; background:rgba(247,247,249,.93);transition:top .3s ease}
 html body .htabs{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
 html body .htab{position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;height:64px;padding:6px 2px 5px;margin:0;font:inherit;cursor:pointer;-webkit-tap-highlight-color:transparent; border-radius:calc(var(--pca-r,16px) - 2px);border:1px solid rgba(255,255,255,.95);color:#5B606A; background:linear-gradient(150deg,rgba(255,255,255,.96),rgba(var(--pca-rgb,37,87,245),.07)); box-shadow:0 0 0 1px rgba(17,19,24,.06),0 8px 16px -10px rgba(var(--pca-rgb,37,87,245),.38),inset 0 1px 0 #fff; transition:transform .2s ease,box-shadow .25s ease,background .25s ease,border-color .25s ease,color .2s ease}
@@ -11370,55 +11503,6 @@ html body .title-header::before{width:4px !important;height:14px !important;bord
     if (n && n.id !== 'btn-search') setSearchUI(false);
   }, true);
 
-  /* ================= Theme customizer ================= */
-  var T = window.pcaTheme;
-  if (!T || !$('th-acc')) return;
-  var st = T.load();
-  var COLORS = ['#2557F5', '#2563EB', '#16A34A', '#7C3AED', '#F97316', '#EC4899', '#0D9488', '#111318'];
-  var DEF = { acc: '#2557F5', nav: '#2563EB' };
-  function low(x) { return String(x || '').toLowerCase(); }
-  function commit() { T.save(st); T.apply(st); render(); }
-
-  function dots(hostId, key) {
-    var host = $(hostId); if (!host) return;
-    host.innerHTML = '';
-    var cur = low(st[key] || DEF[key]);
-    var isPreset = COLORS.some(function (c) { return low(c) === cur; });
-    COLORS.forEach(function (c) {
-      var b = document.createElement('button');
-      b.type = 'button'; b.className = 'th-dot' + (low(c) === cur ? ' on' : '');
-      b.style.background = c; b.style.setProperty('--dot', c); b.setAttribute('aria-label', c);
-      b.onclick = function () { st[key] = low(c) === low(DEF[key]) ? null : c; commit(); };
-      host.appendChild(b);
-    });
-    var cu = document.createElement('label');
-    cu.className = 'th-dot custom' + (isPreset ? '' : ' on'); cu.setAttribute('aria-label', 'Custom color');
-    if (!isPreset) { cu.style.background = st[key]; cu.style.setProperty('--dot', st[key]); }
-    var inp = document.createElement('input');
-    inp.type = 'color'; inp.value = /^#[0-9a-f]{6}$/i.test(st[key] || '') ? st[key] : DEF[key];
-    inp.oninput = function () { st[key] = inp.value; T.apply(st); };
-    inp.onchange = function () { st[key] = inp.value; commit(); };
-    cu.appendChild(inp); host.appendChild(cu);
-  }
-  function seg(hostId, opts, cur, fn) {
-    var host = $(hostId); if (!host) return;
-    host.innerHTML = '';
-    opts.forEach(function (o) {
-      var b = document.createElement('button');
-      b.type = 'button'; b.textContent = o[1]; b.className = o[0] === cur ? 'on' : '';
-      b.onclick = function () { fn(o[0]); commit(); };
-      host.appendChild(b);
-    });
-  }
-  function render() {
-    dots('th-acc', 'acc');
-    dots('th-nav', 'nav');
-    seg('th-rad', [['sharp', 'Sharp'], ['soft', 'Soft'], ['round', 'Round']], st.r || 'soft', function (v) { st.r = v === 'soft' ? null : v; });
-    seg('th-glass', [['on', 'Glass'], ['off', 'Solid']], st.glass === false ? 'off' : 'on', function (v) { st.glass = v === 'off' ? false : null; });
-  }
-  var rs = $('th-reset');
-  if (rs) rs.onclick = function () { st = {}; commit(); };
-  render();
 })();
 </script>
 
@@ -11580,9 +11664,9 @@ html body .slide-confirm-hint svg:nth-child(3){animation-delay:.36s}
 html body .slide-confirm-thumb{z-index:3 !important;top:3px !important;left:3px !important;width:44px !important;height:44px !important;border-radius:50% !important;background:#fff !important;opacity:1 !important; box-shadow:0 3px 8px -2px rgba(17,19,24,.38) !important;transition:transform .28s cubic-bezier(.2,.9,.3,1) !important;color:var(--pca-acc,#2557F5)}
 html body .slide-confirm-thumb.dragging{transition:none !important;cursor:grabbing}
 html body .slide-confirm-thumb :is(svg,.ui-icon){width:18px !important;height:18px !important;stroke:var(--pca-acc,#2557F5) !important;color:var(--pca-acc,#2557F5) !important}
-html body .slide-confirm-wrap:has(> .btn:disabled):not(.completed){background:#EEF0F3 !important;box-shadow:inset 0 0 0 1px #E3E5EA !important}
-html body .slide-confirm-wrap:has(> .btn:disabled):not(.completed) .btn{color:#8A8F99 !important}
-html body .slide-confirm-wrap:has(> .btn:disabled):not(.completed) .slide-confirm-thumb :is(svg,.ui-icon){stroke:#B3B7C0 !important;color:#B3B7C0 !important}
+html body .slide-confirm-wrap.pca-dis:not(.completed){background:#EEF0F3 !important;box-shadow:inset 0 0 0 1px #E3E5EA !important}
+html body .slide-confirm-wrap.pca-dis:not(.completed) .btn{color:#8A8F99 !important}
+html body .slide-confirm-wrap.pca-dis:not(.completed) .slide-confirm-thumb :is(svg,.ui-icon){stroke:#B3B7C0 !important;color:#B3B7C0 !important}
 html body .slide-confirm-wrap.completed{background:#16A34A !important;box-shadow:0 8px 18px -10px rgba(22,163,74,.7) !important}
 html body .slide-confirm-wrap.completed .slide-confirm-fill{background:transparent !important}
 html body .slide-confirm-wrap.completed .btn{color:#fff !important}
@@ -11973,14 +12057,14 @@ select[data-pcs]{display:none !important}
   function fix(btn){
     if(!btn||btn.tagName!=='BUTTON')return;
     if(btn.id==='confirm-id-btn'||btn.querySelector('[id]'))return; /* has its own spinner + id'd text span; wiping it breaks later lookups */
-    var has=btn.querySelector(':scope>.pca-spin');
+    var has=btn.querySelector(':scope>.pca-dots,:scope>.pca-spin');
     var txt=(btn.textContent||'').trim();
     if(!has&&txt&&txt.length<48&&RE.test(txt)){
       busy=true;
       var w=btn.offsetWidth;
       if(w&&!btn.dataset.pcaMinW){btn.dataset.pcaMinW='1';btn.style.minWidth=w+'px';}
       btn.setAttribute('aria-label',txt);
-      btn.innerHTML='<span class="pca-spin"></span>';
+      btn.innerHTML='<span class="pca-dots" aria-hidden="true"><i></i><i></i><i></i></span>';
       busy=false;
     }else if(!has&&btn.dataset.pcaMinW){
       btn.style.minWidth='';delete btn.dataset.pcaMinW;
@@ -12526,7 +12610,7 @@ html body nav#bottom-nav .nav-item.active .ui-icon:not(#z):not(#y):not(#x):not(#
   }
   if(document.fonts&&document.fonts.ready){
     var done=false;function once(){if(!done){done=true;go()}}
-    document.fonts.ready.then(once,once);setTimeout(once,1200);
+    document.fonts.ready.then(once,once);setTimeout(once,800);
   }else go();
 })();
 </script>
@@ -12618,7 +12702,7 @@ html body :is(.pkg-type-tab,.pay-type-tab,.history-status-tab,.history-date-chip
 html body :is(.pkg-type-tab,.history-status-tab,.history-date-chip,.wallet-preset-chip){display:inline-flex;align-items:center;justify-content:center}
 html body .pcs-o{position:relative;padding-right:40px !important}
 html body .pcs-o.sel::after{content:"" !important;position:absolute;right:12px;top:50%;width:20px;height:20px;margin-top:-10px;border-radius:50%; background:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23fff' stroke-width='3.4' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6.4 12.8l3.7 3.7 7.5-8.2'/%3E%3C/svg%3E") center/12px no-repeat,linear-gradient(145deg,#6E9BFF,var(--g10-acc));box-shadow:0 4px 10px -3px rgba(var(--g10-rgb),.6)}
-html body svg:has(use[href="#icon-check"]){stroke-width:2.8 !important}
+html body svg[data-ic="check"]{stroke-width:2.8 !important}
 html body :is(.gc-b,.pc-tag){display:inline-flex !important;align-items:center;gap:3px;height:19px !important;padding:0 8px 0 6px !important;border-radius:999px !important;font-size:9.5px !important;font-weight:800 !important;letter-spacing:.6px !important;text-transform:uppercase;line-height:1;position:relative;overflow:hidden; border:1px solid rgba(255,255,255,.85) !important;text-shadow:none !important}
 html body :is(.gc-b,.pc-tag) svg{width:11px !important;height:11px !important;flex:none;stroke-width:2 !important}
 html body :is(.gc-b,.pc-tag)::after{content:"";position:absolute;left:0;right:0;top:0;height:50%;background:linear-gradient(180deg,rgba(255,255,255,.55),rgba(255,255,255,0));pointer-events:none}
@@ -13247,7 +13331,7 @@ html body #detail-package-list .package-card.pc-in{opacity:1 !important;transfor
 #pca-welcome{position:fixed;inset:0;z-index:999990;display:none;align-items:flex-end;justify-content:center;padding:16px;background:rgba(17,19,24,.5);opacity:0;transition:opacity .3s ease}
 #pca-welcome.show{display:flex}
 #pca-welcome.in{opacity:1}
-#pca-welcome .wl-card{position:relative;box-sizing:border-box;width:100%;max-width:400px;max-height:calc(100vh - 32px);overflow-y:auto;background:#fff;border-radius:28px;padding:26px 20px 20px;text-align:center; box-shadow:0 30px 70px -20px rgba(17,19,24,.5);transform:translateY(40px) scale(.96);opacity:0;transition:transform .5s cubic-bezier(.2,.9,.3,1.1),opacity .35s ease;color:#111318}
+#pca-welcome .wl-card{position:relative;box-sizing:border-box;width:100%;max-width:400px;max-height:calc(100vh - 32px);max-height:calc(100dvh - 32px);overflow-y:auto;background:#fff;border-radius:28px;padding:26px 20px 20px;text-align:center; box-shadow:0 30px 70px -20px rgba(17,19,24,.5);transform:translateY(40px) scale(.96);opacity:0;transition:transform .5s cubic-bezier(.2,.9,.3,1.1),opacity .35s ease;color:#111318}
 #pca-welcome.in .wl-card{transform:none;opacity:1}
 #pca-welcome .wl-x{position:absolute;top:12px;right:12px;width:32px;height:32px;border:0;border-radius:50%;background:#F1F2F5;color:#5B6070;display:inline-flex;align-items:center;justify-content:center;padding:0;cursor:pointer}
 #pca-welcome .wl-logo{width:64px;height:64px;margin:0 auto 10px;display:block;object-fit:contain}
@@ -13277,7 +13361,7 @@ html body #detail-package-list .package-card.pc-in{opacity:1 !important;transfor
 <div id="pca-welcome" role="dialog" aria-modal="true" aria-labelledby="wl-title">
   <div class="wl-card">
     <button type="button" class="wl-x" aria-label="Close" onclick="pcaWelcomeClose()"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round"><path d="M6 6l12 12M18 6L6 18"/></svg></button>
-    <img class="wl-logo" id="wl-logo" alt="" style="display:none">
+    <img decoding="async" class="wl-logo" id="wl-logo" alt="" style="display:none">
     <div class="wl-hi">Welcome</div>
     <h2 class="wl-t" id="wl-title">PCA Game Store</h2>
     <p class="wl-s">ကြိုဆိုပါတယ်! Game Top-Up နဲ့ Voucher တွေကို မြန်မြန်ဆန်ဆန် ဝယ်ယူနိုင်ပါတယ်။</p>
@@ -13971,7 +14055,7 @@ html body div.package-grid-scroll:not(#a):not(#b){max-height:min(74vh,660px) !im
         ov = document.createElement('div'); ov.id = 'pmx-qr-preview';
         ov.style.cssText = 'position:fixed;inset:0;z-index:100000;background:rgba(10,14,28,.84);display:flex;flex-direction:column;align-items:center;justify-content:center;padding:18px;gap:14px';
         ov.innerHTML = '<p style="color:#fff;font-size:13px;text-align:center;margin:0;line-height:1.5">QR ပုံကို ဖိနှိပ်ပြီး “Save Image” ရွေးပါ</p>' +
-          '<img alt="QR" style="width:min(300px,78vw);height:auto;background:#fff;border-radius:20px;padding:14px;-webkit-touch-callout:default;user-select:auto">' +
+          '<img decoding="async" alt="QR" style="width:min(300px,78vw);height:auto;background:#fff;border-radius:20px;padding:14px;-webkit-touch-callout:default;user-select:auto">' +
           '<div style="display:flex;gap:10px"><a class="pq-dl" style="padding:10px 20px;border-radius:14px;background:#2557F5;color:#fff;font-size:14px;font-weight:600;text-decoration:none">Download</a>' +
           '<button type="button" class="pq-x" style="padding:10px 20px;border-radius:14px;border:0;background:rgba(255,255,255,.2);color:#fff;font-size:14px;font-weight:600">Close</button></div>';
         ov.querySelector('.pq-x').onclick = function () { ov.style.display = 'none'; };
@@ -14045,8 +14129,8 @@ html body :is(.pm-copy-btn,.voucher-copy-btn) .ui-icon:not(#z):not(#y){stroke:cu
 html body :is(.pm-copy-btn,.voucher-copy-btn):not(#z):not(#y):active{transform:scale(.9)}
 html body .voucher-copy-btn:not(#z):not(#y){width:34px;height:34px;color:#6B4A00!important;border-color:rgba(176,125,0,.35)!important; background:linear-gradient(160deg,#FFE08A 0%,#F0C551 55%,#E2AE2E 100%)!important; box-shadow:inset 0 1px 0 rgba(255,255,255,.75),0 4px 10px -4px rgba(190,135,0,.6)!important}
 html body .voucher-copy-btn:is(.copy-maxed,:disabled):not(#z):not(#y){opacity:.45;background:#E5DCB8!important;border-color:rgba(120,100,40,.25)!important;color:#8a7a4a!important;box-shadow:none!important}
-html body :is(button.pm-copy-btn,button.voucher-copy-btn):has(use[href="#icon-check"]):not(#z):not(#y):not(#x){color:#16A34A!important;border-color:rgba(34,197,94,.45)!important; background:linear-gradient(160deg,rgba(34,197,94,.26),rgba(34,197,94,.1))!important; box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 4px 10px -4px rgba(22,163,74,.55)!important; animation:pcaCopied .35s cubic-bezier(.3,1.5,.5,1) both}
-html body :is(button.pm-copy-btn,button.voucher-copy-btn):has(use[href="#icon-check"]) svg:not(#z):not(#y):not(#x){stroke:#16A34A!important;color:#16A34A!important;stroke-width:3!important;stroke-dasharray:1;stroke-dashoffset:1;animation:pcaTickDraw .34s .05s cubic-bezier(.6,0,.3,1) forwards}
+html body :is(button.pm-copy-btn,button.voucher-copy-btn)[data-ic="check"]:not(#z):not(#y):not(#x){color:#16A34A!important;border-color:rgba(34,197,94,.45)!important; background:linear-gradient(160deg,rgba(34,197,94,.26),rgba(34,197,94,.1))!important; box-shadow:inset 0 1px 0 rgba(255,255,255,.6),0 4px 10px -4px rgba(22,163,74,.55)!important; animation:pcaCopied .35s cubic-bezier(.3,1.5,.5,1) both}
+html body :is(button.pm-copy-btn,button.voucher-copy-btn)[data-ic="check"] svg:not(#z):not(#y):not(#x){stroke:#16A34A!important;color:#16A34A!important;stroke-width:3!important;stroke-dasharray:1;stroke-dashoffset:1;animation:pcaTickDraw .34s .05s cubic-bezier(.6,0,.3,1) forwards}
 #wallet .wglass{position:relative;isolation:isolate;margin-top:14px}
 #wallet .wglass::before{content:"";position:absolute;z-index:-1;inset:-12px -8px -8px;border-radius:34px;pointer-events:none; background: radial-gradient(60% 34% at 10% 4%,rgba(var(--pca-rgb,37,87,245),.26),transparent 72%), radial-gradient(52% 30% at 96% 20%,rgba(168,85,247,.20),transparent 72%), radial-gradient(60% 36% at 24% 98%,rgba(255,159,10,.18),transparent 74%)}
 html body .wtabs:not(#z){position:relative;display:grid;grid-template-columns:1fr 1fr;gap:0;padding:4px;margin:0 0 14px;border-radius:19px; background:linear-gradient(150deg,rgba(255,255,255,.62),rgba(255,255,255,.34));border:1px solid rgba(255,255,255,.8); box-shadow:0 10px 28px -14px rgba(25,50,120,.4),inset 0 1px 0 rgba(255,255,255,.95);}
@@ -14917,13 +15001,20 @@ html body .pca-batt.chg{color:#16a34a}
    var ref=h.querySelector('.modal-close');ref?h.insertBefore(c,ref):h.appendChild(c);chips.push(c)});
  }
  navigator.getBattery().then(function(b){
-  function up(){var p=Math.round(b.level*100);
+  function up(){var p=Math.round(b.level*100),t=p+'%',chg=!!b.charging;
    document.querySelectorAll('.pca-batt').forEach(function(c){
-    c.querySelector('span').textContent=p+'%';c.querySelector('b').style.setProperty('--lv',p+'%');
-    c.classList.toggle('low',p<=20&&!b.charging);c.classList.toggle('chg',!!b.charging)})}
+    var s=c.querySelector('span'),bb=c.querySelector('b');
+    if(s.textContent!==t)s.textContent=t;
+    if(bb.style.getPropertyValue('--lv')!==t)bb.style.setProperty('--lv',t);
+    c.classList.toggle('low',p<=20&&!chg);c.classList.toggle('chg',chg)})}
   place();up();
   b.addEventListener('levelchange',up);b.addEventListener('chargingchange',up);
-  new MutationObserver(function(){place();up()}).observe(document.body,{childList:true,subtree:true});
+  /* only react when a modal header is actually added (old version re-ran on every mutation, including its own text writes -> endless loop) */
+  new MutationObserver(function(recs){
+   for(var i=0;i<recs.length;i++){var a=recs[i].addedNodes;
+    for(var j=0;j<a.length;j++){var n=a[j];
+     if(n.nodeType===1&&(n.classList.contains('modal-header')||(n.querySelector&&n.querySelector('.modal-header')))){place();up();return}}}
+  }).observe(document.body,{childList:true,subtree:true});
  }).catch(function(){});
 })();
 </script>
@@ -14934,5 +15025,272 @@ html body header#app-header .header-icon .ui-icon,html body header#app-header .h
 html body header#app-header .header-icon::before,html body header#app-header .header-icon::after{display:none !important}
 }
 </style>
+
+<style id="pca-motion-v14">
+@layer pcadarkfix{
+html body nav#bottom-nav.bottom-nav{width:calc(100% - 40px)!important;max-width:340px!important;height:62px!important;padding:0 6px!important;grid-template-columns:1fr 1fr 70px 1fr 1fr!important;bottom:calc(12px + env(safe-area-inset-bottom,0px))!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important;transition:transform .45s cubic-bezier(.4,0,.2,1),opacity .35s ease,visibility 0s linear 0s!important}
+html body nav#bottom-nav.bottom-nav::before{-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:linear-gradient(145deg,rgba(255,255,255,.9),rgba(245,248,255,.82))!important}
+html body nav#bottom-nav.bottom-nav::before{-webkit-mask:linear-gradient(#000,#000) 0 0/calc(50% - 45px) 100% no-repeat,linear-gradient(#000,#000) 100% 0/calc(50% - 45px) 100% no-repeat,url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 92 62' preserveAspectRatio='none'%3E%3Cpath d='M0 0H8A9 9 0 0 1 17 9A29 29 0 0 0 75 9A9 9 0 0 1 84 0H92V62H0Z'/%3E%3C/svg%3E") 50% 0/92px 100% no-repeat!important;mask:linear-gradient(#000,#000) 0 0/calc(50% - 45px) 100% no-repeat,linear-gradient(#000,#000) 100% 0/calc(50% - 45px) 100% no-repeat,url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 92 62' preserveAspectRatio='none'%3E%3Cpath d='M0 0H8A9 9 0 0 1 17 9A29 29 0 0 0 75 9A9 9 0 0 1 84 0H92V62H0Z'/%3E%3C/svg%3E") 50% 0/92px 100% no-repeat!important}
+html body nav#bottom-nav.bottom-nav::after{display:none!important;content:none!important}
+html body nav#bottom-nav .nav-item-wallet .nav-icon-wrap-wallet{box-shadow:0 8px 14px -6px rgba(37,87,245,.55),inset 0 1px 0 rgba(255,255,255,.35)!important}
+html.pca-in body nav#bottom-nav .nav-icon-wrap-wallet,html.pca-in body nav#bottom-nav .nav-icon-wrap,html.pca-in body header#app-header .header-icons-group{will-change:transform,opacity}
+html body :is(.game-card,.voucher-card,.popular-card){border-radius:14px!important}
+html body :is(.game-card,.voucher-card,.popular-card) .game-card-img-wrap{border-radius:9px!important}
+html body :is(.game-card,.voucher-card,.popular-card) .game-card-name{border-radius:7px!important}
+html body :is(.gsk-tile,.gsk-pop,.gsk-vpop){border-radius:14px!important;padding:7px!important;gap:7px!important;border-width:1px!important}
+html body :is(.gsk-img,.gsk-vpop .gsk-img){border-radius:9px!important}
+html body .gsk-line{border-radius:7px!important;height:26px!important;min-height:26px!important;flex:none!important}
+html body .gsk-row{border-radius:14px!important}
+html body .gsk-row .gsk-ric{border-radius:10px!important}
+html body .pca-pk-skel .sk-row{border-radius:14px!important}
+html body #onboarding-overlay{background:#F7F8FA!important;background-image:none!important}
+html body #onboarding-overlay .onboarding-card{align-items:flex-start!important;text-align:left!important;justify-content:flex-start!important;padding:88px 28px 40px!important;border:0!important;box-shadow:none!important;background:transparent!important;max-width:none!important;width:100%!important;box-sizing:border-box!important;min-height:100%!important}
+html body #onboarding-overlay .onboarding-logo{width:76px!important;height:76px!important;margin:0 0 4px!important;border:0!important;border-radius:0!important;background:transparent!important;box-shadow:none!important;overflow:visible!important}
+html body #onboarding-overlay .onboarding-logo img,html body #onboarding-overlay .onboarding-logo svg{width:100%!important;height:100%!important;object-fit:contain!important;border:0!important;border-radius:0!important;box-shadow:none!important;background:none!important}
+html body #onboarding-overlay .onboarding-logo-status{text-align:left!important;margin:0 0 16px!important}
+html body #onboarding-overlay .onboarding-title{font-size:34px!important;line-height:1.12!important;font-weight:800!important;letter-spacing:-.02em!important;color:#0F1B2D!important;text-align:left!important;margin:0!important}
+html body #onboarding-overlay .onboarding-step{width:100%!important}
+html body #onboarding-overlay .onboarding-sub{text-align:left!important;margin:12px 0 28px!important}
+html body #onboarding-overlay .onboarding-sub b{font-size:15px!important;color:#0F1B2D!important}
+html body #onboarding-overlay .ob-plate{border:0!important;box-shadow:none!important;background:transparent!important;padding:0!important;width:100%!important}
+html body #onboarding-overlay .gis-btn-slot{border-radius:999px!important;overflow:hidden!important;width:100%!important}
+html body #onboarding-overlay .google-login-btn{width:100%!important;max-width:none!important;height:56px!important;padding:0 20px!important;border:0!important;border-radius:999px!important;background:linear-gradient(135deg,#4C8DFF,#2557F5)!important;color:#fff!important;font-size:15px!important;font-weight:600!important;box-shadow:0 12px 22px -12px rgba(37,87,245,.7)!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:10px!important}
+html body #onboarding-overlay .google-login-btn svg{background:#fff!important;border-radius:50%!important;padding:5px!important;box-sizing:content-box!important;width:18px!important;height:18px!important}
+html body #onboarding-overlay #onboard-telegram-widget{border-radius:999px!important;overflow:hidden!important}
+html body #onboarding-overlay #onboard-step-login .ob-plate:last-child{background:#E8EEFF!important;border:0!important;border-radius:999px!important;min-height:56px!important;display:flex!important;align-items:center!important;justify-content:center!important}
+html body #onboarding-overlay .ob-or{margin:14px 0!important}
+html body #onboarding-overlay .gis-btn-slot:empty{display:none!important}
+html body #onboarding-overlay .ob-plate{display:flex!important;flex-direction:column!important;align-items:stretch!important}
+html body #onboarding-overlay::before,html body #onboarding-overlay::after{display:none!important}
+html body header#app-header .hb-logo{height:52px!important;max-height:52px!important;width:auto!important}
+html body :is(.btn,.btn-primary,.btn-outline,.confirm-id-btn,.wallet-topup-btn,.pc-topup-btn,.pv-btn,.load-more-games-btn,.game-open-app-btn,.game-desc-redeem-btn,.google-signout-btn,.od-again,.or-btn-edit,.wbc2-hist,.wl-btn,.pmx-b1,.pmx-b2,.pmx-save,.hc-again,.psb-btn){border-radius:999px!important;border:0!important;box-shadow:none!important;font-weight:600!important}
+html body :is(.btn-primary,.btn:not(.btn-outline):not(.wallet-topup-btn):not(.wbc2-hist):not(.or-btn-edit):not(.od-again),.confirm-id-btn,.pv-btn.main,.pv-btn.buy,.load-more-games-btn,.game-open-app-btn,.pmx-save,.pmx-b1){background:linear-gradient(135deg,#4C8DFF,#2557F5)!important;color:#fff!important;box-shadow:0 10px 18px -10px rgba(37,87,245,.65)!important}
+html body :is(.btn-outline,.pv-btn.ghost,.google-signout-btn,.pmx-b2){background:#E8EEFF!important;color:#2557F5!important}
+html body :is(.btn-primary,.btn,.confirm-id-btn,.pv-btn,.pmx-save,.pmx-b1):disabled{opacity:.5!important;box-shadow:none!important}
+html body nav#bottom-nav .nav-item{margin:6px 2px!important}
+html body nav#bottom-nav .nav-item .ui-icon{width:23px!important;height:23px!important}
+html body nav#bottom-nav .nav-item .nav-label{font-size:10.5px!important}
+html body nav#bottom-nav .nav-item-wallet::before{width:23px!important;height:23px!important}
+html body nav#bottom-nav .nav-item-wallet .nav-icon-wrap-wallet{width:48px!important;height:48px!important;top:-21px!important;margin:0 0 0 -24px!important}
+html body nav#bottom-nav .nav-item-wallet .nav-icon-wrap-wallet .ui-icon{width:23px!important;height:23px!important}
+html body:not(.no-bottom-nav){padding-bottom:calc(98px + env(safe-area-inset-bottom,0px))!important}
+html body header#app-header.header{transition:transform .45s cubic-bezier(.4,0,.2,1),opacity .35s ease,visibility 0s!important}
+html body header#app-header :is(.header-brand,.header-icons-group){-webkit-backdrop-filter:none!important;backdrop-filter:none!important;background:linear-gradient(145deg,rgba(255,255,255,.86),rgba(246,249,255,.72))!important}
+html.pca-inner body header#app-header.header,html.pca-inner body nav#bottom-nav.bottom-nav{display:flex!important;opacity:0!important;visibility:hidden!important;pointer-events:none!important;transform:none!important;transition:opacity .35s ease,visibility 0s linear .35s!important}
+html.pca-inner body nav#bottom-nav.bottom-nav{display:grid!important}
+html.pca-in body header#app-header.header,html.pca-in body nav#bottom-nav.bottom-nav{transition:none!important;opacity:1!important}
+html.pca-in nav#bottom-nav .nav-icon-wrap-wallet{animation:pcaEWallet .65s cubic-bezier(.2,1.2,.4,1) both!important}
+html.pca-in nav#bottom-nav::before,html.pca-in nav#bottom-nav::after{animation:pcaEFade .55s ease .5s backwards!important}
+html.pca-in nav#bottom-nav .nav-item:not(.nav-item-wallet) .nav-icon-wrap{animation:pcaEIcon .5s cubic-bezier(.2,.9,.3,1.1) .85s backwards!important}
+html.pca-in nav#bottom-nav .nav-item:nth-child(1) .nav-icon-wrap,html.pca-in nav#bottom-nav .nav-item:nth-child(5) .nav-icon-wrap{animation-delay:1.0s!important}
+html.pca-in nav#bottom-nav .nav-label{animation:pcaEFade .45s ease 1.45s backwards!important}
+html.pca-in header#app-header .header-brand{animation:pcaEBrand 1.2s cubic-bezier(.4,0,.2,1) backwards!important}
+html.pca-in header#app-header .header-brand>*{animation:pcaEFade .45s ease .85s backwards!important}
+html.pca-in header#app-header .header-icons-group{transform-origin:100% 50%;animation:pcaEInbox .6s cubic-bezier(.2,1.15,.4,1) 1.15s backwards!important}
+html.pca-in #bullet-chat-wrapper:not(.bc-enter){animation:pcaEFade .6s ease 1.6s backwards!important}
+html body #bullet-chat-wrapper.bullet-chat-wrapper{height:34px!important;border-radius:999px!important;background:linear-gradient(120deg,rgba(255,255,255,.9),rgba(238,244,255,.7))!important;border:1px solid rgba(255,255,255,.95)!important;box-shadow:0 8px 20px -12px rgba(37,87,245,.45),inset 0 1px 0 #fff!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html body #bullet-chat-wrapper .bullet-chat-badge{background:linear-gradient(135deg,#4C8DFF,#2557F5)!important;color:#fff!important;border:0!important;box-shadow:0 4px 10px -4px rgba(37,87,245,.7)!important}
+html body #bullet-chat-wrapper .bullet-chat-badge .live-dot{background:#fff!important}
+html body #bullet-chat-wrapper .bullet-chat{color:#1E293B!important;font-weight:500!important}
+}
+@keyframes pcaEFade{from{opacity:0}to{opacity:1}}
+@keyframes pcaEWallet{0%{opacity:0;scale:.15}60%{opacity:1;scale:1.14}100%{opacity:1;scale:1}}
+@keyframes pcaEIcon{from{opacity:0;translate:0 10px;scale:.7}to{opacity:1;translate:0 0;scale:1}}
+@keyframes pcaEBrand{0%{opacity:0;translate:-46px 0;clip-path:inset(0 calc(100% - 52px) 0 0 round 26px)}22%{opacity:1;translate:0 0;clip-path:inset(0 calc(100% - 52px) 0 0 round 26px)}100%{opacity:1;translate:0 0;clip-path:inset(-30px -30px -40px -30px round 26px)}}
+@keyframes pcaEInbox{from{opacity:0;translate:28px 0;scale:.4}to{opacity:1;translate:0 0;scale:1}}
+@media (prefers-reduced-motion:reduce){html.pca-in *,html.pca-in *::before,html.pca-in *::after{animation:none!important}}
+</style>
+<script id="pca-motion-v14-js">
+(function(){
+ var h=document.documentElement,b=document.body,t=0,started=false,inner=false;
+ function isInner(){return b.classList.contains('no-bottom-nav')||b.classList.contains('page-profile')}
+ function play(){h.classList.remove('pca-in');void h.offsetWidth;h.classList.add('pca-in');clearTimeout(t);t=setTimeout(function(){h.classList.remove('pca-in')},2800)}
+ inner=isInner();h.classList.toggle('pca-inner',inner);
+ new MutationObserver(function(){
+  var n=isInner();if(n===inner)return;inner=n;
+  h.classList.toggle('pca-inner',n);
+  if(n){h.classList.remove('pca-in');clearTimeout(t)}else if(started)play();
+ }).observe(b,{attributes:true,attributeFilter:['class']});
+ function start(){if(started)return;started=true;if(!inner)play()}
+ if(!document.getElementById('pca-gate'))start();
+ else{var o=window.pcaReveal;window.pcaReveal=function(){try{o&&o()}catch(e){}setTimeout(start,60)};setTimeout(start,3000)}
+})();
+</script>
+<style id="pca-notch-v15">
+@layer pcadarkfix{
+:root{--pca-x:calc(var(--tg-safe-area-inset-top,0px) + var(--tg-content-safe-area-inset-top,0px))}
+html body{margin-top:var(--pca-x)!important}
+html body header#app-header.header:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9):not(#q10):not(#q11):not(#q12):not(#q13):not(#q14):not(#q15):not(#q16):not(#q17):not(#q18):not(#q19):not(#q20):not(#q21):not(#q22):not(#q23):not(#q24):not(#q25):not(#q26):not(#q27):not(#q28):not(#q29):not(#q30){top:calc(8px + env(safe-area-inset-top,0px) + var(--pca-x))!important}
+html body header#app-header.header.header-hidden:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9):not(#q10):not(#q11):not(#q12):not(#q13):not(#q14):not(#q15):not(#q16):not(#q17):not(#q18):not(#q19):not(#q20):not(#q21):not(#q22):not(#q23):not(#q24):not(#q25):not(#q26):not(#q27):not(#q28):not(#q29):not(#q30),html body header#app-header.header.pca-hide:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9):not(#q10):not(#q11):not(#q12):not(#q13):not(#q14):not(#q15):not(#q16):not(#q17):not(#q18):not(#q19):not(#q20):not(#q21):not(#q22):not(#q23):not(#q24):not(#q25):not(#q26):not(#q27):not(#q28):not(#q29):not(#q30){transform:translate3d(0,calc(-100% - 60px - var(--pca-x)),0)!important}
+html body .htabs-wrap:not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9):not(#q10):not(#q11):not(#q12):not(#q13):not(#q14):not(#q15):not(#q16):not(#q17):not(#q18):not(#q19):not(#q20):not(#q21):not(#q22):not(#q23):not(#q24):not(#q25):not(#q26):not(#q27):not(#q28):not(#q29):not(#q30){top:calc(68px + env(safe-area-inset-top,0px) + var(--pca-x))!important}
+html body :is(#toast,#order-tracker):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):not(#q6):not(#q7):not(#q8):not(#q9):not(#q10):not(#q11):not(#q12):not(#q13):not(#q14):not(#q15):not(#q16):not(#q17):not(#q18):not(#q19):not(#q20):not(#q21):not(#q22):not(#q23):not(#q24):not(#q25):not(#q26):not(#q27):not(#q28):not(#q29):not(#q30){top:calc(8px + env(safe-area-inset-top,0px) + var(--pca-x))!important}
+}
+</style>
+<script id="pca-notch-v15-js">
+(function(){var d=document.documentElement;function u(){try{var w=window.Telegram&&Telegram.WebApp;if(!w)return;var a=(w.safeAreaInset&&w.safeAreaInset.top)||0,b=(w.contentSafeAreaInset&&w.contentSafeAreaInset.top)||0,t=a+b;if(!t&&w.isFullscreen)t=a||48;if(t)d.style.setProperty('--pca-x',t+'px')}catch(e){}}
+u();try{['safeAreaChanged','contentSafeAreaChanged','fullscreenChanged','viewportChanged'].forEach(function(e){Telegram.WebApp.onEvent(e,u)})}catch(e){}setTimeout(u,300);setTimeout(u,1200)})();
+</script>
+
+<style id="pca-unify-v16">
+@layer pcadarkfix{
+/* 1) One shape language everywhere: cards 14px (same as Home), inputs 12px, tabs/buttons pill */
+html body :is(.detail-form-card,.game-desc-card,.wallet-pay-info-card,.google-account-card,.history-card,.wallet-topup-row,.wtx-row,.package-card,.auth-gate,.empty-state,.pc-top,.pc-stat,.wallet-balance-card,.payment-option,.notif-item):not(#z):not(#y):not(#x){border-radius:14px!important}
+html body :is(.detail-form-card,.game-desc-card,.wallet-pay-info-card,.google-account-card,.history-card,.wallet-topup-row,.wtx-row,.package-card,.auth-gate,.pc-top,.pc-stat,.notif-item):not(#z):not(#y):not(#x){border:1px solid rgba(255,255,255,.75)!important}
+html body :is(.detail-form-card input:not([type=file]):not([type=checkbox]):not([type=radio]),.detail-form-card select,.game-search-input,.wallet-topup-amount-input,#profile-edit-overlay input,#profile-edit-overlay select):not(#z):not(#y):not(#x){border-radius:12px!important;border:1px solid #E3E8F0!important;background-color:rgba(255,255,255,.85)!important;box-shadow:none!important;transition:border-color .15s ease,box-shadow .15s ease!important}
+html body :is(.detail-form-card input:not([type=file]):not([type=checkbox]):not([type=radio]),.detail-form-card select,.game-search-input,.wallet-topup-amount-input,#profile-edit-overlay input,#profile-edit-overlay select):focus:not(#z):not(#y):not(#x){border-color:var(--pca-acc,#2557F5)!important;box-shadow:0 0 0 3px rgba(var(--pca-rgb,37,87,245),.14)!important;outline:0!important}
+html body :is(.htabs,.pkg-type-tabs,.pay-type-tabs):not(#z):not(#y):not(#x){border-radius:999px!important}
+html body :is(.htab,.pkg-type-tab,.pay-type-tab,.history-status-tab,.history-date-chip,.wallet-preset-chip,.wtab):not(#z):not(#y):not(#x){border-radius:999px!important;border:0!important;box-shadow:none!important}
+html body :is(.empty-state-icon,.auth-gate-icon):not(#z):not(#y):not(#x){border:0!important;box-shadow:none!important}
+
+/* 2) Skeleton for balance + profile name until the first Firestore snapshot lands (no layout shift: text keeps its width) */
+@keyframes pcaV16Sk{0%{background-position:120% 0}100%{background-position:-120% 0}}
+html.pca-bal-wait body :is(#wallet-balance-amount,#profile-card-balance,#home-balance-amount,#profile-hero-name,#profile-hero-id){color:transparent!important;-webkit-text-fill-color:transparent!important;text-shadow:none!important;border-radius:8px;background:linear-gradient(100deg,rgba(130,150,200,.16) 30%,rgba(255,255,255,.6) 50%,rgba(130,150,200,.16) 70%) 0 0/220% 100%!important;animation:pcaV16Sk 1.2s linear infinite!important}
+html.pca-bal-wait body #wallet-balance-amount{background:linear-gradient(100deg,rgba(255,255,255,.18) 30%,rgba(255,255,255,.42) 50%,rgba(255,255,255,.18) 70%) 0 0/220% 100%!important;width:max-content;max-width:100%}
+
+/* 3) Press feedback: shrink a little while pressed, spring back on release (uses the "scale" property so it never fights existing transforms) */
+html body :is(button,.btn,.game-card,.voucher-card,.popular-card,.package-card,.history-card,.wallet-topup-row,.wtx-row,.notif-item,.qa,.prefs-tile,.payment-option,.header-icon,.htab,.pkg-type-tab,.pay-type-tab,.history-status-tab,.history-date-chip,.wallet-preset-chip,.wtab,.game-desc-redeem-btn):not(.nav-item):not(.modal-close):not(#z):not(#y):not(#x){transition:scale .16s cubic-bezier(.3,1.5,.5,1),background-color .15s ease,color .15s ease,opacity .15s ease,box-shadow .15s ease,border-color .15s ease!important;-webkit-tap-highlight-color:transparent}
+html body :is(button,.btn,.game-card,.voucher-card,.popular-card,.package-card,.history-card,.wallet-topup-row,.wtx-row,.notif-item,.qa,.prefs-tile,.payment-option,.header-icon,.htab,.pkg-type-tab,.pay-type-tab,.history-status-tab,.history-date-chip,.wallet-preset-chip,.wtab,.game-desc-redeem-btn):not(.nav-item):not(.modal-close):not(:disabled):active:not(#z):not(#y):not(#x){scale:.96}
+html body :is(.game-card,.voucher-card,.popular-card,.history-card,.wallet-topup-row,.wtx-row,.notif-item,.package-card):not(#z):not(#y):not(#x):active{scale:.975}
+
+/* 4) Page fade (opacity only, so fixed header/nav/modals inside stay put). .3s matches the header/nav .35s fade */
+@keyframes pcaV16Pg{from{opacity:0}to{opacity:1}}
+html body .page-section.active:not(.swipe-left):not(.swipe-right){animation:pcaV16Pg .3s ease-out both!important}
+html body #game-detail.page-section.active:not(.swipe-left):not(.swipe-right){animation:pcaV16Pg .3s ease-out both!important}
+}
+@media (prefers-reduced-motion:reduce){
+html body .page-section.active{animation:none!important}
+html body *{scale:none!important}
+html.pca-bal-wait body :is(#wallet-balance-amount,#profile-card-balance,#home-balance-amount,#profile-hero-name,#profile-hero-id){animation:none!important}
+}
+
+@layer pcadarkfix{
+@keyframes pcaDotBn{0%,80%,100%{transform:translateY(0);opacity:.45}40%{transform:translateY(-5px);opacity:1}}
+html body .pca-dots{display:inline-flex;align-items:center;justify-content:center;gap:5px;height:16px;vertical-align:middle;color:inherit}
+html body .pca-dots i{display:block;width:7px;height:7px;border-radius:50%;background:currentColor;animation:pcaDotBn 1.1s ease-in-out infinite!important;animation-iteration-count:infinite!important}
+html body .pca-dots i:nth-child(2){animation-delay:.15s!important}
+html body .pca-dots i:nth-child(3){animation-delay:.3s!important}
+}
+@media (prefers-reduced-motion:reduce){html body .pca-dots i{animation-duration:2.4s!important}}
+</style>
+<script id="pca-unify-v16-js">
+(function(){
+ /* returning (signed-in) user: show balance/profile skeleton until the first user snapshot arrives; auto-clears after 8s so it can never stick */
+ try{
+  var d=document.documentElement;
+  if(window.getGuestId&&window.getGuestId()){
+   d.classList.add('pca-bal-wait');
+   setTimeout(function(){d.classList.remove('pca-bal-wait')},8000);
+  }
+ }catch(e){}
+})();
+</script>
+
+<style id="pca-wcredit-css">
+/* wallet credit popup (+amount, 3s countdown). Own pcw-* classes, opacity/transform animations only. */
+.pcw{position:fixed;inset:0;z-index:99990;display:flex;align-items:center;justify-content:center;padding:20px;-webkit-tap-highlight-color:transparent}
+.pcw-bd{position:absolute;inset:0;background:rgba(10,18,40,.52);animation:pcwFd .25s ease-out both}
+.pcw-card{position:relative;width:min(100%,330px);border-radius:28px;background:#fff;overflow:hidden;box-shadow:0 26px 60px -18px rgba(8,20,60,.55);animation:pcwPop .5s cubic-bezier(.2,1.25,.35,1) both;transform-origin:50% 55%}
+.pcw-hero{position:relative;padding:30px 20px 24px;text-align:center;color:#fff;background:linear-gradient(145deg,#10B981 0%,#059669 55%,#0F766E 100%);overflow:hidden}
+.pcw-bub{position:absolute;border-radius:50%;background:radial-gradient(circle at 30% 30%,rgba(255,255,255,.3),rgba(255,255,255,0) 70%);pointer-events:none}
+.pcw-b1{width:150px;height:150px;left:-50px;top:-60px}
+.pcw-b2{width:120px;height:120px;right:-40px;bottom:-50px}
+.pcw-badge{position:relative;width:68px;height:68px;margin:0 auto 14px}
+.pcw-badge svg{position:relative;width:100%;height:100%;display:block}
+.pcw-disc{fill:#fff}
+.pcw-ck{fill:none;stroke:#059669;stroke-width:4.2;stroke-linecap:round;stroke-linejoin:round;stroke-dasharray:1;stroke-dashoffset:1;animation:pcwDraw .5s .25s cubic-bezier(.4,0,.2,1) forwards}
+.pcw-ring{position:absolute;inset:0;border-radius:50%;border:2px solid rgba(255,255,255,.8);opacity:0;animation:pcwRing 1.1s .15s ease-out both}
+.pcw-ring2{animation-delay:.4s}
+.pcw-t{position:relative;font-size:14px;font-weight:600;opacity:.95;letter-spacing:.2px;animation:pcwUp .4s .15s ease-out both}
+.pcw-amt{position:relative;margin-top:6px;display:flex;align-items:baseline;justify-content:center;gap:6px;animation:pcwUp .45s .22s ease-out both}
+.pcw-amt em{font-style:normal;font-size:26px;font-weight:700;opacity:.9}
+.pcw-amt b{font-size:40px;line-height:1.1;font-weight:800;font-variant-numeric:tabular-nums;letter-spacing:-.5px}
+.pcw-amt u{text-decoration:none;font-size:15px;font-weight:700;opacity:.9}
+.pcw-spk{position:absolute;left:50%;top:64px;width:7px;height:7px;margin:-3px 0 0 -3px;border-radius:2px;background:var(--c);opacity:0;animation:pcwSpk .95s var(--d) cubic-bezier(.2,.7,.3,1) both}
+.pcw-body{padding:16px 20px 18px;background:linear-gradient(180deg,#fff,#F6F9FF)}
+.pcw-row{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:11px 14px;border-radius:14px;background:#F1F5FB;color:#475569;font-size:13px}
+.pcw-row b{color:#0F172A;font-size:15px;font-weight:700;font-variant-numeric:tabular-nums}
+.pcw-cd{margin-top:14px;display:flex;align-items:center;justify-content:center;gap:10px;color:#64748B;font-size:12.5px}
+.pcw-cdr{position:relative;width:34px;height:34px;display:inline-flex;align-items:center;justify-content:center}
+.pcw-cdr svg{position:absolute;inset:0;width:100%;height:100%;transform:rotate(-90deg)}
+.pcw-cdr circle{fill:none;stroke-width:3.2}
+.pcw-cdt{stroke:#E2E8F0}
+.pcw-cdp{stroke:#10B981;stroke-linecap:round;stroke-dasharray:1;stroke-dashoffset:0;animation:pcwCd 3s linear forwards}
+.pcw-cdr b{position:relative;font-size:14px;font-weight:700;color:#0F172A}
+.pcw-x{position:absolute;top:10px;right:10px;width:30px;height:30px;border-radius:50%;background:rgba(255,255,255,.22);color:#fff;display:flex;align-items:center;justify-content:center;cursor:pointer}
+.pcw-x svg{width:14px;height:14px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round}
+.pcw-out .pcw-card{animation:pcwOut .22s ease-in both}
+.pcw-out .pcw-bd{animation:pcwFdOut .22s ease-in both}
+@keyframes pcwFd{from{opacity:0}to{opacity:1}}
+@keyframes pcwFdOut{from{opacity:1}to{opacity:0}}
+@keyframes pcwPop{from{opacity:0;transform:translate3d(0,22px,0) scale(.88)}to{opacity:1;transform:none}}
+@keyframes pcwOut{from{opacity:1;transform:none}to{opacity:0;transform:translate3d(0,10px,0) scale(.96)}}
+@keyframes pcwUp{from{opacity:0;transform:translate3d(0,8px,0)}to{opacity:1;transform:none}}
+@keyframes pcwDraw{to{stroke-dashoffset:0}}
+@keyframes pcwRing{0%{opacity:.8;transform:scale(1)}100%{opacity:0;transform:scale(1.9)}}
+@keyframes pcwSpk{0%{opacity:0;transform:translate3d(0,0,0) rotate(45deg) scale(.4)}20%{opacity:1}100%{opacity:0;transform:translate3d(var(--x),var(--y),0) rotate(225deg) scale(1)}}
+@keyframes pcwCd{to{stroke-dashoffset:1}}
+@media (prefers-reduced-motion:reduce){.pcw *,.pcw{animation-duration:.01s!important;animation-delay:0s!important}.pcw-ck{stroke-dashoffset:0}.pcw-cdp{animation:none}}
+</style>
+<style id="pca-motion-v17">
+/* page-enter motion (opacity/transform only, one-shot, GPU-cheap). Blocks of a page fade in one after another; cards in grids also rise 12px.
+   Only runs for 650ms after a page opens (class set in pca-has-free-js), so list re-renders from Firestore never replay it. */
+@layer pcadarkfix{
+@keyframes pcaV17Fd{from{opacity:0}to{opacity:1}}
+@keyframes pcaV17Up{from{opacity:0;transform:translate3d(0,12px,0)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:no-preference){
+html body .page-section.pca-enter>:not(.modal-overlay):not(.htabs-wrap):not([class*=overlay]):not([class*=sticky]):not(#z):not(#y){animation:pcaV17Fd .34s ease-out backwards!important}
+html body .page-section.pca-enter>:nth-child(1):not(#z):not(#y){animation-delay:.00s!important}
+html body .page-section.pca-enter>:nth-child(2):not(#z):not(#y){animation-delay:.04s!important}
+html body .page-section.pca-enter>:nth-child(3):not(#z):not(#y){animation-delay:.08s!important}
+html body .page-section.pca-enter>:nth-child(4):not(#z):not(#y){animation-delay:.12s!important}
+html body .page-section.pca-enter>:nth-child(5):not(#z):not(#y){animation-delay:.16s!important}
+html body .page-section.pca-enter>:nth-child(6):not(#z):not(#y){animation-delay:.20s!important}
+html body .page-section.pca-enter>:nth-child(7):not(#z):not(#y){animation-delay:.24s!important}
+html body .page-section.pca-enter>:nth-child(8):not(#z):not(#y){animation-delay:.28s!important}
+html body .page-section.pca-enter>:nth-child(9):not(#z):not(#y){animation-delay:.32s!important}
+html body .page-section.pca-enter :is(.game-card,.popular-card,.voucher-card,.history-card,.wtx-row,.wallet-topup-row,.notif-item):nth-child(-n+9):not(#z):not(#y){animation:pcaV17Up .38s cubic-bezier(.22,1,.36,1) backwards!important}
+html body .page-section.pca-enter :is(.game-card,.popular-card,.voucher-card,.history-card,.wtx-row,.wallet-topup-row,.notif-item):nth-child(1):not(#z):not(#y){animation-delay:.00s!important}
+html body .page-section.pca-enter :is(.game-card,.popular-card,.voucher-card,.history-card,.wtx-row,.wallet-topup-row,.notif-item):nth-child(2):not(#z):not(#y){animation-delay:.02s!important}
+html body .page-section.pca-enter :is(.game-card,.popular-card,.voucher-card,.history-card,.wtx-row,.wallet-topup-row,.notif-item):nth-child(3):not(#z):not(#y){animation-delay:.05s!important}
+html body .page-section.pca-enter :is(.game-card,.popular-card,.voucher-card,.history-card,.wtx-row,.wallet-topup-row,.notif-item):nth-child(4):not(#z):not(#y){animation-delay:.07s!important}
+html body .page-section.pca-enter :is(.game-card,.popular-card,.voucher-card,.history-card,.wtx-row,.wallet-topup-row,.notif-item):nth-child(5):not(#z):not(#y){animation-delay:.10s!important}
+html body .page-section.pca-enter :is(.game-card,.popular-card,.voucher-card,.history-card,.wtx-row,.wallet-topup-row,.notif-item):nth-child(6):not(#z):not(#y){animation-delay:.12s!important}
+html body .page-section.pca-enter :is(.game-card,.popular-card,.voucher-card,.history-card,.wtx-row,.wallet-topup-row,.notif-item):nth-child(7):not(#z):not(#y){animation-delay:.15s!important}
+html body .page-section.pca-enter :is(.game-card,.popular-card,.voucher-card,.history-card,.wtx-row,.wallet-topup-row,.notif-item):nth-child(8):not(#z):not(#y){animation-delay:.18s!important}
+html body .page-section.pca-enter :is(.game-card,.popular-card,.voucher-card,.history-card,.wtx-row,.wallet-topup-row,.notif-item):nth-child(9):not(#z):not(#y){animation-delay:.20s!important}
+}
+}
+@media (prefers-reduced-motion:reduce){html body .page-section.pca-enter,html body .page-section.pca-enter *{animation:none!important}}
+</style>
+<script id="pca-has-free-js">
+/* perf: replaces ~70 :has() selectors (they re-checked large parts of the page on every DOM/class change) with cheap attributes/classes kept in sync here */
+(function(){
+ var CONT='.qa-ic,.pt-ic,.wf-act-ic,.rdm-ic,.wbc2-ic,.ch-ic,.notif-order-ic,.hdr-dep,.game-desc-head-icon,.auth-gate-icon,.wallet-balance-icon,.upload-shot-icon,.empty-state-icon,.header .header-icon,.htab-ic,button.pm-copy-btn,button.voucher-copy-btn';
+ var b=document.body;
+ function tagUse(u){var h=u.getAttribute('href')||'';if(h.indexOf('#icon-')!==0)return;var n=h.slice(6),p=u.parentNode;
+  if(p&&p.nodeType===1&&p.getAttribute('data-ic')!==n)p.setAttribute('data-ic',n);
+  var c=u.closest?u.closest(CONT):null;if(c&&c.getAttribute('data-ic')!==n)c.setAttribute('data-ic',n)}
+ function syncDis(el){var w=el.parentNode;if(w&&w.classList&&w.classList.contains('slide-confirm-wrap')&&el.classList.contains('btn'))w.classList.toggle('pca-dis',!!el.disabled)}
+ function syncModal(){b.classList.toggle('pca-modal-open',!!document.querySelector('.modal-overlay.show'))}
+ function syncHv(){b.classList.toggle('pca-hv',!!document.querySelector('#home.active,#voucher.active'))}
+ /* motion: when a page-section turns active, tag it for 650ms so its blocks fade in one after another (CSS in pca-motion-v17) */
+ function enter(t){if(t.classList.contains('active')){if(!t.__pcaAct){t.__pcaAct=1;t.classList.add('pca-enter');clearTimeout(t.__pcaT);t.__pcaT=setTimeout(function(){t.classList.remove('pca-enter')},650)}}else{t.__pcaAct=0;t.classList.remove('pca-enter')}}
+ function scan(root){var us=root.querySelectorAll('use');for(var i=0;i<us.length;i++)tagUse(us[i]);var bs=root.querySelectorAll('.slide-confirm-wrap>.btn');for(i=0;i<bs.length;i++)syncDis(bs[i])}
+ scan(document);syncModal();syncHv();
+ new MutationObserver(function(recs){
+  var modal=false,hv=false;
+  for(var i=0;i<recs.length;i++){var r=recs[i],t=r.target;
+   if(r.type==='childList'){
+    for(var j=0;j<r.addedNodes.length;j++){var n=r.addedNodes[j];if(n.nodeType!==1)continue;
+     if(n.tagName==='use')tagUse(n);else if(n.querySelectorAll)scan(n);
+     if(n.classList&&n.classList.contains('modal-overlay'))modal=true}
+   }else if(r.attributeName==='href'){if(t.tagName==='use')tagUse(t)}
+   else if(r.attributeName==='disabled'){syncDis(t)}
+   else if(r.attributeName==='class'&&t.classList){if(t.classList.contains('modal-overlay'))modal=true;else if(t.classList.contains('page-section')){hv=true;enter(t)}}
+  }
+  if(modal)syncModal();if(hv)syncHv();
+ }).observe(b,{childList:true,subtree:true,attributes:true,attributeFilter:['href','disabled','class']});
+})();
+</script>
 </body>
 </html>
