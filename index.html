@@ -1120,7 +1120,7 @@ html.logged-out #wallet>:not(.title-header):not(.auth-gate):not(.modal-overlay),
             <div class="onboarding-step" id="onboard-step-login" style="display:none;">
                 <p class="onboarding-sub"><b>Welcome back</b><span>Sign in to order, top up and see your history.<br>အော်ဒါတင်ရန်၊ ငွေဖြည့်ရန်၊ မှတ်တမ်းကြည့်ရန် အကောင့်ဝင်ပါ။</span></p>
                 <div class="ob-plate">
-                <div id="onboard-google-gis" class="gis-btn-slot"></div>
+                <div class="ob-google-wrap" id="onboard-google-wrap">
                 <button type="button" class="google-login-btn gis-fallback" id="onboard-google-btn" onclick="handleOnboardGoogleSignIn()">
                     <svg width="18" height="18" viewBox="0 0 48 48">
                         <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
@@ -1130,6 +1130,8 @@ html.logged-out #wallet>:not(.title-header):not(.auth-gate):not(.modal-overlay),
                     </svg>
                     <span id="onboard-google-btn-label">Continue with Google</span>
                 </button>
+                <div id="onboard-google-gis" class="gis-btn-slot ob-gis-overlay" aria-hidden="false"></div>
+                </div>
                 </div>
                 <div class="ob-or"><span>or</span></div>
                 <div class="ob-plate">
@@ -1625,13 +1627,13 @@ b,strong{font-weight:600}}
                 <div class="collapsible-body" id="profile-prefs-body">
                 <div class="prefs-group"><div class="prefs-group-title">Preferences</div><div class="prefs-grid">
                     <button type="button" class="prefs-tile" onclick="toggleHaptic()" aria-label="Haptic Mode">
-                        <span class="push-toggle on" id="haptic-toggle" role="switch" aria-checked="true"><span class="push-toggle-thumb"><svg class="svg-icon" style="stroke:currentColor;"><use href="#icon-haptic"></use></svg></span></span>
+                        <span class="pca-chk on" id="haptic-chk" role="switch" aria-checked="true"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
                         <span class="pt-ic"><svg class="ui-icon"><use href="#icon-haptic"></use></svg></span>
                         <span class="pt-label">Haptic</span>
                         <small id="haptic-toggle-state" class="pt-state">On</small>
                     </button>
                     <button type="button" class="prefs-tile" onclick="togglePush()" aria-label="Notifications">
-                        <span class="push-toggle" id="push-toggle" role="switch" aria-checked="false"><span class="push-toggle-thumb"><svg class="svg-icon" style="stroke:currentColor;"><use href="#icon-bell"></use></svg></span></span>
+                        <span class="pca-chk" id="push-toggle" role="switch" aria-checked="false"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7.5"/></svg></span>
                         <span class="pt-ic"><svg class="ui-icon"><use href="#icon-bell"></use></svg></span>
                         <span class="pt-label" data-i18n="nav_notifications">Notifications</span>
                         <small id="push-toggle-state" class="pt-state">Off</small>
@@ -2702,7 +2704,7 @@ b,strong{font-weight:600}}
             // listenGames() is already started unconditionally at load for
             // that reason, so this hook only needs to stop it on every other
             // page and restart it if the user navigates back.
-            const GAMES_PAGES = ['home', 'voucher', 'game-detail'];
+            const GAMES_PAGES = ['home', 'voucher', 'game-detail', 'name-check'];
             if (GAMES_PAGES.includes(pageId) && window.listenGames) window.listenGames();
             else if (!GAMES_PAGES.includes(pageId) && window.stopListenGames) window.stopListenGames();
             // Live ticker messages: only the Home page shows the ticker.
@@ -3257,12 +3259,19 @@ b,strong{font-weight:600}}
             if (!g) return false;
             if (g.fulfillProvider === 'g2bulk_voucher') return false;
             if (g.playerIdRequired === false) return false;
+            // Name Check = MLBB only (it shows the account's region); other games are not offered here.
+            const isMlbb = /^mlbb/i.test(String(g.g2bulkCode || '')) || /mobile\s*legends|mlbb/i.test(String(g.name || ''));
+            if (!isMlbb) return false;
             return !!g.g2bulkCode;
         }
 
         function ncRenderGameOptions() {
             const sel = document.getElementById('nc-game');
-            if (!sel || !window.GAMES) return;
+            if (!sel) return;
+            if (!window.GAMES || !Object.keys(window.GAMES).length) {
+                if (!sel.value && sel.options.length <= 1 && sel.options[0]) sel.options[0].textContent = 'Loading…';
+                return;
+            }
             const groups = {};
             Object.keys(window.GAMES).forEach(id => {
                 const g = window.GAMES[id];
@@ -3358,7 +3367,9 @@ b,strong{font-weight:600}}
             const playerId = idField.value.trim();
             const serverId = serverField.value.trim();
             if (!playerId || (needsServer && !serverId)) { result.style.display = 'none'; result.innerHTML = ''; return; }
-            result.innerHTML = `<p class="id-checking-text">${ncEsc(t('checking_id_text'))}</p>`;
+            if (!result.firstElementChild || !result.firstElementChild.classList.contains('id-checking-text') || result.children.length !== 1) {
+                result.innerHTML = `<p class="id-checking-text">${ncEsc(t('checking_id_text'))}</p>`;
+            }
             result.style.display = 'flex';
             ncTimer = setTimeout(ncRunCheck, 700);
         }
@@ -3379,11 +3390,16 @@ b,strong{font-weight:600}}
             const sid = g.serverIdRequired !== false ? serverId : '';
             let outcome = 'unknown', name = null, geo = {};
             if (g.g2bulkCode) {
-                const res = await fetch('https://api.g2bulk.com/v1/games/checkPlayerId', {
-                    method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ game: g.g2bulkCode, user_id: playerId, server_id: sid || undefined })
-                });
-                const data = await res.json();
+                const ctl = new AbortController();
+                const to = setTimeout(() => ctl.abort(), 12000);
+                let res, data;
+                try {
+                    res = await fetch('https://api.g2bulk.com/v1/games/checkPlayerId', {
+                        method: 'POST', headers: { 'Content-Type': 'application/json' }, signal: ctl.signal,
+                        body: JSON.stringify({ game: g.g2bulkCode, user_id: playerId, server_id: sid || undefined })
+                    });
+                    data = await res.json();
+                } finally { clearTimeout(to); }
                 if (!res.ok) outcome = 'unknown';
                 else if (data.valid === 'valid') { outcome = 'valid'; name = data.name || null; geo = ncGeo(data); }
                 else outcome = 'invalid';
@@ -6635,8 +6651,9 @@ b,strong{font-weight:600}}
                 const el = document.getElementById(id);
                 if (!el) return;
                 el.innerHTML = ''; // clear the previous skin's iframe before re-rendering
-                google.accounts.id.renderButton(el, { theme: isDark ? 'filled_black' : 'outline', size: 'large', shape: 'pill', text: 'continue_with', logo_alignment: 'left', width: id === 'onboard-google-gis' ? 280 : undefined });
+                google.accounts.id.renderButton(el, { theme: isDark ? 'filled_black' : 'outline', size: 'large', shape: 'pill', text: 'continue_with', logo_alignment: 'left', width: id === 'onboard-google-gis' ? 400 : undefined });
             });
+            if (window.fitOnboardGis) window.fitOnboardGis();
         }
         window.renderGisButtons = renderGisButtons;
 
@@ -6646,6 +6663,7 @@ b,strong{font-weight:600}}
         (function waitForGis(attemptsLeft) {
             if (initGisSignIn()) return;
             if (attemptsLeft <= 0) {
+                document.documentElement.classList.add('gis-failed');
                 document.querySelectorAll('.gis-fallback').forEach((el) => { el.style.display = ''; });
                 document.querySelectorAll('.gis-btn-slot').forEach((el) => { el.style.display = 'none'; });
                 return;
@@ -10595,7 +10613,7 @@ b,strong{font-weight:600}}
         };
         function syncHapticUI() {
             var on = window.gzHapticOn();
-            var t = document.getElementById('haptic-toggle'), st = document.getElementById('haptic-toggle-state');
+            var t = document.getElementById('haptic-chk'), st = document.getElementById('haptic-toggle-state');
             if (t) { t.classList.toggle('on', on); t.setAttribute('aria-checked', on ? 'true' : 'false'); }
             if (st) st.textContent = !window.gzHapticSupported() ? 'Not supported on this device' : (on ? 'On' : 'Off');
         }
@@ -13058,7 +13076,7 @@ html body .profile-card.pca-sk-av .avatar-upload-circle::after{content:"";positi
 
  /* ---- 2. tap ripple on tab buttons / grid cells ---- */
  var SEL='button,[onclick],[role="button"],a[href],label,.nav-item:not(.nav-item-wallet),.htab,.history-status-tab,.history-date-chip,.pkg-type-tab,.pay-type-tab,.payment-option,.package-card,.wallet-preset-chip,.pcs-t,.pcs-o,.btn,.game-card,.menu-item,.profile-item,.setting-item';
- var SKIP='.modal-overlay,.pca-fl,.page-section,#app-header,input,textarea,select,.out-of-stock,[disabled],#pca-theme-switch,#haptic-toggle,.push-toggle,.theme-toggle';
+ var SKIP='.modal-overlay,.pca-fl,.page-section,#app-header,input,textarea,select,.out-of-stock,[disabled],#pca-theme-switch,#haptic-toggle,#haptic-chk,#push-toggle,.pca-chk,.push-toggle,.theme-toggle';
  d.addEventListener('pointerdown',function(e){
   var t=e.target&&e.target.closest?e.target.closest(SEL):null;
   if(!t||t.matches(SKIP))return;
@@ -15331,8 +15349,8 @@ html body :is(.game-card,.voucher-card,.popular-card,.history-card,.wallet-topup
 
 /* 4) Page fade (opacity only, so fixed header/nav/modals inside stay put). .3s matches the header/nav .35s fade */
 @keyframes pcaV16Pg{from{opacity:0}to{opacity:1}}
-html body .page-section.active:not(.swipe-left):not(.swipe-right){animation:pcaV16Pg .3s ease-out both!important}
-html body #game-detail.page-section.active:not(.swipe-left):not(.swipe-right){animation:pcaV16Pg .3s ease-out both!important}
+html body .page-section.active:not(.swipe-left):not(.swipe-right){animation:none!important}
+html body #game-detail.page-section.active:not(.swipe-left):not(.swipe-right){animation:none!important}
 }
 @media (prefers-reduced-motion:reduce){
 html body .page-section.active{animation:none!important}
@@ -15439,6 +15457,34 @@ html body .page-section.pca-enter :is(.game-card,.popular-card,.voucher-card,.hi
 }
 @media (prefers-reduced-motion:reduce){html body .page-section.pca-enter,html body .page-section.pca-enter *{animation:none!important}}
 </style>
+<style id="pca-text-compact">
+/* Smaller text (profile + page titles) and no reveal flash. Boosted specificity so it wins over the older stacked rules. */
+@layer pcadarkfix{
+html body #profile .title-header:not(#q1):not(#q2):not(#q3){font-size:15px !important}
+html body #profile .profile-hero-name:not(#q1):not(#q2):not(#q3){font-size:14px !important}
+html body #profile .profile-hero-id:not(#q1):not(#q2):not(#q3){font-size:11px !important}
+html body #profile .pc-label:not(#q1):not(#q2):not(#q3){font-size:11px !important}
+html body #profile #profile-card-balance:not(#q1):not(#q2):not(#q3){font-size:18px !important}
+html body #profile #profile-card-orders:not(#q1):not(#q2):not(#q3),html body #profile #profile-card-spent:not(#q1):not(#q2):not(#q3){font-size:14px !important}
+html body #profile .profile-hero-edit-btn:not(#q1):not(#q2):not(#q3),html body #profile .pc-topup-btn:not(#q1):not(#q2):not(#q3){font-size:12px !important}
+html body #profile .collapsible-header:not(#q1):not(#q2):not(#q3),html body #profile .collapsible-header *:not(#q1):not(#q2):not(#q3){font-size:13px !important}
+html body #profile .prefs-group-title:not(#q1):not(#q2):not(#q3),html body #profile .prefs-tile .pt-label:not(#q1):not(#q2):not(#q3){font-size:11px !important}
+html body #profile .prefs-tile .pt-state:not(#q1):not(#q2):not(#q3){font-size:10.5px !important}
+html body :is(#home,#voucher,#history,#wallet,#name-check,.content-area) .title-header:not(#q1):not(#q2):not(#q3){font-size:15px !important}
+/* Square checkbox-style toggles (Haptic / Notifications): no sliding thumb, tick mark when on */
+html body .prefs-tile .pca-chk:not(#q1):not(#q2){order:3;position:relative;flex:none;display:grid;place-items:center;box-sizing:border-box;width:24px;height:24px;min-width:24px;margin:0 0 0 auto;border-radius:7px;border:2px solid #9AA3B8;background:#fff;transition:background-color .15s ease,border-color .15s ease}
+html body .prefs-tile .pca-chk svg:not(#q1):not(#q2){width:16px;height:16px;fill:none;stroke:#fff;stroke-width:3.2;stroke-linecap:round;stroke-linejoin:round;opacity:0;transform:scale(.6);transition:opacity .15s ease,transform .15s ease}
+html body .prefs-tile .pca-chk.on:not(#q1):not(#q2){background:var(--pca-acc,#2557F5);border-color:var(--pca-acc,#2557F5)}
+html body .prefs-tile .pca-chk.on svg:not(#q1):not(#q2){opacity:1;transform:none}
+html body .prefs-tile .pca-chk.blocked:not(#q1):not(#q2){opacity:.5}
+/* Square profile photo instead of circle */
+html body :is(.avatar-upload-box,.avatar-upload-circle,.avatar-upload-circle img,.avatar-upload-placeholder,.pc-avatar-wrap,.pc-avatar-wrap img,.header-profile-avatar,.header-profile-avatar img,.google-account-avatar,#profile-photo-preview):not(#q1):not(#q2){border-radius:14px !important}
+html body .avatar-upload-badge:not(#q1):not(#q2){border-radius:8px !important}
+html body .profile-card.pca-sk-av .avatar-upload-circle:not(#q1)::after{border-radius:14px !important}
+/* scroll-reveal made blocks start invisible and fade/slide in = flash on every open/back */
+html body .pca-rv:not(#q1):not(#q2){opacity:1 !important;transform:none !important;transition:none !important}
+}
+</style>
 <script id="pca-has-free-js">
 /* perf: replaces ~70 :has() selectors (they re-checked large parts of the page on every DOM/class change) with cheap attributes/classes kept in sync here */
 (function(){
@@ -15451,7 +15497,7 @@ html body .page-section.pca-enter :is(.game-card,.popular-card,.voucher-card,.hi
  function syncModal(){b.classList.toggle('pca-modal-open',!!document.querySelector('.modal-overlay.show'))}
  function syncHv(){b.classList.toggle('pca-hv',!!document.querySelector('#home.active,#voucher.active'))}
  /* motion: when a page-section turns active, tag it for 650ms so its blocks fade in one after another (CSS in pca-motion-v17) */
- function enter(t){if(t.classList.contains('active')){if(!t.__pcaAct){t.__pcaAct=1;t.classList.add('pca-enter');clearTimeout(t.__pcaT);t.__pcaT=setTimeout(function(){t.classList.remove('pca-enter')},650)}}else{t.__pcaAct=0;t.classList.remove('pca-enter')}}
+ function enter(t){t.__pcaAct=t.classList.contains('active')?1:0;t.classList.remove('pca-enter')} /* page-enter fade disabled: caused flash on open/back */
  function scan(root){var us=root.querySelectorAll('use');for(var i=0;i<us.length;i++)tagUse(us[i]);var bs=root.querySelectorAll('.slide-confirm-wrap>.btn');for(i=0;i<bs.length;i++)syncDis(bs[i])}
  scan(document);syncModal();syncHv();
  new MutationObserver(function(recs){
@@ -15557,5 +15603,113 @@ html body .page-section.pca-enter :is(.game-card,.popular-card,.voucher-card,.hi
   window.addEventListener('online',net);window.addEventListener('offline',net);
 })();
 </script>
+<script id="pca-gis-fit">
+/* Scales Google's real (invisible) sign-in iframe so it covers the whole blue pill.
+   Google only renders 40px-high buttons, max 400px wide - so we stretch it with a transform. */
+(function(){
+  function fit(){
+    var w=document.getElementById('onboard-google-wrap'),g=document.getElementById('onboard-google-gis');
+    if(!w||!g)return;
+    var W=w.offsetWidth,H=w.offsetHeight;
+    if(!W||!H)return;
+    g.style.transform='scale('+(W/400)+','+(H/40)+')';
+  }
+  window.fitOnboardGis=fit;
+  window.addEventListener('resize',fit);
+  window.addEventListener('orientationchange',fit);
+  function init(){
+    fit();
+    var w=document.getElementById('onboard-google-wrap');
+    if(w&&window.ResizeObserver)new ResizeObserver(fit).observe(w);
+    setTimeout(fit,400);setTimeout(fit,1200);
+  }
+  if(document.readyState==='loading')document.addEventListener('DOMContentLoaded',init);else init();
+})();
+</script>
+<style id="pca-final-1112">
+@layer pcadarkfix{
+/* =====================================================================
+   1) LOGIN GATE - Google button
+   The blue pill is the visual; Google's own iframe (opacity ~0) sits on
+   top of it and receives the tap, so the button always works.
+   ===================================================================== */
+html body #onboarding-overlay .ob-google-wrap:not(#z):not(#y){position:relative!important;width:100%!important;height:56px!important;border-radius:999px!important;overflow:hidden!important;isolation:isolate!important;flex:none!important}
+html body #onboarding-overlay .ob-google-wrap .google-login-btn:not(#z):not(#y){display:flex!important;position:absolute!important;inset:0!important;width:100%!important;height:100%!important;margin:0!important;align-items:center!important;justify-content:center!important;gap:12px!important;z-index:1!important}
+html body #onboarding-overlay .ob-google-wrap .gis-btn-slot.ob-gis-overlay:not(#z):not(#y){display:block!important;position:absolute!important;left:0!important;top:0!important;width:400px!important;height:40px!important;min-height:0!important;margin:0!important;padding:0!important;border-radius:0!important;overflow:hidden!important;transform-origin:0 0!important;opacity:.012!important;z-index:5!important;cursor:pointer!important;pointer-events:auto!important}
+html body #onboarding-overlay .ob-google-wrap .gis-btn-slot.ob-gis-overlay:empty:not(#z):not(#y){display:none!important}
+html body #onboarding-overlay .ob-google-wrap .gis-btn-slot.ob-gis-overlay iframe{display:block!important;width:400px!important;max-width:none!important}
+html.gis-failed body #onboarding-overlay .ob-google-wrap .gis-btn-slot.ob-gis-overlay:not(#z):not(#y){display:none!important}
+html body #onboarding-overlay .ob-google-wrap:active .google-login-btn{transform:scale(.985)}
+
+/* =====================================================================
+   2) GLASS header + bottom nav
+   ===================================================================== */
+html body header#app-header :is(.header-brand,.header-icons-group):not(#z):not(#y):not(#x):not(#w){
+  background:linear-gradient(135deg,rgba(255,255,255,.58),rgba(255,255,255,.22))!important;
+  -webkit-backdrop-filter:blur(20px) saturate(185%)!important;backdrop-filter:blur(20px) saturate(185%)!important;
+  border:1px solid rgba(255,255,255,.72)!important;
+  box-shadow:0 12px 30px -14px rgba(37,87,245,.30),inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(255,255,255,.28)!important}
+html body header#app-header .header-icons-group .header-icon:not(#z):not(#y):not(#x){
+  background:linear-gradient(145deg,rgba(255,255,255,.62),rgba(255,255,255,.26))!important;background-image:linear-gradient(145deg,rgba(255,255,255,.62),rgba(255,255,255,.26))!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
+  border:1px solid rgba(255,255,255,.85)!important;
+  box-shadow:0 6px 14px -8px rgba(37,87,245,.35),inset 0 1px 0 rgba(255,255,255,.95)!important}
+html body nav#bottom-nav.bottom-nav:not(#z):not(#y):not(#x):not(#w)::before{
+  background:linear-gradient(145deg,rgba(255,255,255,.60),rgba(255,255,255,.24))!important;
+  -webkit-backdrop-filter:blur(22px) saturate(190%)!important;backdrop-filter:blur(22px) saturate(190%)!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.78),inset 0 1px 0 rgba(255,255,255,.98),inset 0 -10px 18px -12px rgba(37,87,245,.18)!important}
+html body nav#bottom-nav.bottom-nav:not(#z):not(#y):not(#x):not(#w){-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+
+/* =====================================================================
+   3) WALLET - small balance, aligned tabs + rows
+   ===================================================================== */
+html body #wallet .wbc2 .wallet-balance-amount:not(#z):not(#y):not(#x),
+html body #profile-card-balance:not(#z):not(#y):not(#x){font-size:22px!important;font-weight:700!important;line-height:1.2!important;letter-spacing:-.2px!important}
+html body #wallet .wbc2 .wallet-balance-amount:not(#z):not(#y):not(#x){margin:2px 0 14px!important}
+html body #wallet .wbc2 .wallet-balance-label:not(#z):not(#y){font-size:12px!important}
+
+html body #wallet .wglass:not(#z):not(#y){position:relative!important;isolation:auto!important;margin:14px 0 0!important;padding:0!important}
+html body #wallet .wglass:not(#z):not(#y)::before{display:none!important}
+html body #wallet .wtabs:not(#z):not(#y):not(#x){position:relative!important;display:grid!important;grid-template-columns:1fr 1fr!important;gap:0!important;box-sizing:border-box!important;width:100%!important;height:50px!important;padding:4px!important;margin:0 0 14px!important;border-radius:999px!important;
+  background:linear-gradient(145deg,rgba(255,255,255,.55),rgba(255,255,255,.26))!important;border:1px solid rgba(255,255,255,.8)!important;
+  -webkit-backdrop-filter:blur(16px) saturate(170%)!important;backdrop-filter:blur(16px) saturate(170%)!important;
+  box-shadow:0 8px 22px -14px rgba(37,87,245,.35),inset 0 1px 0 rgba(255,255,255,.95)!important}
+html body #wallet .wtabs .wtabs-ind:not(#z):not(#y){position:absolute!important;top:4px!important;bottom:4px!important;left:4px!important;width:calc((100% - 8px) / 2)!important;height:auto!important;border-radius:999px!important;pointer-events:none!important;
+  background:linear-gradient(145deg,#fff,rgba(255,255,255,.86))!important;box-shadow:0 6px 14px -8px rgba(37,87,245,.5),0 0 0 1px rgba(255,255,255,.9)!important;
+  transform:translateX(0)!important;transition:transform .32s cubic-bezier(.3,.9,.3,1)!important}
+html body #wallet .wtabs[data-active="txn"] .wtabs-ind:not(#z):not(#y){transform:translateX(100%)!important}
+html body #wallet .wtabs .wtab:not(#z):not(#y):not(#x){position:relative!important;z-index:1!important;display:flex!important;align-items:center!important;justify-content:center!important;gap:7px!important;box-sizing:border-box!important;width:100%!important;height:100%!important;min-width:0!important;margin:0!important;padding:0 8px!important;
+  font-size:13px!important;font-weight:600!important;line-height:1!important;white-space:nowrap!important;color:var(--text-secondary,#667085)!important;background:none!important;border:0!important;box-shadow:none!important;border-radius:999px!important}
+html body #wallet .wtabs .wtab.active:not(#z):not(#y):not(#x){color:var(--pca-acc,#2557F5)!important}
+html body #wallet .wtabs .wtab .ui-icon:not(#z):not(#y){width:17px!important;height:17px!important;flex:none!important}
+html body #wallet .wtabs .wtab span:not(#z){min-width:0;overflow:hidden;text-overflow:ellipsis}
+
+/* rows (Top Up + Transaction share one skeleton) */
+html body #wallet :is(.wallet-topup-row,.wtx-row):not(#z):not(#y):not(#x):not(#w){position:relative!important;display:grid!important;grid-template-columns:46px minmax(0,1fr)!important;column-gap:12px!important;align-items:center!important;box-sizing:border-box!important;width:100%!important;min-height:72px!important;margin:0 0 10px!important;padding:13px 14px 13px 18px!important;border-radius:20px!important;overflow:hidden!important;
+  background:linear-gradient(145deg,rgba(255,255,255,.72),rgba(255,255,255,.40))!important;border:1px solid rgba(255,255,255,.85)!important;
+  -webkit-backdrop-filter:blur(12px) saturate(160%);backdrop-filter:blur(12px) saturate(160%);
+  box-shadow:0 10px 24px -16px rgba(37,87,245,.35),inset 0 1px 0 rgba(255,255,255,.95)!important}
+html body #wallet :is(.wallet-topup-row,.wtx-row):not(#z):not(#y)::before{content:""!important;position:absolute!important;left:0!important;top:14px!important;bottom:14px!important;width:4px!important;height:auto!important;border-radius:0 4px 4px 0!important;background:var(--row-accent,rgba(37,87,245,.8))!important}
+html body #wallet .wallet-topup-row:not(#z):not(#y){--row-accent:#F5A524}
+html body #wallet .wallet-topup-row.st-completed:not(#z):not(#y){--row-accent:#22C55E}
+html body #wallet .wallet-topup-row.st-processing:not(#z):not(#y){--row-accent:#405DE6}
+html body #wallet .wallet-topup-row.st-rejected:not(#z):not(#y){--row-accent:#EF4444}
+html body #wallet .wallet-topup-row .wallet-topup-row-icon:not(#z):not(#y):not(#x){width:46px!important;height:46px!important;margin:0!important;border-radius:50%!important;display:grid!important;place-items:center!important;flex:none!important;border:0!important;box-shadow:none!important;background:rgba(245,165,36,.16)!important;color:#B7791F!important}
+html body #wallet .wallet-topup-row .wallet-topup-row-icon .ui-icon:not(#z):not(#y){width:20px!important;height:20px!important;stroke:currentColor!important;color:inherit!important;stroke-width:2.6!important;filter:none!important}
+html body #wallet .wallet-topup-row .wallet-topup-row-icon.st-completed:not(#z):not(#y):not(#x){background:rgba(34,197,94,.16)!important;color:#16A34A!important}
+html body #wallet .wallet-topup-row .wallet-topup-row-icon.st-processing:not(#z):not(#y):not(#x){background:rgba(64,93,230,.14)!important;color:#405DE6!important}
+html body #wallet .wallet-topup-row .wallet-topup-row-icon.st-rejected:not(#z):not(#y):not(#x){background:rgba(239,68,68,.15)!important;color:#DC2626!important}
+html body #wallet .wallet-topup-row-body:not(#z){display:flex!important;flex-direction:column!important;gap:5px!important;min-width:0!important;width:100%!important}
+html body #wallet .wallet-topup-row-top:not(#z){display:grid!important;grid-template-columns:minmax(0,1fr) auto!important;column-gap:10px!important;align-items:center!important}
+html body #wallet .wallet-topup-amount:not(#z){font-size:16px!important;font-weight:700!important;line-height:1.2!important;letter-spacing:-.2px!important;font-variant-numeric:tabular-nums!important;color:var(--text,#111318)!important;white-space:nowrap!important}
+html body #wallet :is(.wallet-topup-row-top,.wtx-sub) .badge:not(#z):not(#y){display:inline-flex!important;align-items:center!important;gap:6px!important;height:26px!important;padding:0 11px!important;margin:0!important;font-size:12px!important;font-weight:600!important;line-height:1!important;white-space:nowrap!important;border-radius:999px!important;border:0!important}
+html body #wallet .wallet-topup-meta:not(#z){margin:0!important;font-size:12px!important;line-height:1.3!important;color:var(--text-muted,#8A92A0)!important;white-space:nowrap!important;overflow:hidden!important;text-overflow:ellipsis!important}
+html body #wallet .wallet-topup-note:not(#z){margin:2px 0 0!important;font-size:12px!important;line-height:1.5!important;font-weight:500!important}
+html body #wallet .wallet-topup-note.rejected:not(#z):not(#y){color:#DC2626!important}
+html body #wallet .wallet-topup-note.pending:not(#z):not(#y){color:#B7791F!important}
+html body #wallet .wtx-date:not(#z):not(#y){margin:16px 6px 8px!important;font-size:12px!important;font-weight:700!important}
+html body #wallet .wtx-date:first-child:not(#z){margin-top:2px!important}
+}
+</style>
 </body>
 </html>
