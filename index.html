@@ -15840,6 +15840,41 @@ html body :is(.confirm-id-spinner,#nc-result .pca-spin):not(#q1)::before,html bo
 html body .id-checking-text:not(#q1):not(#q2)::before{content:""!important;display:inline-block!important;width:18px;height:18px;margin-right:8px;vertical-align:-4px;background:var(--pca-acc,#2557F5);-webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><circle cx='10.5' cy='10.5' r='6.5'/><path d='M15.5 15.5L21 21'/></svg>") center/contain no-repeat;mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><circle cx='10.5' cy='10.5' r='6.5'/><path d='M15.5 15.5L21 21'/></svg>") center/contain no-repeat;animation:pcaLens 1.4s ease-in-out infinite}
 }
 </style>
+<style id="pca-glass-soft-tg">
+/* Glass Soft (Telegram UI) - header pills, bottom nav, catalog tabs (.htabs).
+   Same layer as pca-perf-final, later in source + higher specificity, so it wins.
+   Blur is kept light (12px) and only on these 4 surfaces to stay smooth on phones. */
+@layer pcadarkfix{
+:root{--gs-fill:linear-gradient(145deg,rgba(255,255,255,.62),rgba(255,255,255,.30));--gs-fill-mv:linear-gradient(145deg,rgba(255,255,255,.84),rgba(255,255,255,.62));--gs-fill-lite:linear-gradient(145deg,rgba(255,255,255,.90),rgba(246,249,255,.84));--gs-bd:rgba(255,255,255,.78);--gs-sh:0 10px 26px -14px rgba(60,80,150,.30),inset 0 1px 0 rgba(255,255,255,.92),inset 0 -1px 0 rgba(255,255,255,.30);--gs-blur:blur(12px) saturate(150%)}
+
+/* 1) Header: brand pill + icons pill */
+html body header#app-header :is(.header-brand,.header-icons-group):not(#gs1):not(#gs2):not(#gs3):not(#gs4):not(#gs5):not(#gs6):not(#gs7):not(#gs8){background:var(--gs-fill)!important;border:1px solid var(--gs-bd)!important;box-shadow:var(--gs-sh)!important;-webkit-backdrop-filter:var(--gs-blur)!important;backdrop-filter:var(--gs-blur)!important}
+
+/* 2) Bottom nav bar (the ::before layer carries the glass + wallet notch mask) */
+html body nav#bottom-nav.bottom-nav:not(#gs1):not(#gs2):not(#gs3):not(#gs4):not(#gs5):not(#gs6):not(#gs7):not(#gs8)::before{background:var(--gs-fill)!important;box-shadow:inset 0 0 0 1px var(--gs-bd),inset 0 1px 0 rgba(255,255,255,.95),inset 0 -10px 16px -12px rgba(60,80,150,.20)!important;-webkit-backdrop-filter:var(--gs-blur)!important;backdrop-filter:var(--gs-blur)!important}
+
+/* 3) Catalog tabs (Popular / Top Up / Voucher / Software) */
+html body .htabs:not(#gs1):not(#gs2):not(#gs3):not(#gs4):not(#gs5):not(#gs6):not(#gs7):not(#gs8){background:var(--gs-fill)!important;border:1px solid var(--gs-bd)!important;box-shadow:var(--gs-sh)!important;-webkit-backdrop-filter:var(--gs-blur)!important;backdrop-filter:var(--gs-blur)!important}
+
+/* 4) Content is scrolling underneath (pca-mv): a bit more opaque so text behind never fights the labels */
+html body header#app-header.pca-mv :is(.header-brand,.header-icons-group):not(#gs1):not(#gs2):not(#gs3):not(#gs4):not(#gs5):not(#gs6):not(#gs7):not(#gs8),
+html body .htabs-wrap.pca-mv .htabs:not(#gs1):not(#gs2):not(#gs3):not(#gs4):not(#gs5):not(#gs6):not(#gs7):not(#gs8){background:var(--gs-fill-mv)!important}
+html body nav#bottom-nav.bottom-nav.pca-mv:not(#gs1):not(#gs2):not(#gs3):not(#gs4):not(#gs5):not(#gs6):not(#gs7):not(#gs8)::before{background:var(--gs-fill-mv)!important}
+
+/* 5) Low-end phones (auto-detected .lite): keep the soft look, drop the live blur */
+html.lite body header#app-header :is(.header-brand,.header-icons-group):not(#gs1):not(#gs2):not(#gs3):not(#gs4):not(#gs5):not(#gs6):not(#gs7):not(#gs8),
+html.lite body .htabs:not(#gs1):not(#gs2):not(#gs3):not(#gs4):not(#gs5):not(#gs6):not(#gs7):not(#gs8){background:var(--gs-fill-lite)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html.lite body nav#bottom-nav.bottom-nav:not(#gs1):not(#gs2):not(#gs3):not(#gs4):not(#gs5):not(#gs6):not(#gs7):not(#gs8)::before{background:var(--gs-fill-lite)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+
+/* 6) Bottom nav: a bit smaller, all corners evenly round (radius = half height) */
+html body nav#bottom-nav.bottom-nav:not(#gs1):not(#gs2):not(#gs3):not(#gs4):not(#gs5):not(#gs6):not(#gs7):not(#gs8){height:46px!important;width:calc(100% - 84px)!important;max-width:272px!important;padding:0 5px!important;border-radius:23px!important;grid-template-columns:1fr 1fr 52px 1fr 1fr!important}
+html body nav#bottom-nav.bottom-nav:not(#gs1):not(#gs2):not(#gs3):not(#gs4):not(#gs5):not(#gs6):not(#gs7):not(#gs8)::before{border-radius:23px!important}
+html body nav#bottom-nav .nav-item:not(.nav-item-wallet):not(#gs1):not(#gs2):not(#gs3):not(#gs4):not(#gs5):not(#gs6):not(#gs7):not(#gs8){margin:4px 1px!important;border-radius:999px!important}
+html body nav#bottom-nav .nav-item:not(.nav-item-wallet) .ui-icon:not(#gs1):not(#gs2):not(#gs3):not(#gs4):not(#gs5):not(#gs6):not(#gs7):not(#gs8){width:18px!important;height:18px!important}
+html body nav#bottom-nav .nav-item .nav-label:not(#gs1):not(#gs2):not(#gs3):not(#gs4):not(#gs5):not(#gs6):not(#gs7):not(#gs8){font-size:9px!important}
+html body:not(.no-bottom-nav):not(#gs1):not(#gs2):not(#gs3):not(#gs4):not(#gs5):not(#gs6):not(#gs7):not(#gs8){padding-bottom:calc(76px + env(safe-area-inset-bottom,0px))!important}
+}
+</style>
 <script id="pca-typing-js">
 (function(){
   /* 1) Recent-ID chip: the ID is "typed" into the field character by character */
@@ -15913,17 +15948,17 @@ html body .gis-fallback.pca-gchooser:active{transform:scale(.985)}
         var type='';
         try{ type=n.getMomentType?n.getMomentType():''; }catch(e){}
         if(type==='display'){ ok(); return; }
-        if(type==='dismissed'){ ok(); return; }           /* user closed it: respect that */
+        if(type==='dismissed'){ fb(); return; }           /* never shown (Chrome cooldown) -> go straight to normal sign-in, never a dead button */
         var notShown=false, skipped=false, reason='';
         try{ notShown=!!(n.isNotDisplayed&&n.isNotDisplayed()); }catch(e){}
         try{ skipped=!!(n.isSkippedMoment&&n.isSkippedMoment()); }catch(e){}
         try{ reason=(n.getSkippedReason&&n.getSkippedReason())||''; }catch(e){}
         if(type==='skipped') skipped=true;
-        if(skipped && /user_cancel|tap_outside/.test(reason)){ ok(); return; }
+        if(skipped && /user_cancel|tap_outside/.test(reason)){ fb(); return; }
         if(notShown||skipped) fb();
       });
       /* nothing reported at all -> don't leave the person stuck */
-      timer=setTimeout(fb,3500);
+      timer=setTimeout(fb,2200);
     }catch(e){ fb(); }
   };
 })();
