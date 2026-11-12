@@ -1121,7 +1121,7 @@ html.logged-out #wallet>:not(.title-header):not(.auth-gate):not(.modal-overlay),
                 <p class="onboarding-sub"><b>Welcome back</b><span>Sign in to order, top up and see your history.<br>အော်ဒါတင်ရန်၊ ငွေဖြည့်ရန်၊ မှတ်တမ်းကြည့်ရန် အကောင့်ဝင်ပါ။</span></p>
                 <div class="ob-plate">
                 <div class="ob-google-wrap" id="onboard-google-wrap">
-                <button type="button" class="google-login-btn gis-fallback" id="onboard-google-btn" onclick="handleOnboardGoogleSignIn()">
+                <button type="button" class="google-login-btn gis-fallback" id="onboard-google-btn" onclick="pcaGoogleChooser(function(){handleOnboardGoogleSignIn()})">
                     <svg width="18" height="18" viewBox="0 0 48 48">
                         <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
                         <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/>
@@ -1378,7 +1378,7 @@ html.logged-out #wallet>:not(.title-header):not(.auth-gate):not(.modal-overlay),
                     A Google sign-in keeps your Wallet balance and top-up history safe across devices.
                 </p>
                 <div id="wallet-gate-google-gis" class="gis-btn-slot" style="display:flex;justify-content:center;"></div>
-                <button type="button" class="google-login-btn gis-fallback" id="wallet-gate-google-btn" onclick="handleWalletGateGoogleSignIn()" style="width:100%;justify-content:center;">
+                <button type="button" class="google-login-btn gis-fallback" id="wallet-gate-google-btn" onclick="pcaGoogleChooser(function(){handleWalletGateGoogleSignIn()})" style="width:100%;justify-content:center;">
                     <svg width="18" height="18" viewBox="0 0 48 48">
                         <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
                         <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/>
@@ -1683,7 +1683,7 @@ b,strong{font-weight:600}}
                     <div class="google-account-card" id="google-account-signedout">
                         <div id="google-signin-gis" class="gis-btn-slot" style="display:flex;justify-content:center;"></div>
                         <div id="profile-telegram-widget" style="margin-top:10px;display:flex;justify-content:center;"></div>
-                        <button type="button" class="google-login-btn gis-fallback" id="google-signin-btn" onclick="handleGoogleSignIn()">
+                        <button type="button" class="google-login-btn gis-fallback" id="google-signin-btn" onclick="pcaGoogleChooser(function(){handleGoogleSignIn()})">
                             <svg width="18" height="18" viewBox="0 0 48 48">
                                 <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
                                 <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/>
@@ -1712,7 +1712,7 @@ b,strong{font-weight:600}}
                     <div id="link-google-slot" style="display:none;width:100%;margin-top:10px;text-align:center;">
                         <p class="google-account-hint" id="link-google-hint" style="margin-bottom:6px;">Google ဖြင့်ပါ ချိတ်ဆက်ထားနိုင်ပါသည် — account တစ်ခုတည်းအတွက်ပါ၊ data ဘာမှ ပြောင်းမသွားပါ။</p>
                         <div id="link-google-gis" class="gis-btn-slot" style="display:flex;justify-content:center;"></div>
-                        <button type="button" class="google-login-btn gis-fallback" id="link-google-btn" style="display:none;" onclick="handleGoogleSignIn('link-google-btn')">
+                        <button type="button" class="google-login-btn gis-fallback" id="link-google-btn" onclick="pcaGoogleChooser(function(){handleGoogleSignIn('link-google-btn')})">
                             <svg width="18" height="18" viewBox="0 0 48 48">
                                 <path fill="#FFC107" d="M43.6 20.5H42V20H24v8h11.3C33.7 32.7 29.3 36 24 36c-6.6 0-12-5.4-12-12s5.4-12 12-12c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 12.9 4 4 12.9 4 24s8.9 20 20 20 20-8.9 20-20c0-1.3-.1-2.7-.4-3.5z"/>
                                 <path fill="#FF3D00" d="M6.3 14.7l6.6 4.8C14.6 15.9 18.9 13 24 13c3.1 0 5.9 1.2 8 3.1l5.7-5.7C34.5 6.2 29.5 4 24 4 16.3 4 9.6 8.3 6.3 14.7z"/>
@@ -3379,9 +3379,19 @@ b,strong{font-weight:600}}
         function ncGeo(d) {
             const out = { region: '', country: '' };
             if (!d || typeof d !== 'object') return out;
-            const pick = (...ks) => { for (const k of ks) { const v = d[k]; if (typeof v === 'string' && v.trim()) return v.trim(); } return ''; };
-            out.region = pick('region', 'server_name', 'serverName');
-            out.country = pick('country', 'country_name', 'countryName');
+            const seen = [];
+            const walk = (o, depth) => {
+                if (!o || typeof o !== 'object' || depth > 3 || seen.indexOf(o) !== -1) return;
+                seen.push(o);
+                Object.keys(o).forEach(k => {
+                    const v = o[k], lk = k.toLowerCase();
+                    if (typeof v === 'string' && v.trim()) {
+                        if (!out.country && /^(country|country_name|countryname|nation)$/.test(lk)) out.country = v.trim();
+                        else if (!out.region && /^(region|region_name|regionname|server_name|servername|zone|area)$/.test(lk)) out.region = v.trim();
+                    } else if (v && typeof v === 'object') walk(v, depth + 1);
+                });
+            };
+            walk(d, 0);
             return out;
         }
 
@@ -3535,14 +3545,20 @@ b,strong{font-weight:600}}
                 const nameEl = document.createElement('div');
                 nameEl.className = 'id-result-name';
                 nameEl.textContent = r.name;
-                // "Player Name" / "(Region) Country"
+                // Region (+ country) shown as clear labelled pills under the name
                 const meta = document.createElement('div');
                 meta.className = 'nc-meta';
-                const regionB = document.createElement('b');
-                regionB.textContent = `(${region})`;
-                meta.appendChild(regionB);
-                if (r.geo.country) meta.appendChild(document.createTextNode(' ' + r.geo.country));
-                info.appendChild(nameEl);
+                const my = (typeof currentLang !== 'undefined' && currentLang !== 'en');
+                const mk = (cls, label, val) => {
+                    const sp = document.createElement('span');
+                    sp.className = 'nc-pill ' + cls;
+                    const em = document.createElement('em'); em.textContent = label;
+                    const bb = document.createElement('b'); bb.textContent = val;
+                    sp.appendChild(em); sp.appendChild(bb);
+                    return sp;
+                };
+                meta.appendChild(mk('nc-pill-region', my ? 'ဒေသ' : 'Region', region));
+                if (r.geo.country) meta.appendChild(mk('nc-pill-country', my ? 'နိုင်ငံ' : 'Country', r.geo.country));
                 info.appendChild(meta);
                 if (serverLabel && g.serverIdRequired !== false) {
                     const srv = document.createElement('div');
@@ -6633,7 +6649,10 @@ b,strong{font-weight:600}}
             google.accounts.id.initialize({
                 client_id: GIS_CLIENT_ID,
                 callback: handleGisCredentialResponse,
-                auto_select: false
+                auto_select: false,
+                use_fedcm_for_prompt: true,
+                cancel_on_tap_outside: false,
+                itp_support: true
             });
             renderGisButtons();
             return true;
@@ -6646,6 +6665,7 @@ b,strong{font-weight:600}}
         // Called on init and again every time the app theme changes.
         function renderGisButtons() {
             if (!(window.google && google.accounts && google.accounts.id)) return;
+            if (window.__pcaGisChooser !== false) return; /* in-page chooser mode: no popup-opening iframe buttons */
             const isDark = false;
             GIS_BUTTON_SLOT_IDS.forEach((id) => {
                 const el = document.getElementById(id);
@@ -8925,7 +8945,7 @@ b,strong{font-weight:600}}
         // first page of HOME_GAMES_INITIAL_BATCH, then HOME_GAMES_LOAD_STEP
         // more each time "Load More" is tapped - far fewer DOM nodes/images
         // exist at once, and the ones that do are still viewport-lazy-loaded
-        // (loading="lazy" on the <img>). Resets back to the first page
+        // (loading="lazy" on the <img decoding="async">). Resets back to the first page
         // whenever the category chip or search box changes.
         const HOME_GAMES_INITIAL_BATCH = 9;
         const HOME_GAMES_LOAD_STEP = 18;
@@ -14215,35 +14235,53 @@ html body div.package-grid-scroll:not(#a):not(#b){max-height:min(74vh,660px) !im
       var wrap = $(prefix + '-pmx'); if (wrap) wrap.classList.toggle('no-qr', !(p && p.qrImage));
     } catch (e) {}
   };
+  /* QR save: the PNG is prepared as soon as the QR loads, so the Save tap can start the download synchronously
+     (a download started after a slow async chain loses the tap's user-activation and Chrome silently drops it). */
+  var qrCache = {};
+  function qrFetch(src) {
+    return fetch(src, { mode: 'cors', cache: 'force-cache' }).then(function (r) { if (!r.ok) throw new Error('http'); return r.blob(); });
+  }
+  function qrDraw(srcForImg, revoke) {
+    return new Promise(function (res, rej) {
+      var im = new Image(); if (!revoke) im.crossOrigin = 'anonymous';
+      im.onload = function () {
+        try {
+          var pad = 24, w = im.naturalWidth || 512, h = im.naturalHeight || 512;
+          var c = document.createElement('canvas'); c.width = w + pad * 2; c.height = h + pad * 2;
+          var x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
+          x.drawImage(im, pad, pad, w, h);
+          c.toBlob(function (bl) { if (revoke) URL.revokeObjectURL(srcForImg); bl ? res(bl) : rej(new Error('blob')); }, 'image/png');
+        } catch (e) { rej(e); }
+      };
+      im.onerror = function () { if (revoke) URL.revokeObjectURL(srcForImg); rej(new Error('img')); };
+      im.src = srcForImg;
+    });
+  }
+  function qrPrepare(src) {
+    if (!src) return null;
+    var e = qrCache[src];
+    if (e) return e;
+    e = qrCache[src] = { bl: null, p: null };
+    e.p = qrFetch(src)
+      .then(function (bl) { return qrDraw(URL.createObjectURL(bl), true); })       /* same-origin blob -> always a valid PNG, never CORS-tainted */
+      .catch(function () { return qrDraw(src, false); })
+      .then(function (png) { e.bl = png; return png; });
+    e.p.catch(function () { delete qrCache[src]; });
+    return e;
+  }
+  ['wallet-pm-qr', 'pm-qr'].forEach(function (id) {
+    var im = document.getElementById(id); if (!im) return;
+    im.addEventListener('load', function () { qrPrepare(im.currentSrc || im.src); });
+  });
+
   window.pmxSaveQr = function (imgId, brandId) {
     var img = document.getElementById(imgId);
     var srcUrl = img && (img.currentSrc || img.src);
     if (!img || !srcUrl) return;
     var b = document.getElementById(brandId);
-    var fn = ((b && b.textContent) || 'payment').trim().replace(/[^\w-]+/g, '-').replace(/^-+|-+$/g, '') + '-qr.png';
+    var fn = (((b && b.textContent) || 'payment').trim().replace(/[^\w-]+/g, '-').replace(/^-+|-+$/g, '') || 'payment') + '-qr.png';
     var toast = function (m, t) { if (window.showToast) try { window.showToast(m, t); } catch (e) {} };
 
-    function viaFetch() {
-      return fetch(srcUrl, { mode: 'cors', cache: 'force-cache' }).then(function (r) {
-        if (!r.ok) throw new Error('http'); return r.blob();
-      });
-    }
-    function viaCanvas() {
-      return new Promise(function (res, rej) {
-        var im = new Image(); im.crossOrigin = 'anonymous';
-        im.onload = function () {
-          try {
-            var pad = 24, w = im.naturalWidth || 512, h = im.naturalHeight || 512;
-            var c = document.createElement('canvas'); c.width = w + pad * 2; c.height = h + pad * 2;
-            var x = c.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0, 0, c.width, c.height);
-            x.drawImage(im, pad, pad, w, h);
-            c.toBlob(function (bl) { bl ? res(bl) : rej(new Error('blob')); }, 'image/png');
-          } catch (e) { rej(e); }
-        };
-        im.onerror = function () { rej(new Error('img')); };
-        im.src = srcUrl;
-      });
-    }
     function preview(url) {
       var ov = document.getElementById('pmx-qr-preview');
       if (!ov) {
@@ -14261,6 +14299,7 @@ html body div.package-grid-scroll:not(#a):not(#b){max-height:min(74vh,660px) !im
       var a = ov.querySelector('.pq-dl'); a.href = url; a.setAttribute('download', fn);
       ov.style.display = 'flex';
     }
+
     function deliver(bl) {
       var url = URL.createObjectURL(bl);
       var ua = navigator.userAgent || '';
@@ -14270,18 +14309,22 @@ html body div.package-grid-scroll:not(#a):not(#b){max-height:min(74vh,660px) !im
       var canAnchor = 'download' in document.createElement('a');
       var file = null; try { file = new File([bl], fn, { type: 'image/png' }); } catch (e) {}
       var canShare = !!(file && navigator.canShare && navigator.share && navigator.canShare({ files: [file] }));
-      if ((isIOS || (inTg || inAppWV)) && canShare) {
+      if ((isIOS || inTg || inAppWV) && canShare) {
         return navigator.share({ files: [file], title: 'QR' }).catch(function (e) { if (!e || e.name !== 'AbortError') preview(url); });
       }
       if (isIOS || inTg || inAppWV || !canAnchor) { preview(url); return; }
-      var a = document.createElement('a'); a.href = url; a.download = fn; a.rel = 'noopener'; a.style.display = 'none';
-      document.body.appendChild(a); a.click(); a.remove();
+      var a = document.createElement('a'); a.href = url; a.download = fn; a.style.cssText = 'position:fixed;left:-9999px;top:0;opacity:0';
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(function () { a.remove(); }, 1500);   /* keep the link in the DOM briefly: some Android Chrome builds drop the download otherwise */
       toast('QR ကို save လုပ်နေပါပြီ');
-      setTimeout(function () { URL.revokeObjectURL(url); }, 60000);
+      setTimeout(function () { URL.revokeObjectURL(url); }, 120000);
     }
-    (srcUrl.indexOf('data:') === 0 ? viaFetch() : viaFetch().catch(viaCanvas)).catch(viaCanvas)
-      .then(deliver)
-      .catch(function () { preview(srcUrl); });
+
+    var e = qrPrepare(srcUrl);
+    if (e && e.bl) { deliver(e.bl); return; }                 /* ready: starts inside the tap itself */
+    toast('QR ကို ပြင်ဆင်နေပါတယ်…');
+    (e ? e.p : Promise.reject()).then(deliver).catch(function () { preview(srcUrl); });
   };
   })();
 </script>
@@ -15711,5 +15754,179 @@ html body #wallet .wtx-date:not(#z):not(#y){margin:16px 6px 8px!important;font-s
 html body #wallet .wtx-date:first-child:not(#z){margin-top:2px!important}
 }
 </style>
+<style id="pca-perf-final">
+/* ===== PERF FINAL (earliest layer + !important => wins over every other layer) ===== */
+@layer pcadarkfix{
+/* 1) backdrop-filter (live blur over scrolling content) = biggest cause of lag -> off, solid-ish bg instead */
+html body :not(#p1):not(#p2):not(#p3):not(#p4):not(#p5),
+html body :not(#p1):not(#p2):not(#p3):not(#p4):not(#p5)::before,
+html body :not(#p1):not(#p2):not(#p3):not(#p4):not(#p5)::after{-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html body header#app-header :is(.header-brand,.header-icons-group):not(#p1):not(#p2):not(#p3):not(#p4):not(#p5){background:rgba(255,255,255,.96)!important}
+html body nav#bottom-nav.bottom-nav:not(#p1):not(#p2):not(#p3):not(#p4):not(#p5)::before{background:rgba(255,255,255,.97)!important}
+html body #wallet .wtabs:not(#p1):not(#p2):not(#p3):not(#p4):not(#p5){background:rgba(255,255,255,.92)!important}
+html body #wallet :is(.wallet-topup-row,.wtx-row):not(#p1):not(#p2):not(#p3):not(#p4):not(#p5){background:#fff!important}
+html body :is(.pc-top,.pc-stat,.detail-form-card,.modal-box,.success-box,.auth-gate,.htabs,.pkg-type-tabs,.pay-type-tabs,.prefs-tile,.notif-item,.pca-fl,#pca-pill):not(#p1):not(#p2):not(#p3):not(#p4):not(#p5){background:rgba(255,255,255,.95)!important}
+
+/* 2) filter on icons / nav / halo (drop-shadow + blur are re-rasterised every scroll frame) */
+html body svg.ui-icon:not(#p1):not(#p2):not(#p3),
+html body :is(.header-icon,.nav-icon-wrap,.pt-ic,.qa-ic,.htab-ic) .ui-icon:not(#p1):not(#p2):not(#p3),
+html body :is(.verified-badge,.pc-tag-icon,.pv-bk-circle svg):not(#p1):not(#p2):not(#p3),
+html body nav#bottom-nav:not(#p1):not(#p2):not(#p3):not(#p4){filter:none!important}
+html body nav.bottom-nav .nav-item-wallet .wallet-halo:not(#p1):not(#p2),
+html body nav.bottom-nav .nav-item-wallet .wallet-glow:not(#p1):not(#p2){filter:none!important;animation:none!important;display:none!important}
+
+html body nav#bottom-nav .nav-item-wallet .ui-icon:not(#p1):not(#p2):not(#p3):not(#p4):not(#p5):not(#p6){filter:brightness(0) invert(1)!important}
+/* 3) fixed full-screen drifting gradient layer */
+html body:not(#p1)::before{display:none!important;animation:none!important}
+
+/* 4) decorative infinite animations (keep spinners + skeletons + bullet marquee) */
+html body :is(.pi-txt .pi-l,.hdr-install svg,.nav-item-wallet .ui-icon,.slide-confirm-hint svg,.gc-hot svg,.pc-tag-hot svg,.gc-top svg,.pc-tag-top svg):not(#p1):not(#p2){animation:none!important}
+html body :is(.gc-b,.pc-tag):is(.gc-top,.gc-hot,.pc-tag-top,.pc-tag-hot):not(#p1)::before{animation:none!important;display:none!important}
+html body header#app-header #notif-badge-header.show:not(#p1):not(#p2)::before,
+html body header#app-header #notif-badge-header.show:not(#p1):not(#p2)::after,
+html body header#app-header .tg-hdr .tg-hdr-dot:not(#p1)::after{animation:none!important;display:none!important}
+
+/* 5) big blurry shadows on every card -> cheap 1-layer shadow */
+html body :is(.game-card,.voucher-card,.popular-card,.history-card,.list-card,.profile-card,.wallet-balance-card,.wallet-topup-row,.wtx-row,.notif-item,.package-card,.pc-top,.pc-stat,.detail-form-card,.qa):not(#p1):not(#p2):not(#p3):not(#p4){box-shadow:0 1px 4px rgba(30,50,110,.10)!important}
+
+/* 6) skip rendering of off-screen list rows */
+html body :is(.history-card,.list-card,.notif-item,.wtx-row,.wallet-topup-row):not(#p1):not(#p2){content-visibility:auto;contain-intrinsic-size:auto 84px}
+
+/* 7) smoother scrolling */
+html{scroll-behavior:auto!important}
+html body{-webkit-tap-highlight-color:transparent}
+
+/* 8) Toggles: real ON/OFF switch instead of an empty checkbox */
+html body .prefs-tile .pca-chk:not(#q1):not(#q2):not(#q3){display:block!important;position:relative!important;flex:none!important;width:46px!important;height:28px!important;min-width:46px!important;padding:0!important;border:0!important;border-radius:999px!important;background:#CBD2E1!important;transition:background-color .2s ease!important}
+html body .prefs-tile .pca-chk:not(#q1):not(#q2):not(#q3)::after{content:""!important;position:absolute!important;top:3px!important;left:3px!important;width:22px!important;height:22px!important;border-radius:50%!important;background:#fff!important;box-shadow:0 1px 3px rgba(0,0,0,.3)!important;transition:transform .2s ease!important;display:block!important}
+html body .prefs-tile .pca-chk.on:not(#q1):not(#q2):not(#q3){background:var(--pca-acc,#2557F5)!important}
+html body .prefs-tile .pca-chk.on:not(#q1):not(#q2):not(#q3)::after{transform:translateX(18px)!important}
+html body .prefs-tile .pca-chk:not(#q1):not(#q2):not(#q3) svg{display:none!important}
+html body .prefs-tile .pca-chk.blocked:not(#q1):not(#q2){opacity:.5!important}
+
+/* 9) Payment QR: exact 1:1 squares */
+html body .pmx-qrbox:not(#q1):not(#q2):not(#q3){--qs:min(232px,calc(100vw - 96px));width:var(--qs)!important;height:var(--qs)!important;max-width:none!important;aspect-ratio:1/1!important;flex:none!important;padding:10px!important;box-sizing:border-box!important}
+html body .pmx-qrbox .pmx-qr:not(#q1):not(#q2),html body .pmx-qrcard .pmx-qr:not(#q1):not(#q2){width:100%!important;height:100%!important;aspect-ratio:1/1!important;object-fit:contain!important;background:#fff!important}
+html body .pmx-qrcard:not(#q1):not(#q2):not(#q3){width:132px!important;height:132px!important;aspect-ratio:1/1!important;flex:none!important;padding:8px!important;box-sizing:border-box!important}
+
+/* 10) Name Check: region / country pills */
+html body .nc-meta:not(#q1):not(#q2){display:flex!important;flex-wrap:wrap!important;gap:6px!important;margin-top:5px!important;white-space:normal!important;overflow:visible!important}
+html body .nc-pill:not(#q1):not(#q2){display:inline-flex!important;align-items:center;gap:5px;padding:3px 9px;border-radius:999px;font-size:12px;line-height:1.3;background:#EEF2FF;color:#334;border:1px solid #D9E1FF}
+html body .nc-pill em{font-style:normal;font-weight:500;color:#6B7080}
+html body .nc-pill b{font-weight:700!important;color:#1D4ED8!important}
+html body .nc-pill-country b{color:#15803D!important}
+html body .nc-pill-country{background:#ECFDF3;border-color:#BBF7D0}
+
+/* 11) no pop-in / flash when a page opens */
+html body #detail-package-list .package-card.pc-h-bot:not(#q1),html body #detail-package-list .package-card.pc-h-top:not(#q1),html body #detail-package-list .package-card.pc-in:not(#q1){opacity:1!important;transform:none!important;transition:none!important}
+html body :is(.profile-card-anim,.history-card,.card-pop,.tab-enter):not(#q1):not(#q2){animation:none!important;transition:none!important;opacity:1!important}
+html body .page-section.pca-enter>*:not(#q1):not(#q2){animation:none!important}
+}
+
+@keyframes pcaLens{0%{transform:translate(-2px,-1px) rotate(-14deg) scale(1)}25%{transform:translate(2px,-3px) rotate(6deg) scale(1.08)}50%{transform:translate(3px,2px) rotate(16deg) scale(1)}75%{transform:translate(-2px,3px) rotate(-6deg) scale(1.08)}100%{transform:translate(-2px,-1px) rotate(-14deg) scale(1)}}
+@keyframes pcaCaret{0%,49%{box-shadow:0 0 0 3px rgba(var(--pca-rgb,37,87,245),.22),inset 0 1px 0 #fff}50%,100%{box-shadow:0 0 0 3px rgba(var(--pca-rgb,37,87,245),.06),inset 0 1px 0 #fff}}
+@layer pcadarkfix{
+/* 12) Glass inputs, rounded corners (translucent gradient only - no live blur, keeps scrolling fast) */
+html body :is(input[type=text],input[type=number],input[type=tel],input[type=email],input[type=password],input[type=search],textarea,select,.pcs-t):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5){border-radius:18px!important;background:linear-gradient(145deg,rgba(255,255,255,.82),rgba(255,255,255,.46))!important;border:1px solid rgba(255,255,255,.95)!important;box-shadow:0 6px 16px -10px rgba(37,87,245,.35),inset 0 1px 0 #fff,inset 0 0 0 1px rgba(120,140,200,.14)!important;transition:box-shadow .2s ease,background-color .2s ease,border-color .2s ease!important}
+html body :is(input[type=text],input[type=number],input[type=tel],input[type=email],input[type=password],input[type=search],textarea,select,.pcs-t):not(#q1):not(#q2):not(#q3):not(#q4):not(#q5):focus,
+html body .pcs.open .pcs-t:not(#q1):not(#q2):not(#q3){border-color:var(--pca-acc,#2557F5)!important;background:linear-gradient(145deg,rgba(255,255,255,.95),rgba(255,255,255,.72))!important;box-shadow:0 0 0 3px rgba(var(--pca-rgb,37,87,245),.16),inset 0 1px 0 #fff!important}
+/* ID fields: code-editor feel */
+html body :is(#detail-ingame-id,#detail-server-id,#nc-player-id,#nc-server-id):not(#q1):not(#q2):not(#q3){font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace!important;letter-spacing:.6px!important;caret-color:var(--pca-acc,#2557F5)}
+html body :is(#detail-ingame-id,#detail-server-id,#nc-player-id,#nc-server-id).pca-typing:not(#q1):not(#q2):not(#q3){animation:pcaCaret .5s steps(1) infinite!important;border-color:var(--pca-acc,#2557F5)!important}
+
+/* 13) "checking" = little magnifying glass searching around (replaces the spinning ring) */
+html body :is(.confirm-id-spinner,#nc-result .pca-spin):not(#q1):not(#q2):not(#q3):not(#q4){border:0!important;border-radius:0!important;width:20px!important;height:20px!important;flex:0 0 20px!important;background:currentColor!important;-webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><circle cx='10.5' cy='10.5' r='6.5'/><path d='M15.5 15.5L21 21'/></svg>") center/contain no-repeat!important;mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><circle cx='10.5' cy='10.5' r='6.5'/><path d='M15.5 15.5L21 21'/></svg>") center/contain no-repeat!important;animation:pcaLens 1.4s ease-in-out infinite!important;transform-origin:50% 50%}
+html body :is(.confirm-id-spinner,#nc-result .pca-spin):not(#q1)::before,html body :is(.confirm-id-spinner,#nc-result .pca-spin):not(#q1)::after{display:none!important}
+html body .id-checking-text:not(#q1):not(#q2)::before{content:""!important;display:inline-block!important;width:18px;height:18px;margin-right:8px;vertical-align:-4px;background:var(--pca-acc,#2557F5);-webkit-mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><circle cx='10.5' cy='10.5' r='6.5'/><path d='M15.5 15.5L21 21'/></svg>") center/contain no-repeat;mask:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='black' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'><circle cx='10.5' cy='10.5' r='6.5'/><path d='M15.5 15.5L21 21'/></svg>") center/contain no-repeat;animation:pcaLens 1.4s ease-in-out infinite}
+}
+</style>
+<script id="pca-typing-js">
+(function(){
+  /* 1) Recent-ID chip: the ID is "typed" into the field character by character */
+  var orig=window.fillRecentId;
+  if(typeof orig==='function'){
+    window.fillRecentId=function(id,sv){
+      var el=document.getElementById('detail-ingame-id');
+      id=String(id==null?'':id);
+      if(!el||!id){return orig(id,sv)}
+      if(el._typing){clearInterval(el._typing)}
+      var i=0,step=Math.max(28,Math.min(60,640/id.length));
+      el.value='';el.classList.add('pca-typing');
+      el._typing=setInterval(function(){
+        i++;el.value=id.slice(0,i);
+        if(i>=id.length){clearInterval(el._typing);el._typing=0;el.classList.remove('pca-typing');orig(id,sv)}
+      },step);
+    };
+  }
+  /* 2) Empty + focused ID field: placeholder types an example ID with a caret, like someone coding */
+  var IDS={'detail-ingame-id':'1159045022','nc-player-id':'1159045022','detail-server-id':'13678','nc-server-id':'13678'};
+  function bind(el){
+    if(!el||el._twb||el.tagName!=='INPUT')return;el._twb=1;
+    var base=el.getAttribute('placeholder')||'',ex=IDS[el.id],t=0,i=0,hold=0;
+    function stop(){clearInterval(t);t=0;el.setAttribute('placeholder',base);el.classList.remove('pca-typing')}
+    function start(){
+      if(t||el.value)return;base=el.getAttribute('placeholder')||base;i=0;hold=0;
+      t=setInterval(function(){
+        if(el.value||document.activeElement!==el){stop();return}
+        if(hold>0){hold--;return}
+        i++;
+        if(i>ex.length+1){i=0;hold=6;el.setAttribute('placeholder','|');return}
+        el.setAttribute('placeholder',ex.slice(0,i)+'|');
+        if(i===ex.length+1)hold=9;
+      },95);
+    }
+    el.addEventListener('focus',start);
+    el.addEventListener('blur',stop);
+    el.addEventListener('input',function(){if(el.value)stop()});
+  }
+  function scan(){Object.keys(IDS).forEach(function(id){bind(document.getElementById(id))})}
+  scan();
+  /* name-check server field can be rebuilt (input <-> select): re-bind when it appears */
+  document.addEventListener('focusin',function(e){if(e.target&&IDS[e.target.id])bind(e.target)},true);
+})();
+</script>
+<style id="pca-gchooser-css">
+html body .gis-btn-slot{display:none!important}
+html body .gis-fallback.pca-gchooser{display:flex}
+html body .gis-fallback.pca-gchooser:active{transform:scale(.985)}
+</style>
+<script id="pca-gchooser-js">
+(function(){
+  window.__pcaGisChooser=true;
+  ['onboard-google-btn','wallet-gate-google-btn','google-signin-btn','link-google-btn'].forEach(function(id){
+    var b=document.getElementById(id); if(b) b.classList.add('pca-gchooser');
+  });
+  /* Account chooser shown INSIDE the site (Google One Tap / FedCM sheet) - no jump to another page.
+     Only if Google can't show it (no Google session in this browser, chooser dismissed earlier and on cooldown, ...)
+     do we fall back to the old popup sign-in so login never gets stuck. */
+  window.pcaGoogleChooser=function(fallback){
+    var g=window.google&&google.accounts&&google.accounts.id;
+    var fb0=function(){ try{ fallback&&fallback(); }catch(e){ console.error(e); } };
+    if(!g||typeof g.prompt!=='function'){ fb0(); return; }
+    var settled=false, timer=0;
+    function fb(){ if(settled) return; settled=true; clearTimeout(timer); fb0(); }
+    function ok(){ settled=true; clearTimeout(timer); }
+    try{
+      try{ g.cancel&&g.cancel(); }catch(e){}
+      g.prompt(function(n){
+        if(settled) return;
+        var type='';
+        try{ type=n.getMomentType?n.getMomentType():''; }catch(e){}
+        if(type==='display'){ ok(); return; }
+        if(type==='dismissed'){ ok(); return; }           /* user closed it: respect that */
+        var notShown=false, skipped=false, reason='';
+        try{ notShown=!!(n.isNotDisplayed&&n.isNotDisplayed()); }catch(e){}
+        try{ skipped=!!(n.isSkippedMoment&&n.isSkippedMoment()); }catch(e){}
+        try{ reason=(n.getSkippedReason&&n.getSkippedReason())||''; }catch(e){}
+        if(type==='skipped') skipped=true;
+        if(skipped && /user_cancel|tap_outside/.test(reason)){ ok(); return; }
+        if(notShown||skipped) fb();
+      });
+      /* nothing reported at all -> don't leave the person stuck */
+      timer=setTimeout(fb,3500);
+    }catch(e){ fb(); }
+  };
+})();
+</script>
 </body>
 </html>
