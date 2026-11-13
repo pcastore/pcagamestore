@@ -22,7 +22,7 @@ W.__pca=1;window.MutationObserver=W;
 })();
 </script>
 <style id="pca-layer-order">
-@layer pcadarkfix,pcadarkclean,pcapolish,pcamine,pcaglass,pcafix,legacy,tokens,base,layout,motion,components,pages,utilities;
+@layer pcatabs,pcadarkfix,pcadarkclean,pcapolish,pcamine,pcaglass,pcafix,legacy,tokens,base,layout,motion,components,pages,utilities;
 </style>
 <script id="pca-check-js">
 window.PCA_CK='<svg class="pca-ck" viewBox="0 0 24 24" aria-hidden="true"><path pathLength="1" d="M6.4 12.8l3.7 3.7 7.5-8.2"/></svg>';
@@ -1098,10 +1098,8 @@ html.logged-out #wallet>:not(.title-header):not(.auth-gate):not(.modal-overlay),
          (Google on top, Telegram below). Visible from first paint and closed
          by handleOnboardAuthState() only once a Google/Telegram session exists. -->
     <div class="onboarding-overlay" id="onboarding-overlay" style="display:none;">
+        <button type="button" id="onboarding-close-btn" class="pcaux-back" onclick="closeLoginOverlay()" aria-label="Back" style="display:none;"><svg class="ui-icon" aria-hidden="true"><use href="#icon-chevron-left"></use></svg></button>
         <div class="onboarding-card" style="position:relative;">
-            <button type="button" id="onboarding-close-btn" onclick="closeLoginOverlay()" aria-label="Close" style="position:absolute;top:10px;right:10px;width:34px;height:34px;display:none;align-items:center;justify-content:center;border-radius:12px;border:1px solid var(--line);background:var(--surface-alt);color:var(--text-secondary);padding:0;cursor:pointer;">
-                <svg class="ui-icon" style="width:18px;height:18px;"><use href="#icon-close"></use></svg>
-            </button>
             <div class="onboarding-logo" id="onboarding-logo">
                 <div class="skel" id="onboarding-logo-skeleton" style="position:absolute;inset:0;border-radius:20px;"></div>
                 <svg class="pca-logo-mark" id="onboarding-logo-default-icon" aria-hidden="true" style="width:100%;height:100%;display:none;"><use href="#icon-pca-logo"></use></svg>
@@ -1341,7 +1339,7 @@ html.logged-out #wallet>:not(.title-header):not(.auth-gate):not(.modal-overlay),
                         <span class="wallet-topup-btn-icon"><svg class="ui-icon"><use href="#icon-plus"></use></svg></span>
                         Deposit
                     </button>
-                    <button type="button" class="btn wbc2-hist" onclick="setWalletTab('txn', true)">History</button>
+                    <button type="button" class="btn wbc2-hist" onclick="setWalletTab('txn', true)">Transactions</button>
                 </div>
                 <p class="wallet-min-hint" id="wallet-min-hint"></p>
             </div>
@@ -10733,7 +10731,7 @@ b,strong{font-weight:600}}
 <script>
 (function(){
   function add(){
-    ['voucher','name-check','history','wallet','profile'].forEach(function(id){
+    ['name-check'].forEach(function(id){
       var p=document.getElementById(id); if(!p||p.querySelector('.tab-back-row'))return;
       var r=document.createElement('div'); r.className='tab-back-row';
       r.innerHTML='<div class="tab-back-btn" role="button" aria-label="Back" onclick="showPage(\'home\')"><svg class="ui-icon"><use href="#icon-chevron-left"></use></svg></div>';
@@ -15935,33 +15933,553 @@ html body .gis-fallback.pca-gchooser:active{transform:scale(.985)}
      Only if Google can't show it (no Google session in this browser, chooser dismissed earlier and on cooldown, ...)
      do we fall back to the old popup sign-in so login never gets stuck. */
   window.pcaGoogleChooser=function(fallback){
-    var g=window.google&&google.accounts&&google.accounts.id;
-    var fb0=function(){ try{ fallback&&fallback(); }catch(e){ console.error(e); } };
-    if(!g||typeof g.prompt!=='function'){ fb0(); return; }
-    var settled=false, timer=0;
-    function fb(){ if(settled) return; settled=true; clearTimeout(timer); fb0(); }
-    function ok(){ settled=true; clearTimeout(timer); }
-    try{
-      try{ g.cancel&&g.cancel(); }catch(e){}
-      g.prompt(function(n){
-        if(settled) return;
-        var type='';
-        try{ type=n.getMomentType?n.getMomentType():''; }catch(e){}
-        if(type==='display'){ ok(); return; }
-        if(type==='dismissed'){ fb(); return; }           /* never shown (Chrome cooldown) -> go straight to normal sign-in, never a dead button */
-        var notShown=false, skipped=false, reason='';
-        try{ notShown=!!(n.isNotDisplayed&&n.isNotDisplayed()); }catch(e){}
-        try{ skipped=!!(n.isSkippedMoment&&n.isSkippedMoment()); }catch(e){}
-        try{ reason=(n.getSkippedReason&&n.getSkippedReason())||''; }catch(e){}
-        if(type==='skipped') skipped=true;
-        if(skipped && /user_cancel|tap_outside/.test(reason)){ fb(); return; }
-        if(notShown||skipped) fb();
-      });
-      /* nothing reported at all -> don't leave the person stuck */
-      timer=setTimeout(fb,2200);
-    }catch(e){ fb(); }
+    /* Direct sign-in inside the tap (user gesture) so the popup is never blocked.
+       One Tap/FedCM prompt removed: its callbacks don't fire under FedCM, the 2.2s timer then
+       called the popup outside the tap (blocked on mobile) -> button looked dead. */
+    try{ fallback&&fallback(); }catch(e){ console.error(e); }
   };
 })();
 </script>
+
+<style id="pca-ux-final">
+/* ===== PCA UX FINAL (nav size, nav buttons, slow-smooth tab / page / modal motion) =====
+   Lives in the first cascade layer so its !important rules beat every older override above it. */
+@layer pcadarkfix{
+:root{--ux-ease:cubic-bezier(.22,1,.36,1);--ux-soft:cubic-bezier(.33,1,.68,1);--ux-acc:#2557F5;--ux-mute:#7C86A2}
+
+/* 1) NAV BAR: a bit bigger, flat pill (no notch mask), wallet button raised in the middle */
+html body nav#bottom-nav.bottom-nav:not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12){
+  height:60px!important;width:calc(100% - 36px)!important;max-width:344px!important;
+  padding:0 8px!important;border-radius:30px!important;
+  grid-template-columns:1fr 1fr 66px 1fr 1fr!important;align-items:stretch!important;
+  bottom:calc(12px + env(safe-area-inset-bottom,0px))!important;
+}
+html body nav#bottom-nav.bottom-nav:not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12)::before{
+  border-radius:30px!important;
+  -webkit-mask:linear-gradient(#000,#000) 0 0/calc(50% - 43px) 100% no-repeat,linear-gradient(#000,#000) 100% 0/calc(50% - 43px) 100% no-repeat,url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 88 60' preserveAspectRatio='none'%3E%3Cpath d='M0 0H8.06A8 8 0 0 1 16.05 7.556A28 28 0 0 0 71.95 7.556A8 8 0 0 1 79.94 0H88V60H0Z'/%3E%3C/svg%3E") 50% 0/88px 100% no-repeat!important;mask:linear-gradient(#000,#000) 0 0/calc(50% - 43px) 100% no-repeat,linear-gradient(#000,#000) 100% 0/calc(50% - 43px) 100% no-repeat,url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 88 60' preserveAspectRatio='none'%3E%3Cpath d='M0 0H8.06A8 8 0 0 1 16.05 7.556A28 28 0 0 0 71.95 7.556A8 8 0 0 1 79.94 0H88V60H0Z'/%3E%3C/svg%3E") 50% 0/88px 100% no-repeat!important;
+  background:linear-gradient(160deg,rgba(255,255,255,.96),rgba(245,248,255,.92))!important;
+  box-shadow:inset 0 0 0 1px rgba(255,255,255,.95),inset 0 -8px 14px -12px rgba(60,80,150,.18)!important;
+}
+html:not(.lite) body nav#bottom-nav.bottom-nav:not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12){filter:drop-shadow(0 8px 12px rgba(30,50,120,.16))!important}
+html body:not(.no-bottom-nav):not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12){padding-bottom:calc(100px + env(safe-area-inset-bottom,0px))!important}
+
+/* 2) NAV BUTTONS: even spacing, clear icon + label, soft colour change */
+html body nav#bottom-nav .nav-item:not(.nav-item-wallet):not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12){
+  position:relative!important;z-index:1!important;margin:5px 0!important;padding:0!important;
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:center!important;gap:3px!important;
+  background:transparent!important;border:0!important;box-shadow:none!important;border-radius:999px!important;
+  color:var(--ux-mute)!important;
+  transition:transform .5s var(--ux-ease),color .55s var(--ux-soft)!important;
+}
+html body nav#bottom-nav .nav-item.active:not(.nav-item-wallet):not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12){background:transparent!important;color:var(--ux-acc)!important}
+html body nav#bottom-nav .nav-item:not(.nav-item-wallet):active:not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12){transform:scale(.92)!important}
+html body nav#bottom-nav .nav-item:not(.nav-item-wallet)::after:not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12){display:none!important;content:none!important}
+html body nav#bottom-nav .nav-item:not(.nav-item-wallet) .nav-icon-wrap:not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12){width:auto!important;height:auto!important;margin:0!important;padding:0!important;background:transparent!important;border:0!important;box-shadow:none!important;animation:none!important}
+html body nav#bottom-nav .nav-item:not(.nav-item-wallet) .ui-icon:not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12){
+  width:22px!important;height:22px!important;animation:none!important;
+  transition:transform .6s var(--ux-ease)!important;
+}
+html body nav#bottom-nav .nav-item.active:not(.nav-item-wallet) .ui-icon:not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12){transform:translate3d(0,-1px,0) scale(1.1)!important}
+html body nav#bottom-nav .nav-item .nav-label:not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12){
+  font-size:9.5px!important;font-weight:600!important;line-height:1.1!important;letter-spacing:.1px!important;
+  color:inherit!important;display:block!important;transition:color .55s var(--ux-soft)!important;
+}
+
+/* sliding highlight under the active tab (positioned by JS) */
+#pcaux-ind{position:absolute!important;top:5px;bottom:5px;left:0;width:0;z-index:0;pointer-events:none;border-radius:999px;
+  background:linear-gradient(160deg,rgba(76,141,255,.20),rgba(37,87,245,.12));
+  box-shadow:inset 0 0 0 1px rgba(37,87,245,.10);opacity:0;will-change:transform,width}
+#pcaux-ind.ready{transition:transform .7s var(--ux-ease),width .7s var(--ux-ease),opacity .45s ease}
+
+/* wallet: raised centre button with a clean ring */
+html body nav#bottom-nav .nav-item-wallet:not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12){
+  position:relative!important;z-index:2!important;margin:0!important;padding:0 0 6px!important;overflow:visible!important;
+  display:flex!important;flex-direction:column!important;align-items:center!important;justify-content:flex-end!important;
+  background:transparent!important;border:0!important;box-shadow:none!important;
+}
+html body nav#bottom-nav .nav-item-wallet .nav-icon-wrap-wallet:not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12){
+  position:absolute!important;left:50%!important;top:-17px!important;margin:0 0 0 -23px!important;
+  width:46px!important;height:46px!important;box-sizing:border-box!important;border-radius:50%!important;
+  border:3px solid rgba(255,255,255,.97)!important;
+  display:flex!important;align-items:center!important;justify-content:center!important;
+  box-shadow:0 12px 20px -8px rgba(37,87,245,.6)!important;
+  transition:transform .5s var(--ux-ease),box-shadow .5s var(--ux-soft)!important;
+}
+html body nav#bottom-nav .nav-item-wallet .nav-icon-wrap-wallet .ui-icon:not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12){width:21px!important;height:21px!important}
+html body nav#bottom-nav .nav-item-wallet:active .nav-icon-wrap-wallet:not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12){transform:scale(.92)!important}
+html body nav#bottom-nav .nav-item-wallet.active .nav-icon-wrap-wallet:not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12){box-shadow:0 14px 24px -8px rgba(37,87,245,.75)!important}
+html body nav#bottom-nav .nav-item-wallet .nav-label:not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12){color:var(--ux-acc)!important;font-weight:700!important}
+
+/* 3) HOME TABS (Popular / Top Up / Voucher): slow colour change */
+html body .htabs .htab:not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12){transition:background-color .55s var(--ux-soft),color .55s var(--ux-soft),box-shadow .55s var(--ux-soft),transform .4s var(--ux-ease)!important}
+html body .htabs .htab:active:not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12){transform:scale(.96)!important}
+
+/* 4) PAGE / TAB OPEN: content eases in, slowly, one block after another (class set by JS) */
+@keyframes pcaUxRise{from{opacity:0;translate:0 16px}to{opacity:1;translate:0 0}}
+@media (prefers-reduced-motion:no-preference){
+html body #home.htab-swap>*:not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12){animation:none!important}
+html body .page-section.pcaux-in>:not(.htabs-wrap):not(.modal-overlay):not([class*=overlay]):not([class*=sticky]):not(script):not(style):not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12):not(#ux13){
+  animation:pcaUxRise .7s var(--ux-ease) backwards!important}
+html body .page-section.pcaux-in>:nth-child(2):not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12):not(#ux13){animation-delay:.045s!important}
+html body .page-section.pcaux-in>:nth-child(3):not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12):not(#ux13){animation-delay:.09s!important}
+html body .page-section.pcaux-in>:nth-child(4):not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12):not(#ux13){animation-delay:.135s!important}
+html body .page-section.pcaux-in>:nth-child(5):not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12):not(#ux13){animation-delay:.18s!important}
+html body .page-section.pcaux-in>:nth-child(6):not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12):not(#ux13){animation-delay:.225s!important}
+html body .page-section.pcaux-in>:nth-child(7):not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12):not(#ux13){animation-delay:.27s!important}
+html body .page-section.pcaux-in>:nth-child(n+8):not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12):not(#ux13){animation-delay:.31s!important}
+html.lite body .page-section.pcaux-in>*:not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12):not(#ux13){animation:none!important}
+}
+
+/* 5) MODALS / SHEETS / SUCCESS CARD: slow, soft open and close */
+html body .modal-overlay,html body .success-overlay:not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12){transition:opacity .5s var(--ux-soft)!important}
+html body .modal-box,html body .success-box:not(#ux1):not(#ux2):not(#ux3):not(#ux4):not(#ux5):not(#ux6):not(#ux7):not(#ux8):not(#ux9):not(#ux10):not(#ux11):not(#ux12){transition:transform .65s var(--ux-ease),opacity .5s var(--ux-soft)!important}
+
+@media (prefers-reduced-motion:reduce){
+ #pcaux-ind.ready,html body nav#bottom-nav .nav-item .ui-icon{transition-duration:.01ms!important}
+ html body .page-section.pcaux-in>*{animation:none!important}
+}
+}
+</style>
+<script id="pca-ux-final-js">
+(function(){
+ 'use strict';
+ var d=document,B=d.body;
+ function $(i){return d.getElementById(i)}
+
+ /* ---- sliding active highlight in the bottom nav ---- */
+ var nav=$('bottom-nav'),ind=null;
+ function place(){
+  if(!nav||!ind)return;
+  var a=nav.querySelector('.nav-item.active:not(.nav-item-wallet)');
+  var nr=nav.getBoundingClientRect();
+  if(!a||!nr.width){ind.style.opacity='0';return}
+  var r=a.getBoundingClientRect();
+  ind.style.width=Math.max(0,r.width-6)+'px';
+  ind.style.transform='translate3d('+(r.left-nr.left+3)+'px,0,0)';
+  ind.style.opacity='1';
+ }
+ function schedule(){requestAnimationFrame(place)}
+ if(nav){
+  ind=d.createElement('span');ind.id='pcaux-ind';ind.setAttribute('aria-hidden','true');
+  nav.appendChild(ind);               /* last child: keeps the nth-child rules of the nav intact */
+  place();
+  requestAnimationFrame(function(){requestAnimationFrame(function(){ind.classList.add('ready')})});
+  new MutationObserver(schedule).observe(nav,{subtree:true,attributes:true,attributeFilter:['class']});
+  new MutationObserver(schedule).observe(B,{attributes:true,attributeFilter:['class']});
+  window.addEventListener('resize',schedule,{passive:true});
+  window.addEventListener('orientationchange',schedule,{passive:true});
+  window.addEventListener('load',function(){setTimeout(place,120);setTimeout(place,900)});
+  if(d.fonts&&d.fonts.ready)d.fonts.ready.then(schedule);
+ }
+
+ /* ---- slow page-enter motion ---- */
+ function play(el){
+  if(!el)return;
+  el.classList.remove('pcaux-in');void el.offsetWidth;el.classList.add('pcaux-in');
+  clearTimeout(el.__uxT);el.__uxT=setTimeout(function(){el.classList.remove('pcaux-in')},1300);
+ }
+ function activePage(){return d.querySelector('.page-section.active')}
+ var orig=window.showPage;
+ if(typeof orig==='function'&&!orig.__ux){
+  var wrapped=function(id){
+   var prev=activePage();
+   var r=orig.apply(this,arguments);
+   var el=$(id);
+   if(el&&el.classList.contains('active')&&el!==prev)play(el);
+   schedule();
+   return r;
+  };
+  wrapped.__ux=true;
+  window.showPage=wrapped;
+ }
+ /* Home tabs (Popular / Top Up): same page, so replay the motion on the content */
+ var wasActive=false;
+ d.addEventListener('click',function(e){
+  var t=e.target.closest&&e.target.closest('#home-tabs .htab');
+  wasActive=!!(t&&t.classList.contains('active'));
+ },true);
+ d.addEventListener('click',function(e){
+  var t=e.target.closest&&e.target.closest('#home-tabs .htab');
+  if(!t||wasActive)return;
+  var h=$('home');if(h&&h.classList.contains('active'))play(h);
+ });
+})();
+</script>
+
+<style id="pca-ux-final-2">
+@layer pcadarkfix{
+/* ===== Login form: Frosted Aurora glass (design A) ===== */
+html body #onboarding-overlay:not(#uy1):not(#uy2):not(#uy3):not(#uy4):not(#uy5):not(#uy6):not(#uy7):not(#uy8):not(#uy9):not(#uy10):not(#uy11):not(#uy12){
+  background:radial-gradient(320px 320px at -8% 16%,#6FA0FF,transparent 70%),radial-gradient(280px 280px at 108% 46%,#C4A0FF,transparent 70%),radial-gradient(320px 320px at 28% 104%,#7FE3F2,transparent 70%),#E6EEFF!important;
+  align-items:center!important;justify-content:center!important;padding:0 20px!important;
+}
+html body #onboarding-overlay .onboarding-card:not(#uy1):not(#uy2):not(#uy3):not(#uy4):not(#uy5):not(#uy6):not(#uy7):not(#uy8):not(#uy9):not(#uy10):not(#uy11):not(#uy12){
+  width:100%!important;max-width:420px!important;min-height:0!important;height:auto!important;
+  padding:30px 24px 26px!important;border-radius:32px!important;
+  background:rgba(255,255,255,.55)!important;border:1px solid rgba(255,255,255,.9)!important;
+  -webkit-backdrop-filter:blur(26px) saturate(170%)!important;backdrop-filter:blur(26px) saturate(170%)!important;
+  box-shadow:0 24px 50px -24px rgba(37,87,245,.45),inset 0 1px 0 #fff!important;
+  align-items:flex-start!important;justify-content:flex-start!important;text-align:left!important;
+}
+html body #onboarding-overlay .onboarding-logo:not(#uy1):not(#uy2):not(#uy3):not(#uy4):not(#uy5):not(#uy6):not(#uy7):not(#uy8):not(#uy9):not(#uy10):not(#uy11):not(#uy12){width:64px!important;height:64px!important;margin:0 0 6px!important}
+html body #onboarding-overlay .onboarding-title:not(#uy1):not(#uy2):not(#uy3):not(#uy4):not(#uy5):not(#uy6):not(#uy7):not(#uy8):not(#uy9):not(#uy10):not(#uy11):not(#uy12){font-size:30px!important;line-height:1.1!important;color:#0F1B2D!important}
+html body #onboarding-overlay .onboarding-sub:not(#uy1):not(#uy2):not(#uy3):not(#uy4):not(#uy5):not(#uy6):not(#uy7):not(#uy8):not(#uy9):not(#uy10):not(#uy11):not(#uy12){margin:16px 0 22px!important}
+html body #onboarding-overlay .onboarding-sub b:not(#uy1):not(#uy2):not(#uy3):not(#uy4):not(#uy5):not(#uy6):not(#uy7):not(#uy8):not(#uy9):not(#uy10):not(#uy11):not(#uy12){font-size:18px!important;color:#0F1B2D!important}
+html body #onboarding-overlay .onboarding-sub span:not(#uy1):not(#uy2):not(#uy3):not(#uy4):not(#uy5):not(#uy6):not(#uy7):not(#uy8):not(#uy9):not(#uy10):not(#uy11):not(#uy12){font-size:14px!important;line-height:1.6!important;color:#3B4A66!important}
+html body #onboarding-overlay .google-login-btn:not(#uy1):not(#uy2):not(#uy3):not(#uy4):not(#uy5):not(#uy6):not(#uy7):not(#uy8):not(#uy9):not(#uy10):not(#uy11):not(#uy12){height:56px!important;background:linear-gradient(135deg,#2F6BF0,#1F4FE0)!important;box-shadow:0 14px 24px -12px rgba(31,79,224,.8)!important}
+html body #onboarding-overlay #onboard-step-login .ob-plate:last-child:not(#uy1):not(#uy2):not(#uy3):not(#uy4):not(#uy5):not(#uy6):not(#uy7):not(#uy8):not(#uy9):not(#uy10):not(#uy11):not(#uy12){background:rgba(255,255,255,.6)!important;border:1px solid rgba(255,255,255,.95)!important;border-radius:999px!important;min-height:56px!important;box-shadow:inset 0 1px 0 #fff!important}
+html body #onboarding-overlay .ob-or:not(#uy1):not(#uy2):not(#uy3):not(#uy4):not(#uy5):not(#uy6):not(#uy7):not(#uy8):not(#uy9):not(#uy10):not(#uy11):not(#uy12){color:#52607E!important}
+html body #onboarding-overlay #onboarding-close-btn:not(#uy1):not(#uy2):not(#uy3):not(#uy4):not(#uy5):not(#uy6):not(#uy7):not(#uy8):not(#uy9):not(#uy10):not(#uy11):not(#uy12){position:fixed!important;top:calc(14px + env(safe-area-inset-top,0px))!important;left:16px!important;right:auto!important;z-index:5!important}
+
+/* ===== One Back button style everywhere (glass circle + chevron) ===== */
+html body :is(.pcaux-back,.tab-back-btn,.header-icon[onclick*="closeServerSelect"],.header-icon[onclick*="closeTermsPage"],.header-icon[onclick*="closeNotificationsPage"],.header-icon[onclick*="closeNotificationDetail"]):not(#uy1):not(#uy2):not(#uy3):not(#uy4):not(#uy5):not(#uy6):not(#uy7):not(#uy8):not(#uy9):not(#uy10):not(#uy11):not(#uy12){
+  width:40px!important;height:40px!important;min-width:40px!important;padding:0!important;flex:none;
+  border-radius:50%!important;align-items:center;justify-content:center;cursor:pointer;
+  background:rgba(255,255,255,.68)!important;border:1px solid rgba(255,255,255,.95)!important;color:#1F4FE0!important;
+  -webkit-backdrop-filter:blur(14px)!important;backdrop-filter:blur(14px)!important;
+  box-shadow:0 8px 16px -10px rgba(37,87,245,.5),inset 0 1px 0 #fff!important;
+  transition:transform .4s cubic-bezier(.22,1,.36,1),background-color .45s ease!important;
+}
+html body .pcaux-back:not(#uy1):not(#uy2):not(#uy3):not(#uy4):not(#uy5):not(#uy6):not(#uy7):not(#uy8):not(#uy9):not(#uy10):not(#uy11):not(#uy12){display:inline-flex}
+html body :is(.pcaux-back,.tab-back-btn,.header-icon[onclick*="closeServerSelect"],.header-icon[onclick*="closeTermsPage"],.header-icon[onclick*="closeNotificationsPage"],.header-icon[onclick*="closeNotificationDetail"]):active:not(#uy1):not(#uy2):not(#uy3):not(#uy4):not(#uy5):not(#uy6):not(#uy7):not(#uy8):not(#uy9):not(#uy10):not(#uy11):not(#uy12){transform:scale(.92)!important}
+html body :is(.pcaux-back,.tab-back-btn,.header-icon[onclick*="close"]) :is(svg,.ui-icon):not(#uy1):not(#uy2):not(#uy3):not(#uy4):not(#uy5):not(#uy6):not(#uy7):not(#uy8):not(#uy9):not(#uy10):not(#uy11):not(#uy12){width:20px!important;height:20px!important;stroke:currentColor!important;color:inherit!important;fill:none}
+html body .modal-header:not(#uy1):not(#uy2):not(#uy3):not(#uy4):not(#uy5):not(#uy6):not(#uy7):not(#uy8):not(#uy9):not(#uy10):not(#uy11):not(#uy12){justify-content:flex-start!important;gap:12px!important}
+html body .modal-header h3:not(#uy1):not(#uy2):not(#uy3):not(#uy4):not(#uy5):not(#uy6):not(#uy7):not(#uy8):not(#uy9):not(#uy10):not(#uy11):not(#uy12){flex:1;min-width:0}
+html body .modal-box>.pcaux-back.abs:not(#uy1):not(#uy2):not(#uy3):not(#uy4):not(#uy5):not(#uy6):not(#uy7):not(#uy8):not(#uy9):not(#uy10):not(#uy11):not(#uy12){position:absolute!important;top:14px;left:14px;z-index:2}
+html body .modal-close.pcaux-replaced:not(#uy1):not(#uy2):not(#uy3):not(#uy4):not(#uy5):not(#uy6):not(#uy7):not(#uy8):not(#uy9):not(#uy10):not(#uy11):not(#uy12){display:none!important}
+
+/* ===== Payment numbers: smaller, one line, slides left-right when too long ===== */
+html body :is(.pmx-vl p.num,.pmx-ph):not(#uy1):not(#uy2):not(#uy3):not(#uy4):not(#uy5):not(#uy6):not(#uy7):not(#uy8):not(#uy9):not(#uy10):not(#uy11):not(#uy12){
+  display:block!important;flex:1 1 0!important;min-width:0!important;
+  font-size:clamp(12px,3.4vw,13px)!important;letter-spacing:.3px!important;font-weight:600!important;
+  white-space:nowrap!important;overflow:hidden!important;text-overflow:clip!important;overflow-wrap:normal!important;
+}
+html body .pmx-ph:not(#uy1):not(#uy2):not(#uy3):not(#uy4):not(#uy5):not(#uy6):not(#uy7):not(#uy8):not(#uy9):not(#uy10):not(#uy11):not(#uy12){flex:none!important;font-size:15px!important;max-width:100%}
+.pcaux-mqi{display:inline-block;white-space:nowrap;will-change:transform}
+.pcaux-mq{-webkit-mask-image:linear-gradient(90deg,transparent 0,#000 10px,#000 calc(100% - 10px),transparent 100%);mask-image:linear-gradient(90deg,transparent 0,#000 10px,#000 calc(100% - 10px),transparent 100%)}
+@keyframes pcauxMq{0%,14%{transform:translate3d(0,0,0)}86%,100%{transform:translate3d(var(--mqd,0px),0,0)}}
+.pcaux-mq .pcaux-mqi{animation:pcauxMq var(--mqt,6s) ease-in-out infinite alternate}
+@media (prefers-reduced-motion:reduce){.pcaux-mq .pcaux-mqi{animation:none}html body .pcaux-mq{overflow-x:auto!important}}
+}
+</style>
+<script id="pca-ux-final-2-js">
+(function(){
+ 'use strict';
+ var d=document;
+ var ICON='<svg class="ui-icon" aria-hidden="true"><use href="#icon-chevron-left"></use></svg>';
+ /* Back button in every modal / sheet (same action as its close button) */
+ function addBack(){
+  d.querySelectorAll('.modal-overlay .modal-close:not(.pcaux-replaced)').forEach(function(c){
+   var oc=c.getAttribute('onclick'),p=c.parentNode;if(!oc||!p)return;
+   var b=d.createElement('button');b.type='button';b.className='pcaux-back';
+   b.setAttribute('aria-label','Back');b.setAttribute('onclick',oc);b.innerHTML=ICON;
+   if(!p.classList.contains('modal-header'))b.className+=' abs';
+   p.insertBefore(b,p.firstChild);c.classList.add('pcaux-replaced');
+  });
+ }
+ addBack();
+ new MutationObserver(addBack).observe(d.body,{childList:true});
+ window.addEventListener('load',addBack);
+
+ /* Payment numbers: one line; if longer than the box, slide left <-> right */
+ var SEL='.pmx-vl p.num,.pmx-ph',mo,ro;
+ function fit(el){
+  var s=el.firstElementChild;if(!s||!s.classList.contains('pcaux-mqi'))return;
+  var over=s.scrollWidth-el.clientWidth;
+  if(over>2){el.classList.add('pcaux-mq');s.style.setProperty('--mqd',-(over+6)+'px');s.style.setProperty('--mqt',Math.max(5,over/18+4)+'s')}
+  else el.classList.remove('pcaux-mq');
+ }
+ function wrap(el){
+  var t=el.textContent,s=el.firstElementChild;
+  if(s&&s.classList.contains('pcaux-mqi')&&el.childNodes.length===1&&s.textContent===t){fit(el);return}
+  if(!t.trim())return;
+  var n=d.createElement('span');n.className='pcaux-mqi';n.textContent=t;
+  el.textContent='';el.appendChild(n);mo.takeRecords();
+  requestAnimationFrame(function(){fit(el)});
+ }
+ mo=new MutationObserver(function(rs){rs.forEach(function(r){var el=r.target.nodeType===1?r.target:r.target.parentNode;el=el&&el.closest&&el.closest(SEL);if(el)wrap(el)})});
+ ro=window.ResizeObserver?new ResizeObserver(function(es){es.forEach(function(e){fit(e.target)})}):null;
+ d.querySelectorAll(SEL).forEach(function(el){
+  mo.observe(el,{childList:true,characterData:true,subtree:true});
+  if(ro)ro.observe(el);wrap(el);
+ });
+})();
+</script>
+
+<style id="pca-ux-final-3">
+@layer pcadarkfix{
+/* tighten the empty strip under the header on the tab pages (was 39px, now ~12px) */
+html body :is(#profile,#history,#wallet):not(#uz1):not(#uz2):not(#uz3):not(#uz4):not(#uz5):not(#uz6):not(#uz7):not(#uz8):not(#uz9):not(#uz10):not(#uz11):not(#uz12){margin-top:-12px!important}
+html body #onboarding-overlay .onboarding-logo:not(#uz1):not(#uz2):not(#uz3):not(#uz4):not(#uz5):not(#uz6):not(#uz7):not(#uz8):not(#uz9):not(#uz10):not(#uz11):not(#uz12){border-radius:20px!important;overflow:hidden!important}
+html body :is(#profile,#history,#wallet)>.title-header:not(#uz1):not(#uz2):not(#uz3):not(#uz4):not(#uz5):not(#uz6):not(#uz7):not(#uz8):not(#uz9):not(#uz10):not(#uz11):not(#uz12){margin-top:4px!important}
+}
+</style>
+<script id="pca-ux-final-3-js">
+(function(){
+ /* the main tabs never get the extra Back box */
+ function clean(){document.querySelectorAll('#voucher>.tab-back-row,#history>.tab-back-row,#wallet>.tab-back-row,#profile>.tab-back-row').forEach(function(e){e.remove()})}
+ clean();document.addEventListener('DOMContentLoaded',clean);window.addEventListener('load',clean);
+})();
+</script>
+
+<style id="pca-ux-final-4">
+@layer pcadarkfix{
+/* ===== HOME ===== */
+/* 1) one even strip under the header on every page (was 39px, now 20px) */
+html body main.content-area:not(#uh1):not(#uh2):not(#uh3):not(#uh4):not(#uh5):not(#uh6):not(#uh7):not(#uh8):not(#uh9):not(#uh10):not(#uh11):not(#uh12){padding-top:0!important}
+
+/* 2) header pills + tab bar: more solid so cards never show through while scrolling */
+html body #app-header :is(.header-brand,.header-icons-group):not(#uh1):not(#uh2):not(#uh3):not(#uh4):not(#uh5):not(#uh6):not(#uh7):not(#uh8):not(#uh9):not(#uh10):not(#uh11):not(#uh12){background:linear-gradient(rgba(255,255,255,.92),rgba(246,249,255,.9))!important}
+html body .htabs-wrap .htabs:not(#uh1):not(#uh2):not(#uh3):not(#uh4):not(#uh5):not(#uh6):not(#uh7):not(#uh8):not(#uh9):not(#uh10):not(#uh11):not(#uh12){background:linear-gradient(rgba(255,255,255,.93),rgba(246,249,255,.91))!important}
+
+/* 3) game / voucher cards: no extra name box (long names keep the app's own slide-left-right) */
+html body .game-card .game-card-name:not(#uh1):not(#uh2):not(#uh3):not(#uh4):not(#uh5):not(#uh6):not(#uh7):not(#uh8):not(#uh9):not(#uh10):not(#uh11):not(#uh12){
+  background:transparent!important;border:0!important;box-shadow:none!important;border-radius:0!important;
+  padding:6px 4px 2px!important;margin:0!important;min-height:0!important;
+  color:#1B2A4A!important;font-size:12.5px!important;font-weight:600!important;line-height:1.25!important;
+}
+
+/* 4) search: one box only (outer frame removed, the glass input stays) */
+html body #game-search-wrap.game-search-wrap:not(#uh1):not(#uh2):not(#uh3):not(#uh4):not(#uh5):not(#uh6):not(#uh7):not(#uh8):not(#uh9):not(#uh10):not(#uh11):not(#uh12){background:transparent!important;background-image:none!important;border:0!important;box-shadow:none!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
+html body #game-search-input.game-search-input:not(#uh1):not(#uh2):not(#uh3):not(#uh4):not(#uh5):not(#uh6):not(#uh7):not(#uh8):not(#uh9):not(#uh10):not(#uh11):not(#uh12){border:1px solid rgba(37,87,245,.16)!important;box-shadow:0 8px 16px -12px rgba(37,87,245,.4)!important;background:linear-gradient(rgba(255,255,255,.94),rgba(246,249,255,.92))!important}
+}
+</style>
+
+<style id="pca-ux-final-5">
+@layer pcadarkfix{
+/* ===== TOP UP + VOUCHER ===== */
+/* long provider-tab bar: soft fade on the right edge while there is more to scroll */
+html body :is(#home-prov-tabs,#voucher-prov-tabs).pcaux-more:not(#uj1):not(#uj2):not(#uj3):not(#uj4):not(#uj5):not(#uj6):not(#uj7):not(#uj8):not(#uj9):not(#uj10):not(#uj11):not(#uj12){-webkit-mask-image:linear-gradient(90deg,#000 calc(100% - 34px),transparent)!important;mask-image:linear-gradient(90deg,#000 calc(100% - 34px),transparent)!important}
+html body :is(#home-prov-tabs,#voucher-prov-tabs):not(#uj1):not(#uj2):not(#uj3):not(#uj4):not(#uj5):not(#uj6):not(#uj7):not(#uj8):not(#uj9):not(#uj10):not(#uj11):not(#uj12){scroll-behavior:smooth;-webkit-overflow-scrolling:touch;overscroll-behavior-x:contain}
+/* Voucher intro line: same quiet size as the other pages */
+html body #voucher>.empty-msg:not(#uj1):not(#uj2):not(#uj3):not(#uj4):not(#uj5):not(#uj6):not(#uj7):not(#uj8):not(#uj9):not(#uj10):not(#uj11):not(#uj12){font-size:13px!important;line-height:1.5!important;color:#5B6478!important;padding:0 2px 10px!important}
+/* card list eases in when a provider tab is picked */
+@keyframes pcauxSwap{from{opacity:.25;translate:0 10px}to{opacity:1;translate:0 0}}
+@media (prefers-reduced-motion:no-preference){
+html body .games-grid-scroll.pcaux-swap:not(#uj1):not(#uj2):not(#uj3):not(#uj4):not(#uj5):not(#uj6):not(#uj7):not(#uj8):not(#uj9):not(#uj10):not(#uj11):not(#uj12){animation:pcauxSwap .55s var(--ux-ease) both!important}
+}
+}
+</style>
+<script id="pca-ux-final-5-js">
+(function(){
+ function bind(id){
+  var box=document.getElementById(id);if(!box)return;
+  function edge(){box.classList.toggle('pcaux-more',box.scrollWidth-box.clientWidth>4&&box.scrollLeft<box.scrollWidth-box.clientWidth-4)}
+  function center(){
+   var a=box.querySelector('.pkg-type-tab.active');
+   if(a){var l=box.scrollLeft+(a.getBoundingClientRect().left-box.getBoundingClientRect().left)-(box.clientWidth-a.offsetWidth)/2;box.scrollTo({left:Math.max(0,l),behavior:'smooth'})}
+   edge();
+  }
+  new MutationObserver(function(){if(!box.clientWidth)box.__pend=true;requestAnimationFrame(center)}).observe(box,{childList:true});
+  if(window.ResizeObserver)new ResizeObserver(function(){if(box.clientWidth&&box.__pend){box.__pend=false;center()}else edge()}).observe(box);
+  box.addEventListener('scroll',edge,{passive:true});
+  window.addEventListener('resize',edge,{passive:true});
+  box.addEventListener('click',function(e){
+   if(!e.target.closest('.pkg-type-tab'))return;
+   var g=box.parentNode.querySelector('.games-grid-scroll');if(!g)return;
+   g.classList.remove('pcaux-swap');void g.offsetWidth;g.classList.add('pcaux-swap');
+   setTimeout(function(){g.classList.remove('pcaux-swap')},700);
+  });
+  center();
+ }
+ ['home-prov-tabs','voucher-prov-tabs'].forEach(bind);
+})();
+</script>
+<style id="pca-tabs-pro">
+@layer pcatabs{
+/* ============ shared: flat, fast, single-surface tabs ============ */
+html body :is(#wallet,#history,#profile) :is(.wallet-balance-card,.history-card,.wallet-topup-row,.wtx-row,.pc-top,.pc-balance-row,.pc-stat,.detail-form-card,.google-account-card,.prefs-tile,.social-link-btn,.wtabs,.history-status-tabs,.history-date-chip,.auth-gate){-webkit-backdrop-filter:none !important;backdrop-filter:none !important;filter:none !important}
+html body :is(#wallet,#history,#profile) .title-header{margin:4px 2px 14px !important}
+html body :is(#wallet,#history,#profile) :is(.history-card,.wallet-topup-row,.wtx-row){content-visibility:auto;contain-intrinsic-size:auto 84px}
+
+/* ============ WALLET ============ */
+html body #wallet .wallet-balance-card.wbc2{position:relative !important;padding:18px !important;margin:0 0 14px !important;border:0 !important;border-radius:22px !important;overflow:hidden !important;color:#fff !important;background:linear-gradient(135deg,#1F4DE0 0%,#2F66FF 55%,#5B8CFF 100%) !important;box-shadow:0 14px 30px -16px rgba(37,87,245,.65) !important}
+html body #wallet .wallet-balance-card.wbc2::before,html body #wallet .wallet-balance-card.wbc2::after,html body #wallet .wallet-balance-pattern{display:none !important}
+html body #wallet .wbc2-top{display:flex !important;align-items:center !important;justify-content:space-between !important}
+html body #wallet .wbc2-tag{display:inline-flex !important;align-items:center !important;gap:6px !important;padding:6px 12px !important;border-radius:999px !important;border:0 !important;background:rgba(255,255,255,.18) !important;color:#fff !important;font-size:12px !important;font-weight:600 !important;box-shadow:none !important}
+html body #wallet .wbc2-ic{width:38px !important;height:38px !important;border-radius:12px !important;display:flex !important;align-items:center !important;justify-content:center !important;border:0 !important;background:rgba(255,255,255,.18) !important;box-shadow:none !important}
+html body #wallet .wbc2-ic .ui-icon{width:20px !important;height:20px !important;stroke:#fff !important;color:#fff !important;filter:none !important}
+html body #wallet .wallet-balance-label{display:block !important;margin:16px 0 0 !important;font-size:12px !important;font-weight:500 !important;letter-spacing:.4px !important;text-transform:none !important;color:rgba(255,255,255,.78) !important}
+html body #wallet .wallet-balance-amount{margin:4px 0 16px !important;font-size:32px !important;font-weight:700 !important;letter-spacing:-.5px !important;line-height:1.15 !important;color:#fff !important;text-shadow:none !important;font-variant-numeric:tabular-nums}
+html body #wallet .wbc2-actions{display:grid !important;grid-template-columns:1.3fr 1fr !important;gap:10px !important}
+html body #wallet .wbc2-actions .btn{min-height:46px !important;border-radius:14px !important;display:flex !important;align-items:center !important;justify-content:center !important;gap:8px !important;font-size:14px !important;font-weight:600 !important;box-shadow:none !important;margin:0 !important}
+html body #wallet .wallet-topup-btn{background:#fff !important;color:#1F4DE0 !important;border:0 !important}
+html body #wallet .wallet-topup-btn-icon{width:22px !important;height:22px !important;border-radius:50% !important;background:#EAF0FF !important;border:0 !important;box-shadow:none !important;display:flex !important;align-items:center !important;justify-content:center !important}
+html body #wallet .wallet-topup-btn-icon .ui-icon{width:13px !important;height:13px !important;stroke:#1F4DE0 !important;color:#1F4DE0 !important;filter:none !important}
+html body #wallet .wbc2-hist{background:rgba(255,255,255,.16) !important;color:#fff !important;border:1px solid rgba(255,255,255,.34) !important}
+html body #wallet .wallet-min-hint{margin:10px 0 0 !important;text-align:center !important;font-size:11.5px !important;color:rgba(255,255,255,.8) !important}
+html body #wallet .wallet-min-hint:empty{display:none !important}
+
+/* tab strip + list: no wrapper box around rows */
+html body #wallet .wglass{background:none !important;border:0 !important;box-shadow:none !important;padding:0 !important;margin:0 !important;border-radius:0 !important}
+html body #wallet .wtabs{position:relative !important;display:grid !important;grid-template-columns:1fr 1fr !important;padding:4px !important;margin:0 0 14px !important;border:0 !important;border-radius:999px !important;background:#E9EDF5 !important;box-shadow:none !important}
+html body #wallet .wtabs .wtabs-ind{background:#fff !important;border:0 !important;box-shadow:0 2px 8px -2px rgba(25,50,120,.28) !important}
+html body #wallet .wtab{position:relative !important;z-index:1 !important;min-height:40px !important;display:flex !important;align-items:center !important;justify-content:center !important;gap:6px !important;padding:0 6px !important;border:0 !important;background:none !important;box-shadow:none !important;font-size:12.5px !important;font-weight:600 !important;color:#667085 !important;white-space:nowrap}
+html body #wallet .wtab.active{color:#1F4DE0 !important}
+html body #wallet .wtab .ui-icon{width:16px !important;height:16px !important;stroke:currentColor !important;color:inherit !important;flex:none}
+
+/* rows */
+html body #wallet :is(.wallet-topup-row,.wtx-row){position:relative !important;display:flex !important;align-items:center !important;gap:12px !important;margin:0 0 8px !important;padding:12px 14px !important;border:1px solid #E8ECF3 !important;border-radius:16px !important;background:#fff !important;box-shadow:none !important;overflow:hidden !important}
+html body #wallet .wallet-topup-row::before{display:none !important}
+html body #wallet :is(.wallet-topup-row-icon,.wtx-ic){width:40px !important;height:40px !important;border-radius:13px !important;flex:none !important;display:flex !important;align-items:center !important;justify-content:center !important;border:0 !important;box-shadow:none !important;filter:none !important;overflow:hidden}
+html body #wallet :is(.wallet-topup-row-icon,.wtx-ic) .ui-icon{width:18px !important;height:18px !important;filter:none !important}
+html body #wallet .wallet-topup-row-icon.st-completed,html body #wallet .wtx-ic.st-completed{background:#E8F7EE !important}
+html body #wallet .wallet-topup-row-icon.st-completed .ui-icon,html body #wallet .wtx-ic.st-completed .ui-icon{stroke:#157F43 !important;color:#157F43 !important}
+html body #wallet .wallet-topup-row-icon.st-pending,html body #wallet .wtx-ic.st-pending{background:#FFF4D6 !important}
+html body #wallet .wallet-topup-row-icon.st-pending .ui-icon,html body #wallet .wtx-ic.st-pending .ui-icon{stroke:#9A6B00 !important;color:#9A6B00 !important}
+html body #wallet .wallet-topup-row-icon.st-processing,html body #wallet .wtx-ic.st-processing{background:#E7F0FF !important}
+html body #wallet .wallet-topup-row-icon.st-processing .ui-icon,html body #wallet .wtx-ic.st-processing .ui-icon{stroke:#2557F5 !important;color:#2557F5 !important}
+html body #wallet .wallet-topup-row-icon.st-rejected,html body #wallet .wtx-ic.st-rejected{background:#FDE8E8 !important}
+html body #wallet .wallet-topup-row-icon.st-rejected .ui-icon,html body #wallet .wtx-ic.st-rejected .ui-icon{stroke:#C0392B !important;color:#C0392B !important}
+html body #wallet .wtx-ic.wtx-shop{background:#EEF3FF !important}
+html body #wallet .wtx-ic.wtx-shop .ui-icon{stroke:#2557F5 !important;color:#2557F5 !important}
+html body #wallet .wtx-ic img{width:100% !important;height:100% !important;object-fit:cover !important;border-radius:inherit}
+html body #wallet :is(.wallet-topup-row-body,.wtx-body){flex:1 1 auto !important;min-width:0 !important}
+html body #wallet :is(.wallet-topup-row-top,.wtx-top,.wtx-sub){display:flex !important;align-items:center !important;justify-content:space-between !important;gap:8px !important}
+html body #wallet .wtx-sub{margin-top:4px !important}
+html body #wallet :is(.wallet-topup-amount,.wtx-amt){font-size:15px !important;font-weight:700 !important;color:#111827 !important;font-variant-numeric:tabular-nums;white-space:nowrap}
+html body #wallet .wtx-amt.in{color:#157F43 !important}
+html body #wallet .wtx-amt.void{color:#98A2B3 !important;text-decoration:line-through}
+html body #wallet .wtx-title{font-size:14px !important;font-weight:600 !important;color:#111827 !important;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+html body #wallet :is(.wallet-topup-meta,.wtx-meta){margin-top:3px !important;font-size:11.5px !important;color:#7A869A !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body #wallet .wtx-sub .wtx-meta{margin-top:0 !important}
+html body #wallet .wallet-topup-note{margin-top:6px !important;padding:6px 10px !important;border-radius:9px !important;font-size:11.5px !important;line-height:1.45 !important}
+html body #wallet .wallet-topup-note.pending{background:#FFF8E5 !important;color:#8A5F00 !important}
+html body #wallet .wallet-topup-note.rejected{background:#FDECEC !important;color:#B3261E !important}
+
+/* status badges (all 3 tabs, one look) */
+html body :is(#wallet,#history) .badge{display:inline-flex !important;align-items:center !important;gap:5px !important;padding:4px 10px !important;border:0 !important;border-radius:999px !important;font-size:11.5px !important;font-weight:600 !important;box-shadow:none !important;white-space:nowrap}
+html body :is(#wallet,#history) .badge-success{background:#E8F7EE !important;color:#157F43 !important}
+html body :is(#wallet,#history) .badge-warning{background:#FFF4D6 !important;color:#8A5F00 !important}
+html body :is(#wallet,#history) .badge-danger{background:#FDE8E8 !important;color:#B3261E !important}
+html body :is(#wallet,#history) .badge-processing{background:#E7F0FF !important;color:#1F4DE0 !important}
+
+/* ============ HISTORY ============ */
+html body #history-container{padding:0 !important}
+html body #history .history-date-filter-wrap{display:flex !important;gap:8px !important;padding:0 0 10px !important;margin:0 !important;overflow-x:auto}
+html body #history .history-date-chip{flex:none !important;min-height:34px !important;padding:0 14px !important;display:inline-flex !important;align-items:center !important;gap:6px !important;border-radius:999px !important;border:1px solid #E3E8F0 !important;background:#fff !important;box-shadow:none !important;font-size:12.5px !important;font-weight:600 !important;color:#667085 !important}
+html body #history .history-date-chip.active{background:#2557F5 !important;border-color:#2557F5 !important;color:#fff !important}
+html body #history .history-date-chip .ui-icon{width:13px !important;height:13px !important}
+html body #history .history-status-tabs{display:flex !important;gap:2px !important;padding:4px !important;margin:0 0 6px !important;border:0 !important;border-radius:999px !important;background:#E9EDF5 !important;box-shadow:none !important}
+html body #history .history-status-tab{flex:1 1 0 !important;min-height:38px !important;display:flex !important;align-items:center !important;justify-content:center !important;gap:6px !important;padding:0 8px !important;border:0 !important;border-radius:999px !important;background:none !important;box-shadow:none !important;font-size:12.5px !important;font-weight:600 !important;color:#667085 !important}
+html body #history .history-status-tab.active{background:#fff !important;color:#1F4DE0 !important;box-shadow:0 2px 8px -2px rgba(25,50,120,.28) !important}
+html body #history .history-status-tab .ui-icon{width:14px !important;height:14px !important}
+html body #history .history-status-count{min-width:18px !important;height:18px !important;padding:0 5px !important;border-radius:9px !important;background:#DDE3EE !important;color:#556277 !important;font-size:10.5px !important;font-weight:700 !important;line-height:18px !important;text-align:center}
+html body #history .history-status-tab.active .history-status-count{background:#E4ECFF !important;color:#1F4DE0 !important}
+html body #history .history-date-header{margin:16px 4px 8px !important;font-size:12.5px !important;font-weight:600 !important;letter-spacing:.2px !important;color:#7A869A !important}
+html body #history .history-date-header:first-child{margin-top:8px !important}
+
+html body #history-container .history-card{position:relative !important;display:flex !important;flex-wrap:wrap !important;align-items:center !important;gap:0 !important;margin:0 0 10px !important;padding:12px 14px !important;border:1px solid #E8ECF3 !important;border-radius:18px !important;background:#fff !important;box-shadow:none !important;overflow:hidden !important}
+html body #history-container .history-card:active{background:#F7F9FD !important}
+html body #history-container .hc-left{flex:1 1 0 !important;min-width:0 !important;display:flex !important;align-items:center !important;gap:12px !important}
+html body #history-container .hc-thumb{width:48px !important;height:48px !important;flex:none !important;border-radius:13px !important;border:0 !important;background:#F1F4F9 !important;box-shadow:none !important;overflow:hidden !important}
+html body #history-container .hc-thumb img{width:100% !important;height:100% !important;object-fit:cover !important}
+html body #history-container .list-info{min-width:0 !important;flex:1 1 auto}
+html body #history-container .list-info h5{margin:0 !important;font-size:14.5px !important;font-weight:600 !important;color:#111827 !important;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+html body #history-container .list-info p{margin:3px 0 0 !important;font-size:11.5px !important;color:#7A869A !important}
+html body #history-container .hc-right{flex:0 0 auto !important;display:flex !important;align-items:center !important;gap:6px !important;margin-left:10px !important}
+html body #history-container .list-amount{display:flex !important;flex-direction:column !important;align-items:flex-end !important;gap:6px !important;text-align:right}
+html body #history-container .list-amount h5{margin:0 !important;font-size:14.5px !important;font-weight:700 !important;color:#111827 !important;font-variant-numeric:tabular-nums;white-space:nowrap}
+html body #history-container .hc-chevron{width:16px !important;height:16px !important;stroke:#B6BECC !important;color:#B6BECC !important;fill:none !important;flex:none}
+/* "Buy again": full-width row inside the card (was a clipped pill floating above it) */
+html body #history-container .history-card>.hc-again{position:static !important;order:5 !important;flex:0 0 100% !important;width:100% !important;height:38px !important;margin:12px 0 0 !important;padding:0 14px !important;display:flex !important;align-items:center !important;justify-content:center !important;gap:6px !important;border:0 !important;border-radius:12px !important;background:#EEF3FF !important;color:#1F4DE0 !important;font-size:13px !important;font-weight:600 !important;box-shadow:none !important;transform:none !important}
+html body #history-container .history-card>.hc-again::after{display:none !important;content:none !important}
+html body #history-container .history-card>.hc-again .ui-icon{width:14px !important;height:14px !important;stroke:#1F4DE0 !important;color:#1F4DE0 !important;fill:none !important}
+html body #history-container .history-card>.hc-again:active{background:#DCE7FF !important;transform:scale(.98) !important}
+
+/* ============ PROFILE ============ */
+html:not(.logged-out) body #profile .profile-card:not(.pca-look){display:flex !important;flex-direction:column !important;gap:12px !important;padding:0 !important;margin:0 !important;border:0 !important;border-radius:0 !important;background:none !important;box-shadow:none !important;overflow:visible !important}
+html body #profile .pc-divider{display:none !important}
+html body #profile .pc-top{position:relative !important;display:flex !important;align-items:center !important;gap:14px !important;padding:14px !important;border:1px solid #E8ECF3 !important;border-radius:20px !important;background:#fff !important;box-shadow:none !important}
+html body #profile .pc-id-block{min-width:0 !important;flex:1 1 auto}
+html body #profile .profile-hero-name{font-size:17px !important;font-weight:700 !important;color:#111827 !important}
+html body #profile .pc-id-row{display:flex !important;align-items:center !important;gap:8px !important;margin-top:4px !important}
+html body #profile .profile-hero-id{font-size:12.5px !important;color:#7A869A !important}
+html body #profile .profile-id-copy-btn{width:26px !important;height:26px !important;border-radius:8px !important;background:#EEF3FF !important;border:0 !important;box-shadow:none !important;display:flex !important;align-items:center !important;justify-content:center !important}
+html body #profile .profile-id-copy-btn .ui-icon{width:13px !important;height:13px !important;stroke:#2557F5 !important;color:#2557F5 !important;filter:none !important}
+html body #profile .pc-balance-row{display:flex !important;align-items:center !important;justify-content:space-between !important;gap:12px !important;padding:16px !important;border:0 !important;border-radius:20px !important;background:linear-gradient(135deg,#1F4DE0 0%,#2F66FF 55%,#5B8CFF 100%) !important;box-shadow:0 14px 30px -18px rgba(37,87,245,.7) !important}
+html body #profile .pc-balance-row .pc-label{font-size:12px !important;color:rgba(255,255,255,.78) !important}
+html body #profile .pc-balance{margin-top:3px !important;font-size:24px !important;font-weight:700 !important;color:#fff !important;font-variant-numeric:tabular-nums}
+html body #profile .pc-topup-btn{min-height:42px !important;padding:0 16px !important;border:0 !important;border-radius:13px !important;display:inline-flex !important;align-items:center !important;gap:6px !important;background:#fff !important;color:#1F4DE0 !important;font-size:13.5px !important;font-weight:700 !important;box-shadow:none !important}
+html body #profile .pc-topup-btn .ui-icon{width:15px !important;height:15px !important;stroke:#1F4DE0 !important;color:#1F4DE0 !important;filter:none !important}
+html body #profile .pc-stats{display:grid !important;grid-template-columns:1fr 1fr !important;gap:12px !important;margin:0 !important}
+html body #profile .pc-stat{display:flex !important;flex-direction:column !important;gap:2px !important;padding:14px !important;border:1px solid #E8ECF3 !important;border-radius:18px !important;background:#fff !important;box-shadow:none !important}
+html body #profile .pc-stat::before{width:30px !important;height:30px !important;border-radius:10px !important;margin-bottom:6px !important;box-shadow:none !important}
+html body #profile .pc-stat .pc-label{font-size:12px !important;color:#7A869A !important}
+html body #profile .pc-stat b{font-size:17px !important;font-weight:700 !important;color:#111827 !important;font-variant-numeric:tabular-nums}
+html body #profile #profile-completion-badge{margin:0 !important;border-radius:14px !important}
+html body #profile .profile-hero-edit-btn{flex:none !important;width:auto !important;min-height:38px !important;margin:0 !important;padding:0 14px !important;border:0 !important;border-radius:12px !important;background:#EEF3FF !important;color:#1F4DE0 !important;box-shadow:none !important}
+
+/* settings / account / follow: ONE card per section, no boxes inside boxes */
+html body #profile > .detail-form-card{margin:12px 0 0 !important;padding:4px 16px !important;border:1px solid #E8ECF3 !important;border-radius:18px !important;background:#fff !important;box-shadow:none !important}
+html body #profile .collapsible-header{display:flex !important;align-items:center !important;justify-content:space-between !important;min-height:56px !important;padding:0 !important;margin:0 !important;border:0 !important;background:none !important;box-shadow:none !important}
+html body #profile .collapsible-header>label{align-self:center !important;margin:0 !important;font-size:15px !important;font-weight:600 !important;color:#111827 !important}
+html body #profile .collapsible-chevron{width:18px !important;height:18px !important;stroke:#98A2B3 !important;color:#98A2B3 !important}
+html body #profile .collapsible-body{padding:0 !important}
+html body #profile .collapsible-body.open{padding:0 0 8px !important}
+html body #profile .prefs-group{margin:0 !important;padding:6px 0 !important;border:0 !important;border-radius:0 !important;background:none !important;box-shadow:none !important}
+html body #profile .prefs-group+.prefs-group{border-top:1px solid #EEF1F6 !important}
+html body #profile .prefs-group-title{margin:6px 0 2px !important;font-size:11.5px !important;font-weight:700 !important;letter-spacing:.6px !important;text-transform:uppercase !important;color:#98A2B3 !important}
+html body #profile .prefs-group .prefs-grid{display:flex !important;flex-direction:column !important;gap:0 !important;grid-template-columns:none !important;padding:0 !important;margin:0 !important}
+html body #profile .prefs-tile{position:relative !important;display:flex !important;flex-direction:row !important;align-items:center !important;justify-content:flex-start !important;gap:12px !important;width:100% !important;height:auto !important;min-height:54px !important;padding:8px 0 !important;margin:0 !important;border:0 !important;border-radius:0 !important;background:none !important;box-shadow:none !important;text-align:left !important;overflow:visible !important}
+html body #profile .prefs-tile+.prefs-tile{border-top:1px solid #F0F2F7 !important}
+html body #profile .prefs-tile .pt-ic{order:0 !important;width:36px !important;height:36px !important;flex:none !important;border-radius:11px !important;display:flex !important;align-items:center !important;justify-content:center !important;margin:0 !important}
+html body #profile .prefs-tile .pt-label{order:1 !important;flex:1 1 auto !important;font-size:14px !important;font-weight:500 !important;color:#111827 !important;text-align:left !important}
+html body #profile .prefs-tile .pt-state{order:2 !important;font-size:12px !important;color:#98A2B3 !important;margin:0 !important}
+html body #profile .prefs-tile .pca-chk{order:3 !important;position:static !important;margin:0 0 0 4px !important;flex:none}
+html body #profile .prefs-tile .lang-toggle-btn{order:0 !important;position:static !important;flex:none !important;width:36px !important;height:36px !important;margin:0 !important;display:flex !important;align-items:center !important;justify-content:center !important;border-radius:11px !important}
+html body #profile .google-account-card{padding:6px 0 10px !important;margin:0 !important;border:0 !important;border-radius:0 !important;background:none !important;box-shadow:none !important}
+html body #profile .social-links-row{display:flex !important;gap:10px !important;padding:2px 0 12px !important}
+html body #profile .social-link-btn{box-shadow:none !important;border:0 !important;background:#F5F7FB !important;border-radius:14px !important}
+
+/* signed-out gate: single clean card */
+html body :is(#wallet,#history,#profile) .auth-gate{padding:28px 20px !important;border:1px solid #E8ECF3 !important;border-radius:20px !important;background:#fff !important;box-shadow:none !important;text-align:center}
+}
+@layer pcatabs{
+html body #profile>.profile-card.pca-look{display:none !important;margin:0 !important;padding:0 !important}
+html body #profile>.profile-card:not(.pca-look){margin-top:0 !important}
+html body #profile .collapsible-body{margin:0 !important}
+html body #profile>.detail-form-card{padding-top:0 !important;padding-bottom:0 !important}
+html body #profile>.detail-form-card:has(.collapsible-body.open){padding-bottom:6px !important}
+}
+
+@layer pcatabs{
+/* logged-out: keep the original gate behaviour (only title + login card) no matter what layout rules above set */
+html.logged-out body :is(#wallet,#history,#profile)>:not(.title-header):not(.auth-gate):not(.modal-overlay){display:none !important}
+}
+@layer pcatabs{
+html body #profile .prefs-group{display:block !important;width:100% !important;box-sizing:border-box !important}
+html body #profile .prefs-group .prefs-grid{width:100% !important}
+html body #profile .prefs-tile{max-width:none !important;box-sizing:border-box !important}
+html body #profile .prefs-tile .pt-state{display:none !important}
+html body #profile .prefs-tile .lang-toggle-btn::after{display:none !important}
+html body #profile .prefs-tile .lang-toggle-btn{border-radius:50% !important;border:1px solid #E3E8F0 !important;overflow:hidden !important}
+html body #profile .prefs-tile .pca-chk{margin-left:auto !important}
+}
+@layer pcatabs{
+html body #profile .collapsible-body{display:block !important}
+html body #profile .prefs-tile .pca-chk{position:relative !important}
+}
+@layer pcatabs{
+html body #profile .prefs-tile .lang-toggle-btn{width:36px !important;height:36px !important;min-width:36px !important}
+}
+@layer pcatabs{
+html body #wallet :is(.wtx-row,.wallet-topup-row)::before,html body #wallet :is(.wtx-row,.wallet-topup-row)::after{display:none !important;content:none !important}
+html body #wallet :is(.wtx-row,.wallet-topup-row){border-left-width:1px !important}
+}
+@layer pcatabs{
+/* history filters: active colour is enough, drop the redundant tick that wasted width */
+html body #history :is(.history-date-chip,.history-status-tab).active::before{display:none !important;content:none !important;margin:0 !important}
+html body #history .history-status-tabs{overflow-x:auto !important;scrollbar-width:none}
+html body #history .history-status-tabs::-webkit-scrollbar{display:none}
+html body #history .history-status-tab{flex:1 0 auto !important}
+html body #history .history-date-filter-wrap{scrollbar-width:none;-webkit-overflow-scrolling:touch}
+/* bottom nav: readable labels, consistent icon size */
+html body .bottom-nav .nav-label{font-size:10.5px !important;letter-spacing:0 !important;font-weight:600 !important}
+html body .bottom-nav .nav-item .ui-icon{width:23px !important;height:23px !important}
+html body .bottom-nav .nav-item{-webkit-tap-highlight-color:transparent}
+html body .bottom-nav .nav-item-wallet .ui-icon{width:22px !important;height:22px !important}
+}
+</style>
 </body>
 </html>
