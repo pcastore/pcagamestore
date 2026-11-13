@@ -6629,17 +6629,72 @@ b,strong{font-weight:600}}
         const GIS_CLIENT_ID = '666629360027-us8un4uogmeb24mgb9jt6ljsbp3r25k4.apps.googleusercontent.com';
         const GIS_BUTTON_SLOT_IDS = ['onboard-google-gis', 'wallet-gate-google-gis', 'google-signin-gis', 'link-google-gis'];
 
+        // A pending sheet sign-in (set by pcaGoogleSheetSignIn) is settled by the GIS callback below.
+        let gisPending = null;
         async function handleGisCredentialResponse(response) {
+            const pending = gisPending; gisPending = null;
             try {
                 const credential = GoogleAuthProvider.credential(response.credential);
                 const result = await signInWithCredential(auth, credential);
                 applyGoogleProfile(result.user);
+                if (pending) pending.resolve(result.user);
             } catch (error) {
                 console.error('GIS sign-in error:', error);
-                if (window.showToast) window.showToast('Google sign-in failed. Please try again.', 'fail');
+                if (pending) pending.reject(error);
+                else if (window.showToast) window.showToast('Google sign-in failed. Please try again.', 'fail');
             }
         }
         window.handleGisCredentialResponse = handleGisCredentialResponse;
+
+        // Google account-chooser SHEET (the bottom sheet "Sign in with google.com / Choose an account").
+        // Signs in with the ID token directly via signInWithCredential - it never goes through
+        // pca-game-store.firebaseapp.com/__/auth/handler, which is what threw
+        // "The requested action is invalid" on linngamestore.com.
+        window.pcaGoogleSheetSignIn = function () {
+            return new Promise((resolve, reject) => {
+                if (!(window.google && google.accounts && google.accounts.id)) { reject({ code: 'gis-unavailable' }); return; }
+                if (gisPending) { try { gisPending.reject({ code: 'auth/cancelled-popup-request' }); } catch (e) {} }
+                const mine = { resolve, reject };
+                gisPending = mine;
+                // Swiping the sheet away may not notify under FedCM - never leave the button stuck on "Signing in..."
+                setTimeout(() => { if (gisPending === mine) { gisPending = null; reject({ code: 'auth/popup-closed-by-user' }); } }, 45000);
+                try { google.accounts.id.cancel(); } catch (e) {}
+                google.accounts.id.prompt((n) => {
+                    try {
+                        if (n.isNotDisplayed && n.isNotDisplayed()) {
+                            if (gisPending) { const p = gisPending; gisPending = null; p.reject({ code: 'gis-not-displayed', reason: n.getNotDisplayedReason && n.getNotDisplayedReason() }); }
+                        } else if (n.isSkippedMoment && n.isSkippedMoment()) {
+                            if (gisPending) { const p = gisPending; gisPending = null; p.reject({ code: 'gis-not-displayed', reason: n.getSkippedReason && n.getSkippedReason() }); }
+                        } else if (n.isDismissedMoment && n.isDismissedMoment() && n.getDismissedReason && n.getDismissedReason() !== 'credential_returned') {
+                            if (gisPending) { const p = gisPending; gisPending = null; p.reject({ code: 'auth/popup-closed-by-user' }); }
+                        }
+                    } catch (e) { /* FedCM builds hide some moment details - the credential callback still fires */ }
+                });
+            });
+        };
+
+        // Backup: Google's own small popup (accounts.google.com, no firebaseapp.com hop).
+        // Must be called straight from a tap. Used only after the sheet could not be shown.
+        window.pcaGoogleTokenPopupSignIn = function () {
+            return new Promise((resolve, reject) => {
+                if (!(window.google && google.accounts && google.accounts.oauth2)) { reject({ code: 'gis-unavailable' }); return; }
+                const client = google.accounts.oauth2.initTokenClient({
+                    client_id: GIS_CLIENT_ID,
+                    scope: 'openid email profile',
+                    prompt: 'select_account',
+                    callback: async (resp) => {
+                        if (!resp || resp.error || !resp.access_token) { reject({ code: 'auth/popup-closed-by-user', detail: resp && resp.error }); return; }
+                        try {
+                            const result = await signInWithCredential(auth, GoogleAuthProvider.credential(null, resp.access_token));
+                            applyGoogleProfile(result.user);
+                            resolve(result.user);
+                        } catch (e) { reject(e); }
+                    },
+                    error_callback: (err) => reject({ code: 'auth/popup-closed-by-user', detail: err && err.type })
+                });
+                client.requestAccessToken();
+            });
+        };
 
         function initGisSignIn() {
             if (!(window.google && google.accounts && google.accounts.id)) return false;
@@ -7125,23 +7180,21 @@ b,strong{font-weight:600}}
             // round-trip through firebaseapp.com that a full-page redirect needs,
             // which is what was silently dropping the sign-in result when the site
             // is hosted off Firebase (e.g. on Vercel).
-            const isInAppBrowser = /FBAN|FBAV|FB_IAB|Instagram|Line\/|MicroMessenger|; ?wv\)/i.test(navigator.userAgent);
             try {
-                if (isInAppBrowser || isStandaloneDisplay) {
-                    await signInWithRedirect(auth, googleProvider);
-                    return; // page navigates away; getRedirectResult() below picks it up on return
+                // 1st choice: the in-page Google account sheet. If Google could not show it
+                // (cooldown / blocked), the next tap uses Google's own popup instead.
+                if (window.__pcaGisSheetFailed) {
+                    window.__pcaGisSheetFailed = false;
+                    await window.pcaGoogleTokenPopupSignIn();
+                } else {
+                    await window.pcaGoogleSheetSignIn();
                 }
-                const result = await signInWithPopup(auth, googleProvider);
-                applyGoogleProfile(result.user);
             } catch (error) {
                 console.error('Google sign-in error:', error);
-                if (error.code === 'auth/popup-blocked' || error.code === 'auth/operation-not-supported-in-this-environment') {
-                    // Mobile/in-app browsers often block popups - fall back to a
-                    // full-page redirect, which getRedirectResult() picks up below.
-                    await signInWithRedirect(auth, googleProvider);
-                    return;
-                }
-                if (error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
+                if (error && error.code === 'gis-not-displayed') {
+                    window.__pcaGisSheetFailed = true;
+                    if (window.showToast) window.showToast('Google account list မပေါ်ပါ။ ခလုတ်ကို တစ်ကြိမ်ထပ်နှိပ်ပါ။ / Tap once more to continue.', 'fail');
+                } else if (error && error.code !== 'auth/popup-closed-by-user' && error.code !== 'auth/cancelled-popup-request') {
                     if (window.showToast) window.showToast('Google sign-in failed. Please try again.', 'fail');
                 }
             } finally {
@@ -16728,5 +16781,36 @@ html.pcsk-profile #profile>:not(.title-header):not(.pcsk):not(.modal-overlay){di
 })();
 </script>
 
+
+<style id="pca-names-logo-fix">
+@layer pcatabs{
+/* ===== Login form: logo must never collapse (overflow:hidden made it shrinkable to 0 height in the flex column) ===== */
+html body #onboarding-overlay .onboarding-logo:not(#z1):not(#z2):not(#z3),
+html body #onboarding-overlay[data-ctx] .onboarding-logo:not(#z1):not(#z2):not(#z3){
+  display:flex !important;align-items:center !important;justify-content:center !important;
+  flex:0 0 auto !important;width:72px !important;height:72px !important;min-width:72px !important;min-height:72px !important;
+  margin:0 0 8px !important;visibility:visible !important;opacity:1 !important;position:relative !important;overflow:hidden !important;border-radius:20px !important}
+html body #onboarding-overlay .onboarding-logo:not(#z1):not(#z2):not(#z3) #onboarding-logo-img[style*="block"]{display:block !important;visibility:visible !important;opacity:1 !important;width:100% !important;height:100% !important;object-fit:contain !important}
+html body #onboarding-overlay .onboarding-logo:not(#z1):not(#z2):not(#z3) #onboarding-logo-default-icon:not([style*="none"]){display:block !important;width:100% !important;height:100% !important}
+
+/* ===== Game names: small, light-blue glossy chip, hugs the text (no empty space underneath) ===== */
+html body :is(#home,#voucher,#server-select,.page-section,.content-area) :is(.game-card,.popular-card):not(.game-row) .game-card-name:not(#z1):not(#z2):not(#z3){
+  position:relative !important;display:-webkit-box !important;-webkit-box-orient:vertical !important;-webkit-line-clamp:2 !important;
+  overflow:hidden !important;text-overflow:ellipsis !important;white-space:normal !important;word-break:break-word !important;
+  box-sizing:border-box !important;width:calc(100% - 6px) !important;height:auto !important;min-height:0 !important;max-height:none !important;
+  margin:5px auto 0 !important;padding:3px 5px 4px !important;
+  font-size:9px !important;font-weight:600 !important;line-height:1.2 !important;letter-spacing:.1px !important;text-align:center !important;color:#1E4BC4 !important;
+  background:linear-gradient(180deg,#F6FAFF 0%,#E0EDFF 52%,#CFE2FF 100%) !important;
+  border:1px solid rgba(110,165,255,.50) !important;border-radius:9px !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.98),inset 0 -2px 4px rgba(80,135,255,.16),0 3px 7px -3px rgba(60,115,245,.40) !important;
+  text-shadow:0 1px 0 rgba(255,255,255,.7) !important}
+html body :is(#home,#voucher,#server-select,.page-section,.content-area) :is(.game-card,.popular-card):not(.game-row) .game-card-name:not(#z1):not(#z2):not(#z3)::before{
+  content:"" !important;position:absolute !important;left:2px;right:2px;top:1px;height:46%;border-radius:8px 8px 14px 14px;
+  background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,.08)) !important;pointer-events:none;display:block !important}
+/* no extra space under the name: card hugs its content, tighter row gap */
+html body :is(#home,#voucher,#server-select,.page-section,.content-area) .cards-grid > .game-card:not(#z1):not(#z2):not(#z3){padding-bottom:0 !important;min-height:0 !important;height:auto !important}
+html body :is(#home,#voucher,#server-select,.page-section,.content-area) .cards-grid:not(#z1):not(#z2):not(#z3){row-gap:10px !important;align-items:start !important}
+}
+</style>
 </body>
 </html>
