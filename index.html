@@ -2824,7 +2824,8 @@ b,strong{font-weight:600}}
                 scrollStartLeft = scrollAncestor ? scrollAncestor.scrollLeft : 0;
                 dragging = false;
                 verticalIntent = false;
-                dragEl = (!busy && stopIdx() !== -1) ? document.querySelector('.page-section.active') : null;
+                const inBlocked = !!(e.target.closest && e.target.closest('.modal-overlay, .slide-confirm-wrap, .success-overlay')) || !!document.querySelector('.modal-overlay.show, .success-overlay.show');
+                dragEl = (!busy && !inBlocked && stopIdx() !== -1) ? document.querySelector('.page-section.active') : null;
             }, { passive: true });
 
             content.addEventListener('touchmove', (e) => {
@@ -3540,24 +3541,22 @@ b,strong{font-weight:600}}
                 avatar.textContent = r.name.trim().charAt(0).toUpperCase();
                 const info = document.createElement('div');
                 info.className = 'id-result-info';
+                // Name + verified badge + (Region) on one line
                 const nameEl = document.createElement('div');
-                nameEl.className = 'id-result-name';
-                nameEl.textContent = r.name;
-                // Region (+ country) shown as clear labelled pills under the name
-                const meta = document.createElement('div');
-                meta.className = 'nc-meta';
-                const my = (typeof currentLang !== 'undefined' && currentLang !== 'en');
-                const mk = (cls, label, val) => {
-                    const sp = document.createElement('span');
-                    sp.className = 'nc-pill ' + cls;
-                    const em = document.createElement('em'); em.textContent = label;
-                    const bb = document.createElement('b'); bb.textContent = val;
-                    sp.appendChild(em); sp.appendChild(bb);
-                    return sp;
-                };
-                meta.appendChild(mk('nc-pill-region', my ? 'ဒေသ' : 'Region', region));
-                if (r.geo.country) meta.appendChild(mk('nc-pill-country', my ? 'နိုင်ငံ' : 'Country', r.geo.country));
-                info.appendChild(meta);
+                nameEl.className = 'id-result-name nc-name-row';
+                const nameTxt = document.createElement('span');
+                nameTxt.className = 'nc-n';
+                nameTxt.textContent = r.name;
+                const vbWrap = document.createElement('span');
+                vbWrap.className = 'nc-vb';
+                vbWrap.innerHTML = '<svg class="verified-badge" viewBox="0 0 24 24" aria-label="Verified"><use href="#vb-seal"></use><path class="vb-tick" pathLength="1" d="M7.6 12.4l3.1 3.1 5.7-6.4"></path></svg>';
+                const regTxt = document.createElement('span');
+                regTxt.className = 'nc-region';
+                regTxt.textContent = '(' + region + ')';
+                nameEl.appendChild(nameTxt);
+                nameEl.appendChild(vbWrap);
+                nameEl.appendChild(regTxt);
+                info.appendChild(nameEl);
                 if (serverLabel && g.serverIdRequired !== false) {
                     const srv = document.createElement('div');
                     srv.className = 'nc-server';
@@ -7105,10 +7104,13 @@ b,strong{font-weight:600}}
             // standalone container, so it looks signed-out again next launch.
             // Nothing in web code can bridge that - point the user at the
             // browser instead of letting them hit the confusing dead end.
-            const isStandalone = window.navigator.standalone === true ||
-                (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
-            if (isStandalone) {
-                if (window.showToast) window.showToast('Please open this site in Safari or Chrome (not the Home Screen icon) to sign in with Google.', 'fail');
+            // Only iOS Home Screen apps have a truly separate storage container.
+            // Android's installed (WebAPK) app shares Chrome's storage, so Google
+            // sign-in works there - it just has to use redirect, not a popup.
+            const isIOSStandalone = window.navigator.standalone === true;
+            const isStandaloneDisplay = !!(window.matchMedia && window.matchMedia('(display-mode: standalone)').matches);
+            if (isIOSStandalone) {
+                if (window.showToast) window.showToast('Please open this site in Safari (not the Home Screen icon) to sign in with Google.', 'fail');
                 return;
             }
             const btn = document.getElementById(btnId || 'google-signin-btn');
@@ -7125,7 +7127,7 @@ b,strong{font-weight:600}}
             // is hosted off Firebase (e.g. on Vercel).
             const isInAppBrowser = /FBAN|FBAV|FB_IAB|Instagram|Line\/|MicroMessenger|; ?wv\)/i.test(navigator.userAgent);
             try {
-                if (isInAppBrowser) {
+                if (isInAppBrowser || isStandaloneDisplay) {
                     await signInWithRedirect(auth, googleProvider);
                     return; // page navigates away; getRedirectResult() below picks it up on return
                 }
@@ -9479,7 +9481,7 @@ b,strong{font-weight:600}}
             HOME_VISIBLE_GROUPS = visibleGroups;
             if (visibleGroups.length === 0) {
                 grid.innerHTML = gameSearchQuery
-                    ? emptyStateHTML('icon-search', 'No games found', `Nothing matches "${escapeHtml(gameSearchQuery)}". Try another name.`)
+                    ? emptyStateHTML('icon-search', 'No games found', `Nothing matches "${escapeHtml(gameSearchQuery)}". Try another name.`, '<button type="button" class="empty-clear-btn" onclick="clearGameSearch()">Clear search</button>')
                     : emptyStateHTML('icon-gamepad', 'No games in this category yet', 'Try a different category.');
                 updateHomeLoadMoreBtn(0, 0);
                 return;
@@ -13176,7 +13178,7 @@ html body #detail-qty-box .qty-ctrl button:not(#z),.qty-ctrl button,#qty-minus,#
 #order-review-overlay.show .modal-box{transform:translateY(0) scale(1)!important;opacity:1}
 </style>
 <svg width="0" height="0" style="position:absolute" aria-hidden="true"><defs>
-<linearGradient id="pcaOkGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5BE38D"/><stop offset="1" stop-color="#16A34A"/></linearGradient><linearGradient id="pcaVbGrad2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6CB4FF"/><stop offset=".55" stop-color="#2F6BFF"/><stop offset="1" stop-color="#2146E0"/></linearGradient><symbol id="vb-seal" viewBox="0 0 24 24"><path d="M12.00 0.85 L12.29 0.88 L12.58 0.95 L12.86 1.07 L13.13 1.24 L13.39 1.44 L13.64 1.67 L13.87 1.92 L14.09 2.17 L14.30 2.43 L14.50 2.68 L14.69 2.91 L14.89 3.12 L15.08 3.29 L15.29 3.44 L15.50 3.55 L15.73 3.62 L15.98 3.66 L16.24 3.68 L16.52 3.67 L16.82 3.64 L17.14 3.61 L17.47 3.58 L17.81 3.55 L18.15 3.54 L18.48 3.55 L18.81 3.59 L19.12 3.67 L19.40 3.78 L19.66 3.93 L19.88 4.12 L20.07 4.34 L20.22 4.60 L20.33 4.88 L20.41 5.19 L20.45 5.52 L20.46 5.85 L20.45 6.19 L20.42 6.53 L20.39 6.86 L20.36 7.17 L20.33 7.48 L20.32 7.76 L20.34 8.02 L20.38 8.27 L20.45 8.50 L20.56 8.71 L20.71 8.92 L20.88 9.11 L21.09 9.31 L21.32 9.50 L21.57 9.70 L21.83 9.91 L22.08 10.13 L22.33 10.36 L22.56 10.61 L22.76 10.87 L22.93 11.14 L23.05 11.42 L23.12 11.71 L23.15 12.00 L23.12 12.29 L23.05 12.58 L22.93 12.86 L22.76 13.13 L22.56 13.39 L22.33 13.64 L22.08 13.87 L21.83 14.09 L21.57 14.30 L21.32 14.50 L21.09 14.69 L20.88 14.89 L20.71 15.08 L20.56 15.29 L20.45 15.50 L20.38 15.73 L20.34 15.98 L20.32 16.24 L20.33 16.52 L20.36 16.82 L20.39 17.14 L20.42 17.47 L20.45 17.81 L20.46 18.15 L20.45 18.48 L20.41 18.81 L20.33 19.12 L20.22 19.40 L20.07 19.66 L19.88 19.88 L19.66 20.07 L19.40 20.22 L19.12 20.33 L18.81 20.41 L18.48 20.45 L18.15 20.46 L17.81 20.45 L17.47 20.42 L17.14 20.39 L16.82 20.36 L16.52 20.33 L16.24 20.32 L15.98 20.34 L15.73 20.38 L15.50 20.45 L15.29 20.56 L15.08 20.71 L14.89 20.88 L14.69 21.09 L14.50 21.32 L14.30 21.57 L14.09 21.83 L13.87 22.08 L13.64 22.33 L13.39 22.56 L13.13 22.76 L12.86 22.93 L12.58 23.05 L12.29 23.12 L12.00 23.15 L11.71 23.12 L11.42 23.05 L11.14 22.93 L10.87 22.76 L10.61 22.56 L10.36 22.33 L10.13 22.08 L9.91 21.83 L9.70 21.57 L9.50 21.32 L9.31 21.09 L9.11 20.88 L8.92 20.71 L8.71 20.56 L8.50 20.45 L8.27 20.38 L8.02 20.34 L7.76 20.32 L7.48 20.33 L7.18 20.36 L6.86 20.39 L6.53 20.42 L6.19 20.45 L5.85 20.46 L5.52 20.45 L5.19 20.41 L4.88 20.33 L4.60 20.22 L4.34 20.07 L4.12 19.88 L3.93 19.66 L3.78 19.40 L3.67 19.12 L3.59 18.81 L3.55 18.48 L3.54 18.15 L3.55 17.81 L3.58 17.47 L3.61 17.14 L3.64 16.83 L3.67 16.52 L3.68 16.24 L3.66 15.98 L3.62 15.73 L3.55 15.50 L3.44 15.29 L3.29 15.08 L3.12 14.89 L2.91 14.69 L2.68 14.50 L2.43 14.30 L2.17 14.09 L1.92 13.87 L1.67 13.64 L1.44 13.39 L1.24 13.13 L1.07 12.86 L0.95 12.58 L0.88 12.29 L0.85 12.00 L0.88 11.71 L0.95 11.42 L1.07 11.14 L1.24 10.87 L1.44 10.61 L1.67 10.36 L1.92 10.13 L2.17 9.91 L2.43 9.70 L2.68 9.50 L2.91 9.31 L3.12 9.11 L3.29 8.92 L3.44 8.71 L3.55 8.50 L3.62 8.27 L3.66 8.02 L3.68 7.76 L3.67 7.48 L3.64 7.17 L3.61 6.86 L3.58 6.53 L3.55 6.19 L3.54 5.85 L3.55 5.52 L3.59 5.19 L3.67 4.88 L3.78 4.60 L3.93 4.34 L4.12 4.12 L4.34 3.93 L4.60 3.78 L4.88 3.67 L5.19 3.59 L5.52 3.55 L5.85 3.54 L6.19 3.55 L6.53 3.58 L6.86 3.61 L7.18 3.64 L7.48 3.67 L7.76 3.68 L8.02 3.66 L8.27 3.62 L8.50 3.55 L8.71 3.44 L8.92 3.29 L9.11 3.12 L9.31 2.91 L9.50 2.68 L9.70 2.43 L9.91 2.17 L10.13 1.92 L10.36 1.67 L10.61 1.44 L10.87 1.24 L11.14 1.07 L11.42 0.95 L11.71 0.88Z" fill="url(#pcaVbGrad2)"/><path d="M5.2 9.4C6.5 5.9 9.1 4 12 4s5.5 1.9 6.8 5.4c-2.2-1.3-4.3-1.9-6.8-1.9s-4.6.6-6.8 1.9Z" fill="#fff" fill-opacity=".2"/><path d="M12.00 0.85 L12.29 0.88 L12.58 0.95 L12.86 1.07 L13.13 1.24 L13.39 1.44 L13.64 1.67 L13.87 1.92 L14.09 2.17 L14.30 2.43 L14.50 2.68 L14.69 2.91 L14.89 3.12 L15.08 3.29 L15.29 3.44 L15.50 3.55 L15.73 3.62 L15.98 3.66 L16.24 3.68 L16.52 3.67 L16.82 3.64 L17.14 3.61 L17.47 3.58 L17.81 3.55 L18.15 3.54 L18.48 3.55 L18.81 3.59 L19.12 3.67 L19.40 3.78 L19.66 3.93 L19.88 4.12 L20.07 4.34 L20.22 4.60 L20.33 4.88 L20.41 5.19 L20.45 5.52 L20.46 5.85 L20.45 6.19 L20.42 6.53 L20.39 6.86 L20.36 7.17 L20.33 7.48 L20.32 7.76 L20.34 8.02 L20.38 8.27 L20.45 8.50 L20.56 8.71 L20.71 8.92 L20.88 9.11 L21.09 9.31 L21.32 9.50 L21.57 9.70 L21.83 9.91 L22.08 10.13 L22.33 10.36 L22.56 10.61 L22.76 10.87 L22.93 11.14 L23.05 11.42 L23.12 11.71 L23.15 12.00 L23.12 12.29 L23.05 12.58 L22.93 12.86 L22.76 13.13 L22.56 13.39 L22.33 13.64 L22.08 13.87 L21.83 14.09 L21.57 14.30 L21.32 14.50 L21.09 14.69 L20.88 14.89 L20.71 15.08 L20.56 15.29 L20.45 15.50 L20.38 15.73 L20.34 15.98 L20.32 16.24 L20.33 16.52 L20.36 16.82 L20.39 17.14 L20.42 17.47 L20.45 17.81 L20.46 18.15 L20.45 18.48 L20.41 18.81 L20.33 19.12 L20.22 19.40 L20.07 19.66 L19.88 19.88 L19.66 20.07 L19.40 20.22 L19.12 20.33 L18.81 20.41 L18.48 20.45 L18.15 20.46 L17.81 20.45 L17.47 20.42 L17.14 20.39 L16.82 20.36 L16.52 20.33 L16.24 20.32 L15.98 20.34 L15.73 20.38 L15.50 20.45 L15.29 20.56 L15.08 20.71 L14.89 20.88 L14.69 21.09 L14.50 21.32 L14.30 21.57 L14.09 21.83 L13.87 22.08 L13.64 22.33 L13.39 22.56 L13.13 22.76 L12.86 22.93 L12.58 23.05 L12.29 23.12 L12.00 23.15 L11.71 23.12 L11.42 23.05 L11.14 22.93 L10.87 22.76 L10.61 22.56 L10.36 22.33 L10.13 22.08 L9.91 21.83 L9.70 21.57 L9.50 21.32 L9.31 21.09 L9.11 20.88 L8.92 20.71 L8.71 20.56 L8.50 20.45 L8.27 20.38 L8.02 20.34 L7.76 20.32 L7.48 20.33 L7.18 20.36 L6.86 20.39 L6.53 20.42 L6.19 20.45 L5.85 20.46 L5.52 20.45 L5.19 20.41 L4.88 20.33 L4.60 20.22 L4.34 20.07 L4.12 19.88 L3.93 19.66 L3.78 19.40 L3.67 19.12 L3.59 18.81 L3.55 18.48 L3.54 18.15 L3.55 17.81 L3.58 17.47 L3.61 17.14 L3.64 16.83 L3.67 16.52 L3.68 16.24 L3.66 15.98 L3.62 15.73 L3.55 15.50 L3.44 15.29 L3.29 15.08 L3.12 14.89 L2.91 14.69 L2.68 14.50 L2.43 14.30 L2.17 14.09 L1.92 13.87 L1.67 13.64 L1.44 13.39 L1.24 13.13 L1.07 12.86 L0.95 12.58 L0.88 12.29 L0.85 12.00 L0.88 11.71 L0.95 11.42 L1.07 11.14 L1.24 10.87 L1.44 10.61 L1.67 10.36 L1.92 10.13 L2.17 9.91 L2.43 9.70 L2.68 9.50 L2.91 9.31 L3.12 9.11 L3.29 8.92 L3.44 8.71 L3.55 8.50 L3.62 8.27 L3.66 8.02 L3.68 7.76 L3.67 7.48 L3.64 7.17 L3.61 6.86 L3.58 6.53 L3.55 6.19 L3.54 5.85 L3.55 5.52 L3.59 5.19 L3.67 4.88 L3.78 4.60 L3.93 4.34 L4.12 4.12 L4.34 3.93 L4.60 3.78 L4.88 3.67 L5.19 3.59 L5.52 3.55 L5.85 3.54 L6.19 3.55 L6.53 3.58 L6.86 3.61 L7.18 3.64 L7.48 3.67 L7.76 3.68 L8.02 3.66 L8.27 3.62 L8.50 3.55 L8.71 3.44 L8.92 3.29 L9.11 3.12 L9.31 2.91 L9.50 2.68 L9.70 2.43 L9.91 2.17 L10.13 1.92 L10.36 1.67 L10.61 1.44 L10.87 1.24 L11.14 1.07 L11.42 0.95 L11.71 0.88Z" fill="none" stroke="rgba(255,255,255,.55)" stroke-width=".6"/></symbol>
+<linearGradient id="pcaOkGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#5BE38D"/><stop offset="1" stop-color="#16A34A"/></linearGradient><linearGradient id="pcaVbGrad2" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#6EE7A0"/><stop offset=".55" stop-color="#22C55E"/><stop offset="1" stop-color="#15803D"/></linearGradient><symbol id="vb-seal" viewBox="0 0 24 24"><path d="M12.00 0.85 L12.29 0.88 L12.58 0.95 L12.86 1.07 L13.13 1.24 L13.39 1.44 L13.64 1.67 L13.87 1.92 L14.09 2.17 L14.30 2.43 L14.50 2.68 L14.69 2.91 L14.89 3.12 L15.08 3.29 L15.29 3.44 L15.50 3.55 L15.73 3.62 L15.98 3.66 L16.24 3.68 L16.52 3.67 L16.82 3.64 L17.14 3.61 L17.47 3.58 L17.81 3.55 L18.15 3.54 L18.48 3.55 L18.81 3.59 L19.12 3.67 L19.40 3.78 L19.66 3.93 L19.88 4.12 L20.07 4.34 L20.22 4.60 L20.33 4.88 L20.41 5.19 L20.45 5.52 L20.46 5.85 L20.45 6.19 L20.42 6.53 L20.39 6.86 L20.36 7.17 L20.33 7.48 L20.32 7.76 L20.34 8.02 L20.38 8.27 L20.45 8.50 L20.56 8.71 L20.71 8.92 L20.88 9.11 L21.09 9.31 L21.32 9.50 L21.57 9.70 L21.83 9.91 L22.08 10.13 L22.33 10.36 L22.56 10.61 L22.76 10.87 L22.93 11.14 L23.05 11.42 L23.12 11.71 L23.15 12.00 L23.12 12.29 L23.05 12.58 L22.93 12.86 L22.76 13.13 L22.56 13.39 L22.33 13.64 L22.08 13.87 L21.83 14.09 L21.57 14.30 L21.32 14.50 L21.09 14.69 L20.88 14.89 L20.71 15.08 L20.56 15.29 L20.45 15.50 L20.38 15.73 L20.34 15.98 L20.32 16.24 L20.33 16.52 L20.36 16.82 L20.39 17.14 L20.42 17.47 L20.45 17.81 L20.46 18.15 L20.45 18.48 L20.41 18.81 L20.33 19.12 L20.22 19.40 L20.07 19.66 L19.88 19.88 L19.66 20.07 L19.40 20.22 L19.12 20.33 L18.81 20.41 L18.48 20.45 L18.15 20.46 L17.81 20.45 L17.47 20.42 L17.14 20.39 L16.82 20.36 L16.52 20.33 L16.24 20.32 L15.98 20.34 L15.73 20.38 L15.50 20.45 L15.29 20.56 L15.08 20.71 L14.89 20.88 L14.69 21.09 L14.50 21.32 L14.30 21.57 L14.09 21.83 L13.87 22.08 L13.64 22.33 L13.39 22.56 L13.13 22.76 L12.86 22.93 L12.58 23.05 L12.29 23.12 L12.00 23.15 L11.71 23.12 L11.42 23.05 L11.14 22.93 L10.87 22.76 L10.61 22.56 L10.36 22.33 L10.13 22.08 L9.91 21.83 L9.70 21.57 L9.50 21.32 L9.31 21.09 L9.11 20.88 L8.92 20.71 L8.71 20.56 L8.50 20.45 L8.27 20.38 L8.02 20.34 L7.76 20.32 L7.48 20.33 L7.18 20.36 L6.86 20.39 L6.53 20.42 L6.19 20.45 L5.85 20.46 L5.52 20.45 L5.19 20.41 L4.88 20.33 L4.60 20.22 L4.34 20.07 L4.12 19.88 L3.93 19.66 L3.78 19.40 L3.67 19.12 L3.59 18.81 L3.55 18.48 L3.54 18.15 L3.55 17.81 L3.58 17.47 L3.61 17.14 L3.64 16.83 L3.67 16.52 L3.68 16.24 L3.66 15.98 L3.62 15.73 L3.55 15.50 L3.44 15.29 L3.29 15.08 L3.12 14.89 L2.91 14.69 L2.68 14.50 L2.43 14.30 L2.17 14.09 L1.92 13.87 L1.67 13.64 L1.44 13.39 L1.24 13.13 L1.07 12.86 L0.95 12.58 L0.88 12.29 L0.85 12.00 L0.88 11.71 L0.95 11.42 L1.07 11.14 L1.24 10.87 L1.44 10.61 L1.67 10.36 L1.92 10.13 L2.17 9.91 L2.43 9.70 L2.68 9.50 L2.91 9.31 L3.12 9.11 L3.29 8.92 L3.44 8.71 L3.55 8.50 L3.62 8.27 L3.66 8.02 L3.68 7.76 L3.67 7.48 L3.64 7.17 L3.61 6.86 L3.58 6.53 L3.55 6.19 L3.54 5.85 L3.55 5.52 L3.59 5.19 L3.67 4.88 L3.78 4.60 L3.93 4.34 L4.12 4.12 L4.34 3.93 L4.60 3.78 L4.88 3.67 L5.19 3.59 L5.52 3.55 L5.85 3.54 L6.19 3.55 L6.53 3.58 L6.86 3.61 L7.18 3.64 L7.48 3.67 L7.76 3.68 L8.02 3.66 L8.27 3.62 L8.50 3.55 L8.71 3.44 L8.92 3.29 L9.11 3.12 L9.31 2.91 L9.50 2.68 L9.70 2.43 L9.91 2.17 L10.13 1.92 L10.36 1.67 L10.61 1.44 L10.87 1.24 L11.14 1.07 L11.42 0.95 L11.71 0.88Z" fill="url(#pcaVbGrad2)"/><path d="M5.2 9.4C6.5 5.9 9.1 4 12 4s5.5 1.9 6.8 5.4c-2.2-1.3-4.3-1.9-6.8-1.9s-4.6.6-6.8 1.9Z" fill="#fff" fill-opacity=".2"/><path d="M12.00 0.85 L12.29 0.88 L12.58 0.95 L12.86 1.07 L13.13 1.24 L13.39 1.44 L13.64 1.67 L13.87 1.92 L14.09 2.17 L14.30 2.43 L14.50 2.68 L14.69 2.91 L14.89 3.12 L15.08 3.29 L15.29 3.44 L15.50 3.55 L15.73 3.62 L15.98 3.66 L16.24 3.68 L16.52 3.67 L16.82 3.64 L17.14 3.61 L17.47 3.58 L17.81 3.55 L18.15 3.54 L18.48 3.55 L18.81 3.59 L19.12 3.67 L19.40 3.78 L19.66 3.93 L19.88 4.12 L20.07 4.34 L20.22 4.60 L20.33 4.88 L20.41 5.19 L20.45 5.52 L20.46 5.85 L20.45 6.19 L20.42 6.53 L20.39 6.86 L20.36 7.17 L20.33 7.48 L20.32 7.76 L20.34 8.02 L20.38 8.27 L20.45 8.50 L20.56 8.71 L20.71 8.92 L20.88 9.11 L21.09 9.31 L21.32 9.50 L21.57 9.70 L21.83 9.91 L22.08 10.13 L22.33 10.36 L22.56 10.61 L22.76 10.87 L22.93 11.14 L23.05 11.42 L23.12 11.71 L23.15 12.00 L23.12 12.29 L23.05 12.58 L22.93 12.86 L22.76 13.13 L22.56 13.39 L22.33 13.64 L22.08 13.87 L21.83 14.09 L21.57 14.30 L21.32 14.50 L21.09 14.69 L20.88 14.89 L20.71 15.08 L20.56 15.29 L20.45 15.50 L20.38 15.73 L20.34 15.98 L20.32 16.24 L20.33 16.52 L20.36 16.82 L20.39 17.14 L20.42 17.47 L20.45 17.81 L20.46 18.15 L20.45 18.48 L20.41 18.81 L20.33 19.12 L20.22 19.40 L20.07 19.66 L19.88 19.88 L19.66 20.07 L19.40 20.22 L19.12 20.33 L18.81 20.41 L18.48 20.45 L18.15 20.46 L17.81 20.45 L17.47 20.42 L17.14 20.39 L16.82 20.36 L16.52 20.33 L16.24 20.32 L15.98 20.34 L15.73 20.38 L15.50 20.45 L15.29 20.56 L15.08 20.71 L14.89 20.88 L14.69 21.09 L14.50 21.32 L14.30 21.57 L14.09 21.83 L13.87 22.08 L13.64 22.33 L13.39 22.56 L13.13 22.76 L12.86 22.93 L12.58 23.05 L12.29 23.12 L12.00 23.15 L11.71 23.12 L11.42 23.05 L11.14 22.93 L10.87 22.76 L10.61 22.56 L10.36 22.33 L10.13 22.08 L9.91 21.83 L9.70 21.57 L9.50 21.32 L9.31 21.09 L9.11 20.88 L8.92 20.71 L8.71 20.56 L8.50 20.45 L8.27 20.38 L8.02 20.34 L7.76 20.32 L7.48 20.33 L7.18 20.36 L6.86 20.39 L6.53 20.42 L6.19 20.45 L5.85 20.46 L5.52 20.45 L5.19 20.41 L4.88 20.33 L4.60 20.22 L4.34 20.07 L4.12 19.88 L3.93 19.66 L3.78 19.40 L3.67 19.12 L3.59 18.81 L3.55 18.48 L3.54 18.15 L3.55 17.81 L3.58 17.47 L3.61 17.14 L3.64 16.83 L3.67 16.52 L3.68 16.24 L3.66 15.98 L3.62 15.73 L3.55 15.50 L3.44 15.29 L3.29 15.08 L3.12 14.89 L2.91 14.69 L2.68 14.50 L2.43 14.30 L2.17 14.09 L1.92 13.87 L1.67 13.64 L1.44 13.39 L1.24 13.13 L1.07 12.86 L0.95 12.58 L0.88 12.29 L0.85 12.00 L0.88 11.71 L0.95 11.42 L1.07 11.14 L1.24 10.87 L1.44 10.61 L1.67 10.36 L1.92 10.13 L2.17 9.91 L2.43 9.70 L2.68 9.50 L2.91 9.31 L3.12 9.11 L3.29 8.92 L3.44 8.71 L3.55 8.50 L3.62 8.27 L3.66 8.02 L3.68 7.76 L3.67 7.48 L3.64 7.17 L3.61 6.86 L3.58 6.53 L3.55 6.19 L3.54 5.85 L3.55 5.52 L3.59 5.19 L3.67 4.88 L3.78 4.60 L3.93 4.34 L4.12 4.12 L4.34 3.93 L4.60 3.78 L4.88 3.67 L5.19 3.59 L5.52 3.55 L5.85 3.54 L6.19 3.55 L6.53 3.58 L6.86 3.61 L7.18 3.64 L7.48 3.67 L7.76 3.68 L8.02 3.66 L8.27 3.62 L8.50 3.55 L8.71 3.44 L8.92 3.29 L9.11 3.12 L9.31 2.91 L9.50 2.68 L9.70 2.43 L9.91 2.17 L10.13 1.92 L10.36 1.67 L10.61 1.44 L10.87 1.24 L11.14 1.07 L11.42 0.95 L11.71 0.88Z" fill="none" stroke="rgba(255,255,255,.55)" stroke-width=".6"/></symbol>
 <linearGradient id="pcaVbGrad" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#4FC3FF"/><stop offset=".5" stop-color="#2F7BFF"/><stop offset="1" stop-color="#6D3BFF"/></linearGradient>
 </defs></svg>
 <style id="pca-v12">
@@ -14515,7 +14517,7 @@ html body .package-card.selected .pc-selected-check:not(#z):not(#y):not(#x){back
 html body .package-card.selected .pc-selected-check .ui-icon:not(#z):not(#y):not(#x){stroke:#fff!important;color:#fff!important;stroke-width:3.6!important}
 html body .status-anim-check .pca-ck:not(#z):not(#y):not(#x){stroke-width:3.6!important}
 html body :is(.wallet-pay-note.ok,#crypto-status-text) .pca-ck:not(#z):not(#y):not(#x){box-sizing:border-box;width:16px!important;height:16px!important;padding:3.5px;margin-right:6px;vertical-align:-3.5px;border-radius:50%;background:linear-gradient(180deg,#3DDB84,#16A34A)!important;stroke:#fff!important;stroke-width:4!important;color:#fff;box-shadow:none!important}
-html body .verified-badge:not(#z):not(#y):not(#x){width:20px!important;height:20px!important;filter:drop-shadow(0 1px 1px rgba(30,64,175,.28))!important;animation:pcaPop2 .42s cubic-bezier(.3,1.4,.5,1) both!important}
+html body .verified-badge:not(#z):not(#y):not(#x){width:20px!important;height:20px!important;filter:drop-shadow(0 1px 1px rgba(21,128,61,.30))!important;animation:pcaPop2 .42s cubic-bezier(.3,1.4,.5,1) both!important}
 html body #profile-hero-verified-badge:not(#z):not(#y):not(#x){width:22px!important;height:22px!important}
 html body .verified-badge path:first-child:not(#z):not(#y):not(#x){fill:url(#pcaVbGrad2)!important;stroke:none!important}
 html body .verified-badge .vb-tick:not(#z):not(#y):not(#x){fill:none!important;stroke:#fff!important;stroke-width:2.9!important;stroke-linecap:round!important;stroke-linejoin:round!important;stroke-dasharray:1!important;stroke-dashoffset:1;animation:pcaTick2 .4s .22s cubic-bezier(.6,0,.3,1) forwards!important}}
@@ -15177,9 +15179,9 @@ html body .collapsible-header,html body .title-header{background:none !important
 @layer pcadarkfix{
 html{background:radial-gradient(520px 420px at 8% 4%,rgba(120,150,255,.38),transparent 70%),radial-gradient(480px 420px at 96% 22%,rgba(190,140,255,.30),transparent 70%),radial-gradient(520px 460px at 20% 92%,rgba(110,210,255,.30),transparent 70%),#EEF1FA !important;background-repeat:no-repeat !important;background-attachment:fixed !important}
 html body{background:transparent !important}
-html body :is(header#app-header .header-brand,.pc-top,.pc-stat,.detail-form-card,.modal-box,.success-box,.auth-gate,.htabs,.pkg-type-tabs,.pay-type-tabs,.prefs-tile,.notif-item,.pca-fl,#pca-pill){background:linear-gradient(145deg,rgba(255,255,255,.66),rgba(255,255,255,.34)) !important;border:1px solid rgba(255,255,255,.75) !important;box-shadow:0 10px 28px -14px rgba(60,80,150,.30),inset 0 1px 0 rgba(255,255,255,.9) !important;-webkit-backdrop-filter:blur(14px) saturate(160%);backdrop-filter:blur(14px) saturate(160%)}
+html body :is(header#app-header .header-brand,.pc-top,.pc-stat,.detail-form-card,.modal-box,.success-box,.auth-gate,.htabs,.pkg-type-tabs,.pay-type-tabs,.prefs-tile,.notif-item,.pca-fl,#pca-pill){background:linear-gradient(145deg,rgba(255,255,255,.66),rgba(255,255,255,.34)) !important;border:1px solid rgba(255,255,255,.75) !important;box-shadow:0 10px 28px -14px rgba(60,80,150,.30),inset 0 1px 0 rgba(255,255,255,.9) !important;-webkit-backdrop-filter:none;backdrop-filter:none}
 html body :is(.game-card,.voucher-card,.popular-card,.package-card,.history-card,.list-card,.wallet-topup-row,.wtx-row,.google-account-card){background:linear-gradient(145deg,rgba(255,255,255,.70),rgba(255,255,255,.40)) !important;border:1px solid rgba(255,255,255,.75) !important;box-shadow:0 8px 22px -14px rgba(60,80,150,.28),inset 0 1px 0 rgba(255,255,255,.9) !important}
-html body nav#bottom-nav::before{background:linear-gradient(145deg,rgba(255,255,255,.72),rgba(255,255,255,.42)) !important;border:1px solid rgba(255,255,255,.8) !important;box-shadow:0 10px 26px -12px rgba(60,80,150,.32),inset 0 1px 0 rgba(255,255,255,.9) !important;-webkit-backdrop-filter:blur(16px) saturate(170%);backdrop-filter:blur(16px) saturate(170%)}
+html body nav#bottom-nav::before{background:linear-gradient(145deg,rgba(255,255,255,.72),rgba(255,255,255,.42)) !important;border:1px solid rgba(255,255,255,.8) !important;box-shadow:0 10px 26px -12px rgba(60,80,150,.32),inset 0 1px 0 rgba(255,255,255,.9) !important;-webkit-backdrop-filter:none;backdrop-filter:none}
 html body :is(.modal-overlay,.success-overlay){background:rgba(120,135,180,.28) !important}
 }
 </style>
@@ -15256,7 +15258,7 @@ html body .pca-batt.chg{color:#16a34a}
 </script>
 <style id="pca-soft-inbox">
 @layer pcadarkfix{
-html body header#app-header .header-icon{background:linear-gradient(145deg,rgba(255,255,255,.72),rgba(255,255,255,.38)) !important;background-image:linear-gradient(145deg,rgba(255,255,255,.72),rgba(255,255,255,.38)) !important;border:1px solid rgba(255,255,255,.85) !important;box-shadow:0 8px 20px -12px rgba(60,80,150,.35),inset 0 1px 0 rgba(255,255,255,.95) !important;color:var(--pca-acc,#2557F5) !important;-webkit-backdrop-filter:blur(12px) saturate(160%);backdrop-filter:blur(12px) saturate(160%)}
+html body header#app-header .header-icon{background:linear-gradient(145deg,rgba(255,255,255,.72),rgba(255,255,255,.38)) !important;background-image:linear-gradient(145deg,rgba(255,255,255,.72),rgba(255,255,255,.38)) !important;border:1px solid rgba(255,255,255,.85) !important;box-shadow:0 8px 20px -12px rgba(60,80,150,.35),inset 0 1px 0 rgba(255,255,255,.95) !important;color:var(--pca-acc,#2557F5) !important;-webkit-backdrop-filter:none;backdrop-filter:none}
 html body header#app-header .header-icon .ui-icon,html body header#app-header .header-icon svg{stroke:var(--pca-acc,#2557F5) !important;color:var(--pca-acc,#2557F5) !important;filter:none !important;opacity:.9}
 html body header#app-header .header-icon::before,html body header#app-header .header-icon::after{display:none !important}
 }
@@ -15687,7 +15689,7 @@ html body #onboarding-overlay .ob-google-wrap:active .google-login-btn{transform
    ===================================================================== */
 html body header#app-header :is(.header-brand,.header-icons-group):not(#z):not(#y):not(#x):not(#w){
   background:linear-gradient(135deg,rgba(255,255,255,.58),rgba(255,255,255,.22))!important;
-  -webkit-backdrop-filter:blur(20px) saturate(185%)!important;backdrop-filter:blur(20px) saturate(185%)!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
   border:1px solid rgba(255,255,255,.72)!important;
   box-shadow:0 12px 30px -14px rgba(37,87,245,.30),inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(255,255,255,.28)!important}
 html body header#app-header .header-icons-group .header-icon:not(#z):not(#y):not(#x){
@@ -15697,7 +15699,7 @@ html body header#app-header .header-icons-group .header-icon:not(#z):not(#y):not
   box-shadow:0 6px 14px -8px rgba(37,87,245,.35),inset 0 1px 0 rgba(255,255,255,.95)!important}
 html body nav#bottom-nav.bottom-nav:not(#z):not(#y):not(#x):not(#w)::before{
   background:linear-gradient(145deg,rgba(255,255,255,.60),rgba(255,255,255,.24))!important;
-  -webkit-backdrop-filter:blur(22px) saturate(190%)!important;backdrop-filter:blur(22px) saturate(190%)!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
   box-shadow:inset 0 0 0 1px rgba(255,255,255,.78),inset 0 1px 0 rgba(255,255,255,.98),inset 0 -10px 18px -12px rgba(37,87,245,.18)!important}
 html body nav#bottom-nav.bottom-nav:not(#z):not(#y):not(#x):not(#w){-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 
@@ -15713,7 +15715,7 @@ html body #wallet .wglass:not(#z):not(#y){position:relative!important;isolation:
 html body #wallet .wglass:not(#z):not(#y)::before{display:none!important}
 html body #wallet .wtabs:not(#z):not(#y):not(#x){position:relative!important;display:grid!important;grid-template-columns:1fr 1fr!important;gap:0!important;box-sizing:border-box!important;width:100%!important;height:50px!important;padding:4px!important;margin:0 0 14px!important;border-radius:999px!important;
   background:linear-gradient(145deg,rgba(255,255,255,.55),rgba(255,255,255,.26))!important;border:1px solid rgba(255,255,255,.8)!important;
-  -webkit-backdrop-filter:blur(16px) saturate(170%)!important;backdrop-filter:blur(16px) saturate(170%)!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
   box-shadow:0 8px 22px -14px rgba(37,87,245,.35),inset 0 1px 0 rgba(255,255,255,.95)!important}
 html body #wallet .wtabs .wtabs-ind:not(#z):not(#y){position:absolute!important;top:4px!important;bottom:4px!important;left:4px!important;width:calc((100% - 8px) / 2)!important;height:auto!important;border-radius:999px!important;pointer-events:none!important;
   background:linear-gradient(145deg,#fff,rgba(255,255,255,.86))!important;box-shadow:0 6px 14px -8px rgba(37,87,245,.5),0 0 0 1px rgba(255,255,255,.9)!important;
@@ -15728,7 +15730,7 @@ html body #wallet .wtabs .wtab span:not(#z){min-width:0;overflow:hidden;text-ove
 /* rows (Top Up + Transaction share one skeleton) */
 html body #wallet :is(.wallet-topup-row,.wtx-row):not(#z):not(#y):not(#x):not(#w){position:relative!important;display:grid!important;grid-template-columns:46px minmax(0,1fr)!important;column-gap:12px!important;align-items:center!important;box-sizing:border-box!important;width:100%!important;min-height:72px!important;margin:0 0 10px!important;padding:13px 14px 13px 18px!important;border-radius:20px!important;overflow:hidden!important;
   background:linear-gradient(145deg,rgba(255,255,255,.72),rgba(255,255,255,.40))!important;border:1px solid rgba(255,255,255,.85)!important;
-  -webkit-backdrop-filter:blur(12px) saturate(160%);backdrop-filter:blur(12px) saturate(160%);
+  -webkit-backdrop-filter:none;backdrop-filter:none;
   box-shadow:0 10px 24px -16px rgba(37,87,245,.35),inset 0 1px 0 rgba(255,255,255,.95)!important}
 html body #wallet :is(.wallet-topup-row,.wtx-row):not(#z):not(#y)::before{content:""!important;position:absolute!important;left:0!important;top:14px!important;bottom:14px!important;width:4px!important;height:auto!important;border-radius:0 4px 4px 0!important;background:var(--row-accent,rgba(37,87,245,.8))!important}
 html body #wallet .wallet-topup-row:not(#z):not(#y){--row-accent:#F5A524}
@@ -15846,13 +15848,13 @@ html body .id-checking-text:not(#q1):not(#q2)::before{content:""!important;displ
 :root{--gs-fill:linear-gradient(145deg,rgba(255,255,255,.62),rgba(255,255,255,.30));--gs-fill-mv:linear-gradient(145deg,rgba(255,255,255,.84),rgba(255,255,255,.62));--gs-fill-lite:linear-gradient(145deg,rgba(255,255,255,.90),rgba(246,249,255,.84));--gs-bd:rgba(255,255,255,.78);--gs-sh:0 10px 26px -14px rgba(60,80,150,.30),inset 0 1px 0 rgba(255,255,255,.92),inset 0 -1px 0 rgba(255,255,255,.30);--gs-blur:blur(12px) saturate(150%)}
 
 /* 1) Header: brand pill + icons pill */
-html body header#app-header :is(.header-brand,.header-icons-group):not(#gs1):not(#gs2):not(#gs3):not(#gs4):not(#gs5):not(#gs6):not(#gs7):not(#gs8){background:var(--gs-fill)!important;border:1px solid var(--gs-bd)!important;box-shadow:var(--gs-sh)!important;-webkit-backdrop-filter:var(--gs-blur)!important;backdrop-filter:var(--gs-blur)!important}
+html body header#app-header :is(.header-brand,.header-icons-group):not(#gs1):not(#gs2):not(#gs3):not(#gs4):not(#gs5):not(#gs6):not(#gs7):not(#gs8){background:var(--gs-fill)!important;border:1px solid var(--gs-bd)!important;box-shadow:var(--gs-sh)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 
 /* 2) Bottom nav bar (the ::before layer carries the glass + wallet notch mask) */
-html body nav#bottom-nav.bottom-nav:not(#gs1):not(#gs2):not(#gs3):not(#gs4):not(#gs5):not(#gs6):not(#gs7):not(#gs8)::before{background:var(--gs-fill)!important;box-shadow:inset 0 0 0 1px var(--gs-bd),inset 0 1px 0 rgba(255,255,255,.95),inset 0 -10px 16px -12px rgba(60,80,150,.20)!important;-webkit-backdrop-filter:var(--gs-blur)!important;backdrop-filter:var(--gs-blur)!important}
+html body nav#bottom-nav.bottom-nav:not(#gs1):not(#gs2):not(#gs3):not(#gs4):not(#gs5):not(#gs6):not(#gs7):not(#gs8)::before{background:var(--gs-fill)!important;box-shadow:inset 0 0 0 1px var(--gs-bd),inset 0 1px 0 rgba(255,255,255,.95),inset 0 -10px 16px -12px rgba(60,80,150,.20)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 
 /* 3) Catalog tabs (Popular / Top Up / Voucher / Software) */
-html body .htabs:not(#gs1):not(#gs2):not(#gs3):not(#gs4):not(#gs5):not(#gs6):not(#gs7):not(#gs8){background:var(--gs-fill)!important;border:1px solid var(--gs-bd)!important;box-shadow:var(--gs-sh)!important;-webkit-backdrop-filter:var(--gs-blur)!important;backdrop-filter:var(--gs-blur)!important}
+html body .htabs:not(#gs1):not(#gs2):not(#gs3):not(#gs4):not(#gs5):not(#gs6):not(#gs7):not(#gs8){background:var(--gs-fill)!important;border:1px solid var(--gs-bd)!important;box-shadow:var(--gs-sh)!important;-webkit-backdrop-filter:none!important;backdrop-filter:none!important}
 
 /* 4) Content is scrolling underneath (pca-mv): a bit more opaque so text behind never fights the labels */
 html body header#app-header.pca-mv :is(.header-brand,.header-icons-group):not(#gs1):not(#gs2):not(#gs3):not(#gs4):not(#gs5):not(#gs6):not(#gs7):not(#gs8),
@@ -16117,7 +16119,7 @@ html body #onboarding-overlay .onboarding-card:not(#uy1):not(#uy2):not(#uy3):not
   width:100%!important;max-width:420px!important;min-height:0!important;height:auto!important;
   padding:30px 24px 26px!important;border-radius:32px!important;
   background:rgba(255,255,255,.55)!important;border:1px solid rgba(255,255,255,.9)!important;
-  -webkit-backdrop-filter:blur(26px) saturate(170%)!important;backdrop-filter:blur(26px) saturate(170%)!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
   box-shadow:0 24px 50px -24px rgba(37,87,245,.45),inset 0 1px 0 #fff!important;
   align-items:flex-start!important;justify-content:flex-start!important;text-align:left!important;
 }
@@ -16136,7 +16138,7 @@ html body :is(.pcaux-back,.tab-back-btn,.header-icon[onclick*="closeServerSelect
   width:40px!important;height:40px!important;min-width:40px!important;padding:0!important;flex:none;
   border-radius:50%!important;align-items:center;justify-content:center;cursor:pointer;
   background:rgba(255,255,255,.68)!important;border:1px solid rgba(255,255,255,.95)!important;color:#1F4FE0!important;
-  -webkit-backdrop-filter:blur(14px)!important;backdrop-filter:blur(14px)!important;
+  -webkit-backdrop-filter:none!important;backdrop-filter:none!important;
   box-shadow:0 8px 16px -10px rgba(37,87,245,.5),inset 0 1px 0 #fff!important;
   transition:transform .4s cubic-bezier(.22,1,.36,1),background-color .45s ease!important;
 }
@@ -16481,5 +16483,250 @@ html body .bottom-nav .nav-item{-webkit-tap-highlight-color:transparent}
 html body .bottom-nav .nav-item-wallet .ui-icon{width:22px !important;height:22px !important}
 }
 </style>
+<style id="pca-fix-1113">
+@layer pcatabs{
+/* ---- Login form: logo sits in the flow, no overlap with the title ---- */
+html body #onboarding-overlay .onboarding-card,
+html body #onboarding-overlay[data-ctx] .onboarding-card{padding:28px 24px 26px !important;align-items:flex-start !important;text-align:left !important;overflow:hidden}
+html body #onboarding-overlay[data-ctx] .onboarding-card::before{display:none !important}
+html body #onboarding-overlay .onboarding-logo,
+html body #onboarding-overlay[data-ctx] .onboarding-logo{position:relative !important;inset:auto !important;top:auto !important;left:auto !important;right:auto !important;margin:0 0 10px !important;width:64px !important;height:64px !important;border:0 !important;border-radius:18px !important;box-shadow:none !important;overflow:hidden !important;z-index:auto !important;background:transparent !important}
+html body #onboarding-overlay .onboarding-logo img,
+html body #onboarding-overlay .onboarding-logo svg{width:100% !important;height:100% !important;object-fit:contain !important;border-radius:0 !important}
+html body #onboarding-overlay .onboarding-logo-status{margin:0 0 8px !important}
+html body #onboarding-overlay .onboarding-title,
+html body #onboarding-overlay[data-ctx] .onboarding-title{font-size:28px !important;line-height:1.15 !important;margin:0 0 4px !important}
+html body #onboarding-overlay .onboarding-sub{margin:10px 0 22px !important}
+html body #onboarding-overlay .ob-plate{min-height:56px;overflow:hidden}
+html body #onboarding-overlay #onboard-telegram-widget{width:100%;max-width:100%;overflow:hidden}
+html body #onboarding-overlay #onboard-telegram-widget iframe{max-width:100% !important}
+
+/* ---- Game + Voucher names: one clean style, 2 lines, no clipping, no pill ---- */
+html body :is(#home,#voucher,#server-select,.content-area) :is(.game-card,.voucher-card,.popular-card) :is(.game-card-name,.voucher-card-name){display:-webkit-box !important;-webkit-box-orient:vertical !important;-webkit-line-clamp:2 !important;white-space:normal !important;overflow:hidden !important;text-overflow:ellipsis !important;width:100% !important;height:auto !important;min-height:2.6em !important;max-height:2.6em !important;line-height:1.3 !important;margin:7px 0 0 !important;padding:0 4px !important;background:none !important;border:0 !important;border-radius:0 !important;box-shadow:none !important;color:var(--text,#0F172A) !important;font-size:11.5px !important;font-weight:600 !important;text-align:center !important;word-break:break-word !important;box-sizing:border-box !important}
+/* provider tag: small square chip in the top-right corner instead of a round pill over the artwork */
+html body :is(.game-card,.voucher-card,.popular-card) .gc-badges{left:auto !important;right:6px !important;bottom:auto !important;top:6px !important}
+html body :is(.game-card,.voucher-card,.popular-card) .gc-b.gc-p{border-radius:6px !important;padding:2px 6px !important;font-size:9px !important;font-weight:600 !important;letter-spacing:.3px;line-height:1.3 !important;background:rgba(15,23,42,.66) !important;color:#fff !important;border:0 !important;box-shadow:none !important;backdrop-filter:none !important;-webkit-backdrop-filter:none !important}
+
+/* ---- Search: nothing found -> centered card ---- */
+html body #all-games-grid:has(> .empty-state){display:flex !important;justify-content:center !important;align-items:center !important;width:100% !important}
+html body :is(#all-games-grid,#voucher-games-grid) .empty-state{grid-column:1 / -1 !important;flex:1 1 100% !important;width:100% !important;max-width:none !important;min-height:260px;margin:0 auto !important;display:flex !important;flex-direction:column !important;align-items:center !important;justify-content:center !important;text-align:center !important;gap:6px !important;padding:36px 20px 32px !important;background:none !important;border:0 !important;box-shadow:none !important}
+html body :is(#all-games-grid,#voucher-games-grid) .empty-state-icon{width:84px !important;height:84px !important;margin:0 0 14px !important;box-shadow:0 0 0 10px rgba(37,87,245,.08),0 12px 24px -10px rgba(37,87,245,.45) !important}
+html body :is(#all-games-grid,#voucher-games-grid) .empty-state-icon svg{width:34px !important;height:34px !important}
+html body :is(#all-games-grid,#voucher-games-grid) .empty-state-title{font-size:17px !important;font-weight:700 !important;color:var(--text,#0F172A) !important;text-align:center !important}
+html body :is(#all-games-grid,#voucher-games-grid) .empty-state-sub{font-size:13px !important;line-height:1.5 !important;max-width:280px !important;text-align:center !important;color:var(--text-secondary,#64748B) !important;word-break:break-word}
+html body .empty-clear-btn{display:inline-flex;align-items:center;justify-content:center;padding:8px 18px;border-radius:999px;border:1px solid rgba(37,87,245,.25);background:rgba(37,87,245,.08);color:#1F4DE0;font-size:13px;font-weight:600;cursor:pointer;-webkit-tap-highlight-color:transparent}
+html body .empty-clear-btn:active{transform:scale(.96)}
+
+/* ---- Name Check: Name + verified badge + (Region) ---- */
+html body .id-result-name.nc-name-row{display:flex !important;flex-wrap:wrap !important;align-items:center !important;gap:3px 6px !important;white-space:normal !important;overflow:visible !important;text-overflow:clip !important}
+html body .nc-name-row .nc-n{font-weight:600;word-break:break-word;min-width:0}
+html body .nc-name-row .nc-vb{display:inline-flex;flex:none}
+html body .nc-name-row .nc-vb .verified-badge{width:16px;height:16px}
+html body .nc-name-row .nc-region{font-size:12.5px;font-weight:500;color:var(--text-secondary,#64748B)}
+}
+</style>
+<style id="pca-glass-1113">
+@layer pcatabs{
+html body header.header:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8):not(#lg9):not(#lg10):not(#lg11):not(#lg12):not(#lg13):not(#lg14):not(#lg15):not(#lg16):not(#lg17):not(#lg18):not(#lg19):not(#lg20):not(#lg21):not(#lg22):not(#lg23):not(#lg24),
+html body header#app-header.header:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8):not(#lg9):not(#lg10):not(#lg11):not(#lg12):not(#lg13):not(#lg14):not(#lg15):not(#lg16):not(#lg17):not(#lg18):not(#lg19):not(#lg20):not(#lg21):not(#lg22):not(#lg23):not(#lg24){background:transparent !important;background-image:none !important;border:0 !important;box-shadow:none !important;outline:0 !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important}
+html body .htabs-wrap .htabs:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8):not(#lg9):not(#lg10):not(#lg11):not(#lg12):not(#lg13):not(#lg14):not(#lg15):not(#lg16):not(#lg17):not(#lg18):not(#lg19):not(#lg20):not(#lg21):not(#lg22):not(#lg23):not(#lg24),
+html body .htabs:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8):not(#lg9):not(#lg10):not(#lg11):not(#lg12):not(#lg13):not(#lg14):not(#lg15):not(#lg16):not(#lg17):not(#lg18):not(#lg19):not(#lg20):not(#lg21):not(#lg22):not(#lg23):not(#lg24){background:linear-gradient(135deg,rgba(255,255,255,.66),rgba(255,255,255,.42)) !important;border:1px solid rgba(255,255,255,.72) !important;box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 -1px 0 rgba(255,255,255,.35),0 10px 30px -12px rgba(40,60,140,.30) !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important}
+html body nav#bottom-nav.bottom-nav:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8):not(#lg9):not(#lg10):not(#lg11):not(#lg12):not(#lg13):not(#lg14):not(#lg15):not(#lg16):not(#lg17):not(#lg18):not(#lg19):not(#lg20):not(#lg21):not(#lg22):not(#lg23):not(#lg24)::before,
+html body nav.bottom-nav:not(#lg1):not(#lg2):not(#lg3):not(#lg4):not(#lg5):not(#lg6):not(#lg7):not(#lg8):not(#lg9):not(#lg10):not(#lg11):not(#lg12):not(#lg13):not(#lg14):not(#lg15):not(#lg16):not(#lg17):not(#lg18):not(#lg19):not(#lg20):not(#lg21):not(#lg22):not(#lg23):not(#lg24)::before{background:linear-gradient(160deg,rgba(255,255,255,.95),rgba(240,245,255,.92)) !important;box-shadow:inset 0 1px 0 rgba(255,255,255,.95),inset 0 0 0 1px rgba(255,255,255,.6) !important;-webkit-backdrop-filter:none !important;backdrop-filter:none !important}
+}
+</style>
+<style id="pca-name-marquee-css">
+html body #profile .pc-name-row .profile-hero-name{font-size:14px !important;font-weight:700 !important;min-width:0;text-overflow:clip !important;overflow:hidden !important;white-space:nowrap !important}
+html body #profile .pc-name-row .profile-hero-name .pca-mq-in{display:inline-block;padding-left:100%;white-space:nowrap;will-change:transform;animation:pcaNameMq var(--mq-dur,8s) linear infinite}
+@keyframes pcaNameMq{from{transform:translateX(0)}to{transform:translateX(-100%)}}
+@media (prefers-reduced-motion:reduce){
+html body #profile .pc-name-row .profile-hero-name{text-overflow:ellipsis !important}
+html body #profile .pc-name-row .profile-hero-name .pca-mq-in{animation:none;padding-left:0}
+}
+</style>
+<script id="pca-name-marquee-js">
+(function(){
+ var el=document.getElementById('profile-hero-name');if(!el)return;
+ var SPEED=40,busy=false,raf=0,mo;
+ function reduced(){return window.matchMedia&&matchMedia('(prefers-reduced-motion:reduce)').matches}
+ function run(){
+  raf=0;if(busy)return;busy=true;if(mo)mo.disconnect();
+  try{
+   var W=el.clientWidth;
+   if(W>0&&!reduced()){
+    var wrapped=el.firstElementChild&&el.firstElementChild.classList.contains('pca-mq-in');
+    var raw=el.textContent,tw;
+    if(wrapped){tw=el.firstElementChild.firstElementChild.offsetWidth}else{tw=el.scrollWidth}
+    var over=wrapped?tw>W+1:tw>W+1;
+    if(over&&!wrapped){
+     var o=document.createElement('span');o.className='pca-mq-in';
+     var t=document.createElement('span');t.textContent=raw;o.appendChild(t);
+     el.textContent='';el.appendChild(o);tw=t.offsetWidth;wrapped=true;
+    }else if(!over&&wrapped){el.textContent=raw;wrapped=false}
+    if(wrapped){el.firstElementChild.style.setProperty('--mq-dur',((W+tw)/SPEED).toFixed(2)+'s')}
+   }
+  }catch(e){}
+  busy=false;
+  if(mo)mo.observe(el,{childList:true,characterData:true,subtree:true});
+ }
+ function later(){if(!raf)raf=requestAnimationFrame(run)}
+ mo=new MutationObserver(later);
+ mo.observe(el,{childList:true,characterData:true,subtree:true});
+ if(window.ResizeObserver)new ResizeObserver(later).observe(el);
+ window.addEventListener('resize',later);
+ if(document.fonts&&document.fonts.ready)document.fonts.ready.then(later);
+ later();
+})();
+</script>
+<style id="pca-square-toggle-css">
+html body #profile .prefs-tile .pca-chk:not(#s1):not(#s2):not(#s3):not(#s4):not(#s5):not(#s6){display:grid !important;place-items:center !important;position:relative !important;flex:none !important;box-sizing:border-box !important;width:28px !important;height:28px !important;min-width:28px !important;padding:0 !important;border-radius:8px !important;border:2px solid #9AA3B8 !important;background:#fff !important;transition:background-color .15s ease,border-color .15s ease !important}
+html body #profile .prefs-tile .pca-chk:not(#s1):not(#s2):not(#s3):not(#s4):not(#s5):not(#s6)::after{display:none !important;content:none !important}
+html body #profile .prefs-tile .pca-chk:not(#s1):not(#s2):not(#s3):not(#s4):not(#s5):not(#s6) svg{display:block !important;width:18px !important;height:18px !important;fill:none !important;stroke:#fff !important;stroke-width:3.2 !important;stroke-linecap:round !important;stroke-linejoin:round !important;opacity:0 !important;transform:scale(.6) !important;transition:opacity .15s ease,transform .15s ease !important}
+html body #profile .prefs-tile .pca-chk.on:not(#s1):not(#s2):not(#s3):not(#s4):not(#s5):not(#s6),
+html body #profile .prefs-tile .pca-chk[aria-checked="true"]:not(#s1):not(#s2):not(#s3):not(#s4):not(#s5):not(#s6){background:var(--pca-acc,#2557F5) !important;border-color:var(--pca-acc,#2557F5) !important}
+html body #profile .prefs-tile .pca-chk.on:not(#s1):not(#s2):not(#s3):not(#s4):not(#s5):not(#s6) svg,
+html body #profile .prefs-tile .pca-chk[aria-checked="true"]:not(#s1):not(#s2):not(#s3):not(#s4):not(#s5):not(#s6) svg{opacity:1 !important;transform:none !important}
+html body #profile .prefs-tile .pca-chk.blocked:not(#s1):not(#s2):not(#s3):not(#s4):not(#s5):not(#s6){opacity:.5 !important}
+</style>
+<style id="pca-qr-square-css">
+html body .pmx-qrbox:not(#s1):not(#s2):not(#s3):not(#s4):not(#s5):not(#s6){width:min(100%,300px,calc(100vw - 96px)) !important;max-width:100% !important;height:auto !important;aspect-ratio:1/1 !important;padding:6px !important;box-sizing:border-box !important;border-radius:10px !important;overflow:visible !important}
+html body .pmx-qrbox:not(#s1):not(#s2):not(#s3):not(#s4):not(#s5):not(#s6) .pmx-qr{width:100% !important;height:100% !important;object-fit:contain !important;border-radius:5px !important}
+html body .pmx-qrbox:not(#s1):not(#s2):not(#s3):not(#s4):not(#s5):not(#s6) i{border-radius:0 !important;width:16px !important;height:16px !important}
+html body .pmx-qrcard:not(#s1):not(#s2):not(#s3):not(#s4):not(#s5):not(#s6){width:clamp(130px,44vw,200px) !important;height:auto !important;aspect-ratio:1/1 !important;padding:6px !important;box-sizing:border-box !important;border-radius:10px !important}
+html body .pmx-qrcard:not(#s1):not(#s2):not(#s3):not(#s4):not(#s5):not(#s6) .pmx-qr{width:100% !important;height:100% !important;object-fit:contain !important;border-radius:5px !important}
+html body .slide-confirm-wrap,html body .slide-confirm-thumb{touch-action:none !important;overscroll-behavior:contain}
+</style>
+<script id="pca-restore-js">
+(function(){
+ var K='pca_last_page',GATED=['history','wallet','profile'],OK=['home','voucher','name-check','history','wallet','profile'],last='',touched=false;
+ function cur(){var p=window.currentStorePage||'home';return OK.indexOf(p)>-1?p:null}
+ function save(){
+  var p=cur();if(!p)return;
+  var h=document.body.getAttribute('data-htab')==='game'?'game':'popular';
+  var v=p+'|'+h;if(v===last)return;last=v;
+  try{localStorage.setItem(K,JSON.stringify({p:p,h:h,t:Date.now()}))}catch(e){}
+ }
+ setInterval(save,800);
+ document.addEventListener('visibilitychange',function(){if(document.hidden)save()});
+ window.addEventListener('pagehide',save);
+ ['pointerdown','touchstart'].forEach(function(ev){document.addEventListener(ev,function(){touched=true},{once:true,passive:true,capture:true})});
+ var saved=null;
+ try{saved=JSON.parse(localStorage.getItem(K)||'null')}catch(e){}
+ if(!saved||!saved.p||saved.p==='home'&&saved.h!=='game')return;
+ if(OK.indexOf(saved.p)<0)return;
+ var tries=0,iv=setInterval(function(){
+  tries++;
+  if(touched||tries>30||(window.currentStorePage&&window.currentStorePage!=='home')){clearInterval(iv);return}
+  if(typeof window.showPage!=='function')return;
+  if(GATED.indexOf(saved.p)>-1){
+   if(typeof window.isSignedOut!=='function'||window.isSignedOut())return;
+  }
+  clearInterval(iv);
+  try{
+   if(saved.p==='home'){if(window.pcaHomeTab)window.pcaHomeTab(saved.h)}
+   else window.showPage(saved.p);
+  }catch(e){}
+ },300);
+})();
+</script>
+<style id="pca-logo-link-css">html body header#app-header .header-brand{cursor:pointer;-webkit-tap-highlight-color:transparent}</style>
+<script id="pca-logo-link-js">
+(function(){
+ var URL='https://t.me/pcagamestore',b=document.querySelector('#app-header .header-brand');
+ if(!b)return;
+ b.setAttribute('role','link');b.setAttribute('tabindex','0');
+ function go(e){
+  if(e){e.preventDefault();e.stopPropagation()}
+  try{var w=window.Telegram&&window.Telegram.WebApp;if(w&&w.openTelegramLink){w.openTelegramLink(URL);return}}catch(x){}
+  var a=window.open(URL,'_blank','noopener');if(!a)location.href=URL;
+ }
+ b.addEventListener('click',go);
+ b.addEventListener('keydown',function(e){if(e.key==='Enter'||e.key===' ')go(e)});
+})();
+</script>
+<style id="pcsk-css">
+@keyframes pcskShim{0%{background-position:200% 0}100%{background-position:-200% 0}}
+.pcsk{display:block;width:100%;box-sizing:border-box;pointer-events:none}
+.pcsk[hidden]{display:none!important}
+.pcsk .b{background:linear-gradient(90deg,#E8ECF4 25%,#F6F8FC 50%,#E8ECF4 75%) 0 0/200% 100%;animation:pcskShim 1.3s linear infinite;border-radius:12px}
+.pcsk .c{background:#fff;border:1px solid rgba(120,140,200,.16);border-radius:20px;padding:14px;margin-bottom:12px;box-sizing:border-box}
+.pcsk .r{display:flex;align-items:center;gap:12px}
+.pcsk .av{width:64px;height:64px;border-radius:50%;flex:none}
+.pcsk .col{flex:1;min-width:0;display:flex;flex-direction:column;gap:8px}
+.pcsk .l1{height:14px;width:55%}.pcsk .l2{height:11px;width:38%}.pcsk .l3{height:11px;width:80%}
+.pcsk .big{height:26px;width:46%}
+.pcsk .btn-s{height:38px;width:92px;border-radius:14px;flex:none}
+.pcsk .g2{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:12px}
+.pcsk .st{height:52px;border-radius:14px}
+.pcsk .ic{width:40px;height:40px;border-radius:50%;flex:none}
+.pcsk .row{height:64px;border-radius:18px;margin-bottom:10px}
+.pcsk .g3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px}
+.pcsk .pk{aspect-ratio:1/1.05;border-radius:18px}
+html.pcsk-profile #profile>:not(.title-header):not(.pcsk):not(.modal-overlay){display:none!important}
+@media(prefers-reduced-motion:reduce){.pcsk .b{animation:none}}
+</style>
+<script id="pcsk-js">
+(function(){
+  var B=function(c){return '<div class="b '+c+'"></div>'};
+  var T={
+    profile:'<div class="c"><div class="r">'+B('av')+'<div class="col">'+B('l1')+B('l2')+'</div></div>'+
+      '<div class="r" style="margin-top:16px;justify-content:space-between"><div class="col" style="flex:1">'+B('l2')+B('big')+'</div>'+B('btn-s')+'</div>'+
+      '<div class="g2">'+B('st')+B('st')+'</div></div>'+
+      '<div class="c">'+B('l1')+'<div style="height:12px"></div>'+B('row')+B('row')+B('row')+'</div>',
+    list:B('row')+B('row')+B('row')+B('row'),
+    txn:'<div class="r" style="margin-bottom:12px">'+B('ic')+'<div class="col">'+B('l1')+B('l3')+'</div></div>'+
+        '<div class="r" style="margin-bottom:12px">'+B('ic')+'<div class="col">'+B('l1')+B('l3')+'</div></div>'+
+        '<div class="r">'+B('ic')+'<div class="col">'+B('l1')+B('l3')+'</div></div>',
+    pk:'<div class="g3">'+B('pk')+B('pk')+B('pk')+B('pk')+B('pk')+B('pk')+'</div>'
+  };
+  function q(id){return document.getElementById(id)}
+  function loggedOut(){return document.documentElement.classList.contains('logged-out')}
+  function hid(el){return !el||el.style.display==='none'}
+  var defs=[
+    {id:'profile',page:'profile',tpl:'profile',mode:'page',
+     done:function(){var n=q('profile-hero-name');var t=n&&n.textContent.trim();return !!t&&t!=='Guest'}},
+    {id:'wallet-topup-list',page:'wallet',tpl:'txn',mode:'before',
+     done:function(){var a=q('wallet-topup-list'),b=q('wallet-txn-list'),e=q('wallet-topup-empty');
+       return (a&&a.children.length>0)||(b&&b.children.length>0)||(e&&!hid(e))}},
+    {id:'history-container',page:'history',tpl:'list',mode:'before',
+     done:function(){var a=q('history-container');return !!a&&a.children.length>0}},
+    {id:'notif-page-list',page:'notif-page',tpl:'list',mode:'before',
+     done:function(){var a=q('notif-page-list');return !!a&&a.children.length>0}},
+    {id:'detail-package-list',page:'game-detail',tpl:'pk',mode:'before',
+     done:function(){var a=q('detail-package-list');return !!a&&a.children.length>0}}
+  ];
+  defs.forEach(function(d){d.el=null;d.t0=0;d.gaveUp=false;d.was=false});
+  function ensure(d){
+    if(d.el&&d.el.isConnected)return d.el;
+    var host=q(d.page);if(!host)return null;
+    var el=document.createElement('div');el.className='pcsk';el.hidden=true;el.setAttribute('aria-hidden','true');el.innerHTML=T[d.tpl];
+    if(d.mode==='page'){var h=host.querySelector('.title-header');(h&&h.nextSibling)?host.insertBefore(el,h.nextSibling):host.appendChild(el)}
+    else{var t=q(d.id);if(!t||!t.parentNode)return null;t.parentNode.insertBefore(el,t)}
+    d.el=el;return el;
+  }
+  function tick(){
+    var anyProfile=false;
+    defs.forEach(function(d){
+      var host=q(d.page);if(!host)return;
+      var active=host.classList.contains('active');
+      var show=false;
+      if(active&&!(loggedOut()&&d.page!=='game-detail')){
+        if(!d.done()){
+          if(!d.t0)d.t0=Date.now();
+          if(Date.now()-d.t0<12000)show=true;
+        }else{d.t0=0}
+      }else{d.t0=0}
+      var el=ensure(d);if(!el)return;
+      if(el.hidden===show)el.hidden=!show;
+      if(d.page==='profile'&&show)anyProfile=true;
+    });
+    document.documentElement.classList.toggle('pcsk-profile',anyProfile);
+  }
+  setInterval(tick,250);
+  document.addEventListener('DOMContentLoaded',tick);
+  tick();
+})();
+</script>
+
 </body>
 </html>
