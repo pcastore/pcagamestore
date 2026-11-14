@@ -1538,7 +1538,7 @@ b,strong{font-weight:600}}
 
         <!-- PROFILE PAGE (saved locally on this device, photo uploaded via Worker) -->
         <div id="profile" class="page-section">
-            <h2 class="title-header" data-i18n="title_profile">My Profile</h2>
+            <h2 class="title-header pca-has-back"><span class="pca-back-btn" role="button" tabindex="0" aria-label="Back" onclick="pcaGoBack()"><svg class="ui-icon"><use href="#icon-chevron-left"></use></svg></span><span data-i18n="title_profile">My Profile</span></h2>
             <div class="auth-gate">
                 <div class="auth-gate-icon"><svg class="ui-icon" style="width:26px;height:26px;"><use href="#icon-user"></use></svg></div>
                 <h3>Login required</h3>
@@ -2679,6 +2679,22 @@ b,strong{font-weight:600}}
             window.__suppressNextCardClick = false; /* FIX: stale flag could swallow the next game-card tap */
             document.documentElement.classList.remove('pca-gliding');
             if (window.__pcaGlide) window.__pcaGlide.on = false;
+            {
+                // Back-trail of main tabs (Home is the implicit root): Home -> History -> Wallet -> Profile
+                // must unwind Profile -> Wallet -> History -> Home one step per Back press.
+                const prevPage = window.currentStorePage;
+                const TRAIL_TABS = ['voucher', 'name-check', 'history', 'wallet', 'profile'];
+                if (!window.__pcaBackNav && prevPage && prevPage !== pageId) {
+                    const tr = window.__pcaTrail || (window.__pcaTrail = []);
+                    if (pageId === 'home') tr.length = 0;
+                    else if (TRAIL_TABS.includes(pageId)) {
+                        const idx = tr.lastIndexOf(pageId);
+                        if (idx !== -1) tr.length = idx; // going back to a tab already in the trail: cut back to it
+                        if (TRAIL_TABS.includes(prevPage) && tr[tr.length - 1] !== prevPage) tr.push(prevPage);
+                        if (tr.length > 12) tr.splice(0, tr.length - 12);
+                    }
+                }
+            }
             window.currentStorePage = pageId;
             // Signed-out visitors: nothing account-related is read or shown, only the login form.
             if (['history', 'wallet', 'profile'].includes(pageId) && window.isSignedOut && window.isSignedOut()) {
@@ -7295,8 +7311,11 @@ b,strong{font-weight:600}}
             if (window.renderMiniProfile) { try { window.renderMiniProfile(); } catch (e) {} }
             if (!overlay) return;
             if (user) {
+                const justSignedIn = loginFormRequested; // true only when the login form was open (a fresh sign-in), not on a normal session restore
                 loginFormRequested = false;
                 overlay.style.display = 'none';
+                // Fresh sign-in from the login form: always land on Home.
+                if (justSignedIn && window.showPage) { window.__pendingPage = null; window.showPage('home'); return; }
                 // Logged in: open the account page they were trying to reach (or reload the current one).
                 const pend = window.__pendingPage; window.__pendingPage = null;
                 if (pend && window.showPage) window.showPage(pend);
@@ -7354,6 +7373,10 @@ b,strong{font-weight:600}}
         }
         onAuthStateChanged(auth, async (user) => {
             markAuthResolved();
+            // Signed in: drop the login form + open the page they wanted RIGHT NOW. The ban check and
+            // customer-ID registration below can take many seconds on a slow connection (or hang), and
+            // used to leave the Login form stuck on screen until they finished.
+            if (user) { try { handleOnboardAuthState(user); } catch (e) { console.error('onboard close', e); } }
             // This sign-in has no Worker-verified ID on this device yet: flag it BEFORE anything renders, so no stale ID shows,
             // and start the registration (the same promise is reused by applyGoogleProfile / applyTelegramProfile).
             if (user && needsRegistration(user)) {
@@ -7377,7 +7400,14 @@ b,strong{font-weight:600}}
             // localStorage and never re-runs applyGoogleProfile on its own.
             if (user) {
                 const myGid = window.getGuestId ? window.getGuestId() : null;
-                if (await enforceGoogleAccountBan(user, myGid)) return;
+                let banned = false;
+                try {
+                    banned = await Promise.race([
+                        enforceGoogleAccountBan(user, myGid),
+                        new Promise((res) => setTimeout(() => res(false), 8000))
+                    ]);
+                } catch (e) { console.error('ban check', e); }
+                if (banned) return;
             }
             renderGoogleAccountUI(user);
             // Signed in but this device has no customer ID yet (earlier registration failed / was interrupted): finish it now.
@@ -7385,7 +7415,7 @@ b,strong{font-weight:600}}
                 window.__gpBusy = true;
                 try { await applyGoogleProfile(user); } catch (e) { console.error(e); } finally { window.__gpBusy = false; }
             }
-            if (window.loadProfileStats) window.loadProfileStats();
+            try { if (window.loadProfileStats) window.loadProfileStats(); } catch (e) { console.error(e); }
             handleOnboardAuthState(user);
             if (user && walletGatePending) {
                 walletGatePending = false;
@@ -10518,6 +10548,19 @@ b,strong{font-weight:600}}
         }
         function handleBackButton() {
             const isShown = (id) => document.getElementById(id)?.classList.contains('show');
+            // Top-most layers first: login form, welcome card, order result popups.
+            const ob = document.getElementById('onboarding-overlay');
+            if (ob && ob.style.display === 'flex' && window.closeLoginOverlay) return window.closeLoginOverlay();
+            if (isShown('pca-welcome') && window.pcaWelcomeClose) return window.pcaWelcomeClose();
+            if (isShown('success-overlay')) return closeSuccessOverlay();
+            for (const oid of ['order-ok-overlay', 'order-review-overlay', 'acp-overlay']) {
+                const ov = document.getElementById(oid);
+                if (ov && ov.classList.contains('show')) {
+                    const cb = ov.querySelector('[onclick*="close"],.modal-close,[data-close]');
+                    if (cb) cb.click(); else ov.classList.remove('show');
+                    return;
+                }
+            }
             if (isShown('order-detail-overlay')) return closeOrderDetail();
             if (isShown('wallet-topup-detail-overlay')) return closeWalletTopupDetail();
             if (isShown('wallet-google-gate-overlay')) return closeWalletGoogleGate();
@@ -10530,11 +10573,18 @@ b,strong{font-weight:600}}
             if (page === 'notif-detail' && window.closeNotificationDetail) return closeNotificationDetail();
             if (page === 'notif-page' && window.closeNotificationsPage) return closeNotificationsPage();
             if (page === 'terms' && window.closeTermsPage) return closeTermsPage();
-            // Otherwise, step back to the Home tab instead of exiting.
-            if (page && page !== 'home' && window.showPage) return showPage('home');
+            // Main tabs: go back to the tab they came from (one step), Home when the trail is empty.
+            if (page && page !== 'home' && window.showPage) {
+                const tr = window.__pcaTrail || [];
+                const prev = tr.length ? tr.pop() : 'home';
+                window.__pcaBackNav = true;
+                try { showPage(prev); } finally { window.__pcaBackNav = false; }
+                return;
+            }
             // Already on Home with nothing open - nothing left to unwind
             // in-app; the guard entry re-pushed below just keeps the app open.
         }
+        window.pcaGoBack = handleBackButton;
         window.addEventListener('popstate', () => {
             handleBackButton();
             pushBackGuard();
@@ -10639,7 +10689,7 @@ b,strong{font-weight:600}}
                 if (chevron) chevron.style.transform = opening ? 'rotate(90deg)' : 'rotate(0deg)';
             };
         }
-        window.gzHapticOn = function () { return false; }; /* vibration temporarily disabled */
+        window.gzHapticOn = function () { try { return localStorage.getItem('gz_haptic') === '1'; } catch (e) { return false; } }; /* off until the user switches Haptic on in Profile > Settings */
         // 1) Capacitor native shell -> Haptics plugin (works on Android + iOS, needs @capacitor/haptics in the shell)
         // 2) Android browser/WebView -> navigator.vibrate (durations floored: <20ms pulses are not felt on most phones)
         // 3) iOS Safari 17.4+ -> hidden <input type=checkbox switch> label click (no vibrate API on iOS)
@@ -16810,6 +16860,61 @@ html body :is(#home,#voucher,#server-select,.page-section,.content-area) :is(.ga
 /* no extra space under the name: card hugs its content, tighter row gap */
 html body :is(#home,#voucher,#server-select,.page-section,.content-area) .cards-grid > .game-card:not(#z1):not(#z2):not(#z3){padding-bottom:0 !important;min-height:0 !important;height:auto !important}
 html body :is(#home,#voucher,#server-select,.page-section,.content-area) .cards-grid:not(#z1):not(#z2):not(#z3){row-gap:10px !important;align-items:start !important}
+}
+</style>
+
+<style id="pca-profile-fix2">
+@layer pcatabs{
+html body #profile>.detail-form-card::before,html body #profile>.detail-form-card::after{display:none !important;content:none !important}
+html body #profile>.detail-form-card{margin:10px 0 0 !important}
+}
+</style>
+
+<style id="pca-profile-back">
+@layer pcatabs{
+html body #profile>.title-header.pca-has-back{gap:10px !important}
+html body #profile>.title-header.pca-has-back::before{display:none !important}
+html body .pca-back-btn{flex:none !important;width:38px !important;height:38px !important;display:inline-flex !important;align-items:center !important;justify-content:center !important;border-radius:50% !important;background:#fff !important;border:1px solid #E3E8F0 !important;box-shadow:0 2px 8px -4px rgba(25,50,120,.25) !important;color:#1F4DE0 !important;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:transform .12s ease,background .12s ease}
+html body .pca-back-btn:active{transform:scale(.92) !important;background:#EEF3FF !important}
+html body .pca-back-btn .ui-icon{width:20px !important;height:20px !important;stroke:#1F4DE0 !important;color:#1F4DE0 !important;fill:none !important}
+}
+</style>
+
+<style id="pca-square-switch">
+@layer pcatabs{
+/* square (rounded-rectangle) switches */
+html body #profile .prefs-tile .pca-chk{width:50px !important;min-width:50px !important;height:28px !important;border-radius:8px !important;background:#C9D0DE !important;box-shadow:inset 0 0 0 1px rgba(15,23,42,.06) !important;transition:background-color .18s ease !important}
+html body #profile .prefs-tile .pca-chk::before{display:none !important;content:none !important}
+html body #profile .prefs-tile .pca-chk::after{content:"" !important;position:absolute !important;top:3px !important;left:3px !important;width:22px !important;height:22px !important;border-radius:6px !important;background:#fff !important;box-shadow:0 1px 3px rgba(15,23,42,.35) !important;transform:none !important;transition:transform .18s ease !important}
+html body #profile .prefs-tile .pca-chk.on{background:var(--pca-acc,#2557F5) !important}
+html body #profile .prefs-tile .pca-chk.on::after{transform:translateX(22px) !important}
+html body #profile .prefs-tile .pca-chk svg{display:none !important}
+html body #profile .prefs-tile .lang-toggle-btn{border-radius:11px !important}
+html body #profile .prefs-tile .lang-toggle-btn :is(img,svg,.lang-toggle-flag){border-radius:0 !important}
+/* decorative gloss circles on the settings rows were drawing over the switches */
+html body #profile .prefs-tile::before,html body #profile .prefs-tile::after{display:none !important;content:none !important}
+}
+</style>
+
+<style id="pca-voucher-name-chip">
+@layer pcatabs{
+/* Voucher / Top Up grids: same glossy light-blue name chip as Popular Games */
+html body :is(#home,#voucher,#server-select,.page-section,.content-area) :is(.voucher-card,.popular-voucher-card) .voucher-card-name{
+  position:relative !important;display:-webkit-box !important;-webkit-box-orient:vertical !important;-webkit-line-clamp:2 !important;
+  overflow:hidden !important;text-overflow:ellipsis !important;white-space:normal !important;word-break:break-word !important;
+  box-sizing:border-box !important;width:calc(100% - 6px) !important;height:auto !important;min-height:0 !important;max-height:none !important;line-height:1.2 !important;
+  margin:5px auto 0 !important;padding:3px 5px 4px !important;
+  font-size:9px !important;font-weight:600 !important;letter-spacing:.1px !important;text-align:center !important;color:#1E4BC4 !important;
+  background:linear-gradient(180deg,#F6FAFF 0%,#E0EDFF 52%,#CFE2FF 100%) !important;
+  border:1px solid rgba(110,165,255,.50) !important;border-radius:9px !important;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.98),inset 0 -2px 4px rgba(80,135,255,.16),0 3px 7px -3px rgba(60,115,245,.40) !important;
+  text-shadow:0 1px 0 rgba(255,255,255,.7) !important}
+html body :is(#home,#voucher,#server-select,.page-section,.content-area) :is(.voucher-card,.popular-voucher-card) .voucher-card-name::before{
+  content:"" !important;position:absolute !important;left:2px;right:2px;top:1px;height:46%;border-radius:8px 8px 14px 14px;
+  background:linear-gradient(180deg,rgba(255,255,255,.85),rgba(255,255,255,.08)) !important;pointer-events:none;display:block !important}
+/* cards hug their content (no empty strip under the name) */
+html body :is(#home,#voucher,#server-select,.page-section,.content-area) :is(.voucher-card,.popular-voucher-card){padding-bottom:6px !important;min-height:0 !important;height:auto !important}
+html body :is(#popular-vouchers-scroll,#voucher .cards-grid,#voucher .games-grid){align-items:start !important;row-gap:10px !important}
 }
 </style>
 </body>
